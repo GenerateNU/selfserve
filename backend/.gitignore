@@ -1,0 +1,4 @@
+/config/.env
+servergolangci-lint --version
+server
+.ds_store
