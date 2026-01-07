@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/generate/selfserve/internal/service/handler/hello"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -47,15 +48,15 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, config config.Config)
 	// Hello routes
 	app.Route("/hello", func(r fiber.Router) {
 		r.Get("/", helloHandler.GetHello)
-		r.Get("/:id", helloHandler.GetHelloName)
+		r.Get("/:name", helloHandler.GetHelloName)
 	})
 }
 
 // Initialize Fiber app with middlewares / configs
 func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		JSONEncoder: go_json.Marshal,
-		JSONDecoder: go_json.Unmarshal,
+		JSONEncoder: json.Marshal,
+		JSONDecoder: json.Unmarshal,
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())
