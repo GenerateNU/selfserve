@@ -6,6 +6,7 @@ import (
 
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/service/handler/hello"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -18,9 +19,11 @@ import (
 
 type App struct {
 	Server *fiber.App
+	Repo   *storage.Repository
 }
 
 func InitApp(ctx context.Context, cfg *config.Config) (*App, error) {
+	// Init DB/repository(ies)
 	app := setupApp()
 
 	// TODO: setup repo / DB accessor for CRUD operations
