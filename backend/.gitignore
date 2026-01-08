@@ -1,3 +1,19 @@
 /config/.env
-servergolangci-lint --version
-.ds_store
+.env
+.env.*
+*.log
+*.out
+coverage.*
+bin/
+dist/
+build/
+server
+vendor/
+go.work
+go.work.sum
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+tmp/

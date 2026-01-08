@@ -16,7 +16,7 @@ import (
 
 func main() {
 	// Load environment variables
-	err := godotenv.Load()
+	err := godotenv.Load("./config/.env")
 	if err != nil {
 		errs.FatalError("failed to load .env:", err)
 	}
@@ -40,6 +40,7 @@ func main() {
 		}
 	}()
 
+	// gracefully shutdown the server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
