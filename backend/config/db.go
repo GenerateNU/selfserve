@@ -11,7 +11,7 @@ type DB struct {
 	User            string        `env:"DB_USER, required"`                 // db user to connect with
 	Password        string        `env:"DB_PASSWORD, required"`             // db password to connect with
 	Name            string        `env:"DB_NAME, required"`                 // db name to connect to
-	MaxConns        int           `env:"DB_MAX_CONNS, default=8"`           // max number of connections to the database
+	MaxConns        int32         `env:"DB_MAX_CONNS, default=8"`           // max number of connections to the database
 	MaxConnLifetime time.Duration `env:"DB_MAX_CONN_LIFETIME, default=30s"` // max lifetime of a connection before automatically closing
 
 }

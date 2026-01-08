@@ -25,6 +25,10 @@ func ConnectDatabase(ctx context.Context, config config.DB) (*pgxpool.Pool, erro
 		return nil, err
 	}
 
+	// Apply connection pool configuration from config
+	dbConfig.MaxConns = config.MaxConns
+	dbConfig.MaxConnLifetime = config.MaxConnLifetime
+
 	conn, err := pgxpool.NewWithConfig(ctx, dbConfig)
 	if err != nil {
 		return nil, err
@@ -41,10 +45,12 @@ func ConnectDatabase(ctx context.Context, config config.DB) (*pgxpool.Pool, erro
 }
 
 func NewRepository(config config.DB) *Repository {
-	// db := ConnectDatabase(config)
+	db, err := ConnectDatabase(context.Background(), config)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
 
 	return &Repository{
-		// DB: db,
-		DB: nil,
+		DB: db,
 	}
 }
