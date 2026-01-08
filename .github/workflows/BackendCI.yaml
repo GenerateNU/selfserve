@@ -1,5 +1,4 @@
 name: Backend CI
-
 on:
   push:
     branches:
@@ -13,12 +12,10 @@ on:
     paths:
       - "backend/**"
       - ".github/workflows/BackendCI.yaml"
-
 permissions:
   contents: read
   checks: write
   pull-requests: write
-
 jobs:
   backend-lint:
     name: Lint
@@ -28,20 +25,17 @@ jobs:
         working-directory: ./backend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-go@v5
         with:
           go-version-file: './backend/go.mod'
           cache: true
           cache-dependency-path: './backend/go.sum'
-
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
           working-directory: ./backend
           args: --timeout=5m
-
   backend-test:
     name: Test
     runs-on: ubuntu-latest
@@ -50,16 +44,13 @@ jobs:
         working-directory: ./backend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-go@v5
         with:
           go-version-file: './backend/go.mod'
           cache: true
           cache-dependency-path: './backend/go.sum'
-
       - name: Run tests
-        run: go test -v -race ./...
-
+        run: make test
   backend-build:
     name: Build
     runs-on: ubuntu-latest
@@ -68,17 +59,20 @@ jobs:
         working-directory: ./backend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-go@v5
         with:
           go-version-file: './backend/go.mod'
           cache: true
           cache-dependency-path: './backend/go.sum'
-
-      - name: Build application
-        run: go build -v ./...
-
       - name: Verify go.mod is tidy
         run: |
           go mod tidy
           git diff --exit-code go.mod go.sum
+      - name: Build application
+        run: make build
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfserve-binary
+          path: backend/bin/selfserve
+          retention-days: 7
