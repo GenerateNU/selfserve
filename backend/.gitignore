@@ -17,3 +17,5 @@ go.work.sum
 *.swp
 *.swo
 tmp/
+.DS_Store
+**/.DS_Store
