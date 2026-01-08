@@ -1,7 +1,7 @@
 APP_NAME := selfserve
 CMD_PATH := ./cmd/server
 
-.PHONY: all build run dev test format tidy clean
+.PHONY: all build run dev test format tidy download clean
 
 all: build
 
@@ -22,6 +22,9 @@ format:
 
 tidy:
 	go mod tidy
+
+download:
+	go mod download
 
 clean:
 	rm -rf bin
