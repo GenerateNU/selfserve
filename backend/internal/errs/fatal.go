@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func Error(msg string, args ...any) {
+func FatalError(msg string, args ...any) {
 	slog.Error(msg, args...)
 	os.Exit(1)
 }

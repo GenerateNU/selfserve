@@ -1,17 +1,16 @@
 package main
 
 import (
-	"log"
-
 	"github.com/joho/godotenv"
-	"github.com/sethvargo/go-envconfig"
+
+	errs "github.com/generate/selfserve/internal/errs"
 )
 
 func main() {
 	// Load environment variables
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("failed to load .env:", err)
+		errs.FatalError("failed to load .env:", err)
 	}
 
 }
