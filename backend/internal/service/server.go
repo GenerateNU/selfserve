@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/service/handler/hello"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -16,25 +17,23 @@ import (
 )
 
 type App struct {
-	Config *fiber.App
-	Repo   *storage.Repository
+	Server *fiber.App
 }
 
-func InitApp(ctx context.Context, config *fiber.App, repo *storage.Repository) (*App, error) {
+func InitApp(ctx context.Context, cfg *config.Config) (*App, error) {
 	app := setupApp()
 
-	// TODO: setup repo for DB
-	repo := postgres.NewRepository(ctx, config.DB)
-	setupRoutes(app, repo, config)
+	// TODO: setup repo / DB accessor for CRUD operations
+	setupRoutes(app, cfg)
 
 	return &App{
-		Config: app,
-		Repo:   repo,
+		Server: app,
 	}, nil
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository, config config.Config) {
+// TODO: setup repo for DB, no DB accessor needed for these test routes yet
+func setupRoutes(app *fiber.App, cfg *config.Config) {
 
 	// initialize health check
 	app.Get("/health", func(c *fiber.Ctx) error {
