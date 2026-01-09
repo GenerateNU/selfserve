@@ -2,15 +2,16 @@ package storage
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/models"
+	"github.com/generate/selfserve/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DevsRepository interface {
-	GetAllDevs(ctx context.Context) (*[]models.AllDevsResponse, error)
+	GetMember(ctx context.Context, name string) (*models.Dev, error)
 }
 
 type Repository struct {
@@ -51,10 +52,12 @@ func (r *Repository) Close() error {
 func NewRepository(config config.DB) (*Repository, error) {
 	db, err := ConnectDatabase(context.Background(), config)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		// TODO: error handling
+		return nil, fmt.Errorf("connecting to database: %w", err)
 	}
 
 	return &Repository{
-		DB: db,
+		DB:             db,
+		DevsRepository: repository.NewDevsRepository(db),
 	}, nil
 }
