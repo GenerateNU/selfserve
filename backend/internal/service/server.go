@@ -40,9 +40,7 @@ func InitApp(ctx context.Context, cfg *config.Config) (*App, error) {
 
 }
 
-// TODO: setup repo for DB, no DB accessor needed for these test routes yet
 func setupRoutes(app *fiber.App, repo *storage.Repository) {
-
 	// initialize health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendStatus(http.StatusOK)
@@ -59,7 +57,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 
 	// dev table testing routes
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
-	app.Route("/devs", func(r fiber.Router) {
+	app.Route("/dev", func(r fiber.Router) {
 		r.Get("/", devsHandler.GetAll)
 	})
 }
