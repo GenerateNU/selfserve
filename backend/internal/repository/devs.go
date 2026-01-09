@@ -15,21 +15,14 @@ func NewDevsRepository(db *pgxpool.Pool) *DevsRepository {
 	return &DevsRepository{db: db}
 }
 
-func (r *DevsRepository) GetAll(ctx context.Context) (*[]models.AllDevsResponse, error) {
-	rows, err := r.db.Query(ctx, "SELECT * FROM devs")
+func (r *DevsRepository) GetMember(ctx context.Context, name string) (*models.AllDevsResponse, error) {
+	row := r.db.QueryRow(ctx, "SELECT * FROM devs WHERE name = $1 LIMIT 1", name)
+	var dev models.Devs
+	err := row.Scan(&dev.ID, &dev.CreatedAt, &dev.Member)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	var devs []models.AllDevsResponse
-	for rows.Next() {
-		var dev models.Devs
-		err = rows.Scan(&dev.ID, &dev.CreatedAt, &dev.Member)
-		if err != nil {
-			return nil, err
-		}
-		devs = append(devs, models.AllDevsResponse{Devs: []models.Devs{dev}})
-	}
-	return &devs, nil
+	return &models.AllDevsResponse{
+		Devs: []models.Devs{dev},
+	}, nil
 }

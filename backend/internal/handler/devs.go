@@ -13,8 +13,9 @@ func NewDevsHandler(repo *repository.DevsRepository) *DevsHandler {
 	return &DevsHandler{repo: repo}
 }
 
-func (h *DevsHandler) GetAll(c *fiber.Ctx) error {
-	devs, err := h.repo.GetAll(c.Context())
+func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
+	name := c.Params("name")
+	devs, err := h.repo.GetMember(c.Context(), name)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "failed to fetch devs" + err.Error(),
