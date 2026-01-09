@@ -7,7 +7,3 @@ type Dev struct {
 	CreatedAt time.Time `json:"created_at"`
 	Member    string    `json:"member"`
 }
-
-type AllDevsResponse struct {
-	Devs []Dev `json:"devs"`
-}
