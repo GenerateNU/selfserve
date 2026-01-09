@@ -15,11 +15,16 @@ func NewDevsHandler(repo *repository.DevsRepository) *DevsHandler {
 
 func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	name := c.Params("name")
+	if name == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "name is required",
+		})
+	}
 	devs, err := h.repo.GetMember(c.Context(), name)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to fetch devs" + err.Error(),
+			"error": "failed to fetch dev: " + err.Error(),
 		})
 	}
-	return c.JSON(devs)
+	return c.Status(fiber.StatusOK).JSON(devs)
 }
