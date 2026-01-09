@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/generate/selfserve/config"
-	"github.com/generate/selfserve/internal/service/handler/hello"
+	"github.com/generate/selfserve/internal/handler"
+	"github.com/generate/selfserve/internal/repository"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -18,13 +20,19 @@ import (
 
 type App struct {
 	Server *fiber.App
+	Repo   *storage.Repository
 }
 
 func InitApp(ctx context.Context, cfg *config.Config) (*App, error) {
+	// Init DB/repository(ies)
+	repo, err := storage.NewRepository(cfg.DB)
+	if err != nil {
+		return nil, err
+	}
+
 	app := setupApp()
 
-	// TODO: setup repo / DB accessor for CRUD operations
-	setupRoutes(app, cfg)
+	setupRoutes(app, repo)
 
 	return &App{
 		Server: app,
@@ -32,22 +40,25 @@ func InitApp(ctx context.Context, cfg *config.Config) (*App, error) {
 
 }
 
-// TODO: setup repo for DB, no DB accessor needed for these test routes yet
-func setupRoutes(app *fiber.App, cfg *config.Config) {
-
+func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// initialize health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendStatus(http.StatusOK)
 	})
 
 	// initialize handler(s)
-	helloHandler := hello.NewHandler()
+	helloHandler := handler.NewHelloHandler()
 
-	// setup routes
 	// Hello routes
 	app.Route("/hello", func(r fiber.Router) {
 		r.Get("/", helloHandler.GetHello)
 		r.Get("/:name", helloHandler.GetHelloName)
+	})
+
+	// dev table testing routes
+	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
+	app.Route("/devs", func(r fiber.Router) {
+		r.Get("/:name", devsHandler.GetMember)
 	})
 }
 

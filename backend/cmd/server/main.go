@@ -32,7 +32,7 @@ func main() {
 		log.Fatal("failed to initialize app:", err)
 	}
 
-	// TODO: defer closing of DB connection
+	defer app.Repo.Close()
 
 	go func() {
 		if err := app.Server.Listen(":" + cfg.Application.Port); err != nil {
