@@ -2,12 +2,12 @@ package models
 
 import "time"
 
-type Devs struct {
+type Dev struct {
 	ID        string    `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	Member    string    `json:"member"`
 }
 
 type AllDevsResponse struct {
-	Devs []Devs `json:"devs"`
+	Devs []Dev `json:"devs"`
 }
