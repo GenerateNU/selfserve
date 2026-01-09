@@ -39,10 +39,6 @@ func ConnectDatabase(ctx context.Context, config config.DB) (*pgxpool.Pool, erro
 		return nil, err
 	}
 
-	log.Printf("Connected to database! MaxConns: %d, MaxConnLifetime: %s", config.MaxConns, config.MaxConnLifetime)
-
-	log.Print("Connected to database!")
-
 	return conn, nil
 }
 
