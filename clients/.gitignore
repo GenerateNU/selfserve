@@ -1,0 +1,11 @@
+node_modules
+.DS_Store
+
+# env
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+*.pem
