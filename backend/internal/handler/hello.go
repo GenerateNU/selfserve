@@ -1,4 +1,4 @@
-package hello
+package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -7,7 +7,7 @@ import (
 type Handler struct {
 }
 
-func NewHandler() *Handler {
+func NewHelloHandler() *Handler {
 	return &Handler{}
 }
 

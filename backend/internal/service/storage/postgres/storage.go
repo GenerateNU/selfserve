@@ -5,17 +5,17 @@ import (
 	"log"
 
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Repository struct {
-	DB *pgxpool.Pool
+type DevsRepository interface {
+	GetAllDevs(ctx context.Context) (*[]models.AllDevsResponse, error)
 }
 
-// Closes the pooled connection / cleanup
-func (r *Repository) Close() error {
-	r.DB.Close()
-	return nil
+type Repository struct {
+	DB             *pgxpool.Pool
+	DevsRepository DevsRepository
 }
 
 // Establishes a sustained connection to the PostgreSQL database / pooling
@@ -39,12 +39,20 @@ func ConnectDatabase(ctx context.Context, config config.DB) (*pgxpool.Pool, erro
 		return nil, err
 	}
 
+	log.Printf("Connected to database! MaxConns: %d, MaxConnLifetime: %s", config.MaxConns, config.MaxConnLifetime)
+
 	log.Print("Connected to database!")
 
 	return conn, nil
 }
 
-func NewRepository(config config.DB) *Repository {
+// Closes the pooled connection / cleanup
+func (r *Repository) Close() error {
+	r.DB.Close()
+	return nil
+}
+
+func NewRepository(config config.DB) (*Repository, error) {
 	db, err := ConnectDatabase(context.Background(), config)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
@@ -52,5 +60,5 @@ func NewRepository(config config.DB) *Repository {
 
 	return &Repository{
 		DB: db,
-	}
+	}, nil
 }
