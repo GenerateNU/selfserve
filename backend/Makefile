@@ -1,7 +1,7 @@
 APP_NAME := selfserve
 CMD_PATH := ./cmd/server
 
-.PHONY: all build run dev test format tidy download clean
+.PHONY: all build run dev test format tidy download clean swagger swagger-fmt
 
 all: build
 
@@ -28,5 +28,11 @@ download:
 
 clean:
 	rm -rf bin
+
+swagger:
+	$(HOME)/go/bin/swag init -g cmd/server/main.go -o docs --parseDependency --parseInternal
+
+swagger-fmt:
+	$(HOME)/go/bin/swag fmt
 
 

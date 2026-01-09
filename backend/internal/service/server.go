@@ -41,23 +41,34 @@ func InitApp(ctx context.Context, cfg *config.Config) (*App, error) {
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository) {
-	// initialize health check
+	// Swagger documentation
+	app.Get("/swagger/*", handler.ServeSwagger)
+
+	// @Summary      Health check
+	// @Description  Check if the API is running
+	// @Tags         health
+	// @Produce      plain
+	// @Success      200
+	// @Router       /health [get]
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendStatus(http.StatusOK)
 	})
 
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
+	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
+
+	// API v1 routes
+	api := app.Group("/api/v1")
 
 	// Hello routes
-	app.Route("/hello", func(r fiber.Router) {
+	api.Route("/hello", func(r fiber.Router) {
 		r.Get("/", helloHandler.GetHello)
 		r.Get("/:name", helloHandler.GetHelloName)
 	})
 
-	// dev table testing routes
-	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
-	app.Route("/devs", func(r fiber.Router) {
+	// Dev routes
+	api.Route("/devs", func(r fiber.Router) {
 		r.Get("/:name", devsHandler.GetMember)
 	})
 }
