@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"errors"
+
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/gofiber/fiber/v2"
 )
@@ -22,9 +25,10 @@ func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	}
 	devs, err := h.repo.GetMember(c.Context(), name)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to fetch dev: " + err.Error(),
-		})
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("member", "name", name)
+		}
+		return err
 	}
 	return c.Status(fiber.StatusOK).JSON(devs)
 }

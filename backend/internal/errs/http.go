@@ -9,6 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// Error handling in the HTTP layer
+
 type HTTPError struct {
 	Code    int `json:"code"`
 	Message any `json:"message"`
