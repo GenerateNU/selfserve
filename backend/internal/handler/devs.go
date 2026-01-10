@@ -44,3 +44,12 @@ func (h *DevsHandler) GetDevs(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(devs)	
 }
+
+func (h *DevsHandler) MakeDev(c *fiber.Ctx) error {
+	name := c.Params("name")
+	if name == "" {
+		return errs.BadRequest("name is required")
+	}
+
+	
+}

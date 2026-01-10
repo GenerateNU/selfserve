@@ -18,6 +18,25 @@ func NewDevsRepository(db *pgxpool.Pool) *DevsRepository {
 	return &DevsRepository{db: db}
 }
 
+func (r *DevsRepository) MakeDev(ctx context.Context, name string) (int64, error) {
+	var id int64
+	result, err := r.db.Exec(ctx, `
+	INSERT INTO devs (name) VALUES (?)
+	RETURNING id`,
+	name)
+	
+	if err != nil {
+		if errors.Is(err, errs.ErrAlreadyExistsInDB){
+			return 0, err
+		}
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+        return 0, err
+    }
+	return id
+}
+
 func (r *DevsRepository) GetMember(ctx context.Context, name string) (*models.Dev, error) {
 	row := r.db.QueryRow(ctx, `
 		SELECT id, created_at, name

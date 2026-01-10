@@ -59,6 +59,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// dev table testing routes
 	app.Route("/devs", func(r fiber.Router) {
 		r.Get("/", devsHandler.GetDevs)
+		r.Post("/", devsHandler.MakeDev)
 		r.Get("/:name", devsHandler.GetMember)
 	})
 }
