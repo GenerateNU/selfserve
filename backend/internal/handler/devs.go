@@ -32,3 +32,15 @@ func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(devs)
 }
+
+func (h *DevsHandler) GetDevs(c *fiber.Ctx) error {
+	devs, err := h.repo.GetDevs(c.Context())
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+            return errs.NotFound("devs", "rows", "")
+        }
+		slog.Error(err.Error())
+		return errs.InternalServerError()
+	}
+	return c.Status(fiber.StatusOK).JSON(devs)	
+}

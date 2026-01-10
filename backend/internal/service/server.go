@@ -48,6 +48,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
+	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 
 	// Hello routes
 	app.Route("/hello", func(r fiber.Router) {
@@ -56,8 +57,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	})
 
 	// dev table testing routes
-	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	app.Route("/devs", func(r fiber.Router) {
+		r.Get("/", devsHandler.GetDevs)
 		r.Get("/:name", devsHandler.GetMember)
 	})
 }

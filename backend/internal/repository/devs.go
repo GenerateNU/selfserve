@@ -36,3 +36,31 @@ func (r *DevsRepository) GetMember(ctx context.Context, name string) (*models.De
 
 	return &dev, nil
 }
+
+func (r *DevsRepository) GetDevs(ctx context.Context) ([]*models.Dev, error) {
+	rows, err := r.db.Query(ctx, `
+        SELECT id, created_at, name
+        FROM devs
+    `)
+
+	if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+	var devs []*models.Dev
+	for rows.Next(){
+		var d models.Dev
+		if err := rows.Scan(&d.ID, &d.CreatedAt, &d.Name); err != nil {
+			return nil, err
+		}
+		devs = append(devs, &d)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(devs) == 0 {
+		return nil, errs.ErrNotFoundInDB
+	}
+	return devs, nil
+}
