@@ -1,6 +1,10 @@
 package handler
 
 import (
+	"errors"
+	"log/slog"
+
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/gofiber/fiber/v2"
 )
@@ -16,15 +20,15 @@ func NewDevsHandler(repo *repository.DevsRepository) *DevsHandler {
 func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	name := c.Params("name")
 	if name == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "name is required",
-		})
+		return errs.BadRequest("name is required")
 	}
 	devs, err := h.repo.GetMember(c.Context(), name)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to fetch dev: " + err.Error(),
-		})
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("member", "name", name)
+		}
+		slog.Error(err.Error())
+		return errs.InternalServerError()
 	}
 	return c.Status(fiber.StatusOK).JSON(devs)
 }
