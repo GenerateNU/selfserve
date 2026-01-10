@@ -100,3 +100,36 @@ func TestHandler_GetHelloName_EdgeCases(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_GetHelloName_InvalidCases(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New()
+	h := NewHelloHandler()
+	app.Get("/hello/:name", h.GetHelloName)
+
+	tests := []struct {
+		name           string
+		method         string
+		url            string
+		expectedStatus int
+	}{
+		{"missing name parameter", "GET", "/hello/", 404},
+		{"wrong route", "GET", "/goodbye/Alice", 404},
+		{"wrong method POST", "POST", "/hello/Alice", 405},
+		{"wrong method PUT", "PUT", "/hello/Alice", 405},
+		{"wrong method DELETE", "DELETE", "/hello/Alice", 405},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequest(tt.method, tt.url, nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+		})
+	}
+}
