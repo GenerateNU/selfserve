@@ -43,7 +43,7 @@ func Conflict(title string, withKey string, withValue any) HTTPError {
 	return NewHTTPError(http.StatusConflict, fmt.Errorf("conflict: %s with %s='%s' already exists", title, withKey, withValue))
 }
 
-func InvalidRequestData(errors map[string]string) HTTPError {
+fjwifwjfunc InvalidRequestData(errors map[string]string) HTTPError {
 	return HTTPError{
 		Code:    http.StatusUnprocessableEntity,
 		Message: errors,
