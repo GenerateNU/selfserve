@@ -1,30 +1,34 @@
 package handler
 
 import (
-	"github.com/generate/selfserve/internal/repository"
+	"context"
+
+	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
 )
 
-type DevsHandler struct {
-	repo *repository.DevsRepository
+type DevsRepository interface {
+	GetMember(ctx context.Context, name string) (*models.Dev, error)
 }
 
-func NewDevsHandler(repo *repository.DevsRepository) *DevsHandler {
+type DevsHandler struct {
+	repo DevsRepository
+}
+
+func NewDevsHandler(repo DevsRepository) *DevsHandler {
 	return &DevsHandler{repo: repo}
 }
 
 func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	name := c.Params("name")
 	if name == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "name is required",
-		})
+		return errs.BadRequest("name is required")
 	}
-	devs, err := h.repo.GetMember(c.Context(), name)
+
+	dev, err := h.repo.GetMember(c.Context(), name)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to fetch dev: " + err.Error(),
-		})
+		return err
 	}
-	return c.Status(fiber.StatusOK).JSON(devs)
+
+	return c.JSON(dev)
 }
