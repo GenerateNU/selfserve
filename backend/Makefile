@@ -13,7 +13,7 @@ run:
 
 dev: clean build
 	./bin/$(APP_NAME)
-	
+
 test:
 	go test ./...
 
