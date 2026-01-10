@@ -60,6 +60,14 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	app.Route("/devs", func(r fiber.Router) {
 		r.Get("/:name", devsHandler.GetMember)
 	})
+
+	app.Route("/devs", func(r fiber.Router) {
+		r.Post("", devsHandler.PostMember)
+	})
+
+	// app.Route("/devs", func(r fiber.Router) {
+	// 	r.Get("", devsHandler.GetMembers)
+	// })
 }
 
 // Initialize Fiber app with middlewares / configs
