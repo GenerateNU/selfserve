@@ -32,3 +32,25 @@ func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(devs)
 }
+
+func (h *DevsHandler) CreateDev(c *fiber.Ctx) error {
+	name := c.Params("name")
+	if name == "" {
+		return errs.BadRequest("name is required")
+	}
+	dev, err := h.repo.CreateDev(c.Context(), name)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+	return c.Status(fiber.StatusCreated).JSON(dev)
+}
+
+func (h *DevsHandler) GetAllDevs(c *fiber.Ctx) error {
+	devs, err := h.repo.GetAllDevs(c.Context())
+	if err != nil {
+		return errs.InternalServerError()
+	}
+	return c.Status(fiber.StatusOK).JSON(devs)
+}
+
+
