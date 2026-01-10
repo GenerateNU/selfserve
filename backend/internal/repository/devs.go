@@ -36,3 +36,28 @@ func (r *DevsRepository) GetMember(ctx context.Context, name string) (*models.De
 
 	return &dev, nil
 }
+
+func (r* DevsRepository) GetAllDevs(ctx context.Context) ([]*models.Dev, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, created_at, name
+		FROM devs
+	`)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	devs, err := pgx.AppendRows[models.Dev, []models.Dev](
+		[]models.Dev{}, 
+		rows, 
+		func (row pgx.Rows) (models.Dev, error) {
+			var dev models.Dev
+			err := row.Scan(&dev.ID, &dev.CreatedAt, &dev.Name)
+			return dev, err
+	},
+	)
+
+	return devs, nil
+}

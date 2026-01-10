@@ -32,3 +32,7 @@ func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(devs)
 }
+
+// func (h *DevsHandler) GetAllDevs(c *fiber.Ctx) error {
+
+// }
