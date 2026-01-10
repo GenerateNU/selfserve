@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHandler_GetHello(t *testing.T) {
@@ -19,19 +21,12 @@ func TestHandler_GetHello(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/hello", nil)
 	resp, err := app.Test(req)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
-	if resp.StatusCode != 200 {
-		t.Errorf("expected status 200, got %d", resp.StatusCode)
-	}
+	assert.Equal(t, 200, resp.StatusCode)
 
 	body, _ := io.ReadAll(resp.Body)
-	expected := "Yogurt. Gurt: Yo!"
-	if string(body) != expected {
-		t.Errorf("expected %q, got %q", expected, string(body))
-	}
+	assert.Equal(t, "Yogurt. Gurt: Yo!", string(body))
 }
 
 func TestHandler_GetHelloName(t *testing.T) {
@@ -57,18 +52,12 @@ func TestHandler_GetHelloName(t *testing.T) {
 
 			req := httptest.NewRequest("GET", tt.url, nil)
 			resp, err := app.Test(req)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
+			require.NoError(t, err)
 
-			if resp.StatusCode != 200 {
-				t.Errorf("expected status 200, got %d", resp.StatusCode)
-			}
+			assert.Equal(t, 200, resp.StatusCode)
 
 			body, _ := io.ReadAll(resp.Body)
-			if string(body) != tt.expected {
-				t.Errorf("expected %q, got %q", tt.expected, string(body))
-			}
+			assert.Equal(t, tt.expected, string(body))
 		})
 	}
 }
@@ -102,18 +91,12 @@ func TestHandler_GetHelloName_EdgeCases(t *testing.T) {
 
 			req := httptest.NewRequest("GET", urlPath, nil)
 			resp, err := app.Test(req)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
+			require.NoError(t, err)
 
-			if resp.StatusCode != 200 {
-				t.Errorf("expected status 200, got %d", resp.StatusCode)
-			}
+			assert.Equal(t, 200, resp.StatusCode)
 
 			body, _ := io.ReadAll(resp.Body)
-			if string(body) != tt.expectedBody {
-				t.Errorf("expected %q, got %q", tt.expectedBody, string(body))
-			}
+			assert.Equal(t, tt.expectedBody, string(body))
 		})
 	}
 }
