@@ -9,11 +9,10 @@ build:
 	go build -o bin/$(APP_NAME) $(CMD_PATH)
 
 run:
-	air
+	go run $(CMD_PATH)
 
-dev: clean
-	air
-
+dev: clean build
+	./bin/$(APP_NAME)
 test:
 	go test ./...
 
