@@ -2,7 +2,10 @@ package handler
 
 import (
 	"context"
+	"errors"
+	"log/slog"
 
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
 )
@@ -27,7 +30,11 @@ func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 
 	dev, err := h.repo.GetMember(c.Context(), name)
 	if err != nil {
-		return err
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("member", "name", name)
+		}
+		slog.Error(err.Error())
+		return errs.InternalServerError()
 	}
 
 	return c.JSON(dev)

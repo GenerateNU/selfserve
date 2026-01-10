@@ -32,8 +32,8 @@ func TestDevsHandler_GetMember(t *testing.T) {
 		mock := &mockDevsRepository{
 			getMemberFunc: func(ctx context.Context, name string) (*models.Dev, error) {
 				return &models.Dev{
-					ID:     "123",
-					Member: "Dao",
+					ID:   "123",
+					Name: "Dao",
 				}, nil
 			},
 		}
@@ -57,7 +57,7 @@ func TestDevsHandler_GetMember(t *testing.T) {
 
 		mock := &mockDevsRepository{
 			getMemberFunc: func(ctx context.Context, name string) (*models.Dev, error) {
-				return nil, errs.ErrNotFound
+				return nil, errs.ErrNotFoundInDB
 			},
 		}
 
@@ -82,4 +82,69 @@ func TestDevsHandler_GetMember(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewDevsHand
+		h := NewDevsHandler(mock)
+		app.Get("/devs/:name", h.GetMember)
+
+		req := httptest.NewRequest("GET", "/devs/test", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when name is empty", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockDevsRepository{
+			getMemberFunc: func(ctx context.Context, name string) (*models.Dev, error) {
+				return nil, nil
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewDevsHandler(mock)
+		app.Get("/devs/:name", h.GetMember)
+
+		req := httptest.NewRequest("GET", "/devs/", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 404, resp.StatusCode) // Route won't match
+	})
+}
+
+func TestDevsHandler_GetMember_InvalidMethods(t *testing.T) {
+	t.Parallel()
+
+	mock := &mockDevsRepository{
+		getMemberFunc: func(ctx context.Context, name string) (*models.Dev, error) {
+			return &models.Dev{ID: "123", Name: "Dao"}, nil
+		},
+	}
+
+	app := fiber.New()
+	h := NewDevsHandler(mock)
+	app.Get("/devs/:name", h.GetMember)
+
+	tests := []struct {
+		name           string
+		method         string
+		expectedStatus int
+	}{
+		{"POST not allowed", "POST", 405},
+		{"PUT not allowed", "PUT", 405},
+		{"DELETE not allowed", "DELETE", 405},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequest(tt.method, "/devs/Dao", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+		})
+	}
+}
