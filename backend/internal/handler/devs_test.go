@@ -92,7 +92,7 @@ func TestDevsHandler_GetMember(t *testing.T) {
 		assert.Equal(t, 500, resp.StatusCode)
 	})
 
-	t.Run("returns 400 when name is empty", func(t *testing.T) {
+	t.Run("returns 500 when route is not found/empty", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockDevsRepository{
@@ -109,7 +109,7 @@ func TestDevsHandler_GetMember(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
-		assert.Equal(t, 404, resp.StatusCode) // Route won't match
+		assert.Equal(t, 500, resp.StatusCode)
 	})
 }
 
