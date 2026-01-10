@@ -21,7 +21,7 @@ func NewDevsRepository(db *pgxpool.Pool) *DevsRepository {
 
 func (r *DevsRepository) GetMember(ctx context.Context, name string) (*models.Dev, error) {
 	row := r.db.QueryRow(ctx, `
-		SELECT id, created_at, member 
+		SELECT id, created_at, name 
 		FROM devs 
 		WHERE name = $1
 	`, name)
