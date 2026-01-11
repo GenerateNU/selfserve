@@ -29,7 +29,9 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@selfserve/*": ["../../*"],
+      "@components/*": ["./src/components/*"]
     }
   }
 }
