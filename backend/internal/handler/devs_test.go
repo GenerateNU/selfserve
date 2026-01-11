@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -16,11 +17,19 @@ import (
 
 // Mock repository
 type mockDevsRepository struct {
-	getMemberFunc func(ctx context.Context, name string) (*models.Dev, error)
+	getMemberFunc  func(ctx context.Context, name string) (*models.Dev, error)
+	getAllDevsFunc func(ctx context.Context) ([]*models.Dev, error)
+	createDevFunc  func(ctx context.Context, name string) (*models.Dev, error)
 }
 
 func (m *mockDevsRepository) GetMember(ctx context.Context, name string) (*models.Dev, error) {
 	return m.getMemberFunc(ctx, name)
+}
+func (m *mockDevsRepository) GetAllDevs(ctx context.Context) ([]*models.Dev, error) {
+	return m.getAllDevsFunc(ctx)
+}
+func (m *mockDevsRepository) CreateDev(ctx context.Context, name string) (*models.Dev, error) {
+	return m.createDevFunc(ctx, name)
 }
 
 func TestDevsHandler_GetMember(t *testing.T) {
@@ -147,4 +156,73 @@ func TestDevsHandler_GetMember_InvalidMethods(t *testing.T) {
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
+}
+
+func TestDevsHandler_GetAllDevs(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns a list containing all devs in the table", func(t *testing.T) {
+		t.Parallel()
+	})
+
+	mock := &mockDevsRepository{
+		getAllDevsFunc: func(ctx context.Context) ([]*models.Dev, error) {
+			return []*models.Dev{
+				&models.Dev{
+					ID:   "123",
+					Name: "Dao",
+				},
+				&models.Dev{
+					ID:   "456",
+					Name: "Dylan",
+				},
+			}, nil
+		},
+	}
+	app := fiber.New()
+	h := NewDevsHandler(mock)
+	app.Get("/devs", h.GetAllDevs)
+
+	req := httptest.NewRequest("GET", "/devs", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+
+	assert.Equal(t, 200, resp.StatusCode)
+
+	body, _ := io.ReadAll(resp.Body)
+	assert.Contains(t, string(body), "Dao")
+	assert.Contains(t, string(body), "Dylan")
+}
+
+func TestDevsHandler_CreateDev(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns 200 with created dev", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockDevsRepository{
+			createDevFunc: func(ctx context.Context, name string) (*models.Dev, error) {
+				return &models.Dev{
+					ID:   "789",
+					Name: name,
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewDevsHandler(mock)
+		app.Post("/devs", h.CreateDev)
+
+		body := `{"name":"NewDev"}`
+		req := httptest.NewRequest("POST", "/devs", strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		respBody, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(respBody), "NewDev")
+	})
 }

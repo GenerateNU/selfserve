@@ -70,6 +70,6 @@ func (r *DevsRepository) CreateDev(ctx context.Context, name string) (*models.De
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &dev, nil
 }

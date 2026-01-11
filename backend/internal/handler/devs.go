@@ -12,6 +12,8 @@ import (
 
 type DevsRepository interface {
 	GetMember(ctx context.Context, name string) (*models.Dev, error)
+	GetAllDevs(ctx context.Context) ([]*models.Dev, error)
+	CreateDev(ctx context.Context, name string) (*models.Dev, error)
 }
 
 type DevsHandler struct {
