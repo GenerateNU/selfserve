@@ -37,27 +37,39 @@ func (r *DevsRepository) GetMember(ctx context.Context, name string) (*models.De
 	return &dev, nil
 }
 
-func (r* DevsRepository) GetAllDevs(ctx context.Context) ([]*models.Dev, error) {
+func (r *DevsRepository) GetAllDevs(ctx context.Context) ([]*models.Dev, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, created_at, name
 		FROM devs
 	`)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errs.ErrNotFoundInDB
-		}
 		return nil, err
 	}
+	defer rows.Close()
 
-	devs, err := pgx.AppendRows[models.Dev, []models.Dev](
-		[]models.Dev{}, 
-		rows, 
-		func (row pgx.Rows) (models.Dev, error) {
-			var dev models.Dev
-			err := row.Scan(&dev.ID, &dev.CreatedAt, &dev.Name)
-			return dev, err
-	},
-	)
+	devs := []*models.Dev{}
+	for rows.Next() {
+		var dev models.Dev
+		if err := rows.Scan(&dev.ID, &dev.CreatedAt, &dev.Name); err != nil {
+			return nil, err
+		}
+		devs = append(devs, &dev)
+	}
 
 	return devs, nil
+}
+
+func (r *DevsRepository) CreateDev(ctx context.Context, name string) (*models.Dev, error) {
+	var dev models.Dev
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO devs (name) 
+		VALUES ($1) 
+		RETURNING id, created_at, name
+	`, name).Scan(&dev.ID, &dev.CreatedAt, &dev.Name)
+
+	if err != nil {
+		return nil, err
+	}
+	
+	return &dev, nil
 }

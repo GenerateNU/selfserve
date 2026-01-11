@@ -33,6 +33,31 @@ func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(devs)
 }
 
-// func (h *DevsHandler) GetAllDevs(c *fiber.Ctx) error {
+func (h *DevsHandler) GetAllDevs(c *fiber.Ctx) error {
+	devs, err := h.repo.GetAllDevs(c.Context())
+	if err != nil {
+		return err
+	}
+	return c.Status(fiber.StatusOK).JSON(devs)
+}
 
-// }
+func (h *DevsHandler) CreateDev(c *fiber.Ctx) error {
+	var req struct {
+		Name string `json:"name"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return errs.BadRequest("invalid request body")
+	}
+
+	if req.Name == "" {
+		return errs.BadRequest("name is required")
+	}
+
+	dev, err := h.repo.CreateDev(c.Context(), req.Name)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(dev)
+}
