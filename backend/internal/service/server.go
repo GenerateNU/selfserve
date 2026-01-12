@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/generate/selfserve/config"
@@ -23,7 +22,7 @@ type App struct {
 	Repo   *storage.Repository
 }
 
-func InitApp(ctx context.Context, cfg *config.Config) (*App, error) {
+func InitApp(cfg *config.Config) (*App, error) {
 	// Init DB/repository(ies)
 	repo, err := storage.NewRepository(cfg.DB)
 	if err != nil {
