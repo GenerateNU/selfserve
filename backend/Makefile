@@ -1,7 +1,9 @@
 APP_NAME := selfserve
 CMD_PATH := ./cmd/server
+DOCKER_IMAGE_NAME := selfserve-backend
+PORT := 8080
 
-.PHONY: all build run dev test format tidy download clean
+.PHONY: all build run dev test format tidy download clean docker-build docker-run
 
 all: build
 
@@ -29,4 +31,8 @@ download:
 clean:
 	rm -rf bin
 
+docker-build:
+	docker build -t $(DOCKER_IMAGE_NAME) .
 
+docker-run:
+	docker run --rm -p $(PORT):$(PORT) --name $(APP_NAME)-container $(DOCKER_IMAGE_NAME)
