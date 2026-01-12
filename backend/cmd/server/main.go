@@ -10,16 +10,11 @@ import (
 
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/service"
-	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 )
 
 func main() {
 	// Load environment variables
-	err := godotenv.Load("./config/.env")
-	if err != nil {
-		log.Fatal("failed to load .env:", err)
-	}
 
 	var cfg config.Config
 	ctx := context.Background()
@@ -27,7 +22,7 @@ func main() {
 		log.Fatal("failed to process config:", err)
 	}
 
-	app, err := service.InitApp(ctx, &cfg)
+	app, err := service.InitApp(&cfg)
 	if err != nil {
 		log.Fatal("failed to initialize app:", err)
 	}
