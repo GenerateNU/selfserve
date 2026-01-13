@@ -40,4 +40,7 @@ docker-build:
 	docker build -t $(DOCKER_IMAGE_NAME) .
 
 docker-run:
-	docker run --rm -p $(PORT):$(PORT) --name $(APP_NAME)-container $(DOCKER_IMAGE_NAME)
+	@docker run --rm -p $(PORT):$(PORT) \
+		$(shell [ -f $(ENV_FILE) ] && echo "--env-file $(ENV_FILE)") \
+		--name $(APP_NAME)-container \
+		$(DOCKER_IMAGE_NAME)
