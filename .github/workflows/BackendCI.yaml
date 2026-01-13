@@ -30,6 +30,10 @@ jobs:
           go-version-file: './backend/go.mod'
           cache: true
           cache-dependency-path: './backend/go.sum'
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+      - name: Generate swagger docs
+        run: make swagger
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
@@ -49,6 +53,10 @@ jobs:
           go-version-file: './backend/go.mod'
           cache: true
           cache-dependency-path: './backend/go.sum'
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+      - name: Generate swagger docs
+        run: make swagger
       - name: Run tests
         run: make test
   backend-build:
@@ -64,6 +72,10 @@ jobs:
           go-version-file: './backend/go.mod'
           cache: true
           cache-dependency-path: './backend/go.sum'
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+      - name: Generate swagger docs
+        run: make swagger
       - name: Verify go.mod is tidy
         run: |
           go mod tidy
