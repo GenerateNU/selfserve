@@ -33,16 +33,16 @@ func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(devs)
 }
 
-// func (h *DevsHandler) GetMembers(c *fiber.Ctx) error {
+func (h *DevsHandler) GetMembers(c *fiber.Ctx) error {
 
-// 	devs, err := h.repo.GetMembers(c.Context())
+	devs, err := h.repo.GetMembers(c.Context())
 
-// 	if err != nil {
-// 		slog.Error(err.Error())
-// 		return errs.InternalServerError()
-// 	}
-// 	return c.Status(fiber.StatusOK).JSON(devs)
-// }
+	if err != nil {
+		slog.Error(err.Error())
+		return errs.InternalServerError()
+	}
+	return c.Status(fiber.StatusOK).JSON(devs)
+}
 
 func (h *DevsHandler) PostMember(c *fiber.Ctx) error {
 
