@@ -15,7 +15,6 @@ import (
 
 func main() {
 	// Load environment variables
-
 	var cfg config.Config
 	ctx := context.Background()
 	if err := envconfig.Process(ctx, &cfg); err != nil {
