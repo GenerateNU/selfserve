@@ -1,9 +1,11 @@
 APP_NAME := selfserve
 CMD_PATH := ./cmd/server
+DOCKER_IMAGE_NAME := selfserve-backend
+PORT := 8080
 ENV_FILE := config/.env
 LOAD_ENV := set -a; [ -f $(ENV_FILE) ] && . $(ENV_FILE); set +a;
 
-.PHONY: all build run dev test format tidy download clean
+.PHONY: all build run dev test format tidy download clean docker-build docker-run
 
 all: build
 
@@ -34,4 +36,11 @@ download:
 clean:
 	rm -rf bin
 
+docker-build:
+	docker build -t $(DOCKER_IMAGE_NAME) .
 
+docker-run:
+	@docker run --rm -p $(PORT):$(PORT) \
+		$(shell [ -f $(ENV_FILE) ] && echo "--env-file $(ENV_FILE)") \
+		--name $(APP_NAME)-container \
+		$(DOCKER_IMAGE_NAME)
