@@ -19,3 +19,5 @@ go.work.sum
 tmp/
 .DS_Store
 **/.DS_Store
+supabase/.branches/
+supabase/.temp/
