@@ -1,0 +1,23 @@
+# Binaries
+bin/
+server
+
+# Dependencies
+vendor/
+
+# Environment files
+.env
+.env.*
+!.env.sample
+
+# Git
+.git
+.gitignore
+
+# OS specific
+.DS_Store
+
+# Temporary
+tmp/
+*.log
+coverage.*
