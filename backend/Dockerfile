@@ -12,6 +12,9 @@ COPY go.mod go.sum ./
 # Download dependencies
 RUN go mod download
 
+# Install swag for generating swagger docs
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
 # Copy the source
 COPY . .
 

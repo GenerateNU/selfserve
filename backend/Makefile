@@ -9,7 +9,7 @@ LOAD_ENV := set -a; [ -f $(ENV_FILE) ] && . $(ENV_FILE); set +a;
 
 all: build
 
-build:
+build: swagger
 	go build -o bin/$(APP_NAME) $(CMD_PATH)
 
 run:
@@ -37,10 +37,10 @@ clean:
 	rm -rf bin
 
 swagger:
-	$(HOME)/go/bin/swag init -g cmd/server/main.go -o docs --parseDependency --parseInternal
+	$$(go env GOPATH)/bin/swag init -g cmd/server/main.go -o docs --parseDependency --parseInternal
 
 swagger-fmt:
-	$(HOME)/go/bin/swag fmt
+	$$(go env GOPATH)/bin/swag fmt
 
 docker-build:
 	docker build -t $(DOCKER_IMAGE_NAME) .
