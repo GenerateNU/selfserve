@@ -5,11 +5,11 @@ PORT := 8080
 ENV_FILE := config/.env
 LOAD_ENV := set -a; [ -f $(ENV_FILE) ] && . $(ENV_FILE); set +a;
 
-.PHONY: all build run dev test format tidy download clean docker-build docker-run
+.PHONY: all build run dev test format tidy download clean swagger swagger-fmt docker-build docker-run
 
 all: build
 
-build:
+build: swagger
 	go build -o bin/$(APP_NAME) $(CMD_PATH)
 
 run:
@@ -35,6 +35,12 @@ download:
 
 clean:
 	rm -rf bin
+
+swagger:
+	$$(go env GOPATH)/bin/swag init -g cmd/server/main.go -o docs --parseDependency --parseInternal
+
+swagger-fmt:
+	$$(go env GOPATH)/bin/swag fmt
 
 docker-build:
 	docker build -t $(DOCKER_IMAGE_NAME) .
