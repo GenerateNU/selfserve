@@ -13,11 +13,11 @@ all: build
 build: swagger
 	go build -o bin/$(APP_NAME) $(CMD_PATH)
 
-run:
+run: db-start
 	@$(LOAD_ENV) \
 	go run $(CMD_PATH)
 
-dev: clean build
+dev: db-start clean build
 	@$(LOAD_ENV) \
 	./bin/$(APP_NAME)
 
