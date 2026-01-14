@@ -40,7 +40,6 @@ func (r *DevsRepository) GetMember(ctx context.Context, name string) (*models.De
 
 // GetMembers (Corrected to return a single member based on your return type)
 func (r *DevsRepository) GetMembers(ctx context.Context) ([]models.Dev, error) {
-	// 1. Execute the query
 	rows, err := r.db.Query(ctx, `
 		SELECT id, created_at, name
 		FROM devs
@@ -48,12 +47,11 @@ func (r *DevsRepository) GetMembers(ctx context.Context) ([]models.Dev, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Always close rows to prevent connection leaks
+
 	defer rows.Close()
 
 	var devs []models.Dev
 
-	// 2. Iterate through the result set
 	for rows.Next() {
 		var dev models.Dev
 		err := rows.Scan(&dev.ID, &dev.CreatedAt, &dev.Name)
@@ -63,7 +61,6 @@ func (r *DevsRepository) GetMembers(ctx context.Context) ([]models.Dev, error) {
 		devs = append(devs, dev)
 	}
 
-	// 3. Check for errors that occurred during iteration
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -71,12 +68,9 @@ func (r *DevsRepository) GetMembers(ctx context.Context) ([]models.Dev, error) {
 	return devs, nil
 }
 
-// PostMember (Corrected logic and syntax)
 func (r *DevsRepository) PostMember(ctx context.Context, name string) (*models.Dev, error) {
 	var dev models.Dev
 
-	// 1. Corrected "RETURNING" typo
-	// 2. We must call .Scan() immediately to capture the data and the error
 	err := r.db.QueryRow(ctx, `
         INSERT INTO devs (name)
         VALUES ($1)
@@ -84,9 +78,7 @@ func (r *DevsRepository) PostMember(ctx context.Context, name string) (*models.D
     `, name).Scan(&dev.ID, &dev.CreatedAt, &dev.Name)
 
 	if err != nil {
-		// Log the actual error for debugging
 		slog.Error("failed to insert member", "error", err)
-
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
 		}
