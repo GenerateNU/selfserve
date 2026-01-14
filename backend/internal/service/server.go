@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/generate/selfserve/internal/errs"
 )
 
 type App struct {
@@ -76,6 +77,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.MakeRequest)
 	})
+
+	
 }
 
 // Initialize Fiber app with middlewares / configs
@@ -83,6 +86,7 @@ func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
+		ErrorHandler: errs.ErrorHandler, 
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())

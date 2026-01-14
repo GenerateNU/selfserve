@@ -23,16 +23,17 @@ func NewRequestHandler(repo storage.RequestRepository) *RequestHandler {
 // @Tags         requests
 // @Accept       json
 // @Produce      json
-// @Param  request  body  models.Request  true  "Request data"
+// @Param  request  body  models.MakeRequest  true  "Request data"
 // @Success      200   {object}  models.Request
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Router       /request [post]
 func (r *RequestHandler)MakeRequest(c *fiber.Ctx) error {
-	var req models.Request
-	if err := c.BodyParser(&req); err != nil {
+	var incoming models.MakeRequest
+	if err := c.BodyParser(&incoming); err != nil {
 		return errs.InvalidJSON()
 	}
+	req := models.Request{MakeRequest: incoming}
 
 	if err := validateRequest(&req); err != nil {
 		return err
@@ -55,6 +56,9 @@ func validateRequest(req *models.Request) error {
 
 	if req.GuestID != nil && !validUUID(*req.GuestID) {
 		errors["guest_id"] = "invalid uuid"
+	}
+	if req.UserID != nil && !validUUID(*req.UserID) {
+		errors["user_id"] = "invalid uuid"
 	}
 	if req.Name == "" {
 		errors["name"] = "must not be an empty string"

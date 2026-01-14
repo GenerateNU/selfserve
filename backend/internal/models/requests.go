@@ -4,11 +4,11 @@ import "time"
 
 // pointer fields are for easy handling of optional fields
 
-type Request struct {
-	ID string `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
+// for post because the ID and timestamps should always be generated
+type MakeRequest struct {
 	HotelID string `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
 	GuestID *string `json:"guest_id" example:"521e8417-e458-41d4-a716-446655440990"`
-	UserID *string `json:"user_id" example:"521po400-e458-41d4-a716-446655440000"`
+	UserID *string `json:"user_id" example:"521ee400-e458-41d4-a716-446655440000"`
 	ReservationID *string `json:"reservation_id" example:"521e8400-e458-41d4-a716-498655440000"`
 	Name string `json:"name" example:"room cleaning"`
 	Description *string `json:"description" example:"clean 504"`
@@ -22,6 +22,13 @@ type Request struct {
 	ScheduledTime *time.Time `json:"scheduled_time" example:"2024-01-01T00:00:00Z"`
 	CompletedAt *time.Time `json:"completed_at" example:"2024-01-01T00:30:00Z"`
 	Notes string `json:"notes" example:"No special requests"`
+}
+
+
+
+type Request struct {
+	ID string `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
 	CreatedAt time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`
 	UpdatedAt time.Time `json:"updated_at" example:"2024-01-02T00:00:00Z"`
+	MakeRequest
 }
