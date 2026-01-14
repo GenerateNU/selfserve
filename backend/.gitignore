@@ -19,5 +19,8 @@ go.work.sum
 tmp/
 .DS_Store
 **/.DS_Store
+docs/docs.go
+docs/swagger.json
+docs/swagger.yaml
 supabase/.branches/
 supabase/.temp/

@@ -22,6 +22,17 @@ func NewDevsHandler(repo DevsRepository) *DevsHandler {
 	return &DevsHandler{repo: repo}
 }
 
+// GetMember godoc
+// @Summary      Get developer member
+// @Description  Retrieves a developer member by name
+// @Tags         devs
+// @Accept       json
+// @Produce      json
+// @Param        name  path      string  true  "Developer name"
+// @Success      200   {object}  models.Dev
+// @Failure      400   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /devs/{name} [get]
 func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	name := c.Params("name")
 	if name == "" {

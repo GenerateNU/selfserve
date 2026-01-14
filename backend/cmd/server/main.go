@@ -9,10 +9,26 @@ import (
 	"syscall"
 
 	"github.com/generate/selfserve/config"
+	_ "github.com/generate/selfserve/docs"
 	"github.com/generate/selfserve/internal/service"
 	"github.com/sethvargo/go-envconfig"
 )
 
+// @title           SelfServe API
+// @version         1.0
+// @description     SelfServe backend API documentation
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.email  support@selfserve.com
+
+// @license.name  MIT
+// @license.url   https://opensource.org/licenses/MIT
+
+// @host      localhost:8080
+// @BasePath  /api/v1
+
+// @schemes http https
 func main() {
 	// Load environment variables
 	var cfg config.Config
