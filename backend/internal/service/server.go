@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
@@ -56,6 +57,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
+	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
 
 	// API v1 routes
 	api := app.Group("/api/v1")
@@ -70,13 +72,19 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	api.Route("/devs", func(r fiber.Router) {
 		r.Get("/:name", devsHandler.GetMember)
 	})
+
+	// User Routes
+	api.Route("/users", func(r fiber.Router) {
+		r.Post("/", usersHandler.CreateUser)
+	})
 }
 
 // Initialize Fiber app with middlewares / configs
 func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		JSONEncoder: json.Marshal,
-		JSONDecoder: json.Unmarshal,
+		JSONEncoder:  json.Marshal,
+		JSONDecoder:  json.Unmarshal,
+		ErrorHandler: errs.ErrorHandler,
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())
