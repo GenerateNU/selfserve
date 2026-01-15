@@ -1,50 +1,60 @@
 import { render } from '@testing-library/react-native';
 import HomeScreen from '../index';
 
+/* eslint-disable @typescript-eslint/no-require-imports, react/display-name */
 jest.mock('expo-image', () => {
-  const { View } = require('react-native');
+  const { View: MockView } = require('react-native');
   return {
-    Image: View,
+    Image: MockView,
   };
 });
 
 jest.mock('expo-router', () => {
-  const { View } = require('react-native');
-  const LinkComponent = ({ children }: { children: React.ReactNode }) => <View>{children}</View>;
-  LinkComponent.Trigger = ({ children }: { children: React.ReactNode }) => <View>{children}</View>;
+  const { View: MockView } = require('react-native');
+  const LinkComponent: any = ({ children }: { children: React.ReactNode }) => <MockView>{children}</MockView>;
+  LinkComponent.Trigger = ({ children }: { children: React.ReactNode }) => <MockView>{children}</MockView>;
   LinkComponent.Preview = () => null;
-  LinkComponent.Menu = ({ children }: { children: React.ReactNode }) => <View>{children}</View>;
+  LinkComponent.Menu = ({ children }: { children: React.ReactNode }) => <MockView>{children}</MockView>;
   LinkComponent.MenuAction = () => null;
   return {
     Link: LinkComponent,
   };
 });
 
-jest.mock('@/components/parallax-scroll-view', () => ({
-  __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => {
-    const { View } = require('react-native');
-    return <View>{children}</View>;
-  },
-}));
+jest.mock('@/components/parallax-scroll-view', () => {
+  const { View: MockView } = require('react-native');
+  const MockParallaxScrollView = ({ children }: { children: React.ReactNode }) => {
+    return <MockView>{children}</MockView>;
+  };
+  return {
+    __esModule: true,
+    default: MockParallaxScrollView,
+  };
+});
 
 jest.mock('@/components/hello-wave', () => ({
   HelloWave: () => '👋',
 }));
 
-jest.mock('@/components/themed-text', () => ({
-  ThemedText: ({ children }: { children: React.ReactNode }) => {
-    const { Text } = require('react-native');
-    return <Text>{children}</Text>;
-  },
-}));
+jest.mock('@/components/themed-text', () => {
+  const { Text: MockText } = require('react-native');
+  const MockThemedText = ({ children }: { children: React.ReactNode }) => {
+    return <MockText>{children}</MockText>;
+  };
+  return {
+    ThemedText: MockThemedText,
+  };
+});
 
-jest.mock('@/components/themed-view', () => ({
-  ThemedView: ({ children }: { children: React.ReactNode }) => {
-    const { View } = require('react-native');
-    return <View>{children}</View>;
-  },
-}));
+jest.mock('@/components/themed-view', () => {
+  const { View: MockView } = require('react-native');
+  const MockThemedView = ({ children }: { children: React.ReactNode }) => {
+    return <MockView>{children}</MockView>;
+  };
+  return {
+    ThemedView: MockThemedView,
+  };
+});
 
 describe('HomeScreen', () => {
   it('renders without crashing', () => {

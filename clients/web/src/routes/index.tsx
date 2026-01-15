@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Route as RouteIcon, Shield, Sparkles, Zap } from 'lucide-react'
 
 export const Route = createFileRoute('/')({ component: App })
 
