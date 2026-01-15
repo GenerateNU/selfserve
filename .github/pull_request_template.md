@@ -34,18 +34,11 @@ Related to #
 
 <!-- Describe how you tested these changes. Include test cases, manual testing steps, or automated test additions. -->
 
-### How to Test
+### How this was tested
 
 1.
 2.
 3.
-
-### Test Coverage
-
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing completed
-- [ ] Edge cases considered and tested
 
 ## Screenshots/Recordings
 
