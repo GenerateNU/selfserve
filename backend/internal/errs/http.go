@@ -1,7 +1,6 @@
 package errs
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
