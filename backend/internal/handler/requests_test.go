@@ -20,7 +20,7 @@ type mockRequestRepository struct {
 	makeRequestFunc func(ctx context.Context, req *models.Request) (*models.Request, error)
 }
 
-func (m *mockRequestRepository) MakeRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
+func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
 	return m.makeRequestFunc(ctx, req)
 }
 
@@ -46,8 +46,8 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestHandler(mock)
-		app.Post("/request", h.MakeRequest)
+		h := NewRequestsHandler(mock)
+		app.Post("/request", h.CreateRequest)
 
 		req := httptest.NewRequest("POST", "/request", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -73,8 +73,8 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestHandler(mock)
-		app.Post("/request", h.MakeRequest)
+		h := NewRequestsHandler(mock)
+		app.Post("/request", h.CreateRequest)
 
 		bodyWithOptionalUUIDs := `{
 			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -109,8 +109,8 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestHandler(mock)
-		app.Post("/request", h.MakeRequest)
+		h := NewRequestsHandler(mock)
+		app.Post("/request", h.CreateRequest)
 
 		req := httptest.NewRequest("POST", "/request", bytes.NewBufferString(`{invalid json`))
 		req.Header.Set("Content-Type", "application/json")
@@ -130,8 +130,8 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestHandler(mock)
-		app.Post("/request", h.MakeRequest)
+		h := NewRequestsHandler(mock)
+		app.Post("/request", h.CreateRequest)
 
 		req := httptest.NewRequest("POST", "/request", bytes.NewBufferString(`{}`))
 		req.Header.Set("Content-Type", "application/json")
@@ -155,8 +155,8 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestHandler(mock)
-		app.Post("/request", h.MakeRequest)
+		h := NewRequestsHandler(mock)
+		app.Post("/request", h.CreateRequest)
 
 		invalidUUIDBody := `{
 			"hotel_id": "not-a-uuid",
@@ -188,8 +188,8 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestHandler(mock)
-		app.Post("/request", h.MakeRequest)
+		h := NewRequestsHandler(mock)
+		app.Post("/request", h.CreateRequest)
 
 		invalidGuestIDBody := `{
 			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -222,8 +222,8 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestHandler(mock)
-		app.Post("/request", h.MakeRequest)
+		h := NewRequestsHandler(mock)
+		app.Post("/request", h.CreateRequest)
 
 		req := httptest.NewRequest("POST", "/request", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")

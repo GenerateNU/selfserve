@@ -21,7 +21,7 @@ type MakeRequest struct {
 	EstimatedCompletionTime *int `json:"estimated_completion_time" example:"30"`
 	ScheduledTime *time.Time `json:"scheduled_time" example:"2024-01-01T00:00:00Z"`
 	CompletedAt *time.Time `json:"completed_at" example:"2024-01-01T00:30:00Z"`
-	Notes string `json:"notes" example:"No special requests"`
+	Notes *string `json:"notes" example:"No special requests"`
 }
 
 

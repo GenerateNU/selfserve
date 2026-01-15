@@ -17,7 +17,7 @@ type DevsRepository interface {
 type Repository struct {
 	DB             *pgxpool.Pool
 	DevsRepository DevsRepository
-	RequestRepository RequestRepository
+	RequestRepository RequestsRepository
 }
 
 // Establishes a sustained connection to the PostgreSQL database / pooling
@@ -60,6 +60,6 @@ func NewRepository(config config.DB) (*Repository, error) {
 	return &Repository{
 		DB:             db,
 		DevsRepository: repository.NewDevsRepository(db),
-		RequestRepository: repository.NewRequestRepo(db),
+		RequestRepository: repository.NewRequestsRepo(db),
 	}, nil
 }

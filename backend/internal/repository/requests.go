@@ -6,15 +6,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type RequestRepository struct {
+type RequestsRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewRequestRepo(db *pgxpool.Pool) *RequestRepository {
-	return &RequestRepository{db: db}
+func NewRequestsRepo(db *pgxpool.Pool) *RequestsRepository {
+	return &RequestsRepository{db: db}
 }
 
-func (r *RequestRepository) MakeRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
+func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
 	err := r.db.QueryRow(ctx, `INSERT INTO requests (
 	hotel_id, guest_id, user_id, reservation_id, name, description,
 	room_id, request_category, request_type, department, status,

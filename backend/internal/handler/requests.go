@@ -2,23 +2,23 @@ package handler
 
 import (
 	"strings"
+
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
-	"github.com/generate/selfserve/internal/service/storage/postgres"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
-type RequestHandler struct {
-	RequestRepository storage.RequestRepository
+type RequestsHandler struct {
+	RequestRepository storage.RequestsRepository
 }
 
-func NewRequestHandler(repo storage.RequestRepository) *RequestHandler {
-	return &RequestHandler{RequestRepository: repo}
+func NewRequestsHandler(repo storage.RequestsRepository) *RequestsHandler {
+	return &RequestsHandler{RequestRepository: repo}
 }
 
-// MakeRequest godoc
-// @Summary      Make a request
+// CreateRequest godoc
+// @Summary      creates a request
 // @Description  Creates a request with the given data
 // @Tags         requests
 // @Accept       json
@@ -28,18 +28,18 @@ func NewRequestHandler(repo storage.RequestRepository) *RequestHandler {
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Router       /request [post]
-func (r *RequestHandler)MakeRequest(c *fiber.Ctx) error {
+func (r *RequestsHandler)CreateRequest(c *fiber.Ctx) error {
 	var incoming models.MakeRequest
 	if err := c.BodyParser(&incoming); err != nil {
 		return errs.InvalidJSON()
 	}
 	req := models.Request{MakeRequest: incoming}
 
-	if err := validateRequest(&req); err != nil {
+	if err := validateCreateRequest(&req); err != nil {
 		return err
 	}
 
-	res, err := r.RequestRepository.MakeRequest(c.Context(), &req)
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -47,7 +47,7 @@ func (r *RequestHandler)MakeRequest(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func validateRequest(req *models.Request) error {
+func validateCreateRequest(req *models.Request) error {
 	errors := make(map[string]string)
 
 	if !validUUID(req.HotelID) {
@@ -72,9 +72,6 @@ func validateRequest(req *models.Request) error {
 	if req.Priority == "" {
 		errors["priority"] = "must not be an empty string"
 	}
-	if req.Notes == "" {
-		errors["notes"] = "must not be an empty string"
-	}
 	
 	if len(errors) > 0 {
 		var parts []string
@@ -84,9 +81,4 @@ func validateRequest(req *models.Request) error {
 		return errs.BadRequest(strings.Join(parts, ", "))
 	}
 	return nil
-}
-
-func validUUID(s string) bool {
-	_, err := uuid.Parse(s)
-	return err == nil
 }

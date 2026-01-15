@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
@@ -15,7 +16,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	"github.com/generate/selfserve/internal/errs"
 )
 
 type App struct {
@@ -57,7 +57,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
-	reqsHandler := handler.NewRequestHandler(repository.NewRequestRepo(repo.DB))
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
 
 	// API v1 routes
 	api := app.Group("/api/v1")
@@ -75,7 +75,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 
 	// Request routes 
 	api.Route("/request", func(r fiber.Router) {
-		r.Post("/", reqsHandler.MakeRequest)
+		r.Post("/", reqsHandler.CreateRequest)
 	})
 
 	
