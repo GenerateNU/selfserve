@@ -22,11 +22,11 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 		RETURNING id, created_at, updated_at
 	`, req.HotelID, req.GuestID, req.UserID, req.ReservationID, req.Name,
-		req.Description, req.RoomID, req.RequestCategory, req.RequestType, req.Department, 
-		req.Status, req.Priority, req.EstimatedCompletionTime, 
+		req.Description, req.RoomID, req.RequestCategory, req.RequestType, req.Department,
+		req.Status, req.Priority, req.EstimatedCompletionTime,
 		req.ScheduledTime, req.Notes).Scan(&req.ID, &req.CreatedAt, &req.UpdatedAt)
 
-	if (err != nil) {
+	if err != nil {
 		return nil, err
 	}
 
