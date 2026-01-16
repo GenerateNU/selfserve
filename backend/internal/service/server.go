@@ -57,6 +57,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 
+	usersHandler := handler.NewUserHandler(repository.NewUsersRepository(repo.DB))
 	// API v1 routes
 	api := app.Group("/api/v1")
 
@@ -69,6 +70,11 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// Dev routes
 	api.Route("/devs", func(r fiber.Router) {
 		r.Get("/:name", devsHandler.GetMember)
+	})
+
+	// users routes
+	api.Route("/users", func(r fiber.Router) {
+		r.Get("/:id", usersHandler.GetUserByID)
 	})
 }
 
