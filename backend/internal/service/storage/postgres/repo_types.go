@@ -7,4 +7,8 @@ import (
 
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
-} 
+}
+
+type HotelsRepository interface {
+	InsertHotel(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error)
+}

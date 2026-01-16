@@ -58,6 +58,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
+	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
 
 	// API v1 routes
 	api := app.Group("/api/v1")
@@ -73,20 +74,24 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		r.Get("/:name", devsHandler.GetMember)
 	})
 
-	// Request routes 
+	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 	})
 
-	
+	// Hotel routes
+	api.Route("/hotel", func(r fiber.Router) {
+		r.Post("/", hotelsHandler.CreateHotel)
+	})
+
 }
 
 // Initialize Fiber app with middlewares / configs
 func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		JSONEncoder: json.Marshal,
-		JSONDecoder: json.Unmarshal,
-		ErrorHandler: errs.ErrorHandler, 
+		JSONEncoder:  json.Marshal,
+		JSONDecoder:  json.Unmarshal,
+		ErrorHandler: errs.ErrorHandler,
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())
