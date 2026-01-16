@@ -8,3 +8,8 @@ import (
 type UsersRepository interface {
 	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
 }
+
+type RequestsRepository interface {
+	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
+} 
+
