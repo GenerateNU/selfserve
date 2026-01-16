@@ -11,6 +11,7 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,6 +27,9 @@ func (m *mockUsersRepository) InsertUser(
 ) (*models.User, error) {
 	return m.insertUserFunc(ctx, user)
 }
+
+// Makes the compiler verify the mock
+var _ storage.UsersRepository = (*mockUsersRepository)(nil)
 
 func TestUsersHandler_CreateUser(t *testing.T) {
 	t.Parallel()
