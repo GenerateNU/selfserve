@@ -94,7 +94,7 @@ func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 	dev, err := r.RequestRepository.GetRequest(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
-			return errs.NotFound("member", "name", id)
+			return errs.NotFound("request", "id", id)
 		}
 		slog.Error(err.Error())
 		return errs.InternalServerError()

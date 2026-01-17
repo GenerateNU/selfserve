@@ -66,6 +66,26 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		assert.Contains(t, string(body), "530e8400-e458-41d4-a716-446655440000")
 	})
 
+	t.Run("returns 400 when invalid request body", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			getRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
+				return nil, errors.New("error")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock)
+		app.Get("/request/:id", h.GetRequest)
+
+		req := httptest.NewRequest("GET", "/request/notaUUID", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
 	t.Run("returns 404 when not found", func(t *testing.T) {
 		t.Parallel()
 
@@ -79,7 +99,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		h := NewRequestsHandler(mock)
 		app.Get("/request/:id", h.GetRequest)
 
-		req := httptest.NewRequest("GET", "/request/12345", nil)
+		req := httptest.NewRequest("GET", "/request/530e8400-e458-41d4-a716-446655440001", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -99,7 +119,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		h := NewRequestsHandler(mock)
 		app.Get("/request/:id", h.GetRequest)
 
-		req := httptest.NewRequest("GET", "/request/failing", nil)
+		req := httptest.NewRequest("GET", "/request/530e8400-e458-41d4-a716-446655440001", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
