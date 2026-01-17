@@ -14,10 +14,17 @@ type DevsRepository interface {
 	GetMember(ctx context.Context, name string) (*models.Dev, error)
 }
 
+
+type HotelRepository interface {
+	GetByID(ctx context.Context, id string) (*models.Hotel, error)
+}
+
 type Repository struct {
 	DB             *pgxpool.Pool
 	DevsRepository DevsRepository
 	RequestRepository RequestsRepository
+	HotelRepository   HotelRepository
+
 }
 
 // Establishes a sustained connection to the PostgreSQL database / pooling
@@ -61,5 +68,7 @@ func NewRepository(config config.DB) (*Repository, error) {
 		DB:             db,
 		DevsRepository: repository.NewDevsRepository(db),
 		RequestRepository: repository.NewRequestsRepo(db),
+		//added for hotel
+		HotelRepository:   repository.NewHotelRepository(db),
 	}, nil
 }
