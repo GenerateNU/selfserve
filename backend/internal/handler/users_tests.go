@@ -18,12 +18,12 @@ import (
 )
 
 type mockUsersRepository struct {
-	insertUserFunc func(ctx context.Context, req *models.CreateUser) (*models.User, error)
+	insertUserFunc func(ctx context.Context, req *models.CreateUserRequest) (*models.User, error)
 }
 
 func (m *mockUsersRepository) InsertUser(
 	ctx context.Context,
-	user *models.CreateUser,
+	user *models.CreateUserRequest,
 ) (*models.User, error) {
 	return m.insertUserFunc(ctx, user)
 }
@@ -43,19 +43,19 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+			insertUserFunc: func(ctx context.Context, user *models.CreateUserRequest) (*models.User, error) {
 				return &models.User{
-					ID:         "generated-uuid",
-					CreatedAt:  time.Now(),
-					UpdatedAt:  time.Now(),
-					CreateUser: *user,
+					ID:                "generated-uuid",
+					CreatedAt:         time.Now(),
+					UpdatedAt:         time.Now(),
+					CreateUserRequest: *user,
 				}, nil
 			},
 		}
 
 		app := fiber.New()
 		h := NewUsersHandler(mock)
-		app.Post("/users", h.CreateUser)
+		app.Post("/users", h.CreateUserRequest)
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -75,19 +75,19 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+			insertUserFunc: func(ctx context.Context, user *models.CreateUserRequest) (*models.User, error) {
 				return &models.User{
-					ID:         "generated-uuid",
-					CreatedAt:  time.Now(),
-					UpdatedAt:  time.Now(),
-					CreateUser: *user,
+					ID:                "generated-uuid",
+					CreatedAt:         time.Now(),
+					UpdatedAt:         time.Now(),
+					CreateUserRequest: *user,
 				}, nil
 			},
 		}
 
 		app := fiber.New()
 		h := NewUsersHandler(mock)
-		app.Post("/users", h.CreateUser)
+		app.Post("/users", h.CreateUserRequest)
 
 		bodyWithOptionals := `{
 			"first_name": "Jane",
@@ -115,14 +115,14 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+			insertUserFunc: func(ctx context.Context, user *models.CreateUserRequest) (*models.User, error) {
 				return nil, nil
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewUsersHandler(mock)
-		app.Post("/users", h.CreateUser)
+		app.Post("/users", h.CreateUserRequest)
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(`{invalid json`))
 		req.Header.Set("Content-Type", "application/json")
@@ -137,14 +137,14 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+			insertUserFunc: func(ctx context.Context, user *models.CreateUserRequest) (*models.User, error) {
 				return nil, nil
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewUsersHandler(mock)
-		app.Post("/users", h.CreateUser)
+		app.Post("/users", h.CreateUserRequest)
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(`{}`))
 		req.Header.Set("Content-Type", "application/json")
@@ -164,14 +164,14 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+			insertUserFunc: func(ctx context.Context, user *models.CreateUserRequest) (*models.User, error) {
 				return nil, nil
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewUsersHandler(mock)
-		app.Post("/users", h.CreateUser)
+		app.Post("/users", h.CreateUserRequest)
 
 		invalidTimezoneBody := `{
 			"first_name": "John",
@@ -196,14 +196,14 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+			insertUserFunc: func(ctx context.Context, user *models.CreateUserRequest) (*models.User, error) {
 				return nil, errors.New("db error")
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewUsersHandler(mock)
-		app.Post("/users", h.CreateUser)
+		app.Post("/users", h.CreateUserRequest)
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")

@@ -19,19 +19,19 @@ func NewUsersHandler(repo storage.UsersRepository) *UsersHandler {
 	return &UsersHandler{UsersRepository: repo}
 }
 
-// CreateUser godoc
+// CreateUserRequest godoc
 // @Summary      Creates a user
 // @Description  Creates a user with the given data
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        request  body   models.CreateUser  true  "User data"
+// @Param        request  body   models.CreateUserRequest  true  "User data"
 // @Success      200   {object}  models.User
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Router       /users [post]
-func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
-	var incoming models.CreateUser
+func (h *UsersHandler) CreateUserRequest(c *fiber.Ctx) error {
+	var incoming models.CreateUserRequest
 	if err := c.BodyParser(&incoming); err != nil {
 		return errs.InvalidJSON()
 	}
@@ -48,7 +48,7 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func validateCreateUser(user *models.CreateUser) error {
+func validateCreateUser(user *models.CreateUserRequest) error {
 	errors := make(map[string]string)
 
 	if strings.TrimSpace(user.FirstName) == "" {

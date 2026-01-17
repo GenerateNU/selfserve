@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -14,9 +15,9 @@ func NewUsersRepository(db *pgxpool.Pool) *UsersRepository {
 	return &UsersRepository{db: db}
 }
 
-func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUserRequest) (*models.User, error) {
 	createdUser := &models.User{
-		CreateUser: *user,
+		CreateUserRequest: *user,
 	}
 
 	err := r.db.QueryRow(ctx, `
