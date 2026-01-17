@@ -23,23 +23,22 @@ func NewHotelsHandler(repo storage.HotelsRepository) *HotelsHandler {
 // @Tags         hotel
 // @Accept       json
 // @Produce      json
-// @Param  hotel  body  models.MakeHotel  true  "Hotel data"
+// @Param  hotel  body  models.CreateHotelRequest  true  "Hotel data"
 // @Success      200   {object}  models.Hotel
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Router       /hotel [post]
 func (r *HotelsHandler) CreateHotel(c *fiber.Ctx) error {
-	var incoming models.MakeHotel
-	if err := c.BodyParser(&incoming); err != nil {
+	var CreateHotelRequest models.CreateHotelRequest
+	if err := c.BodyParser(&CreateHotelRequest); err != nil {
 		return errs.InvalidJSON()
 	}
-	hotel := models.Hotel{MakeHotel: incoming}
 
-	if err := validateCreateHotel(&hotel); err != nil {
+	if err := validateCreateHotel(&CreateHotelRequest); err != nil {
 		return err
 	}
 
-	res, err := r.HotelsRepository.InsertHotel(c.Context(), &hotel)
+	res, err := r.HotelsRepository.InsertHotel(c.Context(), &CreateHotelRequest)
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -47,10 +46,10 @@ func (r *HotelsHandler) CreateHotel(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func validateCreateHotel(hotel *models.Hotel) error {
+func validateCreateHotel(hotel *models.CreateHotelRequest) error {
 	errors := make(map[string]string)
 
-	if hotel.Name == "" {
+	if strings.TrimSpace(hotel.Name) == "" {
 		errors["name"] = "must not be an empty string"
 	}
 	if hotel.Floors <= 0 {

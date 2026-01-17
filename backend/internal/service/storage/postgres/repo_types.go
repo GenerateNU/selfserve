@@ -10,5 +10,5 @@ type RequestsRepository interface {
 }
 
 type HotelsRepository interface {
-	InsertHotel(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error)
+	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
 }

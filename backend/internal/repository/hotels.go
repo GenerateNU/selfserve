@@ -15,16 +15,24 @@ func NewHotelsRepo(db *pgxpool.Pool) *HotelsRepository {
 	return &HotelsRepository{db: db}
 }
 
-func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
-	err := r.db.QueryRow(ctx, `INSERT INTO hotels (
-		name, floors
-	) VALUES ($1, $2)
+func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+	createdHotel := &models.Hotel{CreateHotelRequest: *hotel}
+
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO hotels (
+			name, floors
+		) VALUES (
+			$1, $2
+		)
 		RETURNING id, created_at, updated_at
-	`, hotel.Name, hotel.Floors).Scan(&hotel.ID, &hotel.CreatedAt, &hotel.UpdatedAt)
+	`,
+		hotel.Name,
+		hotel.Floors,
+	).Scan(&createdHotel.ID, &createdHotel.CreatedAt, &createdHotel.UpdatedAt)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return hotel, nil
+	return createdHotel, nil
 }

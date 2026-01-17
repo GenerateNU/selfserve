@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http/httptest"
 	"testing"
-
+	"time"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
@@ -16,10 +16,10 @@ import (
 )
 
 type mockHotelsRepository struct {
-	insertHotelFunc func(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error)
+	insertHotelFunc func(ctx context.Context, req *models.CreateHotelRequest) (*models.Hotel, error)
 }
 
-func (m *mockHotelsRepository) InsertHotel(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
+func (m *mockHotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 	return m.insertHotelFunc(ctx, hotel)
 }
 
@@ -34,9 +34,13 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelsRepository{
-			insertHotelFunc: func(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
-				hotel.ID = "generated-uuid"
-				return hotel, nil
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+				return &models.Hotel{
+					ID: "generated-uuid",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					CreateHotelRequest: *hotel,
+				}, nil
 			},
 		}
 
@@ -61,8 +65,13 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelsRepository{
-			insertHotelFunc: func(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
-				return hotel, nil
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+				return &models.Hotel{
+					ID: "generated-uuid",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					CreateHotelRequest: *hotel,
+				}, nil
 			},
 		}
 
@@ -82,8 +91,13 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelsRepository{
-			insertHotelFunc: func(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
-				return hotel, nil
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+				return &models.Hotel{
+					ID: "generated-uuid",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					CreateHotelRequest: *hotel,
+				}, nil
 			},
 		}
 
@@ -110,8 +124,13 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelsRepository{
-			insertHotelFunc: func(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
-				return hotel, nil
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+				return &models.Hotel{
+					ID: "generated-uuid",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					CreateHotelRequest: *hotel,
+				}, nil
 			},
 		}
 
@@ -139,8 +158,13 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelsRepository{
-			insertHotelFunc: func(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
-				return hotel, nil
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+				return &models.Hotel{
+					ID: "generated-uuid",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					CreateHotelRequest: *hotel,
+				}, nil
 			},
 		}
 
@@ -167,8 +191,13 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelsRepository{
-			insertHotelFunc: func(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
-				return hotel, nil
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+				return &models.Hotel{
+					ID: "generated-uuid",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					CreateHotelRequest: *hotel,
+				}, nil
 			},
 		}
 
@@ -196,8 +225,13 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelsRepository{
-			insertHotelFunc: func(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
-				return hotel, nil
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+				return &models.Hotel{
+					ID: "generated-uuid",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					CreateHotelRequest: *hotel,
+				}, nil
 			},
 		}
 
@@ -225,7 +259,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelsRepository{
-			insertHotelFunc: func(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return nil, errors.New("db connection failed")
 			},
 		}
