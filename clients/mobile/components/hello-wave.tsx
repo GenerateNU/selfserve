@@ -3,10 +3,8 @@ import Animated from 'react-native-reanimated';
 export function HelloWave() {
   return (
     <Animated.Text
+      className="text-[28px] leading-8 -mt-1.5"
       style={{
-        fontSize: 28,
-        lineHeight: 32,
-        marginTop: -6,
         animationName: {
           '50%': { transform: [{ rotate: '25deg' }] },
         },

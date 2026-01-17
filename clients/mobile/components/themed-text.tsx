@@ -1,11 +1,10 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
-
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { Text, type TextProps } from 'react-native';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
   type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  className?: string;
 };
 
 export function ThemedText({
@@ -13,48 +12,31 @@ export function ThemedText({
   lightColor,
   darkColor,
   type = 'default',
+  className = '',
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const typeClasses = {
+    default: 'text-base leading-6',
+    defaultSemiBold: 'text-base leading-6 font-semibold',
+    title: 'text-[32px] leading-8 font-bold',
+    subtitle: 'text-xl font-bold',
+    link: 'text-base leading-[30px] text-[#0a7ea4]',
+  };
+
+  const colorClass = lightColor || darkColor 
+    ? '' 
+    : 'text-gray-900 dark:text-gray-100';
+
+  const combinedClassName = `${typeClasses[type]} ${colorClass} ${className}`.trim();
 
   return (
     <Text
+      className={combinedClassName}
       style={[
-        { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        lightColor || darkColor ? { color: lightColor || darkColor } : {},
         style,
       ]}
       {...rest}
     />
   );
 }
-
-const styles = StyleSheet.create({
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  link: {
-    lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
-  },
-});
