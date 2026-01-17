@@ -4,13 +4,13 @@ import HomeScreen from "../index";
 jest.mock("expo-image", () => {
   const { View } = require("react-native");
   return {
-    Image: MockView,
+    Image: View,
   };
 });
 
 jest.mock("expo-router", () => {
   const { View } = require("react-native");
-  const LinkComponent = ({ children }: { children: React.ReactNode }) => (
+  const LinkComponent: any = ({ children }: { children: React.ReactNode }) => (
     <View>{children}</View>
   );
   LinkComponent.displayName = "Link";
