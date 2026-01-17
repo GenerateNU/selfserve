@@ -15,9 +15,9 @@ func NewUsersRepository(db *pgxpool.Pool) *UsersRepository {
 	return &UsersRepository{db: db}
 }
 
-func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUserRequest) (*models.User, error) {
+func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 	createdUser := &models.User{
-		CreateUserRequest: *user,
+		CreateUser: *user,
 	}
 
 	err := r.db.QueryRow(ctx, `

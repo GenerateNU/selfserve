@@ -19,28 +19,28 @@ func NewUsersHandler(repo storage.UsersRepository) *UsersHandler {
 	return &UsersHandler{UsersRepository: repo}
 }
 
-// CreateUserRequest godoc
+// CreateUser godoc
 // @Summary      Creates a user
 // @Description  Creates a user with the given data
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        request  body   models.CreateUserRequest  true  "User data"
+// @Param        request  body   models.CreateUser  true  "User data"
 // @Success      200   {object}  models.User
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Router       /users [post]
-func (h *UsersHandler) CreateUserRequest(c *fiber.Ctx) error {
-	var incoming models.CreateUserRequest
-	if err := c.BodyParser(&incoming); err != nil {
+func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
+	var CreateUserRequest models.CreateUser
+	if err := c.BodyParser(&CreateUserRequest); err != nil {
 		return errs.InvalidJSON()
 	}
 
-	if err := validateCreateUser(&incoming); err != nil {
+	if err := validateCreateUser(&CreateUserRequest); err != nil {
 		return err
 	}
 
-	res, err := h.UsersRepository.InsertUser(c.Context(), &incoming)
+	res, err := h.UsersRepository.InsertUser(c.Context(), &CreateUserRequest)
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -48,7 +48,7 @@ func (h *UsersHandler) CreateUserRequest(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func validateCreateUser(user *models.CreateUserRequest) error {
+func validateCreateUser(user *models.CreateUser) error {
 	errors := make(map[string]string)
 
 	if strings.TrimSpace(user.FirstName) == "" {
