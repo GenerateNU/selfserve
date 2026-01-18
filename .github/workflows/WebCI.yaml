@@ -1,0 +1,101 @@
+name: Web Frontend CI
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "clients/web/**"
+      - "clients/shared/**"
+      - ".github/workflows/WebCI.yaml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "clients/web/**"
+      - "clients/shared/**"
+      - ".github/workflows/WebCI.yaml"
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+jobs:
+  web-lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./clients/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: './clients/web/package.json'
+          cache: 'npm'
+          cache-dependency-path: './clients/web/package-lock.json'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run ESLint
+        run: npm run lint
+      - name: Check code formatting
+        run: npx prettier --check .
+  web-typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./clients/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: './clients/web/package.json'
+          cache: 'npm'
+          cache-dependency-path: './clients/web/package-lock.json'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run TypeScript compiler
+        run: npx tsc --noEmit
+  web-test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./clients/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: './clients/web/package.json'
+          cache: 'npm'
+          cache-dependency-path: './clients/web/package-lock.json'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+  web-build:
+    name: Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./clients/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: './clients/web/package.json'
+          cache: 'npm'
+          cache-dependency-path: './clients/web/package-lock.json'
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify package-lock.json is up to date
+        run: |
+          npm install --package-lock-only
+          git diff --exit-code package-lock.json
+      - name: Build application
+        run: npm run build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: clients/web/dist
+          retention-days: 7

@@ -10,7 +10,7 @@ jest.mock("expo-image", () => {
 
 jest.mock("expo-router", () => {
   const { View } = require("react-native");
-  const LinkComponent = ({ children }: { children: React.ReactNode }) => (
+  const LinkComponent: any = ({ children }: { children: React.ReactNode }) => (
     <View>{children}</View>
   );
   LinkComponent.displayName = "Link";
