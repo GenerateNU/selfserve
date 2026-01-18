@@ -17,6 +17,7 @@ type DevsRepository interface {
 type Repository struct {
 	DB                *pgxpool.Pool
 	DevsRepository    DevsRepository
+	UsersRepository   UsersRepository
 	RequestRepository RequestsRepository
 }
 
@@ -60,6 +61,7 @@ func NewRepository(config config.DB) (*Repository, error) {
 	return &Repository{
 		DB:                db,
 		DevsRepository:    repository.NewDevsRepository(db),
+		UsersRepository:   repository.NewUsersRepository(db),
 		RequestRepository: repository.NewRequestsRepo(db),
 	}, nil
 }
