@@ -31,8 +31,8 @@ import (
 // @schemes http https
 func main() {
 	// Load environment variables
-	ctx := context.Background()
 	var cfg config.Config
+	ctx := context.Background()
 	if err := envconfig.Process(ctx, &cfg); err != nil {
 		log.Fatal("failed to process config:", err)
 	}
