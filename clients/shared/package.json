@@ -8,12 +8,12 @@
   "scripts": {
     "postinstall": "echo 'Shared package installed - dependencies provided by consuming apps'"
   },
+  "dependencies": {
+    "@tanstack/react-query": "5.90.19",
+    "react": "19.1.0"
+  },
   "peerDependencies": {
     "@tanstack/react-query": "^5.90.0",
     "react": "^19.0.0"
-  },
-  "devDependencies": {
-    "@tanstack/react-query": "5.90.19",
-    "react": "19.1.0"
   }
 }
