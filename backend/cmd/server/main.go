@@ -9,9 +9,9 @@ import (
 	"syscall"
 
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/docs"
 	"github.com/generate/selfserve/internal/service"
 	"github.com/sethvargo/go-envconfig"
-	_ "github.com/generate/selfserve/docs"
 )
 
 // @title           SelfServe API
