@@ -28,7 +28,7 @@ func NewRequestsHandler(repo storage.RequestsRepository) *RequestsHandler {
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Router       /request [post]
-func (r *RequestsHandler)CreateRequest(c *fiber.Ctx) error {
+func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	var incoming models.MakeRequest
 	if err := c.BodyParser(&incoming); err != nil {
 		return errs.InvalidJSON()
@@ -72,11 +72,11 @@ func validateCreateRequest(req *models.Request) error {
 	if req.Priority == "" {
 		errors["priority"] = "must not be an empty string"
 	}
-	
+
 	if len(errors) > 0 {
 		var parts []string
 		for field, violation := range errors {
-		parts = append(parts, field+": "+violation)
+			parts = append(parts, field+": "+violation)
 		}
 		return errs.BadRequest(strings.Join(parts, ", "))
 	}
