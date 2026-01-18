@@ -1,6 +1,6 @@
 package config
 
 type Config struct {
-	Application Application
-	DB          DB
+	Application `env:",prefix=APP_"`
+	DB          `env:",prefix=DB_"`
 }
