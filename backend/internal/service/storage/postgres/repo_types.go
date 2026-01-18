@@ -7,4 +7,4 @@ import (
 
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
-} 
+}

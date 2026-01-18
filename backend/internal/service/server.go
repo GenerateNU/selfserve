@@ -73,20 +73,19 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		r.Get("/:name", devsHandler.GetMember)
 	})
 
-	// Request routes 
+	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 	})
 
-	
 }
 
 // Initialize Fiber app with middlewares / configs
 func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		JSONEncoder: json.Marshal,
-		JSONDecoder: json.Unmarshal,
-		ErrorHandler: errs.ErrorHandler, 
+		JSONEncoder:  json.Marshal,
+		JSONDecoder:  json.Unmarshal,
+		ErrorHandler: errs.ErrorHandler,
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())
