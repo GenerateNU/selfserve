@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 type mockRequestRepository struct {
 	makeRequestFunc func(ctx context.Context, req *models.Request) (*models.Request, error)
 }
