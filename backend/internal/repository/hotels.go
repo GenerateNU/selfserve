@@ -17,7 +17,7 @@ func NewHotelRepository(db *pgxpool.Pool) *HotelRepository {
 	return &HotelRepository{db: db}
 }
 
-func (r *HotelRepository) GetByID(ctx context.Context, id string) (*models.Hotel, error) {
+func (r *HotelRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
 	row := r.db.QueryRow(ctx, `
 		SELECT id, name, floors, created_at, updated_at
 		FROM hotels 

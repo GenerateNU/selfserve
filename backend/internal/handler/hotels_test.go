@@ -14,13 +14,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//mock repository
+// Mock repository
 type mockHotelRepository struct {
-	getByIDFunc func(ctx context.Context, id string) (*models.Hotel, error)
+	findByIDFunc func(ctx context.Context, id string) (*models.Hotel, error)
 }
 
-func (m *mockHotelRepository) GetByID(ctx context.Context, id string) (*models.Hotel, error) {
-	return m.getByIDFunc(ctx, id)
+func (m *mockHotelRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
+	return m.findByIDFunc(ctx, id)
 }
 
 func TestHotelHandler_GetHotelByID(t *testing.T) {
@@ -30,7 +30,7 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelRepository{
-			getByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
+			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return &models.Hotel{
 					ID:     "123e4567-e89b-12d3-a456-426614174000",
 					Name:   "Grand Hilton Hotel",
@@ -57,7 +57,7 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelRepository{
-			getByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
+			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return nil, nil
 			},
 		}
@@ -79,7 +79,7 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelRepository{
-			getByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
+			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return nil, errs.ErrNotFoundInDB
 			},
 		}
@@ -98,7 +98,7 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockHotelRepository{
-			getByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
+			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return nil, errors.New("database connection failed")
 			},
 		}
@@ -118,7 +118,7 @@ func TestHotelHandler_GetHotelByID_EdgeCases(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockHotelRepository{
-		getByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
+		findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 			return nil, nil
 		},
 	}
@@ -153,7 +153,7 @@ func TestHotelHandler_GetHotelByID_InvalidMethods(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockHotelRepository{
-		getByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
+		findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 			return &models.Hotel{
 				ID:     "123e4567-e89b-12d3-a456-426614174000",
 				Name:   "Test Hotel",

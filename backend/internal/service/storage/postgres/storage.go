@@ -15,9 +15,6 @@ type DevsRepository interface {
 }
 
 
-type HotelRepository interface {
-	GetByID(ctx context.Context, id string) (*models.Hotel, error)
-}
 
 type Repository struct {
 	DB             *pgxpool.Pool
@@ -68,7 +65,6 @@ func NewRepository(config config.DB) (*Repository, error) {
 		DB:             db,
 		DevsRepository: repository.NewDevsRepository(db),
 		RequestRepository: repository.NewRequestsRepo(db),
-		//added for hotel
 		HotelRepository:   repository.NewHotelRepository(db),
 	}, nil
 }
