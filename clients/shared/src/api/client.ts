@@ -1,7 +1,7 @@
 import { ApiError } from '../types/api.types'
 
 // @ts-ignore - Environment variable injected by bundler (Vite/Metro)
-const API_BASE_URL = process.env.VITE_API_BASE_URL
+const API_BASE_URL = process.env.API_BASE_URL
 
 /**
  * Internal helper to make HTTP requests w/ error handling
@@ -82,5 +82,3 @@ export const apiClient = {
     return request<T>(endpoint, { method: 'DELETE' })
   },
 }
-
-export { API_BASE_URL }

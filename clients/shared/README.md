@@ -26,9 +26,9 @@ npm install --legacy-peer-deps
 
 1. **Type checking**: Run `tsc --noEmit` from web or mobile directories, not from shared.
 
-2. **Environment variables**: The shared package uses `process.env.VITE_API_BASE_URL` which is injected by:
+2. **Environment variables**: The shared package uses `process.env.API_BASE_URL` which is injected by:
    - **Web**: Vite's `define` config in `vite.config.ts`
-   - **Mobile**: Metro with `react-native-dotenv` in `metro.config.js`
+   - **Mobile**: Metro bundler
 
 ## How It Works
 

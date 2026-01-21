@@ -1,6 +1,5 @@
 // API Client
-export { apiClient, API_BASE_URL } from './api/client'
-export { API_ENDPOINTS } from './api/endpoints'
+export { apiClient } from './api/client'
 
 // Services
 export { helloService } from './api/services/hello.service'

@@ -11,7 +11,7 @@ const config = defineConfig(({ mode }) => {
 
   return {
     define: {
-      'process.env.VITE_API_BASE_URL': JSON.stringify(env.VITE_API_BASE_URL),
+      'process.env.API_BASE_URL': JSON.stringify(env.API_BASE_URL),
     },
     plugins: [
       devtools(),
