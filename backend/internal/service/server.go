@@ -34,7 +34,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 	}
 
 	app := setupApp()
-	clerksdk.SetKey(os.Getenv("CLERK_SECRET_KEY"))
+	setupClerk()
 	setupRoutes(app, repo)
 
 	return &App{
@@ -119,4 +119,13 @@ func setupApp() *fiber.App {
 	}))
 
 	return app
+}
+
+func setupClerk() {
+	if os.Getenv("What is the prod/dev variable called?") == "dev" {
+		clerksdk.SetKey(os.Getenv("DEV_CLERK_SECRET_KEY"))
+	}
+	/*
+	Missing information about .env and prod url to complete 
+	*/
 }
