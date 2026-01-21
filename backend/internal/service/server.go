@@ -2,7 +2,9 @@ package service
 
 import (
 	"net/http"
+	"os"
 
+	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
@@ -32,7 +34,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 	}
 
 	app := setupApp()
-
+	clerksdk.SetKey(os.Getenv("CLERK_SECRET_KEY"))
 	setupRoutes(app, repo)
 
 	return &App{
