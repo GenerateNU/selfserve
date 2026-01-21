@@ -1,6 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { ClerkProvider, SignedIn, SignInButton } from '@clerk/clerk-react'
 
 import Header from '../components/Header'
 
@@ -38,8 +39,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <Header />
-        {children}
+         <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+            <SignInButton> Sign in here. </SignInButton>
+            <SignedIn>
+              <Header />
+              {children}
+            </SignedIn>
+        </ClerkProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
@@ -56,3 +62,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     </html>
   )
 }
+
+
+
+const PUBLISHABLE_KEY = "CHANGE THIS TO THE ACTUAL KEY FOR PROD/DEV"; 
