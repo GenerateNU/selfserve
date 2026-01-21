@@ -7,6 +7,7 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
+	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -63,6 +64,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 
 	// API v1 routes
 	api := app.Group("/api/v1")
+	app.Use(clerk.AuthMiddleware);
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
