@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -122,10 +123,13 @@ func setupApp() *fiber.App {
 }
 
 func setupClerk() {
-	if os.Getenv("What is the prod/dev variable called?") == "dev" {
+	if os.Getenv("ENV") == "development" {
 		clerksdk.SetKey(os.Getenv("DEV_CLERK_SECRET_KEY"))
+	} else {
+		/*
+			Missing prod url to complete 
+		*/
+		fmt.Print("No clerk for prod yet.")
 	}
-	/*
-	Missing information about .env and prod url to complete 
-	*/
+	
 }
