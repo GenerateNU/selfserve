@@ -18,7 +18,7 @@ type CreateUserWebhook struct {
         ID        string  `json:"id" example:"user123402"`
 		FirstName string  `json:"first_name" example:"John"`
 		LastName  string  `json:"last_name" example:"Doe"`
-		ImageUrl  string  `json:"image_url" example:"https://photo.com/john.jpg"`
+		ImageUrl  *string `json:"image_url" example:"https://photo.com/john.jpg"`
 		HasImage  bool    `json:"has_image" example:"true"`
     } `json:"data"`
 }

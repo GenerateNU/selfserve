@@ -30,13 +30,7 @@ func (h *ClerkHandler) CreateUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	res, err := h.UsersRepository.InsertUser(c.Context(), 
-	&models.CreateUser{
-		FirstName: CreateUserRequest.Data.FirstName,
-		LastName: CreateUserRequest.Data.LastName,
-		ClerkID: CreateUserRequest.Data.ID,
-		ProfilePicture: &CreateUserRequest.Data.ImageUrl,
-	})
+	res, err := h.UsersRepository.InsertUser(c.Context(), reformatUserData(CreateUserRequest))
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -62,4 +56,14 @@ func validateCreateUser(user *models.CreateUserWebhook) error {
 	return handler.AggregateErrors(errors)
 }
 
-
+func reformatUserData(CreateUserRequest models.CreateUserWebhook) *models.CreateUser {
+	result := &models.CreateUser{
+		FirstName: CreateUserRequest.Data.FirstName,
+		LastName: CreateUserRequest.Data.LastName,
+		ClerkID: CreateUserRequest.Data.ID,
+	}
+	if (CreateUserRequest.Data.HasImage) {
+		result.ProfilePicture = CreateUserRequest.Data.ImageUrl
+	}
+	return result 
+}
