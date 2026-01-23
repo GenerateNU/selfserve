@@ -18,15 +18,15 @@ import (
 
 type mockRequestRepository struct {
 	makeRequestFunc func(ctx context.Context, req *models.Request) (*models.Request, error)
-	getRequestFunc  func(ctx context.Context, id string) (*models.Request, error)
+	findRequestFunc func(ctx context.Context, id string) (*models.Request, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
 	return m.makeRequestFunc(ctx, req)
 }
 
-func (m *mockRequestRepository) GetRequest(ctx context.Context, id string) (*models.Request, error) {
-	return m.getRequestFunc(ctx, id)
+func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
+	return m.findRequestFunc(ctx, id)
 }
 
 func TestRequestHandler_GetRequest(t *testing.T) {
@@ -36,7 +36,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			getRequestFunc: func(ctx context.Context, name string) (*models.Request, error) {
+			findRequestFunc: func(ctx context.Context, name string) (*models.Request, error) {
 				return &models.Request{
 					ID:        "530e8400-e458-41d4-a716-446655440000",
 					CreatedAt: time.Now(),
@@ -70,7 +70,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			getRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
+			findRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
 				return nil, errors.New("error")
 			},
 		}
@@ -90,7 +90,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			getRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
+			findRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
 				return nil, errs.ErrNotFoundInDB
 			},
 		}
@@ -110,7 +110,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			getRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
+			findRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
 				return nil, errors.New("db connection failed")
 			},
 		}
@@ -130,7 +130,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			getRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
+			findRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
 				return nil, nil
 			},
 		}

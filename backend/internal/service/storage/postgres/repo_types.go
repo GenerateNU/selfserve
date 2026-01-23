@@ -13,7 +13,7 @@ type UsersRepository interface {
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
 
-	GetRequest(ctx context.Context, id string) (*models.Request, error)
+	FindRequest(ctx context.Context, id string) (*models.Request, error)
 }
 
 type HotelsRepository interface {

@@ -91,7 +91,7 @@ func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 		return errs.BadRequest("request id is not a valid UUID")
 	}
 	// add some parsing into UUID type?
-	dev, err := r.RequestRepository.GetRequest(c.Context(), id)
+	dev, err := r.RequestRepository.FindRequest(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("request", "id", id)

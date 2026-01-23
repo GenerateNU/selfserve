@@ -37,7 +37,7 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 	return req, nil
 }
 
-func (r *RequestsRepository) GetRequest(ctx context.Context, id string) (*models.Request, error) {
+func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
 
 	row := r.db.QueryRow(ctx, `
 		SELECT id, created_at, updated_at, hotel_id, guest_id, user_id, reservation_id, name, description,
