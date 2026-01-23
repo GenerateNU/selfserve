@@ -58,15 +58,28 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		return c.SendStatus(http.StatusOK)
 	})
 
+	// initialize users repo 
+	usersRepo := repository.NewUsersRepository(repo.DB)
+
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
-	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
+	usersHandler := handler.NewUsersHandler(usersRepo)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
+	clerkWebhookHandler, err := handler.NewClerkHandler(usersRepo)
+	if err != nil {
+		fmt.Print(err)
+	}
 
 	// API v1 routes
 	api := app.Group("/api/v1")
+
+	// clerk webhook route
+	api.Route("/clerk", func(r fiber.Router) {
+		r.Post("/user", clerkWebhookHandler.CreateUser)
+	})
+
 	app.Use(clerk.AuthMiddleware);
 
 	// Hello routes
@@ -131,5 +144,4 @@ func setupClerk() {
 		*/
 		fmt.Print("No clerk for prod yet.")
 	}
-	
 }

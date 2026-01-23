@@ -7,7 +7,7 @@ type CreateUser struct {
 	LastName       string  `json:"last_name" example:"Doe"`
 	EmployeeID     *string `json:"employee_id" example:"EMP-1234"`
 	ProfilePicture *string `json:"profile_picture" example:"https://example.com/john.jpg"`
-	Role           string  `json:"role" example:"Receptionist"`
+	Role           *string  `json:"role" example:"Receptionist"`
 	Department     *string `json:"department" example:"Housekeeping"`
 	Timezone       *string `json:"timezone" example:"America/New_York"`
 	ClerkID   string    `json:"clerk_id" example:"user_123"`

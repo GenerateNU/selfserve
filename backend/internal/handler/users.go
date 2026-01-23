@@ -58,10 +58,6 @@ func validateCreateUser(user *models.CreateUser) error {
 		errors["last_name"] = "must not be an empty string"
 	}
 
-	if strings.TrimSpace(user.Role) == "" {
-		errors["role"] = "must not be an empty string"
-	}
-
 	if user.Timezone != nil {
 		if _, err := time.LoadLocation(*user.Timezone); err != nil {
 			errors["timezone"] = "invalid IANA timezone"
