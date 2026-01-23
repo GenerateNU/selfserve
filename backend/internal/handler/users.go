@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"sort"
 	"strings"
 	"time"
 
@@ -70,19 +69,5 @@ func validateCreateUser(user *models.CreateUser) error {
 	}
 
 	// Aggregates errors deterministically
-	if len(errors) > 0 {
-		var keys []string
-		for k := range errors {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		var parts []string
-		for _, k := range keys {
-			parts = append(parts, k+": "+errors[k])
-		}
-		return errs.BadRequest(strings.Join(parts, ", "))
-	}
-
-	return nil
+	return AggregateErrors(errors)
 }
