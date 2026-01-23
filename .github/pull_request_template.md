@@ -34,18 +34,11 @@ Related to #
 
 <!-- Describe how you tested these changes. Include test cases, manual testing steps, or automated test additions. -->
 
-### How to Test
+### How this was tested
 
 1.
 2.
 3.
-
-### Test Coverage
-
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing completed
-- [ ] Edge cases considered and tested
 
 ## Screenshots/Recordings
 
@@ -67,15 +60,6 @@ Related to #
 
 - ***
 - ***
-
-## Deployment Considerations
-
-<!-- Are there any special deployment steps, migrations, environment variable changes, or downstream impacts? -->
-
-- [ ] No special deployment considerations
-- [ ] Database migrations required (see `backend/supabase/migrations/`)
-- [ ] Environment variables added/changed (document in PR or update `.env.example`)
-- [ ] Breaking API changes (requires client updates)
 
 ## Pre-Merge Checklist
 
@@ -102,21 +86,12 @@ Related to #
 - [ ] API documentation updated (if backend endpoints changed)
 - [ ] Type definitions are accurate and up-to-date
 
-### Security & Performance
-
-- [ ] No sensitive data (passwords, tokens, API keys, PII, etc.) committed
-- [ ] Security implications considered and addressed
-- [ ] Performance impact evaluated (no obvious performance regressions)
-
 ## Reviewer Notes
 
 <!-- Anything specific you want reviewers to focus on or be aware of? -->
 
-**Areas needing extra attention:**
-
+- Areas needing extra attention: ...
 - Questions for reviewers: ...
-
-- Concerns: ...
 
 <!--
 Thanks for shipping goat
