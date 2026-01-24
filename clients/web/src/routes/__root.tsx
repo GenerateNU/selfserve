@@ -39,7 +39,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-         <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+         <ClerkProvider publishableKey={process.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}>
             <SignInButton> Sign in here. </SignInButton>
             <SignedIn>
               <Header />
@@ -62,7 +62,3 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     </html>
   )
 }
-
-
-
-const PUBLISHABLE_KEY = "CHANGE THIS TO THE ACTUAL KEY FOR PROD/DEV"; 
