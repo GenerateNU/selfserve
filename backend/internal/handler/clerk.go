@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"net/http"
 	"os"
 	"strings"
 
@@ -14,28 +15,30 @@ import (
 
 type ClerkHandler struct {
 	UsersRepository storage.UsersRepository
-	Webhook *svix.Webhook
+	WebhookVerifier WebhookVerifier
 }
 
+type WebhookVerifier interface {
+	Verify(payload []byte, headers http.Header) error
+}
 
-func NewClerkHandler(userRepo storage.UsersRepository) (*ClerkHandler, error) {
-	wh, err := svix.NewWebhook(os.Getenv("DEV_CLERK_WEBHOOK_SIGNATURE"))
-	if err != nil {
-		return nil, err
-	}
-	return &ClerkHandler{UsersRepository: userRepo, Webhook : wh}, nil
+func NewWebhookVerifier() (WebhookVerifier, error) {
+	return svix.NewWebhook(os.Getenv("DEV_CLERK_WEBHOOK_SIGNATURE"))
+}
+
+func NewClerkHandler(userRepo storage.UsersRepository, WebhookVerifier WebhookVerifier) *ClerkHandler {
+	return &ClerkHandler{UsersRepository: userRepo, WebhookVerifier : WebhookVerifier}
 }
 
 func (h *ClerkHandler) CreateUser(c *fiber.Ctx) error {
-	headers := map[string][]string{
-		"svix-id":        {c.Get("svix-id")},
-		"svix-timestamp": {c.Get("svix-timestamp")},
-		"svix-signature": {c.Get("svix-signature")},
-	}
+	headers := http.Header{}
+	headers.Set("svix-id", c.Get("svix-id"))
+	headers.Set("svix-timestamp", c.Get("svix-timestamp"))
+	headers.Set("svix-signature", c.Get("svix-signature"))
 
-	err := h.Webhook.Verify(c.Body(), headers)
+	err := h.WebhookVerifier.Verify(c.Body(), headers)
 	if err != nil {
-		errs.Unauthorized()
+		return errs.Unauthorized()
 	}
 
 	var CreateUserRequest models.CreateUserWebhook

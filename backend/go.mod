@@ -3,6 +3,7 @@ module github.com/generate/selfserve
 go 1.24.0
 
 require (
+	github.com/clerk/clerk-sdk-go/v2 v2.5.1
 	github.com/gofiber/adaptor/v2 v2.2.1
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/stretchr/testify v1.11.1
@@ -12,7 +13,6 @@ require (
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/clerk/clerk-sdk-go/v2 v2.5.1 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

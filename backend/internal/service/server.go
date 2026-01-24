@@ -67,10 +67,11 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	usersHandler := handler.NewUsersHandler(usersRepo)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
-	clerkWebhookHandler, err := handler.NewClerkHandler(usersRepo)
+	whVerifier, err := handler.NewWebhookVerifier()
 	if err != nil {
 		fmt.Print(err)
 	}
+	clerkWebhookHandler := handler.NewClerkHandler(usersRepo, whVerifier)
 
 	// API v1 routes
 	api := app.Group("/api/v1")
@@ -80,7 +81,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		r.Post("/user", clerkWebhookHandler.CreateUser)
 	})
 
-	app.Use(clerk.AuthMiddleware);
+	verifier := clerk.NewClerkJWTVerifier()
+	app.Use(clerk.NewAuthMiddleware(verifier))
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
