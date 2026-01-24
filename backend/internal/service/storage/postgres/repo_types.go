@@ -11,7 +11,7 @@ type UsersRepository interface {
 }
 
 type GuestsRepository interface {
-	InsertGuest(ctx context.Context, user *models.CreateGuest) (*models.Guest, error)
+	InsertGuest(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error)
 }
 
 type RequestsRepository interface {

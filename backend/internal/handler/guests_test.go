@@ -31,7 +31,7 @@ func (m *mockGuestsRepository) InsertGuest(
 // Makes the compiler verify the mock
 var _ storage.GuestsRepository = (*mockGuestsRepository)(nil)
 
-func TestGuestsHandler_CreateUser(t *testing.T) {
+func TestGuestsHandler_CreateGuest(t *testing.T) {
 	t.Parallel()
 	validBody := `{
 		"first_name": "John",
