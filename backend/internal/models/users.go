@@ -10,7 +10,7 @@ type CreateUser struct {
 	Role           *string  `json:"role" example:"Receptionist"`
 	Department     *string `json:"department" example:"Housekeeping"`
 	Timezone       *string `json:"timezone" example:"America/New_York"`
-	ClerkID   string    `json:"clerk_id" example:"user_123"`
+	ClerkID         string  `json:"clerk_id" example:"user_123"`
 }
 
 type CreateUserWebhook struct {

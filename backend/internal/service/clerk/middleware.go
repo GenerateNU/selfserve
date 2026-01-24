@@ -24,7 +24,9 @@ func NewAuthMiddleware(verifier JWTVerifier) fiber.Handler {
 		}
 
 		c.Locals("userId", clerkId)
-		c.Next()
+		if err := c.Next(); err != nil {
+    		return err
+		}
 		return nil
 	}
 }
