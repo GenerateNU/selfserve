@@ -84,6 +84,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// Guest Routes
 	api.Route("/guests", func(r fiber.Router) {
 		r.Post("/", guestsHandler.CreateGuest)
+		r.Get("/:id", guestsHandler.GetGuest)
 	})
 
 	// Request routes

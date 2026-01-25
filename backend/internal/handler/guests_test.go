@@ -19,6 +19,7 @@ import (
 
 type mockGuestsRepository struct {
 	insertGuestFunc func(ctx context.Context, req *models.CreateGuest) (*models.Guest, error)
+	findGuestFunc   func(ctx context.Context, id string) (*models.Guest, error)
 }
 
 func (m *mockGuestsRepository) InsertGuest(
@@ -26,6 +27,13 @@ func (m *mockGuestsRepository) InsertGuest(
 	guest *models.CreateGuest,
 ) (*models.Guest, error) {
 	return m.insertGuestFunc(ctx, guest)
+}
+
+func (m *mockGuestsRepository) FindGuest(
+	ctx context.Context,
+	id string,
+) (*models.Guest, error) {
+	return m.findGuestFunc(ctx, id)
 }
 
 // Makes the compiler verify the mock
@@ -44,9 +52,9 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		mock := &mockGuestsRepository{
 			insertGuestFunc: func(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error) {
 				return &models.Guest{
-					ID:         "generated-uuid",
-					CreatedAt:  time.Now(),
-					UpdatedAt:  time.Now(),
+					ID:          "generated-uuid",
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
 					CreateGuest: *guest,
 				}, nil
 			},
@@ -76,9 +84,9 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		mock := &mockGuestsRepository{
 			insertGuestFunc: func(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error) {
 				return &models.Guest{
-					ID:         "generated-uuid",
-					CreatedAt:  time.Now(),
-					UpdatedAt:  time.Now(),
+					ID:          "generated-uuid",
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
 					CreateGuest: *guest,
 				}, nil
 			},
