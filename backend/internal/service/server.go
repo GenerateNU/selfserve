@@ -77,6 +77,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// users routes
 	api.Route("/users", func(r fiber.Router) {
 		r.Get("/:id", usersHandler.GetUserByID)
+		r.Post("/", usersHandler.CreateUser)
 	})
 	// Request routes 
 	api.Route("/request", func(r fiber.Router) {
