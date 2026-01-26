@@ -41,12 +41,15 @@ func NewS3Storage(cfg config.S3) (*Storage, error) {
 	}, nil
 }
 
-func (s *Storage) uploadFile(ctx context.Context, key string, expiration time.Duration) (string, error) {
+func (s *Storage) GeneratePresignedURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
 
 	presignedURL, err := s.URL.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
-	})
+	}, func(opts *s3.PresignOptions) {
+		opts.Expires = expiration
+	},
+)
 
 	if err != nil {
 		return "", err
@@ -54,3 +57,17 @@ func (s *Storage) uploadFile(ctx context.Context, key string, expiration time.Du
 
 	return presignedURL.URL, nil
 }
+
+func (s *Storage) DeleteFile(ctx context.Context, key string) (error) {
+	_, err := s.Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(s.BucketName),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+

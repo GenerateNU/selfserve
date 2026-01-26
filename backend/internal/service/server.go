@@ -40,7 +40,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 	app := setupApp()
 
-	setupRoutes(app, repo)
+	setupRoutes(app, repo, s3Store)
 
 	return &App{
 		Server:    app,
@@ -50,7 +50,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.Storage) {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -70,7 +70,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
-
+	s3Handler := handler.NewS3Handler(s3Store)
 	// API v1 routes
 	api := app.Group("/api/v1")
 
@@ -99,6 +99,12 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// Hotel routes
 	api.Route("/hotel", func(r fiber.Router) {
 		r.Post("/", hotelsHandler.CreateHotel)
+	})
+
+	// s3 routes
+
+	api.Route("/s3", func(r fiber.Router) {
+		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
 	})
 
 }
