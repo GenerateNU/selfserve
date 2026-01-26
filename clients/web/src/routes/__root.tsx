@@ -6,6 +6,7 @@ import { ClerkProvider, SignedIn, SignInButton, SignOutButton } from '@clerk/cle
 import Header from '../components/Header'
 
 import appCss from '../styles.css?url'
+import { TestButton } from '@/components/Auth_Test'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -40,6 +41,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
          <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}>
+          <TestButton></TestButton>
             <SignInButton>
               <span className="bg-blue-500 text-white px-4 py-2 rounded inline-block">
                 Sign in here
@@ -51,6 +53,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               </span>
             </SignOutButton>
             <SignedIn>
+              
               <Header />
               {children}
             </SignedIn>
