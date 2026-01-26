@@ -8,6 +8,7 @@ import (
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	s3storage "github.com/generate/selfserve/internal/service/storage/postgres/s3"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -19,13 +20,20 @@ import (
 )
 
 type App struct {
-	Server *fiber.App
-	Repo   *storage.Repository
+	Server    *fiber.App
+	Repo      *storage.Repository
+	S3Storage *s3storage.Storage
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
 	// Init DB/repository(ies)
+
 	repo, err := storage.NewRepository(cfg.DB)
+	if err != nil {
+		return nil, err
+	}
+
+	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +43,9 @@ func InitApp(cfg *config.Config) (*App, error) {
 	setupRoutes(app, repo)
 
 	return &App{
-		Server: app,
+		Server:    app,
+		Repo:      repo,
+		S3Storage: s3Store,
 	}, nil
 
 }

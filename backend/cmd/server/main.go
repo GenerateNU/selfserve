@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/generate/selfserve/config"
-	_ "github.com/generate/selfserve/docs"
+	//_ "github.com/generate/selfserve/docs"
 	"github.com/generate/selfserve/internal/service"
 	"github.com/sethvargo/go-envconfig"
 )
