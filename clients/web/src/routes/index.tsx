@@ -1,3 +1,4 @@
+import { SignInButton } from '@clerk/clerk-react'
 import { createFileRoute } from '@tanstack/react-router'
 
 
@@ -22,6 +23,11 @@ function App() {
           <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
             React + TanStack Start
           </p>
+          <SignInButton>
+          <button className="px-4 py-2 bg-blue-500 text-white rounded">
+            Sign In
+          </button>
+          </SignInButton>
           <div className="flex flex-col items-center gap-4">
             <a
               href="https://tanstack.com/start/latest"

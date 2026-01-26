@@ -1,7 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { ClerkProvider, SignInButton, SignOutButton, SignedIn } from '@clerk/clerk-react'
+import { ClerkProvider } from '@clerk/clerk-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import Header from '../components/Header'
@@ -50,22 +50,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-         <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}>
-            <SignInButton>
-              <span className="bg-blue-500 text-white px-4 py-2 rounded inline-block">
-                Sign in here
-              </span>
-            </SignInButton>
-            <SignOutButton>
-              <span className="bg-red-500 text-white px-4 py-2 rounded inline-block">
-                Sign out here
-              </span>
-            </SignOutButton>
-            <SignedIn>
-              
-              <Header />
-              {children}
-            </SignedIn>
+        <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}>
+          <QueryClientProvider client={queryClient}>
+            <Header />
+            {children}
+            <ReactQueryDevtools initialIsOpen={false} />
+          </QueryClientProvider>
         </ClerkProvider>
         <TanStackDevtools
           config={{
@@ -79,23 +69,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           ]}
         />
         <Scripts />
-        <QueryClientProvider client={queryClient}>
-          <Header />
-          {children}
-          <ReactQueryDevtools initialIsOpen={false} />
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
-          <Scripts />
-        </QueryClientProvider>
       </body>
     </html>
   )
