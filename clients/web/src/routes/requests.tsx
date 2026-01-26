@@ -1,14 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
 import { createFileRoute } from '@tanstack/react-router';
-import { timeoutManager } from '@tanstack/react-query';
 
 export const Route = createFileRoute("/requests")({
   component: KanbanBoard
 });
 
 // Types matching Go backend
-interface Request {
+export interface Request {
   id: string;
   created_at: string;
   updated_at: string;
@@ -31,9 +29,8 @@ interface Request {
 }
 
 const fetchRequests = async (status: string, cursor: string | null = null, limit: number = 10) => {
-
-    // so you can see my loading wheel
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  // so you can see my loading wheel
+  await new Promise(resolve => setTimeout(resolve, 1000));
   const startId = cursor ? parseInt(cursor) : 0;
   const requests: Request[] = Array.from({ length: limit }, (_, i) => ({
     id: i.toString(),
@@ -49,7 +46,6 @@ const fetchRequests = async (status: string, cursor: string | null = null, limit
     priority: ['low', 'medium', 'high', 'urgent'][i % 4],
   }));
 
-  // Simulate end of data after 50 items
   const hasMore: boolean = startId + limit < 50;
   const nextCursor: string | null = hasMore ? `${startId + limit}` : null;
   
@@ -61,86 +57,45 @@ const fetchRequests = async (status: string, cursor: string | null = null, limit
 };
 
 const STATUSES = [
-  { id: 'pending', label: 'Pending', color: 'bg-gray-100' },
-  { id: 'assigned', label: 'Assigned', color: 'bg-blue-100' },
-  { id: 'in_progress', label: 'In Progress', color: 'bg-yellow-100' },
-  { id: 'completed', label: 'Completed', color: 'bg-green-100' },
+  { id: 'pending', label: 'Pending' },
+  { id: 'assigned', label: 'Assigned' },
+  { id: 'in_progress', label: 'In Progress' },
+  { id: 'completed', label: 'Completed' },
 ];
 
+// Simple request card component
 const RequestCard = ({ request }: { request: Request }) => {
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-2">
-        <h3 className="font-semibold text-gray-900 flex-1">{request.name}</h3>
-        <span className={`text-xs px-2 py-1 rounded-full font-medium ${getPriorityColor(request.priority)}`}>
-          {request.priority}
-        </span>
+    <div style={{
+      backgroundColor: 'white',
+      padding: '12px',
+      marginBottom: '8px',
+      border: '1px solid #ddd',
+      borderRadius: '4px'
+    }}>
+      <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+        {request.name}
       </div>
-      
-      {request.description && (
-        <p className="text-sm text-gray-600 mb-3">{request.description}</p>
-      )}
-      
-      <div className="space-y-2 text-xs text-gray-500">
-        {request.request_category && (
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Category:</span>
-            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">{request.request_category}</span>
-          </div>
-        )}
-        
-        {request.department && (
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Department:</span>
-            <span>{request.department}</span>
-          </div>
-        )}
-        
-        {request.room_id && (
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Room:</span>
-            <span className="font-mono text-xs">{request.room_id.slice(-8)}</span>
-          </div>
-        )}
-        
-        {request.estimated_completion_time && (
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Est. Time:</span>
-            <span>{request.estimated_completion_time} min</span>
-          </div>
-        )}
-        
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          <span className="text-xs text-gray-400">
-            {new Date(request.created_at).toLocaleDateString()}
-          </span>
-          {request.scheduled_time && (
-            <span className="text-xs text-blue-600">
-              Scheduled: {new Date(request.scheduled_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
+      <div style={{ fontSize: '14px', color: '#666' }}>
+        {request.description}
+      </div>
+      {request.request_category && (
+        <div style={{ fontSize: '12px', color: '#888', marginTop: '8px' }}>
+          Category: {request.request_category}
         </div>
+      )}
+      <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
+        Priority: {request.priority}
       </div>
     </div>
   );
 };
 
-const KanbanColumn = ({ status }: { status: { id: string; label: string; color: string } }) => {
+const KanbanColumn = ({ status }: { status: { id: string; label: string } }) => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const loadMore = useCallback(async () => {
@@ -156,11 +111,9 @@ const KanbanColumn = ({ status }: { status: { id: string; label: string; color: 
       console.error('Error fetching requests:', error);
     } finally {
       setIsLoading(false);
-      setIsInitialLoad(false);
     }
   }, [status.id, cursor, hasMore, isLoading]);
 
-  // Intersection Observer for infinite scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
@@ -183,74 +136,73 @@ const KanbanColumn = ({ status }: { status: { id: string; label: string; color: 
     };
   }, [loadMore, hasMore, isLoading]);
 
-  // Initial load
   useEffect(() => {
     loadMore();
   }, []);
 
   return (
-    <div className="flex flex-col h-full min-w-[300px] w-full">
-      <div className={`${status.color} p-4 rounded-t-lg border-b-2 border-gray-300`}>
-        <h2 className="font-bold text-gray-800 text-lg">
-          {status.label}
-          <span className="ml-2 text-sm font-normal text-gray-600">
-            ({requests.length}{!hasMore ? '' : '+'})
-          </span>
-        </h2>
-      </div>
+    <div style={{
+      width: '300px',
+      backgroundColor: '#f5f5f5',
+      padding: '16px',
+      borderRadius: '8px',
+      height: '100%',
+      overflow: 'auto'
+    }}>
+      <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold' }}>
+        {status.label}
+      </h2>
       
-      <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
-        {isInitialLoad ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-            <svg className="w-16 h-16 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-            </svg>
-            <p className="text-sm font-medium">No requests</p>
-          </div>
-        ) : (
-          <>
-            {requests.map(request => (
-              <RequestCard key={request.id} request={request} />
-            ))}
-            
-            {hasMore && (
-              <div ref={observerTarget} className="flex justify-center py-4">
-                {isLoading && (
-                  <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                )}
-              </div>
-            )}
-            
-            {!hasMore && requests.length > 0 && (
-              <div className="text-center py-4 text-sm text-gray-400">
-                No more requests
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      {isLoading && requests.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          Loading...
+        </div>
+      ) : requests.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+          No requests
+        </div>
+      ) : (
+        <>
+          {requests.map(request => (
+            <RequestCard key={request.id} request={request} />
+          ))}
+          
+          {hasMore && (
+            <div ref={observerTarget} style={{ textAlign: 'center', padding: '10px' }}>
+              {isLoading && 'Loading more...'}
+            </div>
+          )}
+          
+          {!hasMore && (
+            <div style={{ textAlign: 'center', padding: '10px', color: '#999' }}>
+              No more requests
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
 
 function KanbanBoard() {
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
-      <header className="bg-white shadow-sm p-6 border-b">
-        <h1 className="text-2xl font-bold text-gray-900">Request Management</h1>
-        <p className="text-sm text-gray-600 mt-1">Track and manage requests across different stages</p>
-      </header>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '20px', backgroundColor: 'white', borderBottom: '1px solid #ddd' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Request Management</h1>
+        <p style={{ color: '#666' }}>Track and manage requests</p>
+      </div>
       
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
-        <div className="flex gap-4 p-6 h-full min-w-max">
-          {STATUSES.map(status => (
-            <KanbanColumn key={status.id} status={status} />
-          ))}
-        </div>
+      <div style={{ 
+        flex: 1, 
+        display: 'flex', 
+        gap: '16px', 
+        padding: '20px', 
+        overflow: 'auto',
+        backgroundColor: '#e5e5e5'
+      }}>
+        {STATUSES.map(status => (
+          <KanbanColumn key={status.id} status={status} />
+        ))}
       </div>
     </div>
   );
