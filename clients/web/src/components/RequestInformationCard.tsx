@@ -1,4 +1,4 @@
-import type { Request } from "../routes/requests";
+import type { Request } from '../routes/requests'
 
 /**
  * This interface displays a neatly ordered card with Request information on it.
@@ -6,22 +6,26 @@ import type { Request } from "../routes/requests";
  * - Request name
  * - Priority
  * - Category
- * 
+ *
  * can add more information later, but to start lets use this
  */
 interface RequestInformationCardProps {
-  request: Request;
+  request: Request
 }
 
-export default function RequestInformationCard({ request }: RequestInformationCardProps) {
+export default function RequestInformationCard({
+  request,
+}: RequestInformationCardProps) {
   return (
-    <div style={{
-      backgroundColor: 'white',
-      padding: '12px',
-      marginBottom: '8px',
-      border: '1px solid #ddd',
-      borderRadius: '4px'
-    }}>
+    <div
+      style={{
+        backgroundColor: 'white',
+        padding: '12px',
+        marginBottom: '8px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+      }}
+    >
       <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
         {request.name}
       </div>
@@ -37,5 +41,5 @@ export default function RequestInformationCard({ request }: RequestInformationCa
         Priority: {request.priority}
       </div>
     </div>
-  );
+  )
 }
