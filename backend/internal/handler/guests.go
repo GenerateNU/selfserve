@@ -117,6 +117,13 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("guest", "id", id)
 		}
+
+		slog.Error(
+			"failed to update guest",
+			"id", id,
+			"error", err,
+		)
+
 		return errs.InternalServerError()
 	}
 
@@ -158,19 +165,19 @@ func validateCreateGuest(guest *models.CreateGuest) error {
 	return nil
 }
 
-func validateUpdateGuest(guest *models.UpdateGuest) error {
+func validateUpdateGuest(update *models.UpdateGuest) error {
 	errors := make(map[string]string)
 
-	if guest.FirstName != nil && strings.TrimSpace(*guest.FirstName) == "" {
+	if update.FirstName != nil && strings.TrimSpace(*update.FirstName) == "" {
 		errors["first_name"] = "must not be an empty string"
 	}
 
-	if guest.LastName != nil && strings.TrimSpace(*guest.LastName) == "" {
+	if update.LastName != nil && strings.TrimSpace(*update.LastName) == "" {
 		errors["last_name"] = "must not be an empty string"
 	}
 
-	if guest.Timezone != nil {
-		if _, err := time.LoadLocation(*guest.Timezone); err != nil {
+	if update.Timezone != nil {
+		if _, err := time.LoadLocation(*update.Timezone); err != nil {
 			errors["timezone"] = "invalid IANA timezone"
 		}
 	}
