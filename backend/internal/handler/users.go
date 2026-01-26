@@ -22,7 +22,7 @@ type UsersHandler struct {
 
 }
 
-func NewUserHandler(repo UsersRepository) *UsersHandler {
+func NewUsersHandler(repo UsersRepository) *UsersHandler {
 	return &UsersHandler{repo: repo}
 }
 
