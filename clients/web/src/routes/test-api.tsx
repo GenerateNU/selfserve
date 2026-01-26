@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useGetHelloName } from '@shared/hooks/use-hello'
+import { useGetHelloName } from '../api/hello'
 
 export const Route = createFileRoute('/test-api')({ component: TestApi })
 
