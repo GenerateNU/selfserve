@@ -5,7 +5,6 @@ export const Route = createFileRoute("/requests")({
   component: KanbanBoard
 });
 
-// Types matching Go backend
 export interface Request {
   id: string;
   created_at: string;
@@ -63,7 +62,6 @@ const STATUSES = [
   { id: 'completed', label: 'Completed' },
 ];
 
-// Simple request card component
 const RequestCard = ({ request }: { request: Request }) => {
   return (
     <div style={{
