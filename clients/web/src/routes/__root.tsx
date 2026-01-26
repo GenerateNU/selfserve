@@ -1,7 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { ClerkProvider, SignedIn, SignInButton } from '@clerk/clerk-react'
+import { ClerkProvider, SignedIn, SignInButton, SignOutButton } from '@clerk/clerk-react'
 
 import Header from '../components/Header'
 
@@ -39,8 +39,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-         <ClerkProvider publishableKey={process.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}>
-            <SignInButton> Sign in here. </SignInButton>
+         <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}>
+            <SignInButton>
+              <span className="bg-blue-500 text-white px-4 py-2 rounded inline-block">
+                Sign in here
+              </span>
+            </SignInButton>
+            <SignOutButton>
+              <span className="bg-red-500 text-white px-4 py-2 rounded inline-block">
+                Sign out here
+              </span>
+            </SignOutButton>
             <SignedIn>
               <Header />
               {children}

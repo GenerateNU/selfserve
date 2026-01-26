@@ -16,7 +16,7 @@ interface HttpClient {
 type APIResponse<T> = { data: T; error: null } | { data: null; error: string }
 
 // returns a struct whose fields are functions that represent http calls like get, post
-const getAPIClient = (authClient: AuthClient, baseUrl: string): HttpClient => {
+export const getAPIClient = (authClient: AuthClient, baseUrl: string): HttpClient => {
     const request = 
     async <T>(path: string, options: RequestInit = {}) => {
         try {
