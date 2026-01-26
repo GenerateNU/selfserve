@@ -17,11 +17,19 @@ import (
 // Mock repository - allows us to control what the "database" returns in tests
 type mockUsersRepository struct {
 	findUserByIdFunc func(ctx context.Context, id string) (*models.User, error)
+	insertUserFunc   func(ctx context.Context, user *models.CreateUser) (*models.User, error)
 }
 
 // Implement the interface - calls our controllable function
 func (m *mockUsersRepository) FindUserById(ctx context.Context, id string) (*models.User, error) {
 	return m.findUserByIdFunc(ctx, id)
+}
+
+func (m *mockUsersRepository) InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+	if m.insertUserFunc != nil {
+		return m.insertUserFunc(ctx, user)
+	}
+	return nil, nil
 }
 
 func TestUsersHandler_GetUserByID(t *testing.T) {
@@ -34,10 +42,12 @@ func TestUsersHandler_GetUserByID(t *testing.T) {
 		mock := &mockUsersRepository{
 			findUserByIdFunc: func(ctx context.Context, id string) (*models.User, error) {
 				return &models.User{
-					ID:        "550e8400-e29b-41d4-a716-446655440000",
-					FirstName: "John",
-					LastName:  "Doe",
-					Role:      "admin",
+					CreateUser: models.CreateUser{
+						FirstName: "John",
+						LastName:  "Doe",
+						Role:      "admin",
+					},
+					ID: "550e8400-e29b-41d4-a716-446655440000",
 				}, nil
 			},
 		}
@@ -114,7 +124,12 @@ func TestUsersHandler_GetUserByID_InvalidMethods(t *testing.T) {
 
 	mock := &mockUsersRepository{
 		findUserByIdFunc: func(ctx context.Context, id string) (*models.User, error) {
-			return &models.User{ID: "123", FirstName: "John"}, nil
+			return &models.User{
+				CreateUser: models.CreateUser{
+					FirstName: "John",
+				},
+				ID: "123",
+			}, nil
 		},
 	}
 
