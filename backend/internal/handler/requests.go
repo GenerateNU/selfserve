@@ -85,7 +85,7 @@ func validateCreateRequest(req *models.Request) error {
 	return nil
 }
 
-func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
+func (r *RequestsHandler) FindRequest(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if !validUUID(id) {
 		return errs.BadRequest("request id is not a valid UUID")

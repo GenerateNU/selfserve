@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({ component: App })
 
@@ -22,6 +22,12 @@ function App() {
             React + TanStack Start
           </p>
           <div className="flex flex-col items-center gap-4">
+            <Link
+              to="/requests"
+              className="px-8 py-3 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-purple-500/50"
+            >
+              View Requests Kanban
+            </Link>
             <a
               href="https://tanstack.com/start/latest"
               target="_blank"
