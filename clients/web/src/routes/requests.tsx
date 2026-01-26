@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
+import RequestInformationCard from '@/components/RequestInformationCard';
 
 export const Route = createFileRoute("/requests")({
   component: KanbanBoard
@@ -27,6 +28,7 @@ export interface Request {
   notes?: string | null;
 }
 
+// Fake data for filling up the kanban
 const fetchRequests = async (status: string, cursor: string | null = null, limit: number = 10) => {
   // so you can see my loading wheel
   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -62,33 +64,9 @@ const STATUSES = [
   { id: 'completed', label: 'Completed' },
 ];
 
-const RequestCard = ({ request }: { request: Request }) => {
-  return (
-    <div style={{
-      backgroundColor: 'white',
-      padding: '12px',
-      marginBottom: '8px',
-      border: '1px solid #ddd',
-      borderRadius: '4px'
-    }}>
-      <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
-        {request.name}
-      </div>
-      <div style={{ fontSize: '14px', color: '#666' }}>
-        {request.description}
-      </div>
-      {request.request_category && (
-        <div style={{ fontSize: '12px', color: '#888', marginTop: '8px' }}>
-          Category: {request.request_category}
-        </div>
-      )}
-      <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
-        Priority: {request.priority}
-      </div>
-    </div>
-  );
-};
 
+
+// Creates the Kanban Column and loads cards using the intersection observer pattern
 const KanbanColumn = ({ status }: { status: { id: string; label: string } }) => {
   const [requests, setRequests] = useState<Array<Request>>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -162,7 +140,7 @@ const KanbanColumn = ({ status }: { status: { id: string; label: string } }) => 
       ) : (
         <>
           {requests.map(request => (
-            <RequestCard key={request.id} request={request} />
+            <RequestInformationCard key={request.id} request={request} />
           ))}
           
           {hasMore && (
