@@ -1,14 +1,11 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { ClerkProvider, SignedIn, SignInButton, SignOutButton } from '@clerk/clerk-react'
+import { ClerkProvider, SignInButton, SignOutButton, SignedIn } from '@clerk/clerk-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-
 import Header from '../components/Header'
-
 import appCss from '../styles.css?url'
-import { TestButton } from '@/components/Auth_Test'
 
 // Client explicity created outside the component to avoid recreation
 const queryClient = new QueryClient({
@@ -54,7 +51,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
          <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}>
-          <TestButton></TestButton>
             <SignInButton>
               <span className="bg-blue-500 text-white px-4 py-2 rounded inline-block">
                 Sign in here
