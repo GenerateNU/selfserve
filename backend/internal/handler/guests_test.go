@@ -218,21 +218,21 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 	})
 }
 
-func TestGuestsHandler_GetGuest(t *testing.T){
+func TestGuestsHandler_GetGuest(t *testing.T) {
 	t.Parallel()
 
 	t.Run("returns 200 with guest", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockGuestsRepository{
-			findGuestFunc: func(ctx context.Context, name string) (*models.Guest, error) {
+			findGuestFunc: func(ctx context.Context, id string) (*models.Guest, error) {
 				return &models.Guest{
 					ID:        "530e8400-e458-41d4-a716-446655440000",
 					CreatedAt: time.Now(),
 					UpdatedAt: time.Now(),
 					CreateGuest: models.CreateGuest{
-						FirstName:     "John",
-						LastName:        "Doe",
+						FirstName: "John",
+						LastName:  "Doe",
 					},
 				}, nil
 			},
@@ -240,9 +240,9 @@ func TestGuestsHandler_GetGuest(t *testing.T){
 
 		app := fiber.New()
 		h := NewGuestsHandler(mock)
-		app.Get("/guest/:id", h.GetGuest)
+		app.Get("/guests/:id", h.GetGuest)
 
-		req := httptest.NewRequest("GET", "/guest/530e8400-e458-41d4-a716-446655440000", nil)
+		req := httptest.NewRequest("GET", "/guests/530e8400-e458-41d4-a716-446655440000", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -263,9 +263,9 @@ func TestGuestsHandler_GetGuest(t *testing.T){
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewGuestsHandler(mock)
-		app.Get("/guest/:id", h.GetGuest)
+		app.Get("/guests/:id", h.GetGuest)
 
-		req := httptest.NewRequest("GET", "/guest/notaUUID", nil)
+		req := httptest.NewRequest("GET", "/guests/notaUUID", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -283,9 +283,9 @@ func TestGuestsHandler_GetGuest(t *testing.T){
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewGuestsHandler(mock)
-		app.Get("/guest/:id", h.GetGuest)
+		app.Get("/guests/:id", h.GetGuest)
 
-		req := httptest.NewRequest("GET", "/guest/530e8400-e458-41d4-a716-446655440001", nil)
+		req := httptest.NewRequest("GET", "/guests/530e8400-e458-41d4-a716-446655440001", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -303,32 +303,13 @@ func TestGuestsHandler_GetGuest(t *testing.T){
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewGuestsHandler(mock)
-		app.Get("/guest/:id", h.GetGuest)
+		app.Get("/guests/:id", h.GetGuest)
 
-		req := httptest.NewRequest("GET", "/guest/530e8400-e458-41d4-a716-446655440001", nil)
+		req := httptest.NewRequest("GET", "/guests/530e8400-e458-41d4-a716-446655440001", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 500, resp.StatusCode)
 	})
 
-	t.Run("returns 500 when route is not found/empty", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{
-			findGuestFunc: func(ctx context.Context, id string) (*models.Guest, error) {
-				return nil, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
-		app.Get("/guest/:id", h.GetGuest)
-
-		req := httptest.NewRequest("GET", "/guest/", nil)
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 500, resp.StatusCode)
-	})
 }

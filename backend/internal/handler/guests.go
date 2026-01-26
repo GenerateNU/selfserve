@@ -76,7 +76,7 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("guest", "id", id)
 		}
-		slog.Error(err.Error())
+		slog.Error("failed to get guest", "id", id, "error", err)
 		return errs.InternalServerError()
 	}
 
