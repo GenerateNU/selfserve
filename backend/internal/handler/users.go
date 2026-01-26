@@ -103,6 +103,7 @@ func validateCreateUser(user *models.CreateUser) error {
 		}
 	}
 
+	// Aggregates errors deterministically
 	if len(errors) > 0 {
 		var keys []string
 		for k := range errors {

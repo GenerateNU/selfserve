@@ -13,7 +13,6 @@ import (
 
 
 type UsersRepository struct {
-
 	db *pgxpool.Pool
 }
 
