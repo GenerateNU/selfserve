@@ -13,7 +13,7 @@ import (
 
 type UsersRepository interface {
 
-	GetUserById(ctx context.Context, id string) (*models.User, error)
+	FindUserById(ctx context.Context, id string) (*models.User, error)
 }
 
 type UsersHandler struct {
@@ -44,7 +44,7 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 	if id == "" {
 		return errs.BadRequest("id is required")
 	}
-	user, err := h.repo.GetUserById(c.Context(), id)
+	user, err := h.repo.FindUserById(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("user", "id", id)

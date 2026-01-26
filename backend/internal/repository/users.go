@@ -22,7 +22,7 @@ func NewUsersRepository(db *pgxpool.Pool) *UsersRepository {
 	return &UsersRepository{db: db}
 }
 
-func (r *UsersRepository) GetUserById(ctx context.Context, id string) (*models.User, error) {
+func (r *UsersRepository) FindUserById(ctx context.Context, id string) (*models.User, error) {
 	row := r.db.QueryRow(ctx, `
 		SELECT id, first_name,  last_name, employee_id, profile_picture, role, department, timezone, created_at, updated_at FROM users where id = $1
 		`, id)
