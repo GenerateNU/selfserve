@@ -1,4 +1,4 @@
-import { Request } from "../routes/requests";
+import type { Request } from "../routes/requests";
 
 interface RequestInformationCardProps {
   request: Request;

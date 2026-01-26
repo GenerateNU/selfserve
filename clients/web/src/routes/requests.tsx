@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute("/requests")({
@@ -31,7 +31,7 @@ const fetchRequests = async (status: string, cursor: string | null = null, limit
   // so you can see my loading wheel
   await new Promise(resolve => setTimeout(resolve, 1000));
   const startId = cursor ? parseInt(cursor) : 0;
-  const requests: Request[] = Array.from({ length: limit }, (_, i) => ({
+  const requests: Array<Request> = Array.from({ length: limit }, (_, i) => ({
     id: i.toString(),
     created_at: Date.now().toString(),
     updated_at: Date.now().toString(),
@@ -90,7 +90,7 @@ const RequestCard = ({ request }: { request: Request }) => {
 };
 
 const KanbanColumn = ({ status }: { status: { id: string; label: string } }) => {
-  const [requests, setRequests] = useState<Request[]>([]);
+  const [requests, setRequests] = useState<Array<Request>>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
