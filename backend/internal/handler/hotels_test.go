@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
@@ -45,9 +44,11 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 		mock := &mockHotelRepository{
 			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID:    id,
-					Name:  "Test Hotel",
-					Floors: 10,
+					ID: id,
+					CreateHotelRequest: models.CreateHotelRequest{
+						Name:   "Test Hotel",
+						Floors: 10,
+					},
 				}, nil
 			},
 		}
@@ -135,7 +136,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
-		assert.Equal(t, 200, resp.StatusCode)
+		assert.Equal(t, 201, resp.StatusCode)
 
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), "generated-uuid")
