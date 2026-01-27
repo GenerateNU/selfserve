@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5"
@@ -10,6 +11,10 @@ import (
 )
 
 type HotelRepository struct {
+	db *pgxpool.Pool
+}
+
+type HotelsRepo struct {
 	db *pgxpool.Pool
 }
 
@@ -34,4 +39,35 @@ func (r *HotelRepository) FindByID(ctx context.Context, id string) (*models.Hote
 	}
 
 	return &hotel, nil
+}
+
+
+type HotelsRepository struct {
+	db *pgxpool.Pool
+}
+
+func NewHotelsRepo(db *pgxpool.Pool) *HotelsRepository {
+	return &HotelsRepository{db: db}
+}
+
+func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+	createdHotel := &models.Hotel{CreateHotelRequest: *hotel}
+
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO hotels (
+			name, floors
+		) VALUES (
+			$1, $2
+		)
+		RETURNING id, created_at, updated_at
+	`,
+		hotel.Name,
+		hotel.Floors,
+	).Scan(&createdHotel.ID, &createdHotel.CreatedAt, &createdHotel.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return createdHotel, nil
 }
