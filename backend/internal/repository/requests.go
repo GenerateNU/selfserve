@@ -61,3 +61,41 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	}
 	return &request, nil
 }
+
+
+
+func (r *RequestsRepository) GetAllRequests(ctx context.Context) ([]models.Request, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, created_at, updated_at, hotel_id, guest_id, user_id, reservation_id, 
+		       name, description, room_id, request_category, request_type, department, 
+		       status, priority, estimated_completion_time, scheduled_time, completed_at, notes
+		FROM requests 
+		ORDER BY created_at DESC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var requests []models.Request
+	for rows.Next() {
+		var request models.Request
+		err := rows.Scan(
+			&request.ID, &request.CreatedAt, &request.UpdatedAt, &request.HotelID,
+			&request.GuestID, &request.UserID, &request.ReservationID, &request.Name,
+			&request.Description, &request.RoomID, &request.RequestCategory, &request.RequestType,
+			&request.Department, &request.Status, &request.Priority, 
+			&request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
+		)
+		if err != nil {
+			return nil, err
+		}
+		requests = append(requests, request)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return requests, nil
+}
