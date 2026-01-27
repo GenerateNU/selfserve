@@ -14,3 +14,15 @@ export class ApiError extends Error {
 export interface ApiConfig {
   baseUrl: string
 }
+
+export interface HttpClient {
+  get: <T>(endpoint: string) => Promise<T>
+  post: <T>(endpoint: string, data: unknown) => Promise<T>
+  put: <T>(endpoint: string, data: unknown) => Promise<T>
+  patch: <T>(endpoint: string, data: unknown) => Promise<T>
+  delete: <T>(endpoint: string) => Promise<T>
+}
+
+export type AuthClient = {
+  getToken: () => Promise<string | null>
+}

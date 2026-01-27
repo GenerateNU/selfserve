@@ -1,84 +1,81 @@
-import { ApiError } from '../types/api.types'
-
-// @ts-ignore - Environment variable injected by bundler (Vite/Metro)
-const API_BASE_URL = process.env.API_BASE_URL
+import { ApiError, AuthClient, HttpClient } from '../types/api.types'
 
 /**
  * Internal helper to make HTTP requests w/ error handling
  */
-const request = async <T>(
-  endpoint: string,
-  options: RequestInit
-): Promise<T> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    })
+const createRequest = (authClient: AuthClient, baseUrl: string) => {
+  return async <T>(endpoint: string, options: RequestInit): Promise<T> => {
+    try {
+      const token = await authClient.getToken()
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const response = await fetch(`${baseUrl}${endpoint}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+          ...options.headers,
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new ApiError(
+          errorData.message || 'Request failed',
+          response.status,
+          errorData
+        )
+      }
+
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('text/plain')) {
+        return (await response.text()) as T
+      }
+
+      return response.json()
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
       throw new ApiError(
-        errorData.message || 'Request failed',
-        response.status,
-        errorData
+        error instanceof Error ? error.message : 'Network error',
+        0,
+        error
       )
     }
-
-    // Handle text responses
-    const contentType = response.headers.get('content-type')
-    if (contentType && contentType.includes('text/plain')) {
-      return (await response.text()) as T
-    }
-
-    return response.json()
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error
-    }
-    throw new ApiError(
-      error instanceof Error ? error.message : 'Network error',
-      0,
-      error
-    )
   }
 }
 
-export const apiClient = {
-  /**
-   * Performs a GET request
-   */
-  get: <T>(endpoint: string): Promise<T> => {
-    return request<T>(endpoint, { method: 'GET' })
-  },
+export const getAPIClient = (authClient: AuthClient, baseUrl: string): HttpClient => {
+  const request = createRequest(authClient, baseUrl)
 
-  /**
-   * Performs a POST request
-   */
-  post: <T>(endpoint: string, data: any): Promise<T> => {
-    return request<T>(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
+  return {
+    get: <T>(endpoint: string): Promise<T> => {
+      return request<T>(endpoint, { method: 'GET' })
+    },
 
-  /**
-   * Performs a PUT request
-   */
-  put: <T>(endpoint: string, data: any): Promise<T> => {
-    return request<T>(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  },
+    post: <T>(endpoint: string, data: unknown): Promise<T> => {
+      return request<T>(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    },
 
-  /**
-   * Performs a DELETE request
-   */
-  delete: <T>(endpoint: string): Promise<T> => {
-    return request<T>(endpoint, { method: 'DELETE' })
-  },
+    put: <T>(endpoint: string, data: unknown): Promise<T> => {
+      return request<T>(endpoint, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      })
+    },
+
+    patch: <T>(endpoint: string, data: unknown): Promise<T> => {
+      return request<T>(endpoint, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      })
+    },
+
+    delete: <T>(endpoint: string): Promise<T> => {
+      return request<T>(endpoint, { method: 'DELETE' })
+    },
+  }
 }

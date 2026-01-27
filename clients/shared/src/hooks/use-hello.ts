@@ -1,26 +1,6 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import { helloService } from '../api/services/hello.service'
-import { ApiError } from '../types/api.types'
+import { HttpClient } from '../types/api.types'
 
-/**
- * Hook to get hello message
- */
-export const useGetHello = (): UseQueryResult<string, ApiError> => {
-  return useQuery({
-    queryKey: ['hello'],
-    queryFn: () => helloService.getHello(),
-  })
-}
-
-/**
- * Hook to get personalized hello message
- */
-export const useGetHelloName = (
-  name: string
-): UseQueryResult<string, ApiError> => {
-  return useQuery({
-    queryKey: ['hello', name],
-    queryFn: () => helloService.getHelloName(name),
-    enabled: !!name && name.trim().length > 0,
-  })
-}
+export const createHelloService = (api: HttpClient) => ({
+  getHello: () => api.get<string>('/api/v1/hello'),
+  getHelloName: (name: string) => api.get<string>(`/api/v1/hello/${name}`),
+})
