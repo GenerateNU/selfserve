@@ -43,7 +43,6 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
 	if err != nil {
-		slog.Error("Failed to insert request", "error", err.Error())
 		return errs.InternalServerError()
 	}
 
