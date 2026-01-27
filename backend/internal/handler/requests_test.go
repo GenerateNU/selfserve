@@ -19,6 +19,7 @@ import (
 type mockRequestRepository struct {
 	makeRequestFunc func(ctx context.Context, req *models.Request) (*models.Request, error)
 	findRequestFunc func(ctx context.Context, id string) (*models.Request, error)
+	getAllRequestsFunc  func(ctx context.Context) ([]models.Request, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -354,4 +355,11 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 
 		assert.Equal(t, 500, resp.StatusCode)
 	})
+}
+
+func (m *mockRequestRepository) GetAllRequests(ctx context.Context) ([]models.Request, error) {
+	if m.getAllRequestsFunc != nil {
+		return m.getAllRequestsFunc(ctx)
+	}
+	return nil, nil
 }
