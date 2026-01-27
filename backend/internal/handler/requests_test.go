@@ -54,7 +54,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRequestsHandler(mock)
-		app.Get("/request/:id", h.GetRequest)
+		app.Get("/request/:id", h.FindRequest)
 
 		req := httptest.NewRequest("GET", "/request/530e8400-e458-41d4-a716-446655440000", nil)
 		resp, err := app.Test(req)
@@ -77,7 +77,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock)
-		app.Get("/request/:id", h.GetRequest)
+		app.Get("/request/:id", h.FindRequest)
 
 		req := httptest.NewRequest("GET", "/request/notaUUID", nil)
 		resp, err := app.Test(req)
@@ -97,7 +97,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock)
-		app.Get("/request/:id", h.GetRequest)
+		app.Get("/request/:id", h.FindRequest)
 
 		req := httptest.NewRequest("GET", "/request/530e8400-e458-41d4-a716-446655440001", nil)
 		resp, err := app.Test(req)
@@ -117,7 +117,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock)
-		app.Get("/request/:id", h.GetRequest)
+		app.Get("/request/:id", h.FindRequest)
 
 		req := httptest.NewRequest("GET", "/request/530e8400-e458-41d4-a716-446655440001", nil)
 		resp, err := app.Test(req)
@@ -137,7 +137,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock)
-		app.Get("/request/:id", h.GetRequest)
+		app.Get("/request/:id", h.FindRequest)
 
 		req := httptest.NewRequest("GET", "/request/", nil)
 		resp, err := app.Test(req)
