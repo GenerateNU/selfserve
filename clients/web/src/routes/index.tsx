@@ -1,7 +1,6 @@
 import { SignInButton } from '@clerk/clerk-react'
 import { createFileRoute } from '@tanstack/react-router'
 
-
 export const Route = createFileRoute('/')({ component: App })
 
 function App() {
@@ -24,9 +23,9 @@ function App() {
             React + TanStack Start
           </p>
           <SignInButton>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded">
-            Sign In
-          </button>
+            <button className="px-4 py-2 bg-blue-500 text-white rounded">
+              Sign In
+            </button>
           </SignInButton>
           <div className="flex flex-col items-center gap-4">
             <a

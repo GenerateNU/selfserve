@@ -35,5 +35,4 @@ describe('Header', () => {
     expect(link).toBeDefined()
     expect(link.getAttribute('href')).toBe('/')
   })
-
 })

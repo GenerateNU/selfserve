@@ -5,7 +5,7 @@ export const Route = createFileRoute('/_protected')({
   component: () => (
     <>
       <SignedIn>
-          <Outlet />
+        <Outlet />
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />

@@ -2,7 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useGetHelloName } from '../../api/hello'
 
-export const Route = createFileRoute('/_protected/test-api')({ component: TestApi })
+export const Route = createFileRoute('/_protected/test-api')({
+  component: TestApi,
+})
 
 function TestApi() {
   const [name, setName] = useState('')

@@ -6,14 +6,18 @@ import type { ApiError } from '@shared/types/api.types'
 export const useGetHello = () => {
   const api = useAPIClient()
   const helloService = createHelloService(api)
-  return useQuery<string, ApiError>({ queryKey: ['hello'], queryFn: () => helloService.getHello() })
+  return useQuery<string, ApiError>({
+    queryKey: ['hello'],
+    queryFn: () => helloService.getHello(),
+  })
 }
 
 export const useGetHelloName = (name: string) => {
   const api = useAPIClient()
   const helloService = createHelloService(api)
-  return useQuery<string, ApiError>(
-    { queryKey: ['hello', name], queryFn: () => helloService.getHelloName(name),
-      enabled: !!name
-    })
+  return useQuery<string, ApiError>({
+    queryKey: ['hello', name],
+    queryFn: () => helloService.getHelloName(name),
+    enabled: !!name,
+  })
 }
