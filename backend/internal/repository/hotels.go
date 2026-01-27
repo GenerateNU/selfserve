@@ -14,10 +14,6 @@ type HotelRepository struct {
 	db *pgxpool.Pool
 }
 
-type HotelsRepo struct {
-	db *pgxpool.Pool
-}
-
 func NewHotelRepository(db *pgxpool.Pool) *HotelRepository {
 	return &HotelRepository{db: db}
 }
