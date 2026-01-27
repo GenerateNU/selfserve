@@ -8,6 +8,7 @@ import (
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	s3storage "github.com/generate/selfserve/internal/service/storage/postgres/s3"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -19,28 +20,37 @@ import (
 )
 
 type App struct {
-	Server *fiber.App
-	Repo   *storage.Repository
+	Server    *fiber.App
+	Repo      *storage.Repository
+	S3Storage *s3storage.Storage
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
 	// Init DB/repository(ies)
+
 	repo, err := storage.NewRepository(cfg.DB)
+	if err != nil {
+		return nil, err
+	}
+
+	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
 		return nil, err
 	}
 
 	app := setupApp()
 
-	setupRoutes(app, repo)
+	setupRoutes(app, repo, s3Store)
 
 	return &App{
-		Server: app,
+		Server:    app,
+		Repo:      repo,
+		S3Storage: s3Store,
 	}, nil
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.Storage) {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -60,7 +70,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
-
+	s3Handler := handler.NewS3Handler(s3Store)
 	// API v1 routes
 	api := app.Group("/api/v1")
 
@@ -89,6 +99,12 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// Hotel routes
 	api.Route("/hotel", func(r fiber.Router) {
 		r.Post("/", hotelsHandler.CreateHotel)
+	})
+
+	// s3 routes
+
+	api.Route("/s3", func(r fiber.Router) {
+		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
 	})
 
 }
