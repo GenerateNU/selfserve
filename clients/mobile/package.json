@@ -59,12 +59,15 @@
   },
   "private": true,
   "jest": {
-    "preset": "jest-expo",
-    "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@sentry/.*|native-base|react-native-svg)"
-    ],
-    "setupFiles": [
-      "<rootDir>/jest.setup.js"
-    ]
-  }
+  "preset": "jest-expo",
+  "transformIgnorePatterns": [
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@sentry/.*|native-base|react-native-svg)"
+  ],
+  "setupFiles": [
+    "<rootDir>/jest.setup.js"
+  ],
+  "moduleNameMapper": {
+  "^@shared/(.*)$": "<rootDir>/../shared/src/$1"
+}
+}
 }

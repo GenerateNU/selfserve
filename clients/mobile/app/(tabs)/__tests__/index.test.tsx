@@ -1,14 +1,33 @@
 import { render } from "@testing-library/react-native";
 import HomeScreen from "../index";
 
-// Mock the shared hook
-jest.mock("@shared/hooks/use-hello", () => ({
-  useGetHelloName: jest.fn(() => ({
-    data: null,
+jest.mock('@clerk/clerk-expo', () => {
+  const actual = jest.requireActual('@clerk/clerk-expo');
+  return {
+    ...actual,
+    useAuth: () => ({
+      getToken: async () => null, 
+      isLoaded: true,
+      isSignedIn: false,
+      userId: null,
+      sessionId: null,
+    }),
+  };
+});
+
+jest.mock("../../../hooks/hello", () => ({
+  useGetHello: () => ({
+    data: "hello",
     isLoading: false,
     error: null,
     refetch: jest.fn(),
-  })),
+  }),
+  useGetHelloName: () => ({
+    data: "hello-name",
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
 }));
 
 // Mock expo-image

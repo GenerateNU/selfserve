@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAPIClient } from './api'
-import { createHelloService } from '@shared/hooks/use-hello'
+import { createHelloService }  from '@shared/hooks/use-hello'
 
 export const useGetHello = () => {
   const api = useAPIClient()
