@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { useAPIClient } from './client'
 import { createHelloService } from '@shared/hooks/use-hello.ts'
-import { ApiError } from '@shared/types/api.types'
+import { useAPIClient } from './client'
+import type { ApiError } from '@shared/types/api.types'
 
 export const useGetHello = () => {
   const api = useAPIClient()

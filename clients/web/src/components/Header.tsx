@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { useAuth, UserButton } from '@clerk/clerk-react'
+import { UserButton, useAuth } from '@clerk/clerk-react'
 
 export default function Header() {
 const { isSignedIn } = useAuth(); 

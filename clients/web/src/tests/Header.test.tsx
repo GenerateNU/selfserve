@@ -2,6 +2,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import Header from '../components/Header'
 
+// Mock Clerk
+vi.mock('@clerk/clerk-react', () => ({
+  useAuth: () => ({ isSignedIn: false }),
+  UserButton: () => null,
+}))
+
 // Mock the TanStack Router Link component
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
@@ -29,4 +35,5 @@ describe('Header', () => {
     expect(link).toBeDefined()
     expect(link.getAttribute('href')).toBe('/')
   })
+
 })
