@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -40,7 +41,7 @@ func (r *GuestsRepository) InsertGuest(ctx context.Context, guest *models.Create
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				return nil, errors.New("guest already exists")
+				return nil, errs.ErrAlreadyExistsInDB
 			}
 		}
 		return nil, err

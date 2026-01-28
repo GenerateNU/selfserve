@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"sort"
 	"strings"
 	"time"
@@ -42,6 +43,9 @@ func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 
 	res, err := h.GuestsRepository.InsertGuest(c.Context(), &CreateGuestRequest)
 	if err != nil {
+		if errors.Is(err, errs.ErrAlreadyExistsInDB) {
+			return errs.Conflict("guest", "id", "generated")
+		}
 		return errs.InternalServerError()
 	}
 

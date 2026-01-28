@@ -44,9 +44,9 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		mock := &mockGuestsRepository{
 			insertGuestFunc: func(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error) {
 				return &models.Guest{
-					ID:         "generated-uuid",
-					CreatedAt:  time.Now(),
-					UpdatedAt:  time.Now(),
+					ID:          "generated-uuid",
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
 					CreateGuest: *guest,
 				}, nil
 			},
@@ -76,9 +76,9 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		mock := &mockGuestsRepository{
 			insertGuestFunc: func(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error) {
 				return &models.Guest{
-					ID:         "generated-uuid",
-					CreatedAt:  time.Now(),
-					UpdatedAt:  time.Now(),
+					ID:          "generated-uuid",
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
 					CreateGuest: *guest,
 				}, nil
 			},
@@ -208,4 +208,30 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 
 		assert.Equal(t, 500, resp.StatusCode)
 	})
+
+	t.Run("returns 409 when guest already exists", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{
+			insertGuestFunc: func(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error) {
+				return nil, errs.ErrAlreadyExistsInDB
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock)
+		app.Post("/guests", h.CreateGuest)
+
+		req := httptest.NewRequest("POST", "/guests", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 409, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "already exists")
+	})
+
 }
