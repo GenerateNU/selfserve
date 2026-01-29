@@ -4,6 +4,7 @@
   "description": "This package contains shared code (API clients, hooks, types, utilities) used by both the web and mobile clients.",
   "main": "index.js",
   "dependencies": {
+    "shared": "file:../shared",
     "@tanstack/react-query": "^5.90.20",
     "react": "^19.1.0",
     "typescript": "^5.9.3"
