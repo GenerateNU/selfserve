@@ -31,7 +31,7 @@ jobs:
             "blocks": [
               {
                 "type": "header",
-                "text": { "type": "plain_text", "text": "🧵 PR Ready for Review", "emoji": true }
+                "text": { "type": "plain_text", "text": "🚢 PR Ready for Review", "emoji": true }
               },
               {
                 "type": "section",
