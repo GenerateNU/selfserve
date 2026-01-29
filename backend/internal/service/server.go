@@ -62,7 +62,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
 
-
 	// API v1 routes
 	api := app.Group("/api/v1")
 
@@ -93,7 +92,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		r.Get("/:id", hotelHandler.GetHotelByID)
 	})
 
-	
 	api.Route("/hotel", func(r fiber.Router) {
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
