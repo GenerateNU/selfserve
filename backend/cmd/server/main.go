@@ -42,7 +42,11 @@ func main() {
 		log.Fatal("failed to initialize app:", err)
 	}
 
-	defer app.Repo.Close()
+	defer func() {
+    	if err := app.Repo.Close(); err != nil {
+        	log.Fatal("Failed to close repo:", err)
+    	}
+	}()
 
 	go func() {
 		if err := app.Server.Listen(":" + cfg.Application.Port); err != nil {

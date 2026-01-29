@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"errors"
 
 	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
@@ -38,7 +39,9 @@ func InitApp(cfg *config.Config) (*App, error) {
 	setupClerk()
 
 	if err = setupRoutes(app, repo); err != nil {
-		repo.Close()
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
 		return nil, err
 	}
 

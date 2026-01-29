@@ -1,0 +1,16 @@
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "description": "This package contains shared code (API clients, hooks, types, utilities) used by both the web and mobile clients.",
+  "main": "index.js",
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.20",
+    "react": "^19.1.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
