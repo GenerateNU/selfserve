@@ -3,7 +3,6 @@ CMD_PATH := ./cmd/server
 DOCKER_IMAGE_NAME := selfserve-backend
 PORT := 8080
 ENV_FILE := config/.env
-NGROK_DOMAIN := undetestably-unidentical-selah.ngrok-free.dev
 LOAD_ENV := set -a; [ -f $(ENV_FILE) ] && . $(ENV_FILE); set +a;
 
 .PHONY: all build run dev test format tidy download clean docker-build docker-run \
@@ -15,9 +14,11 @@ build: swagger
 	go build -o bin/$(APP_NAME) $(CMD_PATH)
 
 run: db-start
-	@ngrok http --url=$(NGROK_DOMAIN) $(PORT) & \
 	@$(LOAD_ENV) \
 	go run $(CMD_PATH)
+
+ngrok: 
+	ngrok http --domain=$(NGROK_DOMAIN) $(PORT)
 
 dev: db-start clean build
 	@$(LOAD_ENV) \
