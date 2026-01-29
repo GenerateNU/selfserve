@@ -13,7 +13,7 @@ import (
 )
 
 
-type ClerkHandler struct {
+type ClerkWebHookHandler struct {
 	UsersRepository storage.UsersRepository
 	WebhookVerifier WebhookVerifier
 }
@@ -26,11 +26,11 @@ func NewWebhookVerifier() (WebhookVerifier, error) {
 	return svix.NewWebhook(os.Getenv("DEV_CLERK_WEBHOOK_SIGNATURE"))
 }
 
-func NewClerkHandler(userRepo storage.UsersRepository, WebhookVerifier WebhookVerifier) *ClerkHandler {
-	return &ClerkHandler{UsersRepository: userRepo, WebhookVerifier : WebhookVerifier}
+func NewClerkWebHookHandler(userRepo storage.UsersRepository, WebhookVerifier WebhookVerifier) *ClerkWebHookHandler {
+	return &ClerkWebHookHandler{UsersRepository: userRepo, WebhookVerifier : WebhookVerifier}
 }
 
-func (h *ClerkHandler) CreateUser(c *fiber.Ctx) error {
+func (h *ClerkWebHookHandler) CreateUser(c *fiber.Ctx) error {
 	headers := http.Header{}
 	headers.Set("svix-id", c.Get("svix-id"))
 	headers.Set("svix-timestamp", c.Get("svix-timestamp"))

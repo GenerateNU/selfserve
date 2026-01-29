@@ -62,7 +62,7 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := handler.NewClerkHandler(userMock, webhookMock)
+		h := handler.NewClerkWebHookHandler(userMock, webhookMock)
 		app.Post("/webhook", h.CreateUser)
 
 		req := httptest.NewRequest("POST", "/webhook", bytes.NewBufferString(validPayload))
@@ -101,7 +101,7 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := handler.NewClerkHandler(userMock, webhookMock)
+		h := handler.NewClerkWebHookHandler(userMock, webhookMock)
 		app.Post("/webhook", h.CreateUser)
 
 		req := httptest.NewRequest("POST", "/webhook", bytes.NewBufferString(validPayload))
@@ -135,7 +135,7 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := handler.NewClerkHandler(userMock, webhookMock)
+		h := handler.NewClerkWebHookHandler(userMock, webhookMock)
 		app.Post("/webhook", h.CreateUser)
 
 		req := httptest.NewRequest("POST", "/webhook", bytes.NewBufferString(`{invalid`))
@@ -166,7 +166,7 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := handler.NewClerkHandler(userMock, webhookMock)
+		h := handler.NewClerkWebHookHandler(userMock, webhookMock)
 		app.Post("/webhook", h.CreateUser)
 
 		invalidPayload := `{
@@ -206,7 +206,7 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := handler.NewClerkHandler(userMock, webhookMock)
+		h := handler.NewClerkWebHookHandler(userMock, webhookMock)
 		app.Post("/webhook", h.CreateUser)
 
 		req := httptest.NewRequest("POST", "/webhook", bytes.NewBufferString(validPayload))
@@ -245,7 +245,7 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := handler.NewClerkHandler(userMock, webhookMock)
+		h := handler.NewClerkWebHookHandler(userMock, webhookMock)
 		app.Post("/webhook", h.CreateUser)
 
 		req := httptest.NewRequest("POST", "/webhook", bytes.NewBufferString(validPayload))
@@ -286,7 +286,7 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := handler.NewClerkHandler(userMock, webhookMock)
+		h := handler.NewClerkWebHookHandler(userMock, webhookMock)
 		app.Post("/webhook", h.CreateUser)
 
 		payloadWithImage := `{

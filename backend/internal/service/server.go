@@ -36,7 +36,10 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 	app := setupApp()
 	setupClerk()
-	setupRoutes(app, repo)
+
+	if err = setupRoutes(app, repo); err != nil {
+		return nil, err
+	}
 
 	return &App{
 		Server: app,
@@ -44,7 +47,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository) {
+func setupRoutes(app *fiber.App, repo *storage.Repository) (error) {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -68,11 +71,11 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
 	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
-	whVerifier, err := handler.NewWebhookVerifier()
+	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier()
 	if err != nil {
-		fmt.Print(err)
+		return err
 	}
-	clerkWebhookHandler := handler.NewClerkHandler(usersRepo, whVerifier)
+	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
 
 
 	// API v1 routes
@@ -117,6 +120,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	api.Route("/hotel", func(r fiber.Router) {
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
+
+	return nil
 }
 
 // Initialize Fiber app with middlewares / configs
