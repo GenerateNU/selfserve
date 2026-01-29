@@ -12,6 +12,12 @@ type UsersRepository interface {
 
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
+
+	FindRequest(ctx context.Context, id string) (*models.Request, error)
+}
+
+type HotelRepository interface {
+	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 }
 
 type HotelsRepository interface {
