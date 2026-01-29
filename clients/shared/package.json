@@ -5,7 +5,8 @@
   "main": "index.js",
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
-    "react": "^19.1.0"
+    "react": "^19.1.0",
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
