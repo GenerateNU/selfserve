@@ -17,6 +17,7 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "@tanstack/react-query": "^5.90.20",
     "expo": "~54.0.31",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.10",
