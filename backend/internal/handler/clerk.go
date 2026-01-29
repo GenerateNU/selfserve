@@ -12,7 +12,6 @@ import (
 	svix "github.com/svix/svix-webhooks/go"
 )
 
-
 type ClerkWebHookHandler struct {
 	UsersRepository storage.UsersRepository
 	WebhookVerifier WebhookVerifier
@@ -27,7 +26,7 @@ func NewWebhookVerifier() (WebhookVerifier, error) {
 }
 
 func NewClerkWebHookHandler(userRepo storage.UsersRepository, WebhookVerifier WebhookVerifier) *ClerkWebHookHandler {
-	return &ClerkWebHookHandler{UsersRepository: userRepo, WebhookVerifier : WebhookVerifier}
+	return &ClerkWebHookHandler{UsersRepository: userRepo, WebhookVerifier: WebhookVerifier}
 }
 
 func (h *ClerkWebHookHandler) CreateUser(c *fiber.Ctx) error {
@@ -79,11 +78,11 @@ func validateCreateUserClerk(user *models.CreateUserWebhook) error {
 func reformatUserData(CreateUserRequest models.CreateUserWebhook) *models.CreateUser {
 	result := &models.CreateUser{
 		FirstName: CreateUserRequest.Data.FirstName,
-		LastName: CreateUserRequest.Data.LastName,
-		ClerkID: CreateUserRequest.Data.ID,
+		LastName:  CreateUserRequest.Data.LastName,
+		ClerkID:   CreateUserRequest.Data.ID,
 	}
-	if (CreateUserRequest.Data.HasImage) {
+	if CreateUserRequest.Data.HasImage {
 		result.ProfilePicture = CreateUserRequest.Data.ImageUrl
 	}
-	return result 
+	return result
 }

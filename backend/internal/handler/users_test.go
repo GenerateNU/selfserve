@@ -218,31 +218,31 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 	})
 
 	t.Run("returns_400_when_clerk_id_is_missing", func(t *testing.T) {
-	body := `{
+		body := `{
 		"first_name": "John",
 		"last_name": "Doe",
 		"role": "Receptionist"
 	}`
 
-	mock := &mockUsersRepository{
-		insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
-			return nil, nil
-		},
-	}
+		mock := &mockUsersRepository{
+			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+				return nil, nil
+			},
+		}
 
-	app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-	h := NewUsersHandler(mock)
-	app.Post("/users", h.CreateUser)
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewUsersHandler(mock)
+		app.Post("/users", h.CreateUser)
 
-	req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(body))
-	req.Header.Set("Content-Type", "application/json")
-	
-	resp, err := app.Test(req)
-	require.NoError(t, err)
+		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
 
-	assert.Equal(t, 400, resp.StatusCode)
-	respBody, _ := io.ReadAll(resp.Body)
-	assert.Contains(t, string(respBody), "clerk_id")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+		respBody, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(respBody), "clerk_id")
 
 	})
 }

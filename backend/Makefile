@@ -18,7 +18,7 @@ run: db-start
 	go run $(CMD_PATH)
 
 ngrok: 
-	ngrok http --domain=$(NGROK_DOMAIN) $(PORT)
+	@$(LOAD_ENV) ngrok http --domain=$$NGROK_DOMAIN $(PORT)
 
 dev: db-start clean build
 	@$(LOAD_ENV) \

@@ -10,7 +10,7 @@ import (
 )
 
 func NewAuthMiddleware(verifier JWTVerifier) fiber.Handler {
-	 return func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if !strings.Contains(authHeader, "Bearer ") {
 			return errs.Unauthorized()
@@ -25,7 +25,7 @@ func NewAuthMiddleware(verifier JWTVerifier) fiber.Handler {
 
 		c.Locals("userId", clerkId)
 		if err := c.Next(); err != nil {
-    		return err
+			return err
 		}
 		return nil
 	}
@@ -40,7 +40,6 @@ type ClerkJWTVerifier struct{}
 func NewClerkJWTVerifier() *ClerkJWTVerifier {
 	return &ClerkJWTVerifier{}
 }
-
 
 func (v *ClerkJWTVerifier) Verify(ctx context.Context, token string) (string, error) {
 	claims, err := jwt.Verify(ctx, &jwt.VerifyParams{

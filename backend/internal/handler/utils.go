@@ -13,7 +13,6 @@ func validUUID(s string) bool {
 	return err == nil
 }
 
-
 func AggregateErrors(errors map[string]string) error {
 	if len(errors) > 0 {
 		var keys []string

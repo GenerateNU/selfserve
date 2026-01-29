@@ -1,24 +1,21 @@
 package handler
 
 import (
-	"strings"
-	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
+	"strings"
 )
-
 
 type ClerkHandler struct {
 	UsersRepository storage.UsersRepository
 }
 
-
 func newClerkHandler(userRepo storage.UsersRepository) *ClerkHandler {
 	return &ClerkHandler{UsersRepository: userRepo}
 }
-
 
 func (h *ClerkHandler) CreateUser(c *fiber.Ctx) error {
 	var CreateUserRequest models.CreateUserWebhook
@@ -59,11 +56,11 @@ func validateCreateUser(user *models.CreateUserWebhook) error {
 func reformatUserData(CreateUserRequest models.CreateUserWebhook) *models.CreateUser {
 	result := &models.CreateUser{
 		FirstName: CreateUserRequest.Data.FirstName,
-		LastName: CreateUserRequest.Data.LastName,
-		ClerkID: CreateUserRequest.Data.ID,
+		LastName:  CreateUserRequest.Data.LastName,
+		ClerkID:   CreateUserRequest.Data.ID,
 	}
-	if (CreateUserRequest.Data.HasImage) {
+	if CreateUserRequest.Data.HasImage {
 		result.ProfilePicture = CreateUserRequest.Data.ImageUrl
 	}
-	return result 
+	return result
 }

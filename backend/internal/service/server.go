@@ -38,16 +38,18 @@ func InitApp(cfg *config.Config) (*App, error) {
 	setupClerk()
 
 	if err = setupRoutes(app, repo); err != nil {
+		repo.Close()
 		return nil, err
 	}
 
 	return &App{
 		Server: app,
+		Repo:   repo,
 	}, nil
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository) (error) {
+func setupRoutes(app *fiber.App, repo *storage.Repository) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -61,7 +63,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) (error) {
 		return c.SendStatus(http.StatusOK)
 	})
 
-	// initialize users repo 
+	// initialize users repo
 	usersRepo := repository.NewUsersRepository(repo.DB)
 
 	// initialize handler(s)
@@ -76,7 +78,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) (error) {
 		return err
 	}
 	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
-
 
 	// API v1 routes
 	api := app.Group("/api/v1")
@@ -116,7 +117,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) (error) {
 		r.Get("/:id", hotelHandler.GetHotelByID)
 	})
 
-	
 	api.Route("/hotel", func(r fiber.Router) {
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
@@ -154,7 +154,7 @@ func setupClerk() {
 		clerksdk.SetKey(os.Getenv("DEV_CLERK_SECRET_KEY"))
 	} else {
 		/*
-			Missing prod url to complete 
+			Missing prod url to complete
 		*/
 		fmt.Print("No clerk for prod yet.")
 	}
