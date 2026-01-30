@@ -14,7 +14,7 @@ import (
 )
 
 type UsersRepository interface {
-	FindUserById(ctx context.Context, id string) (*models.User, error)
+	FindUser(ctx context.Context, id string) (*models.User, error)
 	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
 }
 
@@ -42,7 +42,7 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 	if id == "" {
 		return errs.BadRequest("id is required")
 	}
-	user, err := h.repo.FindUserById(c.Context(), id)
+	user, err := h.repo.FindUser(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("user", "id", id)

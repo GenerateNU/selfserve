@@ -23,7 +23,7 @@ type mockUsersRepository struct {
 }
 
 // Implement the interface - calls our controllable function
-func (m *mockUsersRepository) FindUserById(ctx context.Context, id string) (*models.User, error) {
+func (m *mockUsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {
 	if m.findUserByIdFunc != nil {
 		return m.findUserByIdFunc(ctx, id)
 	}
