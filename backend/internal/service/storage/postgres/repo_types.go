@@ -15,7 +15,7 @@ type RequestsRepository interface {
 
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
 
-	FindRequests(ctx context.Context) (*models.Request, error)
+	FindRequests(ctx context.Context) ([]models.Request, error)
 }
 
 type HotelRepository interface {

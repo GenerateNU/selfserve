@@ -62,7 +62,7 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequests(ctx context.Context, id string) ([]models.Request, error) {
+func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT * 
 		FROM requests

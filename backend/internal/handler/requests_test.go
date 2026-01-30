@@ -17,8 +17,9 @@ import (
 )
 
 type mockRequestRepository struct {
-	makeRequestFunc func(ctx context.Context, req *models.Request) (*models.Request, error)
-	findRequestFunc func(ctx context.Context, id string) (*models.Request, error)
+	makeRequestFunc  func(ctx context.Context, req *models.Request) (*models.Request, error)
+	findRequestFunc  func(ctx context.Context, id string) (*models.Request, error)
+	findRequestsFunc func(ctx context.Context) ([]models.Request, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -29,6 +30,9 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 	return m.findRequestFunc(ctx, id)
 }
 
+func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
+	return m.findRequestsFunc(ctx)
+}
 func TestRequestHandler_GetRequest(t *testing.T) {
 	t.Parallel()
 
@@ -146,6 +150,131 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		assert.Equal(t, 500, resp.StatusCode)
 	})
 }
+
+func TestRequestHandler_GetRequests(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns 200 two members", func(t *testing.T) {
+		t.Parallel()
+		mock := &mockRequestRepository{
+			findRequestsFunc: func(ctx context.Context) ([]models.Request, error) {
+				requests := []models.Request{
+					{
+						ID:        "530e8400-e458-41d4-a716-446655440000",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+						MakeRequest: models.MakeRequest{
+							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							Name:        "room cleaning",
+							RequestType: "recurring",
+							Status:      "assigned",
+							Priority:    "urgent",
+						},
+					},
+					{
+						ID:        "530e8400-e458-41d4-a716-446655440001",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+						MakeRequest: models.MakeRequest{
+							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							Name:        "towel replacement",
+							RequestType: "one-time",
+							Status:      "pending",
+							Priority:    "medium",
+						},
+					},
+					{
+						ID:        "530e8400-e458-41d4-a716-446655440002",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+						MakeRequest: models.MakeRequest{
+							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							Name:        "maintenance repair",
+							RequestType: "one-time",
+							Status:      "in-progress",
+							Priority:    "urgent",
+						},
+					},
+					{
+						ID:        "530e8400-e458-41d4-a716-446655440003",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+						MakeRequest: models.MakeRequest{
+							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							Name:        "extra pillows",
+							RequestType: "one-time",
+							Status:      "completed",
+							Priority:    "low",
+						},
+					},
+					{
+						ID:        "530e8400-e458-41d4-a716-446655440004",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+						MakeRequest: models.MakeRequest{
+							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							Name:        "minibar refill",
+							RequestType: "recurring",
+							Status:      "assigned",
+							Priority:    "medium",
+						},
+					},
+				}
+				return requests, nil
+			},
+		}
+		app := fiber.New()
+		h := NewRequestsHandler(mock)
+		app.Get("/request/", h.GetRequests)
+
+		req := httptest.NewRequest("GET", "/request/", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+	})
+
+	t.Run("returns 500 on db error", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestsFunc: func(ctx context.Context) ([]models.Request, error) {
+				return nil, errors.New("db connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock)
+		app.Get("/request", h.GetRequests)
+
+		req := httptest.NewRequest("GET", "/request", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+
+	t.Run("returns 500 when route is not found/empty", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestFunc: func(ctx context.Context, id string) (*models.Request, error) {
+				return nil, nil
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock)
+		app.Get("/request/:id", h.GetRequest)
+
+		req := httptest.NewRequest("GET", "/request/", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+}
+
 func TestRequestHandler_MakeRequest(t *testing.T) {
 	t.Parallel()
 	validBody := `{
