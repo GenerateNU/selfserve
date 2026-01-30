@@ -102,3 +102,14 @@ func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 
 	return c.JSON(dev)
 }
+
+func (r *RequestsHandler) GetRequests(c *fiber.Ctx) error {
+
+	dev, err := r.RequestRepository.FindRequests(c.Context())
+	if err != nil {
+		slog.Error(err.Error())
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(dev)
+}

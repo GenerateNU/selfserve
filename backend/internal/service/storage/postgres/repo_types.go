@@ -14,6 +14,8 @@ type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
 
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
+
+	FindRequests(ctx context.Context) (*models.Request, error)
 }
 
 type HotelRepository interface {
