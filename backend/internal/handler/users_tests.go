@@ -11,25 +11,147 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
-	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+// Mock repository - allows us to control what the "database" returns in tests
 type mockUsersRepository struct {
-	insertUserFunc func(ctx context.Context, req *models.CreateUser) (*models.User, error)
+	findUserByIdFunc func(ctx context.Context, id string) (*models.User, error)
+	insertUserFunc   func(ctx context.Context, user *models.CreateUser) (*models.User, error)
 }
 
-func (m *mockUsersRepository) InsertUser(
-	ctx context.Context,
-	user *models.CreateUser,
-) (*models.User, error) {
-	return m.insertUserFunc(ctx, user)
+// Implement the interface - calls our controllable function
+func (m *mockUsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {
+	if m.findUserByIdFunc != nil {
+		return m.findUserByIdFunc(ctx, id)
+	}
+	return nil, nil
 }
 
-// Makes the compiler verify the mock
-var _ storage.UsersRepository = (*mockUsersRepository)(nil)
+func (m *mockUsersRepository) InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+	if m.insertUserFunc != nil {
+		return m.insertUserFunc(ctx, user)
+	}
+	return nil, nil
+}
+
+func TestUsersHandler_GetUserByID(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns 200 with user", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockUsersRepository{
+			findUserByIdFunc: func(ctx context.Context, id string) (*models.User, error) {
+				return &models.User{
+					CreateUser: models.CreateUser{
+						FirstName: "John",
+						LastName:  "Doe",
+						Role:      "admin",
+					},
+					ID: "550e8400-e29b-41d4-a716-446655440000",
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewUsersHandler(mock)
+		app.Get("/users/:id", h.GetUserByID)
+
+		req := httptest.NewRequest("GET", "/users/550e8400-e29b-41d4-a716-446655440000", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "John")
+		assert.Contains(t, string(body), "Doe")
+	})
+
+	t.Run("returns 404 when user not found", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockUsersRepository{
+			findUserByIdFunc: func(ctx context.Context, id string) (*models.User, error) {
+				return nil, errs.ErrNotFoundInDB
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewUsersHandler(mock)
+		app.Get("/users/:id", h.GetUserByID)
+
+		req := httptest.NewRequest("GET", "/users/nonexistent-id", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 404, resp.StatusCode)
+	})
+
+	t.Run("returns 500 on database error", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockUsersRepository{
+			findUserByIdFunc: func(ctx context.Context, id string) (*models.User, error) {
+				return nil, errors.New("database connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewUsersHandler(mock)
+		app.Get("/users/:id", h.GetUserByID)
+
+		req := httptest.NewRequest("GET", "/users/some-id", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+}
+
+func TestUsersHandler_GetUserByID_InvalidMethods(t *testing.T) {
+	t.Parallel()
+
+	mock := &mockUsersRepository{
+		findUserByIdFunc: func(ctx context.Context, id string) (*models.User, error) {
+			return &models.User{
+				CreateUser: models.CreateUser{
+					FirstName: "John",
+				},
+				ID: "123",
+			}, nil
+		},
+	}
+
+	app := fiber.New()
+	h := NewUsersHandler(mock)
+	app.Get("/users/:id", h.GetUserByID)
+
+	tests := []struct {
+		name           string
+		method         string
+		expectedStatus int
+	}{
+		{"POST not allowed", "POST", 405},
+		{"PUT not allowed", "PUT", 405},
+		{"DELETE not allowed", "DELETE", 405},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequest(tt.method, "/users/123", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+		})
+	}
+}
 
 func TestUsersHandler_CreateUser(t *testing.T) {
 	t.Parallel()
@@ -114,11 +236,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 	t.Run("returns 400 on invalid JSON body", func(t *testing.T) {
 		t.Parallel()
 
-		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
-				return nil, nil
-			},
-		}
+		mock := &mockUsersRepository{}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewUsersHandler(mock)
@@ -136,11 +254,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 	t.Run("returns 400 when required fields are missing", func(t *testing.T) {
 		t.Parallel()
 
-		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
-				return nil, nil
-			},
-		}
+		mock := &mockUsersRepository{}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewUsersHandler(mock)
@@ -163,11 +277,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 	t.Run("returns 400 on invalid timezone", func(t *testing.T) {
 		t.Parallel()
 
-		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
-				return nil, nil
-			},
-		}
+		mock := &mockUsersRepository{}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewUsersHandler(mock)
@@ -177,7 +287,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"first_name": "John",
 			"last_name": "Doe",
 			"role": "Receptionist",
-			"timezone": "EST"
+			"timezone": "Invalid/Not_A_Timezone"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(invalidTimezoneBody))
