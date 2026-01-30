@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"log/slog"
 	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -96,7 +95,16 @@ func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("request", "id", id)
 		}
-		slog.Error(err.Error())
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(dev)
+}
+
+func (r *RequestsHandler) GetRequests(c *fiber.Ctx) error {
+
+	dev, err := r.RequestRepository.FindRequests(c.Context())
+	if err != nil {
 		return errs.InternalServerError()
 	}
 

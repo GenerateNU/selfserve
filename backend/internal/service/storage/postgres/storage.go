@@ -14,8 +14,6 @@ type DevsRepository interface {
 	GetMember(ctx context.Context, name string) (*models.Dev, error)
 }
 
-
-
 type Repository struct {
 	DB                *pgxpool.Pool
 	DevsRepository    DevsRepository

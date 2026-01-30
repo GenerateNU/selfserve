@@ -37,7 +37,6 @@ func (r *HotelRepository) FindByID(ctx context.Context, id string) (*models.Hote
 	return &hotel, nil
 }
 
-
 type HotelsRepository struct {
 	db *pgxpool.Pool
 }
