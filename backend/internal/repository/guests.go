@@ -48,7 +48,7 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 
 	row := r.db.QueryRow(ctx, `
 		SELECT id, created_at, updated_at, first_name, last_name, profile_picture, timezone
-		FROM guests 
+		FROM public.guests 
 		WHERE id = $1
 	`, id)
 
