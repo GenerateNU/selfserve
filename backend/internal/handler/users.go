@@ -1,21 +1,55 @@
 package handler
 
 import (
+	"context"
+	"errors"
+	"log/slog"
 	"strings"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
-	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 )
 
-type UsersHandler struct {
-	UsersRepository storage.UsersRepository
+type UsersRepository interface {
+	FindUser(ctx context.Context, id string) (*models.User, error)
+	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
 }
 
-func NewUsersHandler(repo storage.UsersRepository) *UsersHandler {
-	return &UsersHandler{UsersRepository: repo}
+type UsersHandler struct {
+	repo UsersRepository
+}
+
+func NewUsersHandler(repo UsersRepository) *UsersHandler {
+	return &UsersHandler{repo: repo}
+}
+
+// GetUserByID godoc
+// @Summary      Get user by ID
+// @Description  Retrieves a user by their unique app ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id  path      string  true  "User ID"
+// @Success      200   {object}  models.User
+// @Failure      400   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /users/{id} [get]
+func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return errs.BadRequest("id is required")
+	}
+	user, err := h.repo.FindUser(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("user", "id", id)
+		}
+		slog.Error(err.Error())
+		return errs.InternalServerError()
+	}
+	return c.JSON(user)
 }
 
 // CreateUser godoc
@@ -39,7 +73,7 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	res, err := h.UsersRepository.InsertUser(c.Context(), &CreateUserRequest)
+	res, err := h.repo.InsertUser(c.Context(), &CreateUserRequest)
 	if err != nil {
 		return errs.InternalServerError()
 	}
