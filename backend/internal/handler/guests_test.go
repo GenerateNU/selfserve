@@ -328,21 +328,22 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 
 	validID := "530e8400-e458-41d4-a716-446655440000"
 
-	t.Run("returns 200 on valid update", func(t *testing.T) {
+	t.Run("returns 200 on valid update with required fields", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockGuestsRepository{
 			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
 				require.Equal(t, validID, id)
-				require.NotNil(t, update.FirstName)
+				require.Equal(t, "Jane", update.FirstName)
+				require.Equal(t, "Smith", update.LastName)
 
 				return &models.Guest{
 					ID:        validID,
 					CreatedAt: time.Now().Add(-time.Hour),
 					UpdatedAt: time.Now(),
 					CreateGuest: models.CreateGuest{
-						FirstName: *update.FirstName,
-						LastName:  "Doe",
+						FirstName: update.FirstName,
+						LastName:  update.LastName,
 					},
 				}, nil
 			},
@@ -355,7 +356,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		req := httptest.NewRequest(
 			"PUT",
 			"/guests/"+validID,
-			bytes.NewBufferString(`{"first_name":"Jane"}`),
+			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith"}`),
 		)
 		req.Header.Set("Content-Type", "application/json")
 
@@ -365,6 +366,77 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), "Jane")
+		assert.Contains(t, string(body), "Smith")
+	})
+
+	t.Run("returns 400 when first_name is missing", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"last_name":"Smith"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "first_name")
+	})
+
+	t.Run("returns 400 when last_name is missing", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"first_name":"Jane"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "last_name")
+	})
+
+	t.Run("returns 400 when both required fields are empty strings", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"first_name":"","last_name":""}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "first_name")
+		assert.Contains(t, string(body), "last_name")
 	})
 
 	t.Run("returns 400 on invalid UUID", func(t *testing.T) {
@@ -443,7 +515,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		req := httptest.NewRequest(
 			"PUT",
 			"/guests/"+validID,
-			bytes.NewBufferString(`{"first_name":"Jane"}`),
+			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith"}`),
 		)
 		req.Header.Set("Content-Type", "application/json")
 
@@ -468,7 +540,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		req := httptest.NewRequest(
 			"PUT",
 			"/guests/"+validID,
-			bytes.NewBufferString(`{"first_name":"Jane"}`),
+			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith"}`),
 		)
 		req.Header.Set("Content-Type", "application/json")
 

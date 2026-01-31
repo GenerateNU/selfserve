@@ -168,11 +168,11 @@ func validateCreateGuest(guest *models.CreateGuest) error {
 func validateUpdateGuest(update *models.UpdateGuest) error {
 	errors := make(map[string]string)
 
-	if update.FirstName != nil && strings.TrimSpace(*update.FirstName) == "" {
+	if strings.TrimSpace(update.FirstName) == "" {
 		errors["first_name"] = "must not be an empty string"
 	}
 
-	if update.LastName != nil && strings.TrimSpace(*update.LastName) == "" {
+	if strings.TrimSpace(update.LastName) == "" {
 		errors["last_name"] = "must not be an empty string"
 	}
 

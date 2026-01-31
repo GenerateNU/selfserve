@@ -10,8 +10,8 @@ type CreateGuest struct {
 }
 
 type UpdateGuest struct {
-	FirstName      *string `json:"first_name" example:"John"`
-	LastName       *string `json:"last_name" example:"Doe"`
+	FirstName      string  `json:"first_name" example:"John"`
+	LastName       string  `json:"last_name" example:"Doe"`
 	ProfilePicture *string `json:"profile_picture" example:"https://example.com/john.jpg"`
 	Timezone       *string `json:"timezone" example:"America/New_York"`
 }
