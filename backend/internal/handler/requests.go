@@ -3,9 +3,11 @@ package handler
 import (
 	"errors"
 	"log/slog"
+	"sort"
 	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/gemini"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
@@ -13,10 +15,14 @@ import (
 
 type RequestsHandler struct {
 	RequestRepository storage.RequestsRepository
+	GeminiService     *gemini.GeminiService
 }
 
-func NewRequestsHandler(repo storage.RequestsRepository) *RequestsHandler {
-	return &RequestsHandler{RequestRepository: repo}
+func NewRequestsHandler(repo storage.RequestsRepository, geminiSvc *gemini.GeminiService) *RequestsHandler {
+	return &RequestsHandler{
+		RequestRepository: repo,
+		GeminiService:     geminiSvc,
+	}
 }
 
 // CreateRequest godoc
@@ -101,4 +107,94 @@ func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(dev)
+}
+
+func validateMakeRequestFromText(incoming *models.MakeRequestFromText) error {
+	errors := make(map[string]string)
+
+	if !validUUID(incoming.HotelID) {
+		errors["hotel_id"] = "invalid uuid"
+	}
+
+	if incoming.RawText == "" {
+		errors["raw_text"] = "must not be an empty string"
+	}
+
+	if len(errors) > 0 {
+		var keys []string
+		for k := range errors {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		var parts []string
+		for _, k := range keys {
+			parts = append(parts, k+": "+errors[k])
+		}
+		return errs.BadRequest(strings.Join(parts, ", "))
+	}
+
+	return nil
+}
+
+
+// CreateRequestFromText godoc
+// @Summary      creates a request from natural language text
+// @Description  Parses natural language text into a structured request using AI and creates it
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param  request  body  models.MakeRequestFromText  true  "Request data with raw text"
+// @Success      200   {object}  models.Request
+// @Failure      400   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /request/from-text [post]
+func (r *RequestsHandler) CreateRequestFromText(c *fiber.Ctx) error {
+	var incoming models.MakeRequestFromText
+	if err := c.BodyParser(&incoming); err != nil {
+		return errs.InvalidJSON()
+	}
+
+	if err := validateMakeRequestFromText(&incoming); err != nil {
+		return err
+	}
+
+	parsed, err := r.GeminiService.MakeRequestFromTextFlow.Run(c.Context(), gemini.MakeRequestFromTextInput{
+		RawText: incoming.RawText,
+	})
+	if err != nil {
+		slog.Error("gemini parse failed", "error", err)
+		return errs.InternalServerError()
+	}
+
+	req := models.Request{MakeRequest: models.MakeRequest{
+		HotelID:                 incoming.HotelID,
+		GuestID:                 parsed.GuestID,
+		UserID:                  parsed.UserID,
+		ReservationID:           parsed.ReservationID,
+		Name:                    parsed.Name,
+		Description:             parsed.Description,
+		RoomID:                  parsed.RoomID,
+		RequestCategory:         parsed.RequestCategory,
+		RequestType:             parsed.RequestType,
+		Department:              parsed.Department,
+		Status:                  parsed.Status,
+		Priority:                parsed.Priority,
+		EstimatedCompletionTime: parsed.EstimatedCompletionTime,
+		ScheduledTime:           nil, // TODO: Potentially add schedule time from user input / auto-scheduling  
+		CompletedAt:             nil,
+		Notes:                   parsed.Notes,
+	}}
+
+	if err := validateCreateRequest(&req); err != nil {
+		return err
+	}
+
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
+	if err != nil {
+		slog.Error("failed to insert request from text", "error", err)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(res)
 }

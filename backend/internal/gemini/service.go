@@ -7,5 +7,5 @@ import (
 
 type GeminiService struct {
 	genkit           *genkit.Genkit
-	ParseRequestFlow *core.Flow[ParseRequestInput, ParseRequestOutput, struct{}]
+	MakeRequestFromTextFlow *core.Flow[MakeRequestFromTextInput, MakeRequestFromTextOutput, struct{}]
 }

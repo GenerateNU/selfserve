@@ -16,7 +16,7 @@ func InitGenkit(ctx context.Context) *GeminiService {
 	flows := initFlowSet(g)
 
 	return &GeminiService{
-		genkit:           g,
-		ParseRequestFlow: flows.RequestParseFlow,
+		genkit:                  g,
+		MakeRequestFromTextFlow: flows.MakeRequestFromTextFlow,
 	}
 }

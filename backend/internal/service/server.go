@@ -1,10 +1,12 @@
 package service
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/gemini"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
@@ -30,9 +32,11 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
+	geminiSvc := gemini.InitGenkit(context.Background())
+
 	app := setupApp()
 
-	setupRoutes(app, repo)
+	setupRoutes(app, repo, geminiSvc)
 
 	return &App{
 		Server: app,
@@ -40,7 +44,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, geminiSvc *gemini.GeminiService) {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -58,7 +62,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), geminiSvc)
 	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
 
@@ -84,6 +88,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
+		r.Post("/from-text", reqsHandler.CreateRequestFromText)
 		r.Get("/:id", reqsHandler.GetRequest)
 	})
 
