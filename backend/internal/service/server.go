@@ -6,8 +6,8 @@ import (
 
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
-	"github.com/generate/selfserve/internal/llm"
 	"github.com/generate/selfserve/internal/handler"
+	"github.com/generate/selfserve/internal/llm"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"

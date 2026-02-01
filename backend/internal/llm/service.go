@@ -6,6 +6,6 @@ import (
 )
 
 type LLMService struct {
-	genkit                 *genkit.Genkit
+	genkit                  *genkit.Genkit
 	MakeRequestFromTextFlow *core.Flow[MakeRequestFromTextInput, MakeRequestFromTextOutput, struct{}]
 }

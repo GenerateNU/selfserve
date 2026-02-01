@@ -15,13 +15,13 @@ import (
 
 type RequestsHandler struct {
 	RequestRepository storage.RequestsRepository
-	LLMService *llm.LLMService
+	LLMService        *llm.LLMService
 }
 
 func NewRequestsHandler(repo storage.RequestsRepository, llmSvc *llm.LLMService) *RequestsHandler {
 	return &RequestsHandler{
 		RequestRepository: repo,
-		LLMService:         llmSvc,
+		LLMService:        llmSvc,
 	}
 }
 
