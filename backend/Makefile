@@ -4,20 +4,31 @@ DOCKER_IMAGE_NAME := selfserve-backend
 PORT := 8080
 ENV_FILE := config/.env
 LOAD_ENV := set -a; [ -f $(ENV_FILE) ] && . $(ENV_FILE); set +a;
+OLLAMA_URL := http://127.0.0.1:11434
 
 .PHONY: all build run dev test format tidy download clean docker-build docker-run \
-        migrate-new migrate-up migrate-down migrate-status migrate-reset db-start db-stop db-reset db-setup-env swagger swagger-fmt docker-build docker-run
+        migrate-new migrate-up migrate-down migrate-status migrate-reset db-start db-stop db-reset db-setup-env swagger swagger-fmt docker-build docker-run ollama-start
 
 all: build
 
 build: swagger
 	go build -o bin/$(APP_NAME) $(CMD_PATH)
 
-run: db-start
+# Start Ollama if not already running (used by run/dev for /api/v1/request/from-text)
+ollama-start:
+	@if curl -sf $(OLLAMA_URL)/api/tags >/dev/null 2>&1; then \
+		echo "Ollama already running"; \
+	else \
+		echo "Starting Ollama..."; \
+		ollama serve >/dev/null 2>&1 & \
+		sleep 2; \
+	fi
+
+run: ollama-start db-start
 	@$(LOAD_ENV) \
 	go run $(CMD_PATH)
 
-dev: db-start clean build
+dev: ollama-start db-start clean build
 	@$(LOAD_ENV) \
 	./bin/$(APP_NAME)
 

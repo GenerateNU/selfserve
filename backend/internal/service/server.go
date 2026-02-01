@@ -6,7 +6,7 @@ import (
 
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
-	"github.com/generate/selfserve/internal/gemini"
+	"github.com/generate/selfserve/internal/llm"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
@@ -32,11 +32,11 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	geminiSvc := gemini.InitGenkit(context.Background())
+	llmSvc := llm.InitGenkit(context.Background(), &cfg.Ollama)
 
 	app := setupApp()
 
-	setupRoutes(app, repo, geminiSvc)
+	setupRoutes(app, repo, llmSvc)
 
 	return &App{
 		Server: app,
@@ -44,7 +44,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository, geminiSvc *gemini.GeminiService) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, llmSvc *llm.LLMService) {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -62,7 +62,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, geminiSvc *gemini.Gem
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), geminiSvc)
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), llmSvc)
 	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
 
@@ -85,7 +85,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, geminiSvc *gemini.Gem
 		r.Get("/:id", usersHandler.GetUserByID)
 		r.Post("/", usersHandler.CreateUser)
 	})
-	// Request routes 
+	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/from-text", reqsHandler.CreateRequestFromText)

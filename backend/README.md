@@ -12,13 +12,18 @@
    ```bash
    go install github.com/air-verse/air@latest
    ```
-
-2. **Download dependencies**:
+2. **Install Ollama**:
+   ```bash
+   brew install ollama
+   ollama serve
+   ollama pull llama3.2
+   ```
+3. **Download dependencies**:
    ```bash
    make download
    ```
 
-3. **Set up environment variables**:
+4. **Set up environment variables**:
    
    (Slack us for these)
    Create a `config/.env` file with the following variables:
@@ -39,7 +44,15 @@
 
    > **Note**: All database variables (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME) are required. The application will fail to start if they are missing.
 
-4. **Run with hot reload** (development):
+   **Ollama (local LLM)** – used for parsing request text (e.g. `/request/from-text`). Optional; defaults apply if unset:
+   ```env
+   OLLAMA_SERVER_ADDRESS=http://127.0.0.1:11434
+   OLLAMA_MODEL=llama3.2
+   OLLAMA_TIMEOUT=60
+   ```
+   Install [Ollama](https://ollama.com/download), start the server, then run `ollama pull llama3.2`.
+
+5. **Run with hot reload** (development):
    ```bash
    air
    ```
@@ -160,4 +173,8 @@ The application reads configuration from environment variables (loaded from `con
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`: Database connection details
 - `DB_MAX_CONNS`: Maximum database connections (default: 8)
 - `DB_MAX_CONN_LIFETIME`: Connection lifetime (default: 30s)
+
+- `OLLAMA_SERVER_ADDRESS`: Ollama server URL (default: http://127.0.0.1:11434)
+- `OLLAMA_MODEL`: Model name, e.g. llama3.2, gemma2 (default: llama3.2)
+- `OLLAMA_TIMEOUT`: Response timeout in seconds (default: 60)
 

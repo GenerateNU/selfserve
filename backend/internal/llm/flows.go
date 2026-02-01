@@ -1,4 +1,4 @@
-package gemini
+package llm
 
 import (
 	"context"
@@ -16,33 +16,27 @@ type FlowSet struct {
 	MakeRequestFromTextFlow *core.Flow[MakeRequestFromTextInput, MakeRequestFromTextOutput, struct{}]
 }
 
-func initFlowSet(g *genkit.Genkit) *FlowSet {
+func initFlowSet(g *genkit.Genkit, model ai.Model) *FlowSet {
 	makeRequestFromTextFlow := genkit.DefineFlow(g, "makeRequestFromText",
 		func(ctx context.Context, input MakeRequestFromTextInput) (MakeRequestFromTextOutput, error) {
-			prompt := fmt.Sprintf(`You are a hotel request parser. Parse the following text into a structured hotel service request:
+			prompt := fmt.Sprintf(`Parse this hotel service request into JSON.
 
 Text: "%s"
 
-CRITICAL: If you cannot determine a field's value from the text, you MUST omit it entirely from your response. DO NOT use placeholder values like "unknown_guest", "unknown_user", or the string "null".
+Output a JSON object with these fields (omit any field you cannot determine from the text):
+- name: string (required) - brief title of the request
+- description: string - detailed description
+- request_category: string - one of "Cleaning", "Maintenance", "Amenity", "Food Service"
+- request_type: string - "one-time" or "recurring"
+- department: string - "housekeeping", "maintenance", "concierge", or "room service"
+- status: string - always "pending"
+- priority: string - "low", "normal", "high", or "urgent"
+- estimated_completion_time: integer - minutes to complete
+- notes: string - additional context
 
-Extract ONLY the following information that you can find in the text:
-- guest_id: UUID of the guest (omit if not mentioned)
-- user_id: UUID of the staff member (omit if not mentioned)
-- reservation_id: UUID of the reservation (omit if not mentioned)
-- name: Brief title/summary of the request (required)
-- description: Detailed description of what is needed
-- room_id: UUID of the room (extract from text like "room 504")
-- request_category: Category like "Cleaning", "Maintenance", "Amenity", "Food Service"
-- request_type: Either "one-time" or "recurring"
-- department: Department to handle this like "housekeeping", "maintenance", "concierge", "room service"
-- status: Set to "pending" for new requests
-- priority: Either "low", "normal", "high", or "urgent" based on urgency indicators
-- estimated_completion_time: Estimated minutes to complete (as integer)
-- notes: Any additional context or special instructions
+IMPORTANT: Output ONLY the JSON object. No markdown, no code blocks, no explanations, no text before or after. Just the raw JSON starting with { and ending with }.`, input.RawText)
 
-Example: If guest_id is not mentioned in the text, do not include it in your response.`, input.RawText)
-
-			resp, _, err := genkit.GenerateData[MakeRequestFromTextOutput](ctx, g, ai.WithPrompt(prompt))
+			resp, _, err := genkit.GenerateData[MakeRequestFromTextOutput](ctx, g, ai.WithModel(model), ai.WithPrompt(prompt))
 			if err != nil {
 				return MakeRequestFromTextOutput{}, err
 			}
@@ -52,7 +46,7 @@ Example: If guest_id is not mentioned in the text, do not include it in your res
 			resp.UserID = sanitizeUUIDPtr(resp.UserID)
 			resp.ReservationID = sanitizeUUIDPtr(resp.ReservationID)
 			resp.RoomID = sanitizeUUIDPtr(resp.RoomID)
-			
+
 			// Sanitize string fields
 			resp.Description = sanitizeStringPtr(resp.Description)
 			resp.RequestCategory = sanitizeStringPtr(resp.RequestCategory)
@@ -63,7 +57,6 @@ Example: If guest_id is not mentioned in the text, do not include it in your res
 				resp.EstimatedCompletionTime = nil
 			}
 
-			fmt.Println("resp", resp)
 			return *resp, nil
 		})
 

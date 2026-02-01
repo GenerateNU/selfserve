@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
-	"github.com/generate/selfserve/internal/gemini"
+	"github.com/generate/selfserve/internal/llm"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
@@ -15,13 +15,13 @@ import (
 
 type RequestsHandler struct {
 	RequestRepository storage.RequestsRepository
-	GeminiService     *gemini.GeminiService
+	LLMService *llm.LLMService
 }
 
-func NewRequestsHandler(repo storage.RequestsRepository, geminiSvc *gemini.GeminiService) *RequestsHandler {
+func NewRequestsHandler(repo storage.RequestsRepository, llmSvc *llm.LLMService) *RequestsHandler {
 	return &RequestsHandler{
 		RequestRepository: repo,
-		GeminiService:     geminiSvc,
+		LLMService:         llmSvc,
 	}
 }
 
@@ -137,7 +137,6 @@ func validateMakeRequestFromText(incoming *models.MakeRequestFromText) error {
 	return nil
 }
 
-
 // CreateRequestFromText godoc
 // @Summary      creates a request from natural language text
 // @Description  Parses natural language text into a structured request using AI and creates it
@@ -159,11 +158,11 @@ func (r *RequestsHandler) CreateRequestFromText(c *fiber.Ctx) error {
 		return err
 	}
 
-	parsed, err := r.GeminiService.MakeRequestFromTextFlow.Run(c.Context(), gemini.MakeRequestFromTextInput{
+	parsed, err := r.LLMService.MakeRequestFromTextFlow.Run(c.Context(), llm.MakeRequestFromTextInput{
 		RawText: incoming.RawText,
 	})
 	if err != nil {
-		slog.Error("gemini parse failed", "error", err)
+		slog.Error("llm parse failed", "error", err)
 		return errs.InternalServerError()
 	}
 
@@ -181,7 +180,7 @@ func (r *RequestsHandler) CreateRequestFromText(c *fiber.Ctx) error {
 		Status:                  parsed.Status,
 		Priority:                parsed.Priority,
 		EstimatedCompletionTime: parsed.EstimatedCompletionTime,
-		ScheduledTime:           nil, // TODO: Potentially add schedule time from user input / auto-scheduling  
+		ScheduledTime:           nil, // TODO: Potentially add schedule time from user input / auto-scheduling
 		CompletedAt:             nil,
 		Notes:                   parsed.Notes,
 	}}
@@ -192,7 +191,6 @@ func (r *RequestsHandler) CreateRequestFromText(c *fiber.Ctx) error {
 
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
 	if err != nil {
-		slog.Error("failed to insert request from text", "error", err)
 		return errs.InternalServerError()
 	}
 
