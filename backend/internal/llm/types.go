@@ -1,10 +1,10 @@
 package llm
 
-type MakeRequestFromTextInput struct {
+type ParseRequestInput struct {
 	RawText string `json:"raw_text"`
 }
 
-type MakeRequestFromTextOutput struct {
+type ParseRequestOutput struct {
 	GuestID                 *string `json:"guest_id,omitempty" jsonschema:"nullable"`
 	UserID                  *string `json:"user_id,omitempty" jsonschema:"nullable"`
 	ReservationID           *string `json:"reservation_id,omitempty" jsonschema:"nullable"`

@@ -32,7 +32,7 @@ func InitGenkit(ctx context.Context, cfg *config.Ollama) *LLMService {
 	flows := initFlowSet(g, model)
 
 	return &LLMService{
-		genkit:                  g,
-		MakeRequestFromTextFlow: flows.MakeRequestFromTextFlow,
+		genkit:           g,
+		parseRequestFlow: flows.ParseRequestFlow,
 	}
 }

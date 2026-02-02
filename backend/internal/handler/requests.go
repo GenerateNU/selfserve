@@ -109,7 +109,7 @@ func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 	return c.JSON(dev)
 }
 
-func validateMakeRequestFromText(incoming *models.MakeRequestFromText) error {
+func validateParseRequest(incoming *models.ParseRequestInput) error {
 	errors := make(map[string]string)
 
 	if !validUUID(incoming.HotelID) {
@@ -137,28 +137,28 @@ func validateMakeRequestFromText(incoming *models.MakeRequestFromText) error {
 	return nil
 }
 
-// CreateRequestFromText godoc
-// @Summary      creates a request from natural language text
+// ParseRequest godoc
+// @Summary      parses natural language text into a structured request
 // @Description  Parses natural language text into a structured request using AI and creates it
 // @Tags         requests
 // @Accept       json
 // @Produce      json
-// @Param  request  body  models.MakeRequestFromText  true  "Request data with raw text"
+// @Param  request  body  models.ParseRequestInput  true  "Request data with raw text"
 // @Success      200   {object}  models.Request
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
-// @Router       /request/from-text [post]
-func (r *RequestsHandler) CreateRequestFromText(c *fiber.Ctx) error {
-	var incoming models.MakeRequestFromText
+// @Router       /request/parse [post]
+func (r *RequestsHandler) ParseRequest(c *fiber.Ctx) error {
+	var incoming models.ParseRequestInput
 	if err := c.BodyParser(&incoming); err != nil {
 		return errs.InvalidJSON()
 	}
 
-	if err := validateMakeRequestFromText(&incoming); err != nil {
+	if err := validateParseRequest(&incoming); err != nil {
 		return err
 	}
 
-	parsed, err := r.LLMService.RunMakeRequestFromText(c.Context(), llm.MakeRequestFromTextInput{
+	parsed, err := r.LLMService.RunParseRequest(c.Context(), llm.ParseRequestInput{
 		RawText: incoming.RawText,
 	})
 	if err != nil {

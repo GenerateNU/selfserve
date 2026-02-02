@@ -24,7 +24,7 @@ type MakeRequest struct {
 	Notes                   *string    `json:"notes" example:"No special requests"`
 }
 
-type MakeRequestFromText struct {
+type ParseRequestInput struct {
 	RawText string `json:"raw_text" example:"Guest in room 504 needs extra towels urgently"`
 	HotelID string `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
 }

@@ -11,12 +11,12 @@ import (
 
 // FlowSet contains all the Genkit flows
 type FlowSet struct {
-	MakeRequestFromTextFlow *core.Flow[MakeRequestFromTextInput, MakeRequestFromTextOutput, struct{}]
+	ParseRequestFlow *core.Flow[ParseRequestInput, ParseRequestOutput, struct{}]
 }
 
 func initFlowSet(g *genkit.Genkit, model ai.Model) *FlowSet {
-	makeRequestFromTextFlow := genkit.DefineFlow(g, "makeRequestFromText",
-		func(ctx context.Context, input MakeRequestFromTextInput) (MakeRequestFromTextOutput, error) {
+	parseRequestFlow := genkit.DefineFlow(g, "parseRequest",
+		func(ctx context.Context, input ParseRequestInput) (ParseRequestOutput, error) {
 			prompt := fmt.Sprintf(`Parse this hotel service request into JSON.
 
 Text: "%s"
@@ -34,9 +34,9 @@ Output a JSON object with these fields (omit any field you cannot determine from
 
 IMPORTANT: Output ONLY the JSON object. No markdown, no code blocks, no explanations, no text before or after. Just the raw JSON starting with { and ending with }.`, input.RawText)
 
-			resp, _, err := genkit.GenerateData[MakeRequestFromTextOutput](ctx, g, ai.WithModel(model), ai.WithPrompt(prompt))
+			resp, _, err := genkit.GenerateData[ParseRequestOutput](ctx, g, ai.WithModel(model), ai.WithPrompt(prompt))
 			if err != nil {
-				return MakeRequestFromTextOutput{}, err
+				return ParseRequestOutput{}, err
 			}
 
 			// Sanitize LLM-generated placeholder values - ensure UUIDs are valid or nil
@@ -59,6 +59,6 @@ IMPORTANT: Output ONLY the JSON object. No markdown, no code blocks, no explanat
 		})
 
 	return &FlowSet{
-		MakeRequestFromTextFlow: makeRequestFromTextFlow,
+		ParseRequestFlow: parseRequestFlow,
 	}
 }

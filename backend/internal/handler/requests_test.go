@@ -31,11 +31,11 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 }
 
 type mockLLMService struct {
-	runMakeRequestFromTextFunc func(ctx context.Context, input llm.MakeRequestFromTextInput) (llm.MakeRequestFromTextOutput, error)
+	runParseRequestFunc func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error)
 }
 
-func (m *mockLLMService) RunMakeRequestFromText(ctx context.Context, input llm.MakeRequestFromTextInput) (llm.MakeRequestFromTextOutput, error) {
-	return m.runMakeRequestFromTextFunc(ctx, input)
+func (m *mockLLMService) RunParseRequest(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
+	return m.runParseRequestFunc(ctx, input)
 }
 
 func TestRequestHandler_GetRequest(t *testing.T) {
@@ -365,57 +365,64 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 	})
 }
 
-func TestRequestHandler_CreateRequestFromText(t *testing.T) {
+func TestRequestHandler_ParseRequest(t *testing.T) {
 	t.Parallel()
 
-	validHotelID := "550e8400-e29b-41d4-a716-446655440000"
+	validBody := `{
+		"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+		"raw_text": "Room 302 needs extra towels urgently"
+	}`
 
 	t.Run("returns 200 on success", func(t *testing.T) {
 		t.Parallel()
 
+		description := "Guest requested extra towels for their room"
 		repoMock := &mockRequestRepository{
 			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
 				req.ID = "generated-uuid"
+				req.CreatedAt = time.Now()
+				req.UpdatedAt = time.Now()
 				return req, nil
 			},
 		}
 
 		llmMock := &mockLLMService{
-			runMakeRequestFromTextFunc: func(ctx context.Context, input llm.MakeRequestFromTextInput) (llm.MakeRequestFromTextOutput, error) {
-				return llm.MakeRequestFromTextOutput{
-					Name:        "Extra towels",
+			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
+				return llm.ParseRequestOutput{
+					Name:        "Extra Towels Request",
+					Description: &description,
 					RequestType: "one-time",
 					Status:      "pending",
-					Priority:    "normal",
+					Priority:    "urgent",
 				}, nil
 			},
 		}
 
 		app := fiber.New()
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
+		app.Post("/request/parse", h.ParseRequest)
 
-		body := `{"hotel_id": "` + validHotelID + `", "raw_text": "I need extra towels please"}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 200, resp.StatusCode)
 
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "generated-uuid")
-		assert.Contains(t, string(respBody), "Extra towels")
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "generated-uuid")
+		assert.Contains(t, string(body), "Extra Towels Request")
+		assert.Contains(t, string(body), "urgent")
 	})
 
-	t.Run("returns 200 with all optional fields from LLM", func(t *testing.T) {
+	t.Run("returns 200 with all LLM parsed fields", func(t *testing.T) {
 		t.Parallel()
 
-		description := "Guest needs fresh towels delivered to room"
-		category := "Amenity"
+		description := "Full room cleaning requested"
 		department := "housekeeping"
-		notes := "Guest mentioned they have a baby"
-		estimatedTime := 15
+		category := "Cleaning"
+		notes := "Guest prefers eco-friendly products"
+		estimatedTime := 30
 
 		repoMock := &mockRequestRepository{
 			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -425,15 +432,15 @@ func TestRequestHandler_CreateRequestFromText(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runMakeRequestFromTextFunc: func(ctx context.Context, input llm.MakeRequestFromTextInput) (llm.MakeRequestFromTextOutput, error) {
-				return llm.MakeRequestFromTextOutput{
-					Name:                    "Extra towels",
+			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
+				return llm.ParseRequestOutput{
+					Name:                    "Room Cleaning",
 					Description:             &description,
 					RequestCategory:         &category,
 					RequestType:             "one-time",
 					Department:              &department,
 					Status:                  "pending",
-					Priority:                "high",
+					Priority:                "normal",
 					EstimatedCompletionTime: &estimatedTime,
 					Notes:                   &notes,
 				}, nil
@@ -442,33 +449,29 @@ func TestRequestHandler_CreateRequestFromText(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
+		app.Post("/request/parse", h.ParseRequest)
 
-		body := `{"hotel_id": "` + validHotelID + `", "raw_text": "I need extra towels for my baby please, it's urgent"}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 200, resp.StatusCode)
 
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "Extra towels")
-		assert.Contains(t, string(respBody), "housekeeping")
-		assert.Contains(t, string(respBody), "high")
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "Room Cleaning")
+		assert.Contains(t, string(body), "housekeeping")
+		assert.Contains(t, string(body), "Cleaning")
 	})
 
 	t.Run("returns 400 on invalid JSON", func(t *testing.T) {
 		t.Parallel()
 
-		repoMock := &mockRequestRepository{}
-		llmMock := &mockLLMService{}
-
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
+		app.Post("/request/parse", h.ParseRequest)
 
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(`{invalid json`))
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(`{invalid json`))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -479,144 +482,117 @@ func TestRequestHandler_CreateRequestFromText(t *testing.T) {
 	t.Run("returns 400 on missing hotel_id", func(t *testing.T) {
 		t.Parallel()
 
-		repoMock := &mockRequestRepository{}
-		llmMock := &mockLLMService{}
-
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
+		app.Post("/request/parse", h.ParseRequest)
 
-		body := `{"raw_text": "I need extra towels please"}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
+		bodyMissingHotelID := `{"raw_text": "Need towels"}`
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(bodyMissingHotelID))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 400, resp.StatusCode)
 
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "hotel_id")
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "hotel_id")
 	})
 
 	t.Run("returns 400 on invalid hotel_id uuid", func(t *testing.T) {
 		t.Parallel()
 
-		repoMock := &mockRequestRepository{}
-		llmMock := &mockLLMService{}
-
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
+		app.Post("/request/parse", h.ParseRequest)
 
-		body := `{"hotel_id": "not-a-uuid", "raw_text": "I need extra towels please"}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
+		bodyInvalidUUID := `{"hotel_id": "not-a-uuid", "raw_text": "Need towels"}`
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(bodyInvalidUUID))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 400, resp.StatusCode)
 
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "hotel_id")
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "hotel_id")
 	})
 
 	t.Run("returns 400 on empty raw_text", func(t *testing.T) {
 		t.Parallel()
 
-		repoMock := &mockRequestRepository{}
-		llmMock := &mockLLMService{}
-
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
+		app.Post("/request/parse", h.ParseRequest)
 
-		body := `{"hotel_id": "` + validHotelID + `", "raw_text": ""}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
+		bodyEmptyText := `{"hotel_id": "550e8400-e29b-41d4-a716-446655440000", "raw_text": ""}`
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(bodyEmptyText))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 400, resp.StatusCode)
 
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "raw_text")
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "raw_text")
 	})
 
-	t.Run("returns 400 on missing raw_text", func(t *testing.T) {
+	t.Run("returns 400 when LLM output fails validation", func(t *testing.T) {
 		t.Parallel()
 
-		repoMock := &mockRequestRepository{}
-		llmMock := &mockLLMService{}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
-
-		body := `{"hotel_id": "` + validHotelID + `"}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "raw_text")
-	})
-
-	t.Run("returns 500 on LLM error", func(t *testing.T) {
-		t.Parallel()
-
-		repoMock := &mockRequestRepository{}
-		llmMock := &mockLLMService{
-			runMakeRequestFromTextFunc: func(ctx context.Context, input llm.MakeRequestFromTextInput) (llm.MakeRequestFromTextOutput, error) {
-				return llm.MakeRequestFromTextOutput{}, errors.New("LLM service unavailable")
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				return req, nil
 			},
 		}
 
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
-
-		body := `{"hotel_id": "` + validHotelID + `", "raw_text": "I need extra towels please"}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 500, resp.StatusCode)
-	})
-
-	t.Run("returns 400 when LLM returns invalid output missing required fields", func(t *testing.T) {
-		t.Parallel()
-
-		repoMock := &mockRequestRepository{}
 		llmMock := &mockLLMService{
-			runMakeRequestFromTextFunc: func(ctx context.Context, input llm.MakeRequestFromTextInput) (llm.MakeRequestFromTextOutput, error) {
-				// LLM returns output missing required fields (empty name)
-				return llm.MakeRequestFromTextOutput{
-					Name:        "",
-					RequestType: "one-time",
-					Status:      "pending",
-					Priority:    "normal",
+			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
+				// LLM returns invalid output - missing required fields
+				return llm.ParseRequestOutput{
+					Name:        "", // Empty name should fail validation
+					RequestType: "",
+					Status:      "",
+					Priority:    "",
 				}, nil
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
+		app.Post("/request/parse", h.ParseRequest)
 
-		body := `{"hotel_id": "` + validHotelID + `", "raw_text": "something vague"}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 400, resp.StatusCode)
 
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "name")
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "name")
+	})
+
+	t.Run("returns 500 on LLM error", func(t *testing.T) {
+		t.Parallel()
+
+		repoMock := &mockRequestRepository{}
+
+		llmMock := &mockLLMService{
+			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
+				return llm.ParseRequestOutput{}, errors.New("LLM service unavailable")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/parse", h.ParseRequest)
+
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
 	})
 
 	t.Run("returns 500 on db error", func(t *testing.T) {
@@ -629,9 +605,9 @@ func TestRequestHandler_CreateRequestFromText(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runMakeRequestFromTextFunc: func(ctx context.Context, input llm.MakeRequestFromTextInput) (llm.MakeRequestFromTextOutput, error) {
-				return llm.MakeRequestFromTextOutput{
-					Name:        "Extra towels",
+			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
+				return llm.ParseRequestOutput{
+					Name:        "Towel Request",
 					RequestType: "one-time",
 					Status:      "pending",
 					Priority:    "normal",
@@ -641,10 +617,9 @@ func TestRequestHandler_CreateRequestFromText(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
+		app.Post("/request/parse", h.ParseRequest)
 
-		body := `{"hotel_id": "` + validHotelID + `", "raw_text": "I need extra towels please"}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -655,7 +630,7 @@ func TestRequestHandler_CreateRequestFromText(t *testing.T) {
 	t.Run("passes raw_text to LLM correctly", func(t *testing.T) {
 		t.Parallel()
 
-		var capturedInput llm.MakeRequestFromTextInput
+		var capturedInput llm.ParseRequestInput
 
 		repoMock := &mockRequestRepository{
 			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -665,10 +640,10 @@ func TestRequestHandler_CreateRequestFromText(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runMakeRequestFromTextFunc: func(ctx context.Context, input llm.MakeRequestFromTextInput) (llm.MakeRequestFromTextOutput, error) {
+			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
 				capturedInput = input
-				return llm.MakeRequestFromTextOutput{
-					Name:        "Room service",
+				return llm.ParseRequestOutput{
+					Name:        "Test Request",
 					RequestType: "one-time",
 					Status:      "pending",
 					Priority:    "normal",
@@ -678,16 +653,55 @@ func TestRequestHandler_CreateRequestFromText(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/from-text", h.CreateRequestFromText)
+		app.Post("/request/parse", h.ParseRequest)
 
-		expectedText := "Please bring breakfast to room 405 at 8am"
-		body := `{"hotel_id": "` + validHotelID + `", "raw_text": "` + expectedText + `"}`
-		req := httptest.NewRequest("POST", "/request/from-text", bytes.NewBufferString(body))
+		customBody := `{
+			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+			"raw_text": "I need the AC fixed in room 101 ASAP"
+		}`
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(customBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 200, resp.StatusCode)
-		assert.Equal(t, expectedText, capturedInput.RawText)
+		assert.Equal(t, "I need the AC fixed in room 101 ASAP", capturedInput.RawText)
+	})
+
+	t.Run("uses hotel_id from request body not LLM", func(t *testing.T) {
+		t.Parallel()
+
+		var capturedRequest *models.Request
+
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				capturedRequest = req
+				req.ID = "generated-uuid"
+				return req, nil
+			},
+		}
+
+		llmMock := &mockLLMService{
+			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
+				return llm.ParseRequestOutput{
+					Name:        "Test Request",
+					RequestType: "one-time",
+					Status:      "pending",
+					Priority:    "normal",
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/parse", h.ParseRequest)
+
+		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+		assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", capturedRequest.HotelID)
 	})
 }
