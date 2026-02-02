@@ -9,56 +9,24 @@ import (
 	"github.com/firebase/genkit/go/genkit"
 )
 
-// FlowSet contains all the Genkit flows
-type FlowSet struct {
-	ParseRequestFlow *core.Flow[ParseRequestInput, ParseRequestOutput, struct{}]
-}
-
-func initFlowSet(g *genkit.Genkit, model ai.Model) *FlowSet {
-	parseRequestFlow := genkit.DefineFlow(g, "parseRequest",
+func DefineParseRequest(g *genkit.Genkit, model ai.Model) *core.Flow[ParseRequestInput, ParseRequestOutput, struct{}] {
+	parseRequestFlow := genkit.DefineFlow(g, "parseRequestFlow",
 		func(ctx context.Context, input ParseRequestInput) (ParseRequestOutput, error) {
-			prompt := fmt.Sprintf(`Parse this hotel service request into JSON.
-
-Text: "%s"
-
-Output a JSON object with these fields (omit any field you cannot determine from the text):
-- name: string (required) - brief title of the request
-- description: string - detailed description
-- request_category: string - one of "Cleaning", "Maintenance", "Amenity", "Food Service"
-- request_type: string - "one-time" or "recurring"
-- department: string - "housekeeping", "maintenance", "concierge", or "room service"
-- status: string - always "pending"
-- priority: string - "low", "normal", "high", or "urgent"
-- estimated_completion_time: integer - minutes to complete
-- notes: string - additional context
-
-IMPORTANT: Output ONLY the JSON object. No markdown, no code blocks, no explanations, no text before or after. Just the raw JSON starting with { and ending with }.`, input.RawText)
-
-			resp, _, err := genkit.GenerateData[ParseRequestOutput](ctx, g, ai.WithModel(model), ai.WithPrompt(prompt))
+			prompt := fmt.Sprintf(`Generate a request for a hotel guest based on the following description: %s 
+			
+			Important: 
+			- Only include the defined schema fields
+			- Do not include any additional properties or metadata fields such as "additionalProperties"
+			- Only include fields where you have actual information
+			`, input.RawText)
+			resp, _, err := genkit.GenerateData[ParseRequestOutput](ctx, g, ai.WithPrompt(prompt), ai.WithModel(model))
 			if err != nil {
 				return ParseRequestOutput{}, err
 			}
 
-			// Sanitize LLM-generated placeholder values - ensure UUIDs are valid or nil
-			resp.GuestID = sanitizeUUIDPtr(resp.GuestID)
-			resp.UserID = sanitizeUUIDPtr(resp.UserID)
-			resp.ReservationID = sanitizeUUIDPtr(resp.ReservationID)
-			resp.RoomID = sanitizeUUIDPtr(resp.RoomID)
-
-			// Sanitize string fields
-			resp.Description = sanitizeStringPtr(resp.Description)
-			resp.RequestCategory = sanitizeStringPtr(resp.RequestCategory)
-			resp.Department = sanitizeStringPtr(resp.Department)
-			resp.Notes = sanitizeStringPtr(resp.Notes)
-
-			if resp.EstimatedCompletionTime != nil && *resp.EstimatedCompletionTime == 0 {
-				resp.EstimatedCompletionTime = nil
-			}
-
 			return *resp, nil
-		})
+		},
+	)
 
-	return &FlowSet{
-		ParseRequestFlow: parseRequestFlow,
-	}
+	return parseRequestFlow
 }
