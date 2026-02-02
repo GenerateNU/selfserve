@@ -45,6 +45,9 @@ func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 
 	res, err := h.GuestsRepository.InsertGuest(c.Context(), &CreateGuestRequest)
 	if err != nil {
+		if errors.Is(err, errs.ErrAlreadyExistsInDB) {
+			return errs.Conflict("guest", "id", "generated")
+		}
 		return errs.InternalServerError()
 	}
 
@@ -65,7 +68,6 @@ func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 // @Router       /api/v1/guests/{id} [get]
 func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 	id := c.Params("id")
-
 	_, err := uuid.Parse(id)
 	if err != nil {
 		return errs.BadRequest("guest id is not a valid UUID")

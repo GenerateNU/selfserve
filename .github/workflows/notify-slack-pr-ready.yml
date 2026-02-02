@@ -1,0 +1,54 @@
+name: Notify Slack when PR is ready for review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Post to Slack (PR ready for review)
+        # Fire when:
+        # - PR is opened AND it's not a draft
+        # - PR is converted to ready_for_review from a draft
+        if: >
+          (github.event.action == 'opened' && github.event.pull_request.draft == false) ||
+          (github.event.action == 'ready_for_review')
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          pr_number='${{ github.event.pull_request.number }}'
+          pr_title='${{ github.event.pull_request.title }}'
+          pr_url='${{ github.event.pull_request.html_url }}'
+          pr_author='${{ github.event.pull_request.user.login }}'
+          repo='${{ github.repository }}'
+
+          payload=$(cat <<EOF
+          {
+            "text": "PR ready for review: #${pr_number} ${pr_title}",
+            "blocks": [
+              {
+                "type": "header",
+                "text": { "type": "plain_text", "text": "🚢 PR Ready for Review", "emoji": true }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*${repo}*\n*PR* #${pr_number}: *${pr_title}*\n*Requested by:* @${pr_author}\n<${pr_url}|Open PR>"
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  { "type": "mrkdwn", "text": "Reply in this message thread for reviews / questions / feedback 👇" }
+                ]
+              }
+            ]
+          }
+          EOF
+          )
+
+          curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"

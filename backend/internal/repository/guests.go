@@ -7,6 +7,7 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -38,6 +39,12 @@ func (r *GuestsRepository) InsertGuest(ctx context.Context, guest *models.Create
 	).Scan(&createdGuest.ID, &createdGuest.CreatedAt, &createdGuest.UpdatedAt)
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return nil, errs.ErrAlreadyExistsInDB
+			}
+		}
 		return nil, err
 	}
 
@@ -48,7 +55,7 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 
 	row := r.db.QueryRow(ctx, `
 		SELECT id, created_at, updated_at, first_name, last_name, profile_picture, timezone
-		FROM guests 
+		FROM public.guests 
 		WHERE id = $1
 	`, id)
 
