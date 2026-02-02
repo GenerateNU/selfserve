@@ -80,3 +80,46 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 
 	return &guest, nil
 }
+
+func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
+	var guest models.Guest
+
+	row := r.db.QueryRow(ctx, `
+		UPDATE guests
+		SET
+			first_name = $2,
+			last_name = $3,
+			profile_picture = $4,
+			timezone = $5,
+			updated_at = NOW()
+		WHERE id = $1
+		RETURNING
+			id, created_at, updated_at,
+			first_name, last_name, profile_picture, timezone`,
+		id,
+		update.FirstName,
+		update.LastName,
+		update.ProfilePicture,
+		update.Timezone,
+	)
+
+	err := row.Scan(
+		&guest.ID,
+		&guest.CreatedAt,
+		&guest.UpdatedAt,
+		&guest.FirstName,
+		&guest.LastName,
+		&guest.ProfilePicture,
+		&guest.Timezone,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	return &guest, nil
+
+}
