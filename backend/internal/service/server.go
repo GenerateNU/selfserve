@@ -44,7 +44,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository, llmSvc *llm.LLMService) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, llmSvc llm.LLMServicer) {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 

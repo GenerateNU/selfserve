@@ -15,10 +15,10 @@ import (
 
 type RequestsHandler struct {
 	RequestRepository storage.RequestsRepository
-	LLMService        *llm.LLMService
+	LLMService        llm.LLMServicer
 }
 
-func NewRequestsHandler(repo storage.RequestsRepository, llmSvc *llm.LLMService) *RequestsHandler {
+func NewRequestsHandler(repo storage.RequestsRepository, llmSvc llm.LLMServicer) *RequestsHandler {
 	return &RequestsHandler{
 		RequestRepository: repo,
 		LLMService:        llmSvc,
@@ -158,7 +158,7 @@ func (r *RequestsHandler) CreateRequestFromText(c *fiber.Ctx) error {
 		return err
 	}
 
-	parsed, err := r.LLMService.MakeRequestFromTextFlow.Run(c.Context(), llm.MakeRequestFromTextInput{
+	parsed, err := r.LLMService.RunMakeRequestFromText(c.Context(), llm.MakeRequestFromTextInput{
 		RawText: incoming.RawText,
 	})
 	if err != nil {
