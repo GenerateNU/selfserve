@@ -9,15 +9,21 @@ import (
 	"github.com/generate/selfserve/config"
 )
 
-func InitGenkit(ctx context.Context, cfg *config.Ollama) *LLMService {
-	ollamaPlugin := &ollama.Ollama{
-		ServerAddress: cfg.ServerAddress,
+const defaultOllamaServer = "http://127.0.0.1:11434"
+
+func InitGenkit(ctx context.Context, cfg *config.LLM) *LLMService {
+	serverAddr := cfg.ServerAddress
+	if serverAddr == "" {
+		serverAddr = defaultOllamaServer
+	}
+	llmProvider := &ollama.Ollama{
+		ServerAddress: serverAddr,
 		Timeout:       cfg.Timeout,
 	}
 
-	g := genkit.Init(ctx, genkit.WithPlugins(ollamaPlugin))
+	g := genkit.Init(ctx, genkit.WithPlugins(llmProvider))
 
-	model := ollamaPlugin.DefineModel(g, ollama.ModelDefinition{
+	model := llmProvider.DefineModel(g, ollama.ModelDefinition{
 		Name: cfg.Model,
 		Type: "generate",
 	}, &ai.ModelOptions{
@@ -29,7 +35,11 @@ func InitGenkit(ctx context.Context, cfg *config.Ollama) *LLMService {
 		},
 	})
 
-	parseRequestFlow := DefineParseRequest(g, model)
+	genConfig := &ai.GenerationCommonConfig{
+		MaxOutputTokens: cfg.MaxOutputTokens,
+		Temperature:     cfg.Temperature,
+	}
+	parseRequestFlow := DefineParseRequest(g, model, genConfig)
 
 	return &LLMService{
 		genkit:           g,

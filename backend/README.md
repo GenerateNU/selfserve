@@ -12,11 +12,11 @@
    ```bash
    go install github.com/air-verse/air@latest
    ```
-2. **Install Ollama**:
+2. **Install LLM Provider**:
    ```bash
    brew install ollama
    ollama serve
-   ollama pull llama3.2
+   ollama pull qwen2.5:7b-instruct
    ```
 3. **Download dependencies**:
    ```bash
@@ -44,13 +44,13 @@
 
    > **Note**: All database variables (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME) are required. The application will fail to start if they are missing.
 
-   **Ollama (local LLM)** – used for parsing request text (e.g. `/request/from-text`). Optional; defaults apply if unset:
+   **LLM Configuration** – used for parsing request text (e.g. `/request/parse`). Add this to your existing .env:
    ```env
-   OLLAMA_SERVER_ADDRESS=http://127.0.0.1:11434
-   OLLAMA_MODEL=llama3.2
-   OLLAMA_TIMEOUT=60
+   LLM_SERVER_ADDRESS=http://127.0.0.1:11434
+   LLM_MODEL=qwen2.5:3b
+   LLM_TIMEOUT=60
    ```
-   Install [Ollama](https://ollama.com/download), start the server, then run `ollama pull llama3.2`.
+   Install [Ollama](https://ollama.com/download) as your LLM provider, start the server, then run `ollama pull qwen2.5:3b`.
 
 5. **Run with hot reload** (development):
    ```bash
@@ -174,7 +174,9 @@ The application reads configuration from environment variables (loaded from `con
 - `DB_MAX_CONNS`: Maximum database connections (default: 8)
 - `DB_MAX_CONN_LIFETIME`: Connection lifetime (default: 30s)
 
-- `OLLAMA_SERVER_ADDRESS`: Ollama server URL (default: http://127.0.0.1:11434)
-- `OLLAMA_MODEL`: Model name, e.g. llama3.2, gemma2 (default: llama3.2)
-- `OLLAMA_TIMEOUT`: Response timeout in seconds (default: 60)
+- `LLM_SERVER_ADDRESS`: LLM server URL (default: http://127.0.0.1:11434)
+- `LLM_MODEL`: Model name, e.g. qwen2.5:7b-instruct, llama3.2, gemma2
+- `LLM_TIMEOUT`: Response timeout in seconds (default: 60)
+- `LLM_MAX_OUTPUT_TOKENS`: Max tokens for generation; lower values reduce latency (default: 1024)
+- `LLM_TEMPERATURE`: Sampling temperature 0–1; lower is more deterministic and often faster for extraction
 

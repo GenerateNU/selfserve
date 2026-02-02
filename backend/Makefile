@@ -4,33 +4,36 @@ DOCKER_IMAGE_NAME := selfserve-backend
 PORT := 8080
 ENV_FILE := config/.env
 LOAD_ENV := set -a; [ -f $(ENV_FILE) ] && . $(ENV_FILE); set +a;
-OLLAMA_URL := http://127.0.0.1:11434
+LLM_URL := http://127.0.0.1:11434
 
 .PHONY: all build run dev test format tidy download clean docker-build docker-run \
-        migrate-new migrate-up migrate-down migrate-status migrate-reset db-start db-stop db-reset db-setup-env swagger swagger-fmt docker-build docker-run ollama-start
+        migrate-new migrate-up migrate-down migrate-status migrate-reset db-start db-stop db-reset db-setup-env swagger swagger-fmt docker-build docker-run llm-start genkit-run
 
 all: build
 
 build: swagger
 	go build -o bin/$(APP_NAME) $(CMD_PATH)
 
-# Start Ollama if not already running (used by run/dev for /api/v1/request/from-text)
-ollama-start:
-	@if curl -sf $(OLLAMA_URL)/api/tags >/dev/null 2>&1; then \
-		echo "Ollama already running"; \
+llm-start:
+	@if curl -sf $(LLM_URL)/api/tags >/dev/null 2>&1; then \
+		echo "LLM already running"; \
 	else \
-		echo "Starting Ollama..."; \
-		ollama serve >/dev/null 2>&1 & \
+		echo "Starting LLM..."; \
+		llm serve >/dev/null 2>&1 & \
 		sleep 2; \
 	fi
 
-run: ollama-start db-start
+run: llm-start db-start
 	@$(LOAD_ENV) \
 	go run $(CMD_PATH)
 
-dev: ollama-start db-start clean build
+dev: llm-start db-start clean build
 	@$(LOAD_ENV) \
 	./bin/$(APP_NAME)
+
+genkit-run: llm-start db-start
+	@$(LOAD_ENV) \
+	genkit start -- go run $(CMD_PATH)
 
 test:
 	@$(LOAD_ENV) \

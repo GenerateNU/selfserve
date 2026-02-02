@@ -32,7 +32,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	llmSvc := llm.InitGenkit(context.Background(), &cfg.Ollama)
+	llmSvc := llm.InitGenkit(context.Background(), &cfg.LLM)
 
 	app := setupApp()
 
