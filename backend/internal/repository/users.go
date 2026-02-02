@@ -43,3 +43,24 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 
 	return createdUser, nil
 }
+
+func (r *UsersRepository) UpdateProfilePicture(ctx context.Context, userId string, key string) error {
+	_, err := r.db.Exec(ctx, `
+		UPDATE users SET profile_picture = $1 WHERE id = $2
+	`, key, userId)
+	return err
+}
+
+func (r *UsersRepository) GetKey(ctx context.Context, userId string) (string, error) {
+	var key string
+	err := r.db.QueryRow(ctx, `SELECT profile_picture FROM users WHERE id=$1`, userId).Scan(&key)
+	if err != nil {
+		return "", err
+	}
+	return key, nil
+}
+
+func (r *UsersRepository) DeleteProfilePicture(ctx context.Context, userID string) error {
+	_, err := r.db.Exec(ctx, `UPDATE users SET profile_picture = NULL WHERE id=$1`, userID)
+	return err
+}

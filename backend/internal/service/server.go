@@ -67,7 +67,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
-	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
+	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB), s3Store)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
@@ -88,6 +88,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 	// User Routes
 	api.Route("/users", func(r fiber.Router) {
 		r.Post("/", usersHandler.CreateUser)
+		r.Put("/:userId/profile-picture", usersHandler.UpdateProfilePicture)
+		r.Delete("/:userId/profile-picture", usersHandler.DeleteProfilePicture)
 	})
 
 	// Request routes
@@ -105,6 +107,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 
 	api.Route("/s3", func(r fiber.Router) {
 		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
+		r.Get("/upload-url/:userId", s3Handler.GetUploadURL)
 	})
 
 }

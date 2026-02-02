@@ -11,12 +11,19 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type UsersHandler struct {
-	UsersRepository storage.UsersRepository
+// UpdateProfilePictureRequest represents the request body for updating a profile picture
+// @Description Request body containing the S3 key after uploading
+type UpdateProfilePictureRequest struct {
+	Key string `json:"key" example:"profile-pictures/user123/1706540000.jpg"`
 }
 
-func NewUsersHandler(repo storage.UsersRepository) *UsersHandler {
-	return &UsersHandler{UsersRepository: repo}
+type UsersHandler struct {
+	UsersRepository storage.UsersRepository
+	S3Storage       storage.S3Storage
+}
+
+func NewUsersHandler(repo storage.UsersRepository, s3 storage.S3Storage) *UsersHandler {
+	return &UsersHandler{UsersRepository: repo, S3Storage: s3}
 }
 
 // CreateUser godoc
@@ -86,3 +93,74 @@ func validateCreateUser(user *models.CreateUser) error {
 
 	return nil
 }
+
+
+// UpdateProfilePicture godoc
+// @Summary      Update user's profile picture
+// @Description  Saves the S3 key to the user's profile after the image has been uploaded to S3
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        userId   path      string                        true  "User ID"
+// @Param        request  body      UpdateProfilePictureRequest   true  "S3 key from upload"
+// @Success      200      {object}  map[string]string
+// @Failure      400      {object}  map[string]string
+// @Failure      500      {object}  map[string]string
+// @Router       /users/{userId}/profile-picture [put]
+func (h *UsersHandler) UpdateProfilePicture(c *fiber.Ctx) error {
+	userId := c.Params("userId")
+	if userId == "" {
+		return errs.BadRequest("userId is required")
+	}
+	var req UpdateProfilePictureRequest
+	if err := c.BodyParser(&req); err != nil {
+		return errs.InvalidJSON()
+	}
+	if req.Key == "" {
+		return errs.BadRequest("key is required")
+	}
+	if err := h.UsersRepository.UpdateProfilePicture(c.Context(), userId, req.Key); err != nil {
+		return errs.InternalServerError()
+	}
+	return c.JSON(fiber.Map{
+		"message": "Profile picture updated successfully",
+	})
+}
+
+// DeleteProfilePicture godoc
+// @Summary      Delete user's profile picture
+// @Description  Deletes the user's profile picture from the database
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        userId   path      string                        true  "User ID"
+// @Success      200      {object}  map[string]string
+// @Failure      400      {object}  map[string]string
+// @Failure      500      {object}  map[string]string
+// @Router       /users/{userId}/profile-picture [delete]
+func (h *UsersHandler) DeleteProfilePicture(c *fiber.Ctx) error {
+	userId := c.Params("userId")
+	if userId == "" {
+		return errs.BadRequest("userId is required")
+	}
+	key, err := h.UsersRepository.GetKey(c.Context(), userId)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	if key != "" {
+		if err := h.S3Storage.DeleteFile(c.Context(), key); err != nil {
+			return errs.InternalServerError()
+		}
+	}
+
+	if err := h.UsersRepository.DeleteProfilePicture(c.Context(), userId); err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Profile picture deleted successfully",
+	})
+}
+	
+	
