@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"log/slog"
 	"sort"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type GuestsHandler struct {
@@ -28,9 +30,9 @@ func NewGuestsHandler(repo storage.GuestsRepository) *GuestsHandler {
 // @Produce      json
 // @Param        request  body   models.CreateGuest  true  "Guest data"
 // @Success      200   {object}  models.Guest
-// @Failure      400   {object}  map[string]string
-// @Failure      500   {object}  map[string]string
-// @Router       /guests [post]
+// @Failure      400   {object}  map[string]string "Invalid guest body format"
+// @Failure      500   {object}  map[string]string  "Internal server error"
+// @Router       /api/v1/guests [post]
 func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 	var CreateGuestRequest models.CreateGuest
 	if err := c.BodyParser(&CreateGuestRequest); err != nil {
@@ -50,6 +52,37 @@ func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(res)
+}
+
+// GetGuest godoc
+// @Summary      Gets a guest
+// @Description  Retrieves a single guest given an id
+// @Tags         guests
+// @Accept       json
+// @Produce      json
+// @Param        id  path   string  true  "Guest ID (UUID)"
+// @Success      200   {object}  models.Guest
+// @Failure      400   {object}  map[string]string "Invalid guest ID format"
+// @Failure      404  {object}  errs.HTTPError  "Guest not found"
+// @Failure      500   {object}  map[string]string "Internal server error"
+// @Router       /api/v1/guests/{id} [get]
+func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
+	id := c.Params("id")
+	_, err := uuid.Parse(id)
+	if err != nil {
+		return errs.BadRequest("guest id is not a valid UUID")
+	}
+
+	guest, err := h.GuestsRepository.FindGuest(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("guest", "id", id)
+		}
+		slog.Error("failed to get guest", "id", id, "error", err)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(guest)
 }
 
 func validateCreateGuest(guest *models.CreateGuest) error {
