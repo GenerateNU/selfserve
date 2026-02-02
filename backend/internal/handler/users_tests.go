@@ -177,7 +177,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"first_name": "John",
 			"last_name": "Doe",
 			"role": "Receptionist",
-			"timezone": "EST"
+			"timezone": "Not/A_Valid_Timezone"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(invalidTimezoneBody))
