@@ -2,7 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
+
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -31,4 +35,29 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 	}
 
 	return req, nil
+}
+
+func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
+
+	row := r.db.QueryRow(ctx, `
+        SELECT * 
+        FROM requests 
+        WHERE id = $1
+    `, id)
+
+	var request models.Request
+
+	err := row.Scan(&request.ID, &request.CreatedAt, &request.UpdatedAt, &request.HotelID, &request.GuestID,
+		&request.UserID, &request.ReservationID, &request.Name, &request.Description,
+		&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
+		&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	return &request, nil
 }

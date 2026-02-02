@@ -1,67 +1,107 @@
 package handler
 
 import (
-	"strings"
+	"context"
+	"errors"
+	"log/slog"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
-	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
+// HotelRepository defines methods for hotel data access
+type HotelRepository interface {
+	FindByID(ctx context.Context, id string) (*models.Hotel, error)
+}
+
+type HotelsRepository interface {
+	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
+}
+
+
+type HotelHandler struct {
+	repo HotelRepository
+}
+
 type HotelsHandler struct {
-	HotelsRepository storage.HotelsRepository
+	repo HotelsRepository
 }
 
-func NewHotelsHandler(repo storage.HotelsRepository) *HotelsHandler {
-	return &HotelsHandler{HotelsRepository: repo}
+
+func NewHotelHandler(repo HotelRepository) *HotelHandler {
+	return &HotelHandler{repo: repo}
 }
 
-// CreateHotel godoc
-// @Summary      creates a hotel
-// @Description  Creates a hotel with the given data
-// @Tags         hotel
-// @Accept       json
-// @Produce      json
-// @Param  hotel  body  models.CreateHotelRequest  true  "Hotel data"
-// @Success      200   {object}  models.Hotel
-// @Failure      400   {object}  map[string]string
-// @Failure      500   {object}  map[string]string
-// @Router       /hotel [post]
-func (r *HotelsHandler) CreateHotel(c *fiber.Ctx) error {
-	var CreateHotelRequest models.CreateHotelRequest
-	if err := c.BodyParser(&CreateHotelRequest); err != nil {
-		return errs.InvalidJSON()
-	}
+func NewHotelsHandler(repo HotelsRepository) *HotelsHandler {
+	return &HotelsHandler{repo: repo}
+}
 
-	if err := validateCreateHotel(&CreateHotelRequest); err != nil {
-		return err
-	}
-
-	res, err := r.HotelsRepository.InsertHotel(c.Context(), &CreateHotelRequest)
+// GetHotelByID retrieves a single hotel by its ID
+// @Summary      Get hotel by ID
+// @Description  Retrieve a hotel's details using its UUID
+// @Tags         hotels
+// @Param        id   path      string  true  "Hotel ID (UUID)"
+// @Success      200  {object}  models.Hotel
+// @Failure      400  {object}  errs.HTTPError  "Invalid hotel ID format"
+// @Failure      404  {object}  errs.HTTPError  "Hotel not found"
+// @Failure      500  {object}  errs.HTTPError  "Internal server error"
+// @Router       /api/v1/hotels/{id} [get]
+func (h *HotelHandler) GetHotelByID(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+	
+	// Validate UUID
+	_, err := uuid.Parse(idParam)
 	if err != nil {
+		return errs.BadRequest("invalid hotel id format")
+	}
+	
+	// Fetch hotel
+	hotel, err := h.repo.FindByID(c.Context(), idParam)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("hotel", "id", idParam)
+		}
 		return errs.InternalServerError()
 	}
-
-	return c.JSON(res)
+	
+	return c.Status(fiber.StatusOK).JSON(hotel)
 }
 
-func validateCreateHotel(hotel *models.CreateHotelRequest) error {
-	errors := make(map[string]string)
 
-	if strings.TrimSpace(hotel.Name) == "" {
-		errors["name"] = "must not be an empty string"
+// CreateHotel creates a new hotel
+// @Summary      Create hotel
+// @Description  Create a new hotel with the given data
+// @Tags         hotels
+// @Accept       json
+// @Produce      json
+// @Param        hotel  body      models.Hotel  true  "Hotel data"
+// @Success      201    {object}  models.Hotel
+// @Failure      400    {object}  map[string]string
+// @Failure      500    {object}  map[string]string
+// @Router       /hotel [post]
+func (h *HotelsHandler) CreateHotel(c *fiber.Ctx) error {
+	var hotelRequest models.CreateHotelRequest
+	
+	if err := c.BodyParser(&hotelRequest); err != nil {
+		return errs.InvalidJSON()
 	}
-	if hotel.Floors <= 0 {
-		errors["floors"] = "must be greater than 0"
+	
+	// Validate required fields
+	if hotelRequest.Name == "" {
+		return errs.BadRequest("hotel name is required")
 	}
 
-	if len(errors) > 0 {
-		var parts []string
-		for field, violation := range errors {
-			parts = append(parts, field+": "+violation)
-		}
-		return errs.BadRequest(strings.Join(parts, ", "))
+	if hotelRequest.Floors <= 0 {
+		return errs.BadRequest("hotel floors must be greater than 0")
 	}
-	return nil
+	
+	createdHotel, err := h.repo.InsertHotel(c.Context(), &hotelRequest)
+	if err != nil {
+		slog.Error("failed to create hotel", "error", err.Error())
+		return errs.InternalServerError()
+	}
+	
+	return c.Status(fiber.StatusCreated).JSON(createdHotel)
 }

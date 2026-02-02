@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+	"log/slog"
 	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -81,4 +83,22 @@ func validateCreateRequest(req *models.Request) error {
 		return errs.BadRequest(strings.Join(parts, ", "))
 	}
 	return nil
+}
+
+func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if !validUUID(id) {
+		return errs.BadRequest("request id is not a valid UUID")
+	}
+	// add some parsing into UUID type?
+	dev, err := r.RequestRepository.FindRequest(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request", "id", id)
+		}
+		slog.Error(err.Error())
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(dev)
 }
