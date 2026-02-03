@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"fmt"
 
 	"github.com/generate/selfserve/config"
 	_ "github.com/generate/selfserve/docs"
@@ -44,7 +45,7 @@ func main() {
 
 	defer func() {
     	if err := app.Repo.Close(); err != nil {
-        	log.Fatal("Failed to close repo:", err)
+        	panic(fmt.Sprintf("failed to close repo: %v", err))
     	}
 	}()
 
