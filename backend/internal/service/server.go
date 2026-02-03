@@ -90,6 +90,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *llm.L
 	// Guest Routes
 	api.Route("/guests", func(r fiber.Router) {
 		r.Post("/", guestsHandler.CreateGuest)
+		r.Get("/:id", guestsHandler.GetGuest)
+		r.Put("/:id", guestsHandler.UpdateGuest)
 	})
 
 	// Request routes
