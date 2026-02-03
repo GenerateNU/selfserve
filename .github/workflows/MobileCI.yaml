@@ -6,6 +6,7 @@ on:
     paths:
       - "clients/mobile/**"
       - "clients/shared/**"
+      - "backend/docs/**"
       - ".github/workflows/MobileCI.yaml"
   pull_request:
     branches:
@@ -13,6 +14,7 @@ on:
     paths:
       - "clients/mobile/**"
       - "clients/shared/**"
+      - "backend/docs/**"
       - ".github/workflows/MobileCI.yaml"
 permissions:
   contents: read
@@ -53,6 +55,8 @@ jobs:
         run: npm ci
       - name: Install shared dependencies
         run: cd ../shared && npm ci
+      - name: Generate API types
+        run: cd ../shared && npm run generate:api
       - name: Run TypeScript compiler
         run: npx tsc --noEmit
   mobile-test:
@@ -93,6 +97,10 @@ jobs:
           cache-dependency-path: './clients/mobile/package-lock.json'
       - name: Install dependencies
         run: npm ci
+      - name: Install shared dependencies
+        run: cd ../shared && npm ci
+      - name: Generate API types
+        run: cd ../shared && npm run generate:api
       - name: Verify package-lock.json is up to date
         run: |
           npm install --package-lock-only
