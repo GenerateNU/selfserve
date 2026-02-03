@@ -1,58 +1,58 @@
-import { ApiError } from "../types/api.types";
+import { ApiError } from '../types/api.types'
 
 // @ts-ignore - Environment variable injected by bundler (Vite/Metro)
-const API_BASE_URL = process.env.API_BASE_URL;
+const API_BASE_URL = process.env.API_BASE_URL
 
 /**
  * Internal helper to make HTTP requests w/ error handling
  */
 const request = async <T>(
   endpoint: string,
-  options: RequestInit,
+  options: RequestInit
 ): Promise<T> => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options.headers,
       },
-    });
+    })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({}))
       throw new ApiError(
-        errorData.message || "Request failed",
+        errorData.message || 'Request failed',
         response.status,
-        errorData,
-      );
+        errorData
+      )
     }
 
     // Handle text responses
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("text/plain")) {
-      return (await response.text()) as T;
+    const contentType = response.headers.get('content-type')
+    if (contentType && contentType.includes('text/plain')) {
+      return (await response.text()) as T
     }
 
-    return response.json();
+    return response.json()
   } catch (error) {
     if (error instanceof ApiError) {
-      throw error;
+      throw error
     }
     throw new ApiError(
-      error instanceof Error ? error.message : "Network error",
+      error instanceof Error ? error.message : 'Network error',
       0,
-      error,
-    );
+      error
+    )
   }
-};
+}
 
 export const apiClient = {
   /**
    * Performs a GET request
    */
   get: <T>(endpoint: string): Promise<T> => {
-    return request<T>(endpoint, { method: "GET" });
+    return request<T>(endpoint, { method: 'GET' })
   },
 
   /**
@@ -60,9 +60,9 @@ export const apiClient = {
    */
   post: <T>(endpoint: string, data: any): Promise<T> => {
     return request<T>(endpoint, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(data),
-    });
+    })
   },
 
   /**
@@ -70,15 +70,15 @@ export const apiClient = {
    */
   put: <T>(endpoint: string, data: any): Promise<T> => {
     return request<T>(endpoint, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(data),
-    });
+    })
   },
 
   /**
    * Performs a DELETE request
    */
   delete: <T>(endpoint: string): Promise<T> => {
-    return request<T>(endpoint, { method: "DELETE" });
+    return request<T>(endpoint, { method: 'DELETE' })
   },
-};
+}
