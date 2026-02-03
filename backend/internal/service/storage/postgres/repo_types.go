@@ -10,6 +10,12 @@ type UsersRepository interface {
 	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
 }
 
+type GuestsRepository interface {
+	InsertGuest(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error)
+	FindGuest(ctx context.Context, id string) (*models.Guest, error)
+	UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error)
+}
+
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
 
