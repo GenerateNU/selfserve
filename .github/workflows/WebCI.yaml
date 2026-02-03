@@ -6,6 +6,7 @@ on:
     paths:
       - "clients/web/**"
       - "clients/shared/**"
+      - "backend/docs/**"
       - ".github/workflows/WebCI.yaml"
   pull_request:
     branches:
@@ -13,6 +14,7 @@ on:
     paths:
       - "clients/web/**"
       - "clients/shared/**"
+      - "backend/docs/**"
       - ".github/workflows/WebCI.yaml"
 permissions:
   contents: read
@@ -55,6 +57,8 @@ jobs:
         run: npm ci
       - name: Install shared dependencies
         run: cd ../shared && npm ci
+      - name: Generate API types
+        run: cd ../shared && npm run generate:api
       - name: Run TypeScript compiler
         run: npx tsc --noEmit
   web-test:
@@ -89,6 +93,10 @@ jobs:
           cache-dependency-path: './clients/web/package-lock.json'
       - name: Install dependencies
         run: npm ci
+      - name: Install shared dependencies
+        run: cd ../shared && npm ci
+      - name: Generate API types
+        run: cd ../shared && npm run generate:api
       - name: Verify package-lock.json is up to date
         run: |
           npm install --package-lock-only
