@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"context"
 	"net/http"
 	"os"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
@@ -35,10 +37,12 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
+
 	app := setupApp()
 	setupClerk()
 
-	if err = setupRoutes(app, repo); err != nil {
+	if err = setupRoutes(app, repo, genkitInstance); err != nil {
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -52,7 +56,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository) error {
+func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -74,7 +78,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) error {
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier()
@@ -121,6 +125,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) error {
 	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
+		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
 	})
 

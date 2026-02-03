@@ -24,6 +24,11 @@ type MakeRequest struct {
 	Notes                   *string    `json:"notes" example:"No special requests"`
 }
 
+type GenerateRequestInput struct {
+	RawText string `json:"raw_text" example:"Guest in room 504 needs extra towels urgently"`
+	HotelID string `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
+}
+
 type Request struct {
 	ID        string    `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
 	CreatedAt time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`
