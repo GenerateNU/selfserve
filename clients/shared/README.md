@@ -50,6 +50,7 @@ npm run generate:api:watch
 ### Generated Files
 
 Generated files are located in `src/api/generated/` (gitignored):
+
 - `models/` - TypeScript interfaces for all API models
 - `endpoints/` - API client functions organized by tag (hello, users, hotels, requests, etc.)
 
@@ -59,18 +60,28 @@ Import generated types and functions in your code:
 
 ```typescript
 // Import API functions
-import { getHello, getHelloName } from '@selfserve/shared/api/generated/endpoints/hello'
-import { getRequests, postRequest } from '@selfserve/shared/api/generated/endpoints/requests'
+import {
+  getHello,
+  getHelloName,
+} from "@selfserve/shared/api/generated/endpoints/hello";
+import {
+  getRequests,
+  postRequest,
+} from "@selfserve/shared/api/generated/endpoints/requests";
 
 // Import types
-import type { 
-  GithubComGenerateSelfserveInternalModelsRequest,
-  GithubComGenerateSelfserveInternalModelsMakeRequest 
-} from '@selfserve/shared/api/generated/models'
+import type {
+  Request,
+  MakeRequest,
+  User,
+  CreateUser,
+  Hotel,
+  Guest,
+} from "@selfserve/shared/api/generated/models";
 
 // Use in your code
-const response = await getHello()
-const requests = await getRequests()
+const response = await getHello();
+const requests = await getRequests();
 ```
 
 ### Backend Changes Workflow
@@ -85,6 +96,7 @@ When the backend API changes:
 ### CI/CD
 
 The CI workflows automatically generate types before building:
+
 1. Backend CI generates `swagger.yaml`
 2. Frontend CI runs `npm run generate:api` before type checking and building
 3. Type mismatches are caught at build time
