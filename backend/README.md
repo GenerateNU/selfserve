@@ -87,12 +87,12 @@ backend/
 │   │   ├── devs_test.go             # Test for handler
 │   │   ├── hello.go                 # Handler
 │   │   └── hello_test.go            # Tests for handler
-│   ├── llm/
+│   ├── aiflows/
 │   │   ├── prompts/
 │   │   |   └── generate_request.go  # Prompts for flows
 │   │   ├── flows.go                 # GenKit flows
 │   │   ├── genkit.go                # Service setup
-│   │   ├── service.go               # LLM Service interface
+│   │   ├── service.go               # AI flows service interface
 │   │   └── types.go                 # Schema
 │   ├── models/
 │   │   └── devs.go                  # Schema

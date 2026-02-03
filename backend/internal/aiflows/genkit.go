@@ -1,4 +1,4 @@
-package llm
+package aiflows
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 const defaultOllamaServer = "http://127.0.0.1:11434"
 
-func InitGenkit(ctx context.Context, llmConfig *config.LLM) *LLMService {
+func InitGenkit(ctx context.Context, llmConfig *config.LLM) *GenkitService {
 	serverAddr := llmConfig.ServerAddress
 	if serverAddr == "" {
 		serverAddr = defaultOllamaServer
@@ -41,7 +41,7 @@ func InitGenkit(ctx context.Context, llmConfig *config.LLM) *LLMService {
 	}
 	generateRequestFlow := DefineGenerateRequest(genkitInstance, model, generationConfig)
 
-	return &LLMService{
+	return &GenkitService{
 		genkit:              genkitInstance,
 		generateRequestFlow: generateRequestFlow,
 	}

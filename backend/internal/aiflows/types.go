@@ -1,4 +1,4 @@
-package llm
+package aiflows
 
 type GenerateRequestInput struct {
 	RawText string `json:"raw_text"`

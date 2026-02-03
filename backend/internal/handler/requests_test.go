@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
-	"github.com/generate/selfserve/internal/llm"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
@@ -31,10 +31,10 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 }
 
 type mockLLMService struct {
-	runGenerateRequestFunc func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error)
+	runGenerateRequestFunc func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error)
 }
 
-func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
+func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
 	return m.runGenerateRequestFunc(ctx, input)
 }
 
@@ -387,8 +387,8 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
-				return llm.GenerateRequestOutput{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
 					Name:        "Extra Towels Request",
 					Description: &description,
 					RequestType: "one-time",
@@ -432,8 +432,8 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
-				return llm.GenerateRequestOutput{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
 					Name:                    "Room Cleaning",
 					Description:             &description,
 					RequestCategory:         &category,
@@ -546,9 +546,9 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
 				// LLM returns invalid output - missing required fields
-				return llm.GenerateRequestOutput{
+				return aiflows.GenerateRequestOutput{
 					Name:        "", // Empty name should fail validation
 					RequestType: "",
 					Status:      "",
@@ -578,8 +578,8 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		repoMock := &mockRequestRepository{}
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
-				return llm.GenerateRequestOutput{}, errors.New("LLM service unavailable")
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{}, errors.New("LLM service unavailable")
 			},
 		}
 
@@ -605,8 +605,8 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
-				return llm.GenerateRequestOutput{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
 					Name:        "Towel Request",
 					RequestType: "one-time",
 					Status:      "pending",
@@ -630,7 +630,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 	t.Run("passes raw_text to LLM correctly", func(t *testing.T) {
 		t.Parallel()
 
-		var capturedInput llm.GenerateRequestInput
+		var capturedInput aiflows.GenerateRequestInput
 
 		repoMock := &mockRequestRepository{
 			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -640,9 +640,9 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
 				capturedInput = input
-				return llm.GenerateRequestOutput{
+				return aiflows.GenerateRequestOutput{
 					Name:        "Test Request",
 					RequestType: "one-time",
 					Status:      "pending",
@@ -682,8 +682,8 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
-				return llm.GenerateRequestOutput{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
 					Name:        "Test Request",
 					RequestType: "one-time",
 					Status:      "pending",

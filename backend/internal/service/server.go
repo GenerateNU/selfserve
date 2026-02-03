@@ -7,7 +7,7 @@ import (
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
-	"github.com/generate/selfserve/internal/llm"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
@@ -32,7 +32,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	genkitInstance := llm.InitGenkit(context.Background(), &cfg.LLM)
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
 
 	app := setupApp()
 
@@ -44,7 +44,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *llm.LLMService) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService) {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 

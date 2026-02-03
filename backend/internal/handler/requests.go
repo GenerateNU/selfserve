@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
-	"github.com/generate/selfserve/internal/llm"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
@@ -15,10 +15,10 @@ import (
 
 type RequestsHandler struct {
 	RequestRepository      storage.RequestsRepository
-	GenerateRequestService llm.GenerateRequestService
+	GenerateRequestService aiflows.GenerateRequestService
 }
 
-func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService llm.GenerateRequestService) *RequestsHandler {
+func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService aiflows.GenerateRequestService) *RequestsHandler {
 	return &RequestsHandler{
 		RequestRepository:      repo,
 		GenerateRequestService: generateRequestService,
@@ -158,11 +158,11 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		return err
 	}
 
-	parsed, err := r.GenerateRequestService.RunGenerateRequest(c.Context(), llm.GenerateRequestInput{
+	parsed, err := r.GenerateRequestService.RunGenerateRequest(c.Context(), aiflows.GenerateRequestInput{
 		RawText: incoming.RawText,
 	})
 	if err != nil {
-		slog.Error("llm generate request failed", "error", err)
+		slog.Error("genkit failed to generate a request", "error", err)
 		return errs.InternalServerError()
 	}
 

@@ -1,4 +1,4 @@
-package llm
+package aiflows
 
 import (
 	"context"
@@ -7,17 +7,17 @@ import (
 	"github.com/firebase/genkit/go/genkit"
 )
 
-// RequestParser defines the interface for parsing requests via LLM.
+// GenerateRequestService defines the interface for generating requests via GenKit.
 // Handlers should depend on this interface to allow for mocking in tests.
 type GenerateRequestService interface {
 	RunGenerateRequest(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error)
 }
 
-type LLMService struct {
+type GenkitService struct {
 	genkit              *genkit.Genkit
 	generateRequestFlow *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}]
 }
 
-func (s *LLMService) RunGenerateRequest(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error) {
+func (s *GenkitService) RunGenerateRequest(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error) {
 	return s.generateRequestFlow.Run(ctx, input)
 }

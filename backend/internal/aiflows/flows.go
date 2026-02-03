@@ -1,4 +1,4 @@
-package llm
+package aiflows
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/firebase/genkit/go/ai"
 	"github.com/firebase/genkit/go/core"
 	"github.com/firebase/genkit/go/genkit"
-	"github.com/generate/selfserve/internal/llm/prompts"
+	"github.com/generate/selfserve/internal/aiflows/prompts"
 )
 
 func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *ai.GenerationCommonConfig) *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}] {
