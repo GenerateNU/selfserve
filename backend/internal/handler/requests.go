@@ -102,3 +102,22 @@ func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 
 	return c.JSON(dev)
 }
+
+
+// GetAllRequests godoc
+// @Summary      Get all requests
+// @Description  Retrieves a list of all requests
+// @Tags         requests
+// @Produce      json
+// @Success      200   {array}   models.Request
+// @Failure      500   {object}  map[string]string
+// @Router       /requests [get]
+func (r *RequestsHandler) GetAllRequests(c *fiber.Ctx) error {
+	requests, err := r.RequestRepository.GetAllRequests(c.Context())
+	if err != nil {
+		slog.Error("Failed to fetch requests", "error", err.Error())
+		return errs.InternalServerError()
+	}
+	
+	return c.Status(fiber.StatusOK).JSON(requests)
+}

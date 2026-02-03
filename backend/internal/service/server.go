@@ -95,6 +95,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
+		r.Get("/", reqsHandler.GetAllRequests)
 	})
 
 	// Hotel routes
