@@ -59,15 +59,8 @@ Generated files are located in `src/api/generated/` (gitignored):
 Import generated types and functions in your code:
 
 ```typescript
-// Import API functions
-import {
-  getHello,
-  getHelloName,
-} from "@selfserve/shared/api/generated/endpoints/hello";
-import {
-  getRequests,
-  postRequest,
-} from "@selfserve/shared/api/generated/endpoints/requests";
+// Import API functions directly from the shared package
+import { getHello, getHelloName, getRequests, postRequest } from "@shared";
 
 // Import types
 import type {
@@ -77,11 +70,31 @@ import type {
   CreateUser,
   Hotel,
   Guest,
-} from "@selfserve/shared/api/generated/models";
+} from "@shared";
 
-// Use in your code
-const response = await getHello();
-const requests = await getRequests();
+// Use generated functions - they return { data, status, headers }
+const helloResponse = await getHello();
+console.log(helloResponse.data); // "Yogurt. Gurt: Yo!"
+console.log(helloResponse.status); // 200
+
+const requestsResponse = await getRequests();
+const allRequests = requestsResponse.data; // Request[]
+
+// In React Query hooks, extract .data in the queryFn
+import { useQuery } from "@tanstack/react-query";
+
+const { data: message } = useQuery({
+  queryKey: ["hello"],
+  queryFn: async () => {
+    const response = await getHello();
+    return response.data; // Extract just the data
+  },
+});
+
+// Or use the provided hooks that handle data extraction
+import { useGetHello, useGetHelloName } from "@shared";
+
+const { data: message } = useGetHello(); // Returns string directly
 ```
 
 ### Backend Changes Workflow
