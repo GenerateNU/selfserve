@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import type { User, Request, Hotel, Guest, CreateUser, MakeRequest } from '@shared'
+import { describe, expect, it } from 'vitest'
+import type { CreateUser, Guest, Hotel, MakeRequest, Request, User } from '@shared'
 
 describe('Generated Types Integration', () => {
   describe('Type Structure Validation', () => {
@@ -125,7 +125,7 @@ describe('Generated Types Integration', () => {
   describe('Type Compatibility', () => {
     it('should be compatible with existing code patterns', () => {
       // This tests that the generated types work with common patterns
-      const users: User[] = [
+      const users: Array<User> = [
         { id: '1', first_name: 'Alice' },
         { id: '2', first_name: 'Bob' },
       ]

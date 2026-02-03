@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getHello, getHelloName } from '@shared'
 
 // Mock fetch globally
@@ -25,7 +25,7 @@ describe('Shared API - Generated Functions', () => {
         ok: true,
         status: 200,
         headers: new Headers({ 'content-type': 'text/plain' }),
-        text: async () => mockResponse,
+        text: () => Promise.resolve(mockResponse),
       } as Response)
 
       const result = await getHello()
@@ -48,7 +48,7 @@ describe('Shared API - Generated Functions', () => {
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: false,
         status: 500,
-        json: async () => ({ message: 'Server error' }),
+        json: () => Promise.resolve({ message: 'Server error' }),
       } as Response)
 
       await expect(getHello()).rejects.toThrow()
@@ -64,7 +64,7 @@ describe('Shared API - Generated Functions', () => {
         ok: true,
         status: 200,
         headers: new Headers({ 'content-type': 'text/plain' }),
-        text: async () => mockResponse,
+        text: () => Promise.resolve(mockResponse),
       } as Response)
 
       const result = await getHelloName(name)
@@ -88,7 +88,7 @@ describe('Shared API - Generated Functions', () => {
         ok: true,
         status: 200,
         headers: new Headers({ 'content-type': 'text/plain' }),
-        text: async () => mockResponse,
+        text: () => Promise.resolve(mockResponse),
       } as Response)
 
       const result = await getHelloName(name)
@@ -105,7 +105,7 @@ describe('Shared API - Generated Functions', () => {
         ok: true,
         status: 200,
         headers: new Headers({ 'content-type': 'text/plain' }),
-        text: async () => mockResponse,
+        text: () => Promise.resolve(mockResponse),
       } as Response)
 
       const result = await getHello()
