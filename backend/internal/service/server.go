@@ -32,11 +32,11 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	llmSvc := llm.InitGenkit(context.Background(), &cfg.LLM)
+	genkitInstance := llm.InitGenkit(context.Background(), &cfg.LLM)
 
 	app := setupApp()
 
-	setupRoutes(app, repo, llmSvc)
+	setupRoutes(app, repo, genkitInstance)
 
 	return &App{
 		Server: app,
@@ -44,7 +44,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository, llmSvc *llm.LLMService) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *llm.LLMService) {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -63,7 +63,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, llmSvc *llm.LLMServic
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), llmSvc)
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
 
@@ -95,7 +95,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, llmSvc *llm.LLMServic
 	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
-		r.Post("/parse", reqsHandler.ParseRequest)
+		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
 	})
 

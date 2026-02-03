@@ -31,11 +31,11 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 }
 
 type mockLLMService struct {
-	runParseRequestFunc func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error)
+	runGenerateRequestFunc func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error)
 }
 
-func (m *mockLLMService) RunParseRequest(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
-	return m.runParseRequestFunc(ctx, input)
+func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
+	return m.runGenerateRequestFunc(ctx, input)
 }
 
 func TestRequestHandler_GetRequest(t *testing.T) {
@@ -365,7 +365,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 	})
 }
 
-func TestRequestHandler_ParseRequest(t *testing.T) {
+func TestRequestHandler_Generate_Request(t *testing.T) {
 	t.Parallel()
 
 	validBody := `{
@@ -387,8 +387,8 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
-				return llm.ParseRequestOutput{
+			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
+				return llm.GenerateRequestOutput{
 					Name:        "Extra Towels Request",
 					Description: &description,
 					RequestType: "one-time",
@@ -400,9 +400,9 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -432,8 +432,8 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
-				return llm.ParseRequestOutput{
+			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
+				return llm.GenerateRequestOutput{
 					Name:                    "Room Cleaning",
 					Description:             &description,
 					RequestCategory:         &category,
@@ -449,9 +449,9 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -469,9 +469,9 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(`{invalid json`))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(`{invalid json`))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -484,10 +484,10 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
 		bodyMissingHotelID := `{"raw_text": "Need towels"}`
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(bodyMissingHotelID))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(bodyMissingHotelID))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -503,10 +503,10 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
 		bodyInvalidUUID := `{"hotel_id": "not-a-uuid", "raw_text": "Need towels"}`
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(bodyInvalidUUID))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(bodyInvalidUUID))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -522,10 +522,10 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
 		bodyEmptyText := `{"hotel_id": "550e8400-e29b-41d4-a716-446655440000", "raw_text": ""}`
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(bodyEmptyText))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(bodyEmptyText))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -546,9 +546,9 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
+			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
 				// LLM returns invalid output - missing required fields
-				return llm.ParseRequestOutput{
+				return llm.GenerateRequestOutput{
 					Name:        "", // Empty name should fail validation
 					RequestType: "",
 					Status:      "",
@@ -559,9 +559,9 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -578,16 +578,16 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 		repoMock := &mockRequestRepository{}
 
 		llmMock := &mockLLMService{
-			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
-				return llm.ParseRequestOutput{}, errors.New("LLM service unavailable")
+			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
+				return llm.GenerateRequestOutput{}, errors.New("LLM service unavailable")
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -605,8 +605,8 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
-				return llm.ParseRequestOutput{
+			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
+				return llm.GenerateRequestOutput{
 					Name:        "Towel Request",
 					RequestType: "one-time",
 					Status:      "pending",
@@ -617,9 +617,9 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -630,7 +630,7 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 	t.Run("passes raw_text to LLM correctly", func(t *testing.T) {
 		t.Parallel()
 
-		var capturedInput llm.ParseRequestInput
+		var capturedInput llm.GenerateRequestInput
 
 		repoMock := &mockRequestRepository{
 			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -640,9 +640,9 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
+			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
 				capturedInput = input
-				return llm.ParseRequestOutput{
+				return llm.GenerateRequestOutput{
 					Name:        "Test Request",
 					RequestType: "one-time",
 					Status:      "pending",
@@ -653,13 +653,13 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
 		customBody := `{
 			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
 			"raw_text": "I need the AC fixed in room 101 ASAP"
 		}`
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(customBody))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(customBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -682,8 +682,8 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 		}
 
 		llmMock := &mockLLMService{
-			runParseRequestFunc: func(ctx context.Context, input llm.ParseRequestInput) (llm.ParseRequestOutput, error) {
-				return llm.ParseRequestOutput{
+			runGenerateRequestFunc: func(ctx context.Context, input llm.GenerateRequestInput) (llm.GenerateRequestOutput, error) {
+				return llm.GenerateRequestOutput{
 					Name:        "Test Request",
 					RequestType: "one-time",
 					Status:      "pending",
@@ -694,9 +694,9 @@ func TestRequestHandler_ParseRequest(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/parse", h.ParseRequest)
+		app.Post("/request/generate", h.GenerateRequest)
 
-		req := httptest.NewRequest("POST", "/request/parse", bytes.NewBufferString(validBody))
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)

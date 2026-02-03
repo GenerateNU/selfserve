@@ -11,20 +11,20 @@ import (
 
 const defaultOllamaServer = "http://127.0.0.1:11434"
 
-func InitGenkit(ctx context.Context, cfg *config.LLM) *LLMService {
-	serverAddr := cfg.ServerAddress
+func InitGenkit(ctx context.Context, llmConfig *config.LLM) *LLMService {
+	serverAddr := llmConfig.ServerAddress
 	if serverAddr == "" {
 		serverAddr = defaultOllamaServer
 	}
 	llmProvider := &ollama.Ollama{
 		ServerAddress: serverAddr,
-		Timeout:       cfg.Timeout,
+		Timeout:       llmConfig.Timeout,
 	}
 
-	g := genkit.Init(ctx, genkit.WithPlugins(llmProvider))
+	genkitInstance := genkit.Init(ctx, genkit.WithPlugins(llmProvider))
 
-	model := llmProvider.DefineModel(g, ollama.ModelDefinition{
-		Name: cfg.Model,
+	model := llmProvider.DefineModel(genkitInstance, ollama.ModelDefinition{
+		Name: llmConfig.Model,
 		Type: "generate",
 	}, &ai.ModelOptions{
 		Supports: &ai.ModelSupports{
@@ -35,14 +35,14 @@ func InitGenkit(ctx context.Context, cfg *config.LLM) *LLMService {
 		},
 	})
 
-	genConfig := &ai.GenerationCommonConfig{
-		MaxOutputTokens: cfg.MaxOutputTokens,
-		Temperature:     cfg.Temperature,
+	generationConfig := &ai.GenerationCommonConfig{
+		MaxOutputTokens: llmConfig.MaxOutputTokens,
+		Temperature:     llmConfig.Temperature,
 	}
-	parseRequestFlow := DefineParseRequest(g, model, genConfig)
+	generateRequestFlow := DefineGenerateRequest(genkitInstance, model, generationConfig)
 
 	return &LLMService{
-		genkit:           g,
-		parseRequestFlow: parseRequestFlow,
+		genkit:              genkitInstance,
+		generateRequestFlow: generateRequestFlow,
 	}
 }

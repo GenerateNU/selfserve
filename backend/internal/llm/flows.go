@@ -7,25 +7,21 @@ import (
 	"github.com/firebase/genkit/go/ai"
 	"github.com/firebase/genkit/go/core"
 	"github.com/firebase/genkit/go/genkit"
+	"github.com/generate/selfserve/internal/llm/prompts"
 )
 
-func DefineParseRequest(g *genkit.Genkit, model ai.Model, genConfig *ai.GenerationCommonConfig) *core.Flow[ParseRequestInput, ParseRequestOutput, struct{}] {
-	parseRequestFlow := genkit.DefineFlow(g, "parseRequestFlow",
-		func(ctx context.Context, input ParseRequestInput) (ParseRequestOutput, error) {
-			prompt := fmt.Sprintf(`Generate a request for a hotel guest based on the following description: %s 
-			
-			Important: 
-			- Only include the defined schema fields
-			- Only include fields where you have actual information
-			`, input.RawText)
-			resp, _, err := genkit.GenerateData[ParseRequestOutput](ctx, g, ai.WithPrompt(prompt), ai.WithModel(model), ai.WithConfig(genConfig))
+func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *ai.GenerationCommonConfig) *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}] {
+	generateRequestFlow := genkit.DefineFlow(genkitInstance, "generateRequestFlow",
+		func(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error) {
+			prompt := fmt.Sprintf(prompts.GenerateRequestPrompt, input.RawText)
+			resp, _, err := genkit.GenerateData[GenerateRequestOutput](ctx, genkitInstance, ai.WithPrompt(prompt), ai.WithModel(model), ai.WithConfig(generationConfig))
 			if err != nil {
-				return ParseRequestOutput{}, err
+				return GenerateRequestOutput{}, err
 			}
 
 			return *resp, nil
 		},
 	)
 
-	return parseRequestFlow
+	return generateRequestFlow
 }

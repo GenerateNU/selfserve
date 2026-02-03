@@ -7,17 +7,17 @@ import (
 	"github.com/firebase/genkit/go/genkit"
 )
 
-// LLMServicer defines the interface for LLM operations.
+// RequestParser defines the interface for parsing requests via LLM.
 // Handlers should depend on this interface to allow for mocking in tests.
-type LLMServicer interface {
-	RunParseRequest(ctx context.Context, input ParseRequestInput) (ParseRequestOutput, error)
+type GenerateRequestService interface {
+	RunGenerateRequest(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error)
 }
 
 type LLMService struct {
-	genkit           *genkit.Genkit
-	parseRequestFlow *core.Flow[ParseRequestInput, ParseRequestOutput, struct{}]
+	genkit              *genkit.Genkit
+	generateRequestFlow *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}]
 }
 
-func (s *LLMService) RunParseRequest(ctx context.Context, input ParseRequestInput) (ParseRequestOutput, error) {
-	return s.parseRequestFlow.Run(ctx, input)
+func (s *LLMService) RunGenerateRequest(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error) {
+	return s.generateRequestFlow.Run(ctx, input)
 }

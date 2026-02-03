@@ -14,14 +14,14 @@ import (
 )
 
 type RequestsHandler struct {
-	RequestRepository storage.RequestsRepository
-	LLMService        llm.LLMServicer
+	RequestRepository      storage.RequestsRepository
+	GenerateRequestService llm.GenerateRequestService
 }
 
-func NewRequestsHandler(repo storage.RequestsRepository, llmSvc llm.LLMServicer) *RequestsHandler {
+func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService llm.GenerateRequestService) *RequestsHandler {
 	return &RequestsHandler{
-		RequestRepository: repo,
-		LLMService:        llmSvc,
+		RequestRepository:      repo,
+		GenerateRequestService: generateRequestService,
 	}
 }
 
@@ -109,7 +109,7 @@ func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 	return c.JSON(dev)
 }
 
-func validateParseRequest(incoming *models.ParseRequestInput) error {
+func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
 	errors := make(map[string]string)
 
 	if !validUUID(incoming.HotelID) {
@@ -137,32 +137,32 @@ func validateParseRequest(incoming *models.ParseRequestInput) error {
 	return nil
 }
 
-// ParseRequest godoc
-// @Summary      parses natural language text into a structured request
-// @Description  Parses natural language text into a structured request using AI and creates it
+// GenerateRequest godoc
+// @Summary      generates a request
+// @Description  Generates a request using AI
 // @Tags         requests
 // @Accept       json
 // @Produce      json
-// @Param  request  body  models.ParseRequestInput  true  "Request data with raw text"
+// @Param  request  body  models.GenerateRequestInput  true  "Request data with raw text"
 // @Success      200   {object}  models.Request
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
-// @Router       /request/parse [post]
-func (r *RequestsHandler) ParseRequest(c *fiber.Ctx) error {
-	var incoming models.ParseRequestInput
+// @Router       /request/generate [post]
+func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
+	var incoming models.GenerateRequestInput
 	if err := c.BodyParser(&incoming); err != nil {
 		return errs.InvalidJSON()
 	}
 
-	if err := validateParseRequest(&incoming); err != nil {
+	if err := validateGenerateRequest(&incoming); err != nil {
 		return err
 	}
 
-	parsed, err := r.LLMService.RunParseRequest(c.Context(), llm.ParseRequestInput{
+	parsed, err := r.GenerateRequestService.RunGenerateRequest(c.Context(), llm.GenerateRequestInput{
 		RawText: incoming.RawText,
 	})
 	if err != nil {
-		slog.Error("llm parse failed", "error", err)
+		slog.Error("llm generate request failed", "error", err)
 		return errs.InternalServerError()
 	}
 

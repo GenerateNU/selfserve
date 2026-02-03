@@ -1,10 +1,10 @@
 package llm
 
-type ParseRequestInput struct {
+type GenerateRequestInput struct {
 	RawText string `json:"raw_text"`
 }
 
-type ParseRequestOutput struct {
+type GenerateRequestOutput struct {
 	GuestID                 *string `json:"guest_id,omitempty"`
 	UserID                  *string `json:"user_id,omitempty"`
 	ReservationID           *string `json:"reservation_id,omitempty"`

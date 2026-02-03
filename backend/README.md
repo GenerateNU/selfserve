@@ -50,7 +50,6 @@
    LLM_MODEL=qwen2.5:3b
    LLM_TIMEOUT=60
    ```
-   Install [Ollama](https://ollama.com/download) as your LLM provider, start the server, then run `ollama pull qwen2.5:3b`.
 
 5. **Run with hot reload** (development):
    ```bash
@@ -62,6 +61,11 @@
    make dev
    ```
 
+   Or run with GenKit UI:
+   ```bash
+   make genkit-run
+   ```
+
 
 ## Directory Structure
 
@@ -69,34 +73,41 @@
 backend/
 ├── cmd/
 │   └── server/
-│       └── main.go              # Application entry point
+│       └── main.go                  # Application entry point
 ├── config/
-│   ├── application.go           # Application config (port, log level)
-│   ├── config.go                # App configuration
-│   └── db.go                    # Database configuration
+│   ├── application.go               # Application config (port, log level)
+│   ├── config.go                    # App configuration
+│   └── db.go                        # Database configuration
 ├── internal/
 │   ├── errs/
-│   │   ├── http.go              # HTTP error handling
-│   │   └── repository.go        # Repository/DB level errors
+│   │   ├── http.go                  # HTTP error handling
+│   │   └── repository.go            # Repository/DB level errors
 │   ├── handler/
-│   │   ├── devs.go              # Handler
-│   │   ├── devs_test.go         # Test for handler
-│   │   ├── hello.go             # Handler
-│   │   └── hello_test.go        # Tests for handler
+│   │   ├── devs.go                  # Handler
+│   │   ├── devs_test.go             # Test for handler
+│   │   ├── hello.go                 # Handler
+│   │   └── hello_test.go            # Tests for handler
+│   ├── llm/
+│   │   ├── prompts/
+│   │   |   └── generate_request.go  # Prompts for flows
+│   │   ├── flows.go                 # GenKit flows
+│   │   ├── genkit.go                # Service setup
+│   │   ├── service.go               # LLM Service interface
+│   │   └── types.go                 # Schema
 │   ├── models/
-│   │   └── devs.go              # Schema
+│   │   └── devs.go                  # Schema
 │   ├── repository/
-│   │   └── devs.go              # Data accessors
+│   │   └── devs.go                  # Data accessors
 │   └── service/
-│       ├── server.go            # Fiber app setup & routing
+│       ├── server.go                # Fiber app setup & routing
 │       └── storage/
 │           └── postgres/
-│               └── storage.go   # PostgreSQL DB config
+│               └── storage.go       # PostgreSQL DB config
 ├── bin/
-│   └── selfserve                # Compiled binary
-├── Makefile                     # Build & development commands
-├── go.mod                       # Go module dependencies
-└── go.sum                       # Dependency checksums
+│   └── selfserve                    # Compiled binary
+├── Makefile                         # Build & development commands
+├── go.mod                           # Go module dependencies
+└── go.sum                           # Dependency checksums
 ```
 
 ## Architecture Overview
