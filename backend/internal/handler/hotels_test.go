@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http/httptest"
@@ -25,7 +25,6 @@ func (m *mockHotelRepository) FindByID(ctx context.Context, id string) (*models.
 	return m.findByIDFunc(ctx, id)
 }
 
-
 type mockHotelsRepository struct {
 	insertHotelFunc func(ctx context.Context, req *models.CreateHotelRequest) (*models.Hotel, error)
 }
@@ -33,7 +32,6 @@ type mockHotelsRepository struct {
 func (m *mockHotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 	return m.insertHotelFunc(ctx, hotel)
 }
-
 
 func TestHotelHandler_GetHotelByID(t *testing.T) {
 	t.Parallel()
@@ -105,7 +103,6 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 	})
 }
 
-
 func TestHotelsHandler_CreateHotel(t *testing.T) {
 	t.Parallel()
 	validBody := `{
@@ -119,9 +116,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		mock := &mockHotelsRepository{
 			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID: "generated-uuid",
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
+					ID:                 "generated-uuid",
+					CreatedAt:          time.Now(),
+					UpdatedAt:          time.Now(),
 					CreateHotelRequest: *hotel,
 				}, nil
 			},
@@ -150,9 +147,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		mock := &mockHotelsRepository{
 			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID: "generated-uuid",
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
+					ID:                 "generated-uuid",
+					CreatedAt:          time.Now(),
+					UpdatedAt:          time.Now(),
 					CreateHotelRequest: *hotel,
 				}, nil
 			},
@@ -176,9 +173,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		mock := &mockHotelsRepository{
 			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID: "generated-uuid",
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
+					ID:                 "generated-uuid",
+					CreatedAt:          time.Now(),
+					UpdatedAt:          time.Now(),
 					CreateHotelRequest: *hotel,
 				}, nil
 			},
@@ -209,9 +206,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		mock := &mockHotelsRepository{
 			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID: "generated-uuid",
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
+					ID:                 "generated-uuid",
+					CreatedAt:          time.Now(),
+					UpdatedAt:          time.Now(),
 					CreateHotelRequest: *hotel,
 				}, nil
 			},
@@ -243,9 +240,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		mock := &mockHotelsRepository{
 			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID: "generated-uuid",
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
+					ID:                 "generated-uuid",
+					CreatedAt:          time.Now(),
+					UpdatedAt:          time.Now(),
 					CreateHotelRequest: *hotel,
 				}, nil
 			},
@@ -276,9 +273,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		mock := &mockHotelsRepository{
 			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID: "generated-uuid",
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
+					ID:                 "generated-uuid",
+					CreatedAt:          time.Now(),
+					UpdatedAt:          time.Now(),
 					CreateHotelRequest: *hotel,
 				}, nil
 			},
@@ -310,9 +307,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		mock := &mockHotelsRepository{
 			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID: "generated-uuid",
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
+					ID:                 "generated-uuid",
+					CreatedAt:          time.Now(),
+					UpdatedAt:          time.Now(),
 					CreateHotelRequest: *hotel,
 				}, nil
 			},

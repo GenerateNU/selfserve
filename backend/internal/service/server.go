@@ -1,11 +1,13 @@
 package service
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
@@ -30,9 +32,11 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
+
 	app := setupApp()
 
-	setupRoutes(app, repo)
+	setupRoutes(app, repo, genkitInstance)
 
 	return &App{
 		Server: app,
@@ -40,7 +44,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService) {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -59,10 +63,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
-
 
 	// API v1 routes
 	api := app.Group("/api/v1")
@@ -94,6 +97,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
+		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
 	})
 
@@ -102,7 +106,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		r.Get("/:id", hotelHandler.GetHotelByID)
 	})
 
-	
 	api.Route("/hotel", func(r fiber.Router) {
 		r.Post("/", hotelsHandler.CreateHotel)
 	})

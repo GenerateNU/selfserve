@@ -8,14 +8,11 @@ import (
 	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
 )
-
 
 type UsersRepository struct {
 	db *pgxpool.Pool
 }
-
 
 func NewUsersRepository(db *pgxpool.Pool) *UsersRepository {
 	return &UsersRepository{db: db}
