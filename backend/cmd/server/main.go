@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"fmt"
 
 	"github.com/generate/selfserve/config"
 	_ "github.com/generate/selfserve/docs"
@@ -42,7 +43,11 @@ func main() {
 		log.Fatal("failed to initialize app:", err)
 	}
 
-	defer app.Repo.Close()
+	defer func() {
+    	if err := app.Repo.Close(); err != nil {
+        	panic(fmt.Sprintf("failed to close repo: %v", err))
+    	}
+	}()
 
 	go func() {
 		if err := app.Server.Listen(":" + cfg.Application.Port); err != nil {

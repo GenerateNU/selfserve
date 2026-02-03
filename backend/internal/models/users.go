@@ -5,12 +5,23 @@ import "time"
 type CreateUser struct {
 	FirstName      string  `json:"first_name" example:"John"`
 	LastName       string  `json:"last_name" example:"Doe"`
-	EmployeeID     *string `json:"employee_id" example:"EMP-001"`
-	ProfilePicture *string `json:"profile_picture" example:"https://..."`
-	Role           string  `json:"role" example:"admin"`
-	Department     *string `json:"department" example:"Engineering"`
-	Timezone       *string `json:"timezone" example:"UTC"`
+	EmployeeID     *string `json:"employee_id" example:"EMP-1234"`
+	ProfilePicture *string `json:"profile_picture" example:"https://example.com/john.jpg"`
+	Role           *string `json:"role" example:"Receptionist"`
+	Department     *string `json:"department" example:"Housekeeping"`
+	Timezone       *string `json:"timezone" example:"America/New_York"`
+	ClerkID        string  `json:"clerk_id" example:"user_123"`
 } //@name CreateUser
+
+type CreateUserWebhook struct {
+	Data struct {
+		ID        string  `json:"id" example:"user123402"`
+		FirstName string  `json:"first_name" example:"John"`
+		LastName  string  `json:"last_name" example:"Doe"`
+		ImageUrl  *string `json:"image_url" example:"https://photo.com/john.jpg"`
+		HasImage  bool    `json:"has_image" example:"true"`
+	} `json:"data"`
+}
 
 type User struct {
 	CreateUser

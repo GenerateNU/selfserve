@@ -41,9 +41,9 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO public.users (
-			first_name, last_name, employee_id, profile_picture, role, department, timezone
+			first_name, last_name, employee_id, profile_picture, role, department, timezone, clerk_id
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, COALESCE($7, 'UTC')
+			$1, $2, $3, $4, $5, $6, COALESCE($7, 'UTC'), $8 
 		)
 		RETURNING id, created_at, updated_at
 	`,
@@ -54,6 +54,7 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 		user.Role,
 		user.Department,
 		user.Timezone,
+		user.ClerkID,
 	).Scan(&createdUser.ID, &createdUser.CreatedAt, &createdUser.UpdatedAt)
 
 	if err != nil {

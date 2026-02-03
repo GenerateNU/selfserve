@@ -45,11 +45,12 @@ func TestUsersHandler_GetUserByID(t *testing.T) {
 
 		mock := &mockUsersRepository{
 			findUserByIdFunc: func(ctx context.Context, id string) (*models.User, error) {
+				role := "admin"
 				return &models.User{
 					CreateUser: models.CreateUser{
 						FirstName: "John",
 						LastName:  "Doe",
-						Role:      "admin",
+						Role:      &role,
 					},
 					ID: "550e8400-e29b-41d4-a716-446655440000",
 				}, nil
@@ -158,7 +159,8 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 	validBody := `{
 		"first_name": "John",
 		"last_name": "Doe",
-		"role": "Receptionist"
+		"role": "Receptionist",
+		"clerk_id": "user_123"
 	}`
 
 	t.Run("returns 200 on valid user creation", func(t *testing.T) {
@@ -217,7 +219,8 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"role": "Manager",
 			"employee_id": "EMP-67",
 			"department": "Front Desk",
-			"timezone": "America/New_York"
+			"timezone": "America/New_York",
+			"clerk_id": "user_123"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(bodyWithOptionals))
@@ -271,7 +274,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), "first_name")
 		assert.Contains(t, string(body), "last_name")
-		assert.Contains(t, string(body), "role")
+		assert.Contains(t, string(body), "clerk_id")
 	})
 
 	t.Run("returns 400 on invalid timezone", func(t *testing.T) {
@@ -287,6 +290,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"first_name": "John",
 			"last_name": "Doe",
 			"role": "Receptionist",
+			"clerk_id": "user_123",
 			"timezone": "Invalid/Not_A_Timezone"
 		}`
 
@@ -322,5 +326,34 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, 500, resp.StatusCode)
+	})
+
+	t.Run("returns_400_when_clerk_id_is_missing", func(t *testing.T) {
+		body := `{
+		"first_name": "John",
+		"last_name": "Doe",
+		"role": "Receptionist"
+	}`
+
+		mock := &mockUsersRepository{
+			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
+				return nil, nil
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewUsersHandler(mock)
+		app.Post("/users", h.CreateUser)
+
+		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+		respBody, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(respBody), "clerk_id")
+
 	})
 }
