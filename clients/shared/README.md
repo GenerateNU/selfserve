@@ -18,6 +18,7 @@ This package contains shared code (API clients, hooks, types, utilities) used by
 ```bash
 cd clients/shared
 npm install --legacy-peer-deps
+npm run generate:api
 ```
 
 **Important**: Use `--legacy-peer-deps` to prevent npm from auto-installing peer dependencies.
@@ -29,6 +30,64 @@ npm install --legacy-peer-deps
 2. **Environment variables**: The shared package uses `process.env.API_BASE_URL` which is injected by:
    - **Web**: Vite's `define` config in `vite.config.ts`
    - **Mobile**: Metro bundler
+
+## API Type Generation (Orval)
+
+This package uses [Orval](https://orval.dev/) to automatically generate TypeScript types and API client functions from the backend's OpenAPI specification.
+
+### Generating API Types
+
+After making changes to the backend API (or when setting up for the first time):
+
+```bash
+# Generate types from the OpenAPI spec
+npm run generate:api
+
+# Or use watch mode during development
+npm run generate:api:watch
+```
+
+### Generated Files
+
+Generated files are located in `src/api/generated/` (gitignored):
+- `models/` - TypeScript interfaces for all API models
+- `endpoints/` - API client functions organized by tag (hello, users, hotels, requests, etc.)
+
+### Usage
+
+Import generated types and functions in your code:
+
+```typescript
+// Import API functions
+import { getHello, getHelloName } from '@selfserve/shared/api/generated/endpoints/hello'
+import { getRequests, postRequest } from '@selfserve/shared/api/generated/endpoints/requests'
+
+// Import types
+import type { 
+  GithubComGenerateSelfserveInternalModelsRequest,
+  GithubComGenerateSelfserveInternalModelsMakeRequest 
+} from '@selfserve/shared/api/generated/models'
+
+// Use in your code
+const response = await getHello()
+const requests = await getRequests()
+```
+
+### Backend Changes Workflow
+
+When the backend API changes:
+
+1. Update backend code with Swagger annotations
+2. Run `make swagger` in the backend directory
+3. Run `npm run generate:api` in the shared package
+4. Types automatically sync to frontend
+
+### CI/CD
+
+The CI workflows automatically generate types before building:
+1. Backend CI generates `swagger.yaml`
+2. Frontend CI runs `npm run generate:api` before type checking and building
+3. Type mismatches are caught at build time
 
 ## How It Works
 
