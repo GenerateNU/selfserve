@@ -11,6 +11,6 @@ export const requestsService = {
   },
 
   createRequest: async (data: MakeRequest): Promise<Request> => {
-    return apiClient.post<Request>('/api/v1/request', data)
+    return apiClient.post<Request>('/api/v1/requests', data)
   },
 }
