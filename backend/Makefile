@@ -38,6 +38,9 @@ genkit-run: llm-start db-start
 	@$(LOAD_ENV) \
 	genkit start -- go run $(CMD_PATH)
 
+sync-users:
+	@$(LOAD_ENV) go run ./cmd/clerk/sync.go
+
 test:
 	@$(LOAD_ENV) \
 	go test ./...

@@ -27,10 +27,15 @@ func (m *mockWebhookVerifier) Verify(payload []byte, headers http.Header) error 
 
 type mockUsersRepositoryClerk struct {
 	insertUserFunc func(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	bulkInsertFunc func(ctx context.Context, users []*models.CreateUser) error
 }
 
 func (m *mockUsersRepositoryClerk) InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 	return m.insertUserFunc(ctx, user)
+}
+
+func (m *mockUsersRepositoryClerk) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
+    return nil
 }
 
 func TestClerkHandler_CreateUser(t *testing.T) {
