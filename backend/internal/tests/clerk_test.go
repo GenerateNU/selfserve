@@ -27,7 +27,6 @@ func (m *mockWebhookVerifier) Verify(payload []byte, headers http.Header) error 
 
 type mockUsersRepositoryClerk struct {
 	insertUserFunc func(ctx context.Context, user *models.CreateUser) (*models.User, error)
-	bulkInsertFunc func(ctx context.Context, users []*models.CreateUser) error
 }
 
 func (m *mockUsersRepositoryClerk) InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error) {
