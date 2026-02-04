@@ -5,11 +5,12 @@ import (
 	"net/http"
 
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
-	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/repository"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/validation"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -26,6 +27,8 @@ type App struct {
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
+	validation.Init()
+
 	// Init DB/repository(ies)
 	repo, err := storage.NewRepository(cfg.DB)
 	if err != nil {
