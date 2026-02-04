@@ -19,7 +19,7 @@
     "react": "^19.0.0"
   },
   "devDependencies": {
-    "@babel/runtime": "^7.28.6"
+    "@babel/runtime": "^7.28.6", 
     "orval": "^8.2.0"
   }
 }
