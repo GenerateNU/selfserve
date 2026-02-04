@@ -13,7 +13,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "^2.19.20",
+    "@clerk/clerk-expo": "^2.19.21",
     "@expo/vector-icons": "^15.0.3",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
@@ -59,15 +59,15 @@
   },
   "private": true,
   "jest": {
-  "preset": "jest-expo",
-  "transformIgnorePatterns": [
-    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@sentry/.*|native-base|react-native-svg)"
-  ],
-  "setupFiles": [
-    "<rootDir>/jest.setup.js"
-  ],
-  "moduleNameMapper": {
-  "^@shared/(.*)$": "<rootDir>/../shared/src/$1"
-}
-}
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@sentry/.*|native-base|react-native-svg)"
+    ],
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
+    "moduleNameMapper": {
+      "^@shared/(.*)$": "<rootDir>/../shared/src/$1"
+    }
+  }
 }
