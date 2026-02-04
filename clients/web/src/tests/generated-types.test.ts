@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import type { CreateUser, Guest, Hotel, MakeRequest, Request, User } from '@shared'
+import type {
+  CreateUser,
+  Guest,
+  Hotel,
+  MakeRequest,
+  Request,
+  User,
+} from '@shared'
 
 describe('Generated Types Integration', () => {
   describe('Type Structure Validation', () => {
@@ -130,7 +137,7 @@ describe('Generated Types Integration', () => {
         { id: '2', first_name: 'Bob' },
       ]
 
-      const userNames = users.map(u => u.first_name)
+      const userNames = users.map((u) => u.first_name)
       expect(userNames).toEqual(['Alice', 'Bob'])
     })
 

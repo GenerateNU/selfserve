@@ -6,7 +6,7 @@ global.fetch = vi.fn()
 
 describe('Shared API - Generated Functions', () => {
   const mockApiBaseUrl = 'http://localhost:8080'
-  
+
   beforeEach(() => {
     // Set up environment variable
     process.env.API_BASE_URL = mockApiBaseUrl
@@ -20,7 +20,7 @@ describe('Shared API - Generated Functions', () => {
   describe('getHello', () => {
     it('should return response with data field', async () => {
       const mockResponse = 'Yogurt. Gurt: Yo!'
-      
+
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -37,7 +37,7 @@ describe('Shared API - Generated Functions', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
           }),
-        })
+        }),
       )
       expect(result.data).toBe(mockResponse)
       expect(result.status).toBe(200)
@@ -59,7 +59,7 @@ describe('Shared API - Generated Functions', () => {
     it('should return personalized response with data field', async () => {
       const name = 'Alice'
       const mockResponse = `Yo, ${name}!`
-      
+
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -73,7 +73,7 @@ describe('Shared API - Generated Functions', () => {
         `${mockApiBaseUrl}/api/v1/hello/${name}`,
         expect.objectContaining({
           method: 'GET',
-        })
+        }),
       )
       expect(result.data).toBe(mockResponse)
       expect(result.status).toBe(200)
@@ -83,7 +83,7 @@ describe('Shared API - Generated Functions', () => {
     it('should handle special characters in name', async () => {
       const name = 'John Doe'
       const mockResponse = `Yo, ${name}!`
-      
+
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -100,7 +100,7 @@ describe('Shared API - Generated Functions', () => {
   describe('Type Safety', () => {
     it('should have correct response structure', async () => {
       const mockResponse = 'Test'
-      
+
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -109,7 +109,7 @@ describe('Shared API - Generated Functions', () => {
       } as Response)
 
       const result = await getHello()
-      
+
       // TypeScript compile-time check - response has data, status, headers
       expect(result.data).toBe(mockResponse)
       expect(result.status).toBe(200)

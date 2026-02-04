@@ -1,7 +1,5 @@
 import { ApiError } from '../types/api.types'
 
-// @ts-ignore - Environment variable injected by bundler (Vite/Metro)
-const API_BASE_URL = process.env.API_BASE_URL
 const API_BASE_PATH = '/api/v1'
 
 /**
@@ -13,6 +11,8 @@ export const customInstance = async <T>(
   url: string,
   options?: RequestInit
 ): Promise<T> => {
+  // @ts-ignore - Environment variable injected by bundler (Vite/Metro)
+  const API_BASE_URL = process.env.API_BASE_URL
   const fullUrl = `${API_BASE_URL}${API_BASE_PATH}${url}`
   
   try {

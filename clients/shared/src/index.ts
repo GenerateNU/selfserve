@@ -29,8 +29,8 @@ export {
 } from './api/generated/endpoints/hello/hello'
 
 export {
-  getRequests,
   postRequest,
+  postRequestGenerate,
 } from './api/generated/endpoints/requests/requests'
 
 export {
@@ -40,7 +40,7 @@ export {
 
 export {
   postHotel,
-  getHotelsId,
+  getApiV1HotelsId,
 } from './api/generated/endpoints/hotels/hotels'
 
 export {
