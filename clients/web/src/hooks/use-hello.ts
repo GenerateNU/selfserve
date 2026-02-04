@@ -3,11 +3,16 @@ import { useAPIClient } from './use-api-client'
 
 export const useGetHello = () => {
   const api = useAPIClient()
-  return useQuery({ queryKey: ['hello'], queryFn: () => api.get<string>('/api/v1/hello')})
+  return useQuery({
+    queryKey: ['hello'],
+    queryFn: () => api.get<string>('/api/v1/hello'),
+  })
 }
 
 export const useGetHelloName = (name: string) => {
   const api = useAPIClient()
-  return useQuery({ queryKey: ['hello', name], 
-    queryFn: () => api.get<string>(`/api/v1/hello/${name}`)})
+  return useQuery({
+    queryKey: ['hello', name],
+    queryFn: () => api.get<string>(`/api/v1/hello/${name}`),
+  })
 }

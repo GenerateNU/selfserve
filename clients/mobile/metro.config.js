@@ -5,9 +5,7 @@ const path = require("path");
 const config = getDefaultConfig(__dirname);
 
 // Add shared dir to Metro watch folders
-config.watchFolders = [
-  path.resolve(__dirname, "../shared"),
-];
+config.watchFolders = [path.resolve(__dirname, "../shared")];
 
 // Configure resolver to handle shared package
 config.resolver = {
@@ -15,8 +13,11 @@ config.resolver = {
   extraNodeModules: {
     "@shared": path.resolve(__dirname, "../shared/src"),
     // Make sure deps resolve from mobile's node_modules
-    "react": path.resolve(__dirname, "node_modules/react"),
-    "@tanstack/react-query": path.resolve(__dirname, "node_modules/@tanstack/react-query"),
+    react: path.resolve(__dirname, "node_modules/react"),
+    "@tanstack/react-query": path.resolve(
+      __dirname,
+      "node_modules/@tanstack/react-query",
+    ),
   },
   // Explicitly block shared's node_modules and test files from being resolved
   blockList: [

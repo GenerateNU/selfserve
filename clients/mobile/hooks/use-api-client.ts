@@ -1,5 +1,5 @@
-import { useAuth } from '@clerk/clerk-expo';
-import { getAPIClient } from '@shared/api/client';
+import { useAuth } from "@clerk/clerk-expo";
+import { getAPIClient } from "@shared/api/client";
 
 export const useAPIClient = () => {
   const authClient = useAuth();

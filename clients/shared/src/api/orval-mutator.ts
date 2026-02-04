@@ -1,6 +1,6 @@
-import { ApiError } from '../types/api.types'
+import { ApiError } from "../types/api.types";
 
-const API_BASE_PATH = '/api/v1'
+const API_BASE_PATH = "/api/v1";
 
 /**
  * Custom mutator for Orval to use our existing fetch-based client
@@ -9,44 +9,44 @@ const API_BASE_PATH = '/api/v1'
  */
 export const customInstance = async <T>(
   url: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<T> => {
   // @ts-ignore - Environment variable injected by bundler (Vite/Metro)
-  const API_BASE_URL = process.env.API_BASE_URL
-  const fullUrl = `${API_BASE_URL}${API_BASE_PATH}${url}`
-  
+  const API_BASE_URL = process.env.API_BASE_URL;
+  const fullUrl = `${API_BASE_URL}${API_BASE_PATH}${url}`;
+
   try {
     const response = await fetch(fullUrl, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
-    })
+    });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const errorData = await response.json().catch(() => ({}));
       throw new ApiError(
-        errorData.message || 'Request failed',
+        errorData.message || "Request failed",
         response.status,
-        errorData
-      )
+        errorData,
+      );
     }
 
     // Get response data based on content type
-    const contentType = response.headers.get('content-type')
-    let data: any
-    
+    const contentType = response.headers.get("content-type");
+    let data: any;
+
     switch (true) {
-      case contentType?.includes('text/plain'):
-        data = await response.text()
-        break
-      case contentType?.includes('application/json'):
-        data = await response.json()
-        break
+      case contentType?.includes("text/plain"):
+        data = await response.text();
+        break;
+      case contentType?.includes("application/json"):
+        data = await response.json();
+        break;
       default:
-        data = await response.text()
-        break
+        data = await response.text();
+        break;
     }
 
     // Return in Orval's expected format
@@ -54,17 +54,17 @@ export const customInstance = async <T>(
       data,
       status: response.status,
       headers: response.headers,
-    } as T
+    } as T;
   } catch (error) {
     if (error instanceof ApiError) {
-      throw error
+      throw error;
     }
     throw new ApiError(
-      error instanceof Error ? error.message : 'Network error',
+      error instanceof Error ? error.message : "Network error",
       0,
-      error
-    )
+      error,
+    );
   }
-}
+};
 
-export default customInstance
+export default customInstance;

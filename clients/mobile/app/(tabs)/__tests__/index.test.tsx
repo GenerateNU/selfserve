@@ -1,12 +1,12 @@
 import { render } from "@testing-library/react-native";
 import HomeScreen from "../index";
 
-jest.mock('@clerk/clerk-expo', () => {
-  const actual = jest.requireActual('@clerk/clerk-expo');
+jest.mock("@clerk/clerk-expo", () => {
+  const actual = jest.requireActual("@clerk/clerk-expo");
   return {
     ...actual,
     useAuth: () => ({
-      getToken: async () => null, 
+      getToken: async () => null,
       isLoaded: true,
       isSignedIn: false,
       userId: null,
