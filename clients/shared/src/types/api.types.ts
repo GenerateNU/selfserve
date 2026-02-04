@@ -16,13 +16,24 @@ export interface ApiConfig {
 }
 
 export interface HttpClient {
-  get: <T>(endpoint: string) => Promise<T>;
-  post: <T>(endpoint: string, data: unknown) => Promise<T>;
-  put: <T>(endpoint: string, data: unknown) => Promise<T>;
-  patch: <T>(endpoint: string, data: unknown) => Promise<T>;
-  delete: <T>(endpoint: string) => Promise<T>;
+  get: <T>(endpoint: string, params?: Record<string, any>) => Promise<ApiResponse<T>>;
+  post: <T>(endpoint: string, data: unknown) => Promise<ApiResponse<T>>;
+  put: <T>(endpoint: string, data: unknown) => Promise<ApiResponse<T>>;
+  patch: <T>(endpoint: string, data: unknown) => Promise<ApiResponse<T>>;
+  delete: <T>(endpoint: string) => Promise<ApiResponse<T>>;
 }
 
-export type AuthClient = {
-  getToken: () => Promise<string | null>;
+export interface ApiResponse<T> {
+  data: T;
+  status: number;
+  headers: Headers;
+}
+
+export type RequestConfig = {
+  url: string;
+  method: string;
+  params?: Record<string, any>;
+  data?: unknown;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
 };

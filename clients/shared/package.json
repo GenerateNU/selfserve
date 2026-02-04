@@ -10,16 +10,15 @@
     "generate:api": "orval --config ./orval.config.ts",
     "generate:api:watch": "orval --config ./orval.config.ts --watch"
   },
-  "dependencies": {
-    "@tanstack/react-query": "^5.90.0",
-    "react": "^19.0.0"
-  },
   "peerDependencies": {
     "@tanstack/react-query": "^5.90.0",
+    "react-dom": "^19.0.0",
     "react": "^19.0.0"
   },
   "devDependencies": {
     "@babel/runtime": "^7.28.6",
+    "react": "^19.0.0",
+    "@types/react": "^19.2.11",
     "orval": "^8.2.0"
   }
 }

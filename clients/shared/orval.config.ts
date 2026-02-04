@@ -9,11 +9,12 @@ export default defineConfig({
       mode: "tags-split",
       target: "./src/api/generated/endpoints",
       schemas: "./src/api/generated/models",
-      client: "fetch",
+      httpClient: 'axios',
+      client: "react-query",
       override: {
         mutator: {
           path: "./src/api/orval-mutator.ts",
-          name: "customInstance",
+          name: "useCustomInstance",
         },
       },
       clean: true,

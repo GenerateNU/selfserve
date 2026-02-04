@@ -1,20 +1,32 @@
-import { ApiError, AuthClient, HttpClient } from "../types/api.types";
+import { ApiError, HttpClient, ApiResponse, RequestConfig } from "../types/api.types";
+import { useAuth } from '@app/clerk';
 
 /**
  * Internal helper to make HTTP requests w/ error handling
  */
-const createRequest = (authClient: AuthClient, baseUrl: string) => {
-  return async <T>(endpoint: string, options: RequestInit): Promise<T> => {
-    try {
-      const token = await authClient.getToken();
+export const createRequest = (
+  getToken: () => Promise<string | null>,
+  baseUrl: string,
+) => {
+  return async <T>(config: RequestConfig): Promise<ApiResponse<T>> => {
+    let fullUrl = `${baseUrl}${config.url}`;
+    if (config.params) {
+        fullUrl += '?' + new URLSearchParams(config.params).toString();
+    }
 
-      const response = await fetch(`${baseUrl}${endpoint}`, {
-        ...options,
+
+    try {
+      const token = await getToken();
+
+      const response = await fetch(fullUrl, {
+        method: config.method, 
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
-          ...options.headers,
+          ...config.headers,
         },
+        body: config.data ? JSON.stringify(config.data) : undefined,
+        signal: config.signal,
       });
 
       if (!response.ok) {
@@ -27,11 +39,25 @@ const createRequest = (authClient: AuthClient, baseUrl: string) => {
       }
 
       const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("text/plain")) {
-        return (await response.text()) as T;
+      let data: T;
+
+      switch (true) {
+        case contentType?.includes("application/json"):
+          data = await response.json();
+          break;
+        case contentType?.includes("text/plain"):
+          data = await response.text() as T;
+          break;
+        default:
+          data = await response.text() as T;
+          break;
       }
 
-      return response.json();
+      return {
+        data,
+        status: response.status,
+        headers: response.headers,
+      };
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -45,40 +71,33 @@ const createRequest = (authClient: AuthClient, baseUrl: string) => {
   };
 };
 
-export const getAPIClient = (
-  authClient: AuthClient,
-  baseUrl: string,
-): HttpClient => {
-  const request = createRequest(authClient, baseUrl);
+export const useAPIClient = (): HttpClient => {
+  const { getToken } = useAuth();
+  const request = createRequest(getToken, getBaseUrl());
 
   return {
-    get: <T>(endpoint: string): Promise<T> => {
-      return request<T>(endpoint, { method: "GET" });
-    },
-
-    post: <T>(endpoint: string, data: unknown): Promise<T> => {
-      return request<T>(endpoint, {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-    },
-
-    put: <T>(endpoint: string, data: unknown): Promise<T> => {
-      return request<T>(endpoint, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      });
-    },
-
-    patch: <T>(endpoint: string, data: unknown): Promise<T> => {
-      return request<T>(endpoint, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
-    },
-
-    delete: <T>(endpoint: string): Promise<T> => {
-      return request<T>(endpoint, { method: "DELETE" });
-    },
+    get: <T>(endpoint: string, params?: Record<string, any>) => 
+      request<T>({ url: endpoint, method: 'GET', params }),
+    post: <T>(endpoint: string, data: unknown) => 
+      request<T>({ url: endpoint, method: 'POST', data }),
+    put: <T>(endpoint: string, data: unknown) => 
+      request<T>({ url: endpoint, method: 'PUT', data }),
+    patch: <T>(endpoint: string, data: unknown) => 
+      request<T>({ url: endpoint, method: 'PATCH', data }),
+    delete: <T>(endpoint: string) => 
+      request<T>({ url: endpoint, method: 'DELETE' }),
   };
+};
+
+
+
+export const getBaseUrl = (): string => {
+  // @ts-ignore - Environment variable injected by bundler (Vite/Metro)
+  const url = process.env.API_BASE_URL;
+  
+  if (!url) {
+    throw new Error('API_BASE_URL is not configured. Check your .env file.');
+  }
+  
+  return url;
 };

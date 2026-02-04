@@ -26,6 +26,7 @@ const config = defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@shared': path.resolve(__dirname, '../shared/src'),
+        "@app/clerk": path.resolve(__dirname, "./src/hooks/clerk.ts"),
       },
       // Deduplicate deps to use web app's node_modules
       dedupe: ['@tanstack/react-query', 'react', 'react-dom'],
