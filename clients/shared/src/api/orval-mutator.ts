@@ -37,12 +37,16 @@ export const customInstance = async <T>(
     const contentType = response.headers.get('content-type')
     let data: any
     
-    if (contentType && contentType.includes('text/plain')) {
-      data = await response.text()
-    } else if (contentType && contentType.includes('application/json')) {
-      data = await response.json()
-    } else {
-      data = await response.text()
+    switch (true) {
+      case contentType?.includes('text/plain'):
+        data = await response.text()
+        break
+      case contentType?.includes('application/json'):
+        data = await response.json()
+        break
+      default:
+        data = await response.text()
+        break
     }
 
     // Return in Orval's expected format
