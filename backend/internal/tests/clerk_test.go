@@ -35,7 +35,7 @@ func (m *mockUsersRepositoryClerk) InsertUser(ctx context.Context, user *models.
 }
 
 func (m *mockUsersRepositoryClerk) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
-    return nil
+	return nil
 }
 
 func TestClerkHandler_CreateUser(t *testing.T) {

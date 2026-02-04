@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -36,7 +37,7 @@ func TestSyncUsers(t *testing.T) {
 			assert.Contains(t, r.Header.Get("Authorization"), "Bearer ")
 
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`[
+			_, _ = w.Write([]byte(`[
 				{
 					"id": "user_123",
 					"first_name": "John",
@@ -99,7 +100,7 @@ func TestSyncUsers(t *testing.T) {
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`[
+			_, _ = w.Write([]byte(`[
 				{
 					"id": "",
 					"first_name": "",
@@ -125,7 +126,7 @@ func TestSyncUsers(t *testing.T) {
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`[
+			_, _ = w.Write([]byte(`[
 				{
 					"id": "user_123",
 					"first_name": "John",
@@ -154,7 +155,7 @@ func TestSyncUsers(t *testing.T) {
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`[]`))
+			_, _ = w.Write([]byte(`[]`))
 		}))
 		defer server.Close()
 
