@@ -1,12 +1,19 @@
 package service
 
 import (
+	"fmt"
+	"context"
 	"net/http"
+	"os"
+	"errors"
 
+	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/repository"
+	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -30,17 +37,26 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	app := setupApp()
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
 
-	setupRoutes(app, repo)
+	app := setupApp()
+	setupClerk()
+
+	if err = setupRoutes(app, repo, genkitInstance); err != nil {
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
+		return nil, err
+	}
 
 	return &App{
 		Server: app,
+		Repo:   repo,
 	}, nil
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -54,15 +70,33 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		return c.SendStatus(http.StatusOK)
 	})
 
+	// initialize users repo
+	usersRepo := repository.NewUsersRepository(repo.DB)
+
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
+	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
+	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
+	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier()
+	if err != nil {
+		return err
+	}
+	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
 
 	// API v1 routes
 	api := app.Group("/api/v1")
+
+	// clerk webhook route
+	api.Route("/clerk", func(r fiber.Router) {
+		r.Post("/user", clerkWebhookHandler.CreateUser)
+	})
+
+	verifier := clerk.NewClerkJWTVerifier()
+	app.Use(clerk.NewAuthMiddleware(verifier))
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
@@ -75,22 +109,36 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		r.Get("/:name", devsHandler.GetMember)
 	})
 
-	// User Routes
+	// users routes
 	api.Route("/users", func(r fiber.Router) {
+		r.Get("/:id", usersHandler.GetUserByID)
 		r.Post("/", usersHandler.CreateUser)
+	})
+
+	// Guest Routes
+	api.Route("/guests", func(r fiber.Router) {
+		r.Post("/", guestsHandler.CreateGuest)
+		r.Get("/:id", guestsHandler.GetGuest)
+		r.Put("/:id", guestsHandler.UpdateGuest)
 	})
 
 	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
-		r.Post("/:id", reqsHandler.GetRequest)
+		r.Post("/generate", reqsHandler.GenerateRequest)
+		r.Get("/:id", reqsHandler.GetRequest)
 	})
 
 	// Hotel routes
+	api.Route("/hotels", func(r fiber.Router) {
+		r.Get("/:id", hotelHandler.GetHotelByID)
+	})
+
 	api.Route("/hotel", func(r fiber.Router) {
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
 
+	return nil
 }
 
 // Initialize Fiber app with middlewares / configs
@@ -118,4 +166,15 @@ func setupApp() *fiber.App {
 	}))
 
 	return app
+}
+
+func setupClerk() {
+	if os.Getenv("ENV") == "development" {
+		clerksdk.SetKey(os.Getenv("DEV_CLERK_SECRET_KEY"))
+	} else {
+		/*
+			Missing prod url to complete
+		*/
+		fmt.Print("No clerk for prod yet.")
+	}
 }

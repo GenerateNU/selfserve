@@ -6,7 +6,9 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "postinstall": "echo 'Shared package installed - dependencies provided by consuming apps'"
+    "postinstall": "echo 'Shared package installed - dependencies provided by consuming apps'",
+    "generate:api": "orval --config ./orval.config.ts",
+    "generate:api:watch": "orval --config ./orval.config.ts --watch"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.0",
@@ -18,5 +20,6 @@
   },
   "devDependencies": {
     "@babel/runtime": "^7.28.6"
+    "orval": "^8.2.0"
   }
 }
