@@ -1,5 +1,5 @@
+import { useGetHello, useGetHelloName } from '@/hooks/use-hello'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getHello, getHelloName } from '@shared'
 
 // Mock fetch globally
 global.fetch = vi.fn()
@@ -28,7 +28,7 @@ describe('Shared API - Generated Functions', () => {
         text: () => Promise.resolve(mockResponse),
       } as Response)
 
-      const result = await getHello()
+      const result = await useGetHello()
 
       expect(fetch).toHaveBeenCalledWith(
         `${mockApiBaseUrl}/api/v1/hello`,
@@ -51,7 +51,7 @@ describe('Shared API - Generated Functions', () => {
         json: () => Promise.resolve({ message: 'Server error' }),
       } as Response)
 
-      await expect(getHello()).rejects.toThrow()
+      await expect(useGetHello()).rejects.toThrow()
     })
   })
 
@@ -67,7 +67,7 @@ describe('Shared API - Generated Functions', () => {
         text: () => Promise.resolve(mockResponse),
       } as Response)
 
-      const result = await getHelloName(name)
+      const result = await useGetHelloName(name)
 
       expect(fetch).toHaveBeenCalledWith(
         `${mockApiBaseUrl}/api/v1/hello/${name}`,
@@ -91,7 +91,7 @@ describe('Shared API - Generated Functions', () => {
         text: () => Promise.resolve(mockResponse),
       } as Response)
 
-      const result = await getHelloName(name)
+      const result = await useGetHelloName(name)
 
       expect(result.data).toBe(mockResponse)
     })
@@ -108,7 +108,7 @@ describe('Shared API - Generated Functions', () => {
         text: () => Promise.resolve(mockResponse),
       } as Response)
 
-      const result = await getHello()
+      const result = useGetHello()
 
       // TypeScript compile-time check - response has data, status, headers
       expect(result.data).toBe(mockResponse)
