@@ -12,13 +12,13 @@
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.90.0",
-    "react-dom": "^19.0.0",
-    "react": "^19.0.0"
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@babel/runtime": "^7.28.6",
-    "react": "^19.0.0",
     "@types/react": "^19.2.11",
-    "orval": "^8.2.0"
+    "orval": "^8.2.0",
+    "react": "^19.0.0"
   }
 }

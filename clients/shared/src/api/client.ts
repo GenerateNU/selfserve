@@ -1,5 +1,5 @@
-import { ApiError, HttpClient, ApiResponse, RequestConfig } from "../types/api.types";
-import { useAuth } from '@app/clerk';
+import { ApiError, HttpClient, RequestConfig } from "../types/api.types";
+import { useAuth } from "@app/clerk";
 
 /**
  * Internal helper to make HTTP requests w/ error handling
@@ -8,18 +8,17 @@ export const createRequest = (
   getToken: () => Promise<string | null>,
   baseUrl: string,
 ) => {
-  return async <T>(config: RequestConfig): Promise<ApiResponse<T>> => {
+  return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
     if (config.params) {
-        fullUrl += '?' + new URLSearchParams(config.params).toString();
+      fullUrl += "?" + new URLSearchParams(config.params).toString();
     }
-
 
     try {
       const token = await getToken();
 
       const response = await fetch(fullUrl, {
-        method: config.method, 
+        method: config.method,
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -46,18 +45,14 @@ export const createRequest = (
           data = await response.json();
           break;
         case contentType?.includes("text/plain"):
-          data = await response.text() as T;
+          data = (await response.text()) as T;
           break;
         default:
-          data = await response.text() as T;
+          data = (await response.text()) as T;
           break;
       }
 
-      return {
-        data,
-        status: response.status,
-        headers: response.headers,
-      };
+      return data;
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -76,28 +71,26 @@ export const useAPIClient = (): HttpClient => {
   const request = createRequest(getToken, getBaseUrl());
 
   return {
-    get: <T>(endpoint: string, params?: Record<string, any>) => 
-      request<T>({ url: endpoint, method: 'GET', params }),
-    post: <T>(endpoint: string, data: unknown) => 
-      request<T>({ url: endpoint, method: 'POST', data }),
-    put: <T>(endpoint: string, data: unknown) => 
-      request<T>({ url: endpoint, method: 'PUT', data }),
-    patch: <T>(endpoint: string, data: unknown) => 
-      request<T>({ url: endpoint, method: 'PATCH', data }),
-    delete: <T>(endpoint: string) => 
-      request<T>({ url: endpoint, method: 'DELETE' }),
+    get: <T>(endpoint: string, params?: Record<string, any>) =>
+      request<T>({ url: endpoint, method: "GET", params }),
+    post: <T>(endpoint: string, data: unknown) =>
+      request<T>({ url: endpoint, method: "POST", data }),
+    put: <T>(endpoint: string, data: unknown) =>
+      request<T>({ url: endpoint, method: "PUT", data }),
+    patch: <T>(endpoint: string, data: unknown) =>
+      request<T>({ url: endpoint, method: "PATCH", data }),
+    delete: <T>(endpoint: string) =>
+      request<T>({ url: endpoint, method: "DELETE" }),
   };
 };
-
-
 
 export const getBaseUrl = (): string => {
   // @ts-ignore - Environment variable injected by bundler (Vite/Metro)
   const url = process.env.API_BASE_URL;
-  
+
   if (!url) {
-    throw new Error('API_BASE_URL is not configured. Check your .env file.');
+    throw new Error("API_BASE_URL is not configured. Check your .env file.");
   }
-  
+
   return url;
 };

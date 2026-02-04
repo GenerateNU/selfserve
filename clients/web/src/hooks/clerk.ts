@@ -1,1 +1,1 @@
-export { useAuth } from "@clerk/clerk-react";
+export { useAuth } from '@clerk/clerk-react'

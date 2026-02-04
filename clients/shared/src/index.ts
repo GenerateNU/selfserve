@@ -14,35 +14,33 @@ export type {
   UpdateGuest,
   Guest,
   Dev,
-} from './api/generated/models'
+} from "./api/generated/models";
 
 // Generated API Functions
 export {
   useGetHello,
   useGetHelloName,
-} from './api/generated/endpoints/hello/hello'
+} from "./api/generated/endpoints/hello/hello";
 
 export {
   usePostRequest,
   usePostRequestGenerate,
-} from './api/generated/endpoints/requests/requests'
+} from "./api/generated/endpoints/requests/requests";
 
 export {
   usePostUsers,
   useGetUsersId,
-} from './api/generated/endpoints/users/users'
+} from "./api/generated/endpoints/users/users";
 
 export {
   usePostHotel,
   useGetApiV1HotelsId,
-} from './api/generated/endpoints/hotels/hotels'
+} from "./api/generated/endpoints/hotels/hotels";
 
-export {
-  useGetDevsName,
-} from './api/generated/endpoints/devs/devs'
+export { useGetDevsName } from "./api/generated/endpoints/devs/devs";
 
 export {
   usePostApiV1Guests,
   useGetApiV1GuestsId,
   usePutApiV1GuestsId,
-} from './api/generated/endpoints/guests/guests'
+} from "./api/generated/endpoints/guests/guests";

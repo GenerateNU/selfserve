@@ -7,16 +7,16 @@ import { RequestConfig } from "@/types/api.types";
  * This function will be called by all generated API functions
  * Returns data of response
  */
-export const useCustomInstance = <T>(): ((config: RequestConfig) => Promise<T>) => {
+export const useCustomInstance = <T>(): ((
+  config: RequestConfig,
+) => Promise<T>) => {
   const { getToken } = useAuth();
   const request = createRequest(getToken, getBaseUrl());
 
   return async (config: RequestConfig): Promise<T> => {
     const response = await request<T>(config);
-    return response.data;
+    return response;
   };
 };
-
-
 
 export default useCustomInstance;

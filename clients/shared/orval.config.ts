@@ -9,7 +9,7 @@ export default defineConfig({
       mode: "tags-split",
       target: "./src/api/generated/endpoints",
       schemas: "./src/api/generated/models",
-      httpClient: 'axios',
+      httpClient: "axios",
       client: "react-query",
       override: {
         mutator: {

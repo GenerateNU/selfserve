@@ -12,7 +12,7 @@ config.resolver = {
   ...config.resolver,
   extraNodeModules: {
     "@shared": path.resolve(__dirname, "../shared/src"),
-    "@app/clerk": path.resolve(__dirname, "node_modules/@clerk/clerk-expo"), 
+    "@app/clerk": path.resolve(__dirname, "./hooks/clerk.ts"),
     // Make sure deps resolve from mobile's node_modules
     react: path.resolve(__dirname, "node_modules/react"),
     "@tanstack/react-query": path.resolve(
