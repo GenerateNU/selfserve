@@ -31,11 +31,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: './clients/mobile/package.json'
-          cache: 'npm'
-          cache-dependency-path: './clients/mobile/package-lock.json'
+          node-version-file: "./clients/mobile/package.json"
+          cache: "npm"
+          cache-dependency-path: "./clients/mobile/package-lock.json"
       - name: Install dependencies
         run: npm ci
+      - name: Install shared dependencies
+        run: cd ../shared && npm ci
+      - name: Generate API types
+        run: cd ../shared && npm run generate:api
       - name: Run ESLint
         run: npm run lint
   mobile-typecheck:
@@ -48,9 +52,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: './clients/mobile/package.json'
-          cache: 'npm'
-          cache-dependency-path: './clients/mobile/package-lock.json'
+          node-version-file: "./clients/mobile/package.json"
+          cache: "npm"
+          cache-dependency-path: "./clients/mobile/package-lock.json"
       - name: Install dependencies
         run: npm ci
       - name: Install shared dependencies
@@ -69,11 +73,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: './clients/mobile/package.json'
-          cache: 'npm'
-          cache-dependency-path: './clients/mobile/package-lock.json'
+          node-version-file: "./clients/mobile/package.json"
+          cache: "npm"
+          cache-dependency-path: "./clients/mobile/package-lock.json"
       - name: Install dependencies
         run: npm ci
+      - name: Install shared dependencies
+        run: cd ../shared && npm ci
+      - name: Generate API types
+        run: cd ../shared && npm run generate:api
       - name: Run tests with coverage
         run: npm run test:coverage
       - name: Upload coverage report
@@ -92,9 +100,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: './clients/mobile/package.json'
-          cache: 'npm'
-          cache-dependency-path: './clients/mobile/package-lock.json'
+          node-version-file: "./clients/mobile/package.json"
+          cache: "npm"
+          cache-dependency-path: "./clients/mobile/package-lock.json"
       - name: Install dependencies
         run: npm ci
       - name: Install shared dependencies
