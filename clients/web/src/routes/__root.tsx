@@ -9,7 +9,6 @@ import { useEffect } from 'react'
 import Header from '../components/Header'
 import appCss from '../styles.css?url'
 
-
 // Client explicity created outside the component to avoid recreation
 const queryClient = new QueryClient({
   defaultOptions: {
