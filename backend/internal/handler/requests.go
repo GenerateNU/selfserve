@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/aiflows"
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
