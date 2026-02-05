@@ -15,7 +15,7 @@ jest.mock("@clerk/clerk-expo", () => {
   };
 });
 
-jest.mock("../../../hooks/hello", () => ({
+jest.mock("../../../hooks/use-hello", () => ({
   useGetHello: () => ({
     data: "hello",
     isLoading: false,
