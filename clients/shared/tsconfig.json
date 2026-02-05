@@ -19,7 +19,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@app/clerk": ["./node_modules/@clerk/clerk-react"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
