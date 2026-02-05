@@ -1,3 +1,4 @@
+import { buildQueryString } from "@/utils";
 import { ApiError, HttpClient, RequestConfig } from "../types/api.types";
 import { getAuthProvider } from "./auth-provider";
 
@@ -10,10 +11,8 @@ export const createRequest = (
 ) => {
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
-    if (config.params) {
-      // improve this, messes up with different param types
-      // TODO:
-      fullUrl += "?" + new URLSearchParams(config.params).toString();
+    if (config.params && Object.keys(config.params).length > 0) {
+      fullUrl += '?' + buildQueryString(config.params);
     }
 
     try {

@@ -170,7 +170,7 @@ func setupApp() *fiber.App {
 
 func setupClerk() {
 	if os.Getenv("ENV") == "development" {
-		clerksdk.SetKey(os.Getenv("DEV_CLERK_SECRET_KEY"))
+		clerksdk.SetKey(os.Getenv("CLERK_SECRET_KEY"))
 	} else {
 		/*
 			Missing prod url to complete

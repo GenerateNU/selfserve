@@ -22,7 +22,7 @@ type WebhookVerifier interface {
 }
 
 func NewWebhookVerifier() (WebhookVerifier, error) {
-	return svix.NewWebhook(os.Getenv("DEV_CLERK_WEBHOOK_SIGNATURE"))
+	return svix.NewWebhook(os.Getenv("CLERK_WEBHOOK_SIGNATURE"))
 }
 
 func NewClerkWebHookHandler(userRepo storage.UsersRepository, WebhookVerifier WebhookVerifier) *ClerkWebHookHandler {
