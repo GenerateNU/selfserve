@@ -3,7 +3,7 @@ package models
 import "time"
 
 type CreateUser struct {
-	ID        	   string  `json:"id" example:"user_123"`
+	ID             string  `json:"id" example:"user_123"`
 	FirstName      string  `json:"first_name" example:"John"`
 	LastName       string  `json:"last_name" example:"Doe"`
 	EmployeeID     *string `json:"employee_id" example:"EMP-1234"`

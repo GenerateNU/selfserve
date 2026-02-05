@@ -1,17 +1,17 @@
 package service
 
 import (
-	"fmt"
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
-	"errors"
 
 	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
-	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
