@@ -1,4 +1,4 @@
-import { buildQueryString } from "@/utils";
+import { buildQueryString } from "../utils";
 import { ApiError, HttpClient, RequestConfig } from "../types/api.types";
 import { getAuthProvider } from "./auth-provider";
 
