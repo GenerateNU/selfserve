@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { useAPIClient } from '@shared/api/client'
+import { useAPIClient } from '@shared/api/client'
 import type { ApiError } from '@shared'
 
 /**
