@@ -1,5 +1,5 @@
 import { cleanup } from '@testing-library/react'
-import { afterEach, beforeEach } from 'vitest'
+import { afterEach } from 'vitest'
 import { setAuthProvider } from '@shared'
 
 // Configure mock auth provider for tests before hooks are called

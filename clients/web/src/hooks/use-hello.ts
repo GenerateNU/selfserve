@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { useAPIClient } from '@shared/api/client'
-import { ApiError } from '@shared'
+import type { useAPIClient } from '@shared/api/client'
+import type { ApiError } from '@shared'
 
 /**
  * Example of manual hook creation, instead of orval

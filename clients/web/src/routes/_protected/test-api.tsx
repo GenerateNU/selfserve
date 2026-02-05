@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useGetHelloName } from '@shared/api/generated/endpoints/hello/hello.ts'
-import { ApiError } from '@shared'
+import type { ApiError } from '@shared'
 
 export const Route = createFileRoute('/_protected/test-api')({
   component: TestApi,

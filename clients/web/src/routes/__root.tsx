@@ -4,10 +4,11 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import Header from '../components/Header'
-import appCss from '../styles.css?url'
 import { setAuthProvider } from '@shared'
 import { useEffect } from 'react'
+import Header from '../components/Header'
+import appCss from '../styles.css?url'
+
 
 // Client explicity created outside the component to avoid recreation
 const queryClient = new QueryClient({
