@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAPIClient } from "./use-api-client";
+import { useAPIClient } from "@shared/api/client";
 
 export const useGetHello = () => {
   const api = useAPIClient();

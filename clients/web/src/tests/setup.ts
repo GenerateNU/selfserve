@@ -1,9 +1,11 @@
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
-import React from 'react'
+import { afterEach, beforeEach } from 'vitest'
+import { setAuthProvider } from '@shared'
 
-// Ensure React is available globally
-global.React = React
+// Configure mock auth provider for tests before hooks are called
+setAuthProvider({
+  getToken: async () => 'mock-token',
+})
 
 // Cleanup after each test
 afterEach(() => {

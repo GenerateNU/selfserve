@@ -9,10 +9,12 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
-import { tokenCache } from "@clerk/clerk-expo/token-cache";
 
+import { tokenCache } from "@clerk/clerk-expo/token-cache";
+import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { setAuthProvider } from "@shared";
+import { useEffect } from "react";
 
 // Client explicity created outside component to avoid recreation
 const queryClient = new QueryClient({
@@ -29,6 +31,16 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+function AuthConfigurator() {
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    setAuthProvider({ getToken });
+  }, [getToken]);
+
+  return null;
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
@@ -38,6 +50,7 @@ export default function RootLayout() {
       tokenCache={tokenCache}
     >
       <ClerkLoaded>
+        <AuthConfigurator />
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <ThemeProvider

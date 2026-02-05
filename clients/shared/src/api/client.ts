@@ -1,5 +1,5 @@
 import { ApiError, HttpClient, RequestConfig } from "../types/api.types";
-import { useAuth } from "@app/clerk";
+import { getAuthProvider } from "./auth-provider";
 
 /**
  * Internal helper to make HTTP requests w/ error handling
@@ -11,6 +11,8 @@ export const createRequest = (
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
     if (config.params) {
+      // improve this, messes up with different param types
+      // TODO:
       fullUrl += "?" + new URLSearchParams(config.params).toString();
     }
 
@@ -67,7 +69,7 @@ export const createRequest = (
 };
 
 export const useAPIClient = (): HttpClient => {
-  const { getToken } = useAuth();
+  const { getToken } = getAuthProvider();
   const request = createRequest(getToken, getBaseUrl());
 
   return {

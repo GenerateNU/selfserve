@@ -2,14 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
-
-// Mock useAuth hook
-vi.mock('@app/clerk', () => ({
-  useAuth: () => ({
-    getToken: vi.fn().mockResolvedValue('mock-token'),
-  }),
-}))
-
 import { useGetHello, useGetHelloName } from '@shared'
 
 global.fetch = vi.fn()

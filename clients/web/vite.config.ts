@@ -27,9 +27,6 @@ const config = defineConfig(({ mode }) => {
       alias: {
         '@shared': path.resolve(__dirname, '../shared/src'),
         '@app/clerk': path.resolve(__dirname, './src/hooks/clerk.ts'),
-        // Force single React instance
-        react: path.resolve(__dirname, './node_modules/react'),
-        'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       },
       // Deduplicate deps to use web app's node_modules
       dedupe: ['@tanstack/react-query', 'react', 'react-dom'],
@@ -41,10 +38,10 @@ const config = defineConfig(({ mode }) => {
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./src/tests/setup.ts'],
-      // Ensure React is properly resolved in tests
-      alias: {
-        react: path.resolve(__dirname, './node_modules/react'),
-        'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+      server: {
+        deps: {
+          inline: ['@shared'],
+        },
       },
     },
   }

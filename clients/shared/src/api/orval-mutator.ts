@@ -1,6 +1,6 @@
-import { useAuth } from "@app/clerk";
+import { getAuthProvider } from "./auth-provider";
 import { createRequest, getBaseUrl } from "./client";
-import { RequestConfig } from "@/types/api.types";
+import { RequestConfig } from "../types/api.types";
 
 /**
  * Custom mutator for Orval to use our existing fetch-based client
@@ -10,7 +10,7 @@ import { RequestConfig } from "@/types/api.types";
 export const useCustomInstance = <T>(): ((
   config: RequestConfig,
 ) => Promise<T>) => {
-  const { getToken } = useAuth();
+  const { getToken } = getAuthProvider();
   const request = createRequest(getToken, getBaseUrl());
 
   return async (config: RequestConfig): Promise<T> => {

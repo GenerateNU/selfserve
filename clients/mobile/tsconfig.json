@@ -5,6 +5,7 @@
     "types": ["jest", "nativewind/types"],
     "paths": {
       "@/*": ["./*"],
+      "@shared": ["../shared/src"],
       "@shared/*": ["../shared/src/*"],
       "@app/clerk": ["./hooks/clerk.ts"]
     }
