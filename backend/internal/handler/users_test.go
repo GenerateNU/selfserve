@@ -51,8 +51,8 @@ func TestUsersHandler_GetUserByID(t *testing.T) {
 						FirstName: "John",
 						LastName:  "Doe",
 						Role:      &role,
+						ID: "550e8400-e29b-41d4-a716-446655440000",
 					},
-					ID: "550e8400-e29b-41d4-a716-446655440000",
 				}, nil
 			},
 		}
@@ -121,8 +121,9 @@ func TestUsersHandler_GetUserByID_InvalidMethods(t *testing.T) {
 			return &models.User{
 				CreateUser: models.CreateUser{
 					FirstName: "John",
+					ID: "123",
 				},
-				ID: "123",
+				
 			}, nil
 		},
 	}
@@ -169,7 +170,6 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		mock := &mockUsersRepository{
 			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 				return &models.User{
-					ID:         "generated-uuid",
 					CreatedAt:  time.Now(),
 					UpdatedAt:  time.Now(),
 					CreateUser: *user,
@@ -201,7 +201,6 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		mock := &mockUsersRepository{
 			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 				return &models.User{
-					ID:         "generated-uuid",
 					CreatedAt:  time.Now(),
 					UpdatedAt:  time.Now(),
 					CreateUser: *user,

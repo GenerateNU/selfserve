@@ -79,7 +79,7 @@ func reformatUserData(CreateUserRequest models.CreateUserWebhook) *models.Create
 	result := &models.CreateUser{
 		FirstName: CreateUserRequest.Data.FirstName,
 		LastName:  CreateUserRequest.Data.LastName,
-		ClerkID:   CreateUserRequest.Data.ID,
+		ID:   CreateUserRequest.Data.ID,
 	}
 	if CreateUserRequest.Data.HasImage {
 		result.ProfilePicture = CreateUserRequest.Data.ImageUrl
