@@ -71,7 +71,7 @@ func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.C
 		batch.Queue(`
             INSERT INTO users (clerk_id, first_name, last_name, profile_picture)
             VALUES ($1, $2, $3, $4)
-            ON CONFLICT (clerk_id) DO NOTHING
+            ON CONFLICT (clerk_id) DO UPDATE
         `, u.ClerkID, u.FirstName, u.LastName, u.ProfilePicture)
 	}
 

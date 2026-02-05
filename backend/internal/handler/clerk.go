@@ -1,13 +1,13 @@
 package handler
 
 import (
+	"github.com/generate/selfserve/config" 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 	svix "github.com/svix/svix-webhooks/go"
 	"net/http"
-	"os"
 )
 
 type ClerkWebHookHandler struct {
@@ -19,8 +19,8 @@ type WebhookVerifier interface {
 	Verify(payload []byte, headers http.Header) error
 }
 
-func NewWebhookVerifier() (WebhookVerifier, error) {
-	return svix.NewWebhook(os.Getenv("DEV_CLERK_WEBHOOK_SIGNATURE"))
+func NewWebhookVerifier(cfg *config.Config) (WebhookVerifier, error) {
+	return svix.NewWebhook(cfg.Clerk.WebhookSignature)
 }
 
 func NewClerkWebHookHandler(userRepo storage.UsersRepository, WebhookVerifier WebhookVerifier) *ClerkWebHookHandler {
