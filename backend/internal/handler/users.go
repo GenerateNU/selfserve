@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"errors"
 	"log/slog"
 	"strings"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -75,7 +75,7 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	res, err := h.repo.InsertUser(c.Context(), &CreateUserRequest)
+	res, err := h.UsersRepository.InsertUser(c.Context(), &CreateUserRequest)
 	if err != nil {
 		return errs.InternalServerError()
 	}
