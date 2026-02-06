@@ -21,7 +21,7 @@ function PfpFlow() {
     const fetchProfilePicture = async () => {
       try {
         const res = await fetch(
-          `${API_BASE_URL}/api/v1/users/${TEST_USER_ID}/profile-picture`
+          `${API_BASE_URL}/api/v1/users/${TEST_USER_ID}/profile-picture`,
         )
         if (res.ok) {
           const data = await res.json()
@@ -61,7 +61,7 @@ function PfpFlow() {
       // Step 1: Get presigned upload URL from backend
       const ext = getFileExtension(file.name)
       const uploadUrlRes = await fetch(
-        `${API_BASE_URL}/api/v1/s3/upload-url/${TEST_USER_ID}?ext=${ext}`
+        `${API_BASE_URL}/api/v1/s3/upload-url/${TEST_USER_ID}?ext=${ext}`,
       )
       if (!uploadUrlRes.ok) {
         throw new Error('Failed to get upload URL')
@@ -89,7 +89,7 @@ function PfpFlow() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ key }),
-        }
+        },
       )
       if (!saveRes.ok) {
         throw new Error('Failed to save profile picture')
@@ -98,7 +98,7 @@ function PfpFlow() {
       // Step 4: Get a presigned URL to display the image
       setStatus('Fetching display URL...')
       const displayUrlRes = await fetch(
-        `${API_BASE_URL}/api/v1/s3/presigned-get-url/${key}`
+        `${API_BASE_URL}/api/v1/s3/presigned-get-url/${key}`,
       )
       if (!displayUrlRes.ok) {
         throw new Error('Failed to get display URL')
@@ -108,7 +108,9 @@ function PfpFlow() {
       setProfilePicUrl(displayUrl)
       setStatus('Upload complete!')
     } catch (err) {
-      setStatus(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      setStatus(
+        `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      )
     } finally {
       setIsLoading(false)
     }
@@ -121,7 +123,7 @@ function PfpFlow() {
     try {
       const res = await fetch(
         `${API_BASE_URL}/api/v1/users/${TEST_USER_ID}/profile-picture`,
-        { method: 'DELETE' }
+        { method: 'DELETE' },
       )
       if (!res.ok) {
         throw new Error('Failed to remove profile picture')
@@ -133,7 +135,9 @@ function PfpFlow() {
         fileInputRef.current.value = ''
       }
     } catch (err) {
-      setStatus(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      setStatus(
+        `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      )
     } finally {
       setIsLoading(false)
     }
@@ -157,7 +161,9 @@ function PfpFlow() {
 
       {/* Current Profile Picture */}
       <div style={{ marginBottom: '32px' }}>
-        <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: '500' }}>
+        <div
+          style={{ marginBottom: '12px', fontSize: '14px', fontWeight: '500' }}
+        >
           Current Picture
         </div>
         {isInitialLoading ? (
@@ -214,7 +220,9 @@ function PfpFlow() {
 
       {/* Actions */}
       <div style={{ marginBottom: '24px' }}>
-        <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: '500' }}>
+        <div
+          style={{ marginBottom: '12px', fontSize: '14px', fontWeight: '500' }}
+        >
           Actions
         </div>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
