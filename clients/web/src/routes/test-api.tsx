@@ -10,8 +10,8 @@ function TestApi() {
 
   const { data, isLoading, error, refetch } = useGetHelloName(submittedName)
 
-  const handleSubmitName = (name: string) => {
-    setSubmittedName(name)
+  const handleSubmitName = (submittedName: string) => {
+    setSubmittedName(submittedName)
   }
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // Hardcoded user ID for testing - replace with actual user ID from your database
 const TEST_USER_ID = 'd2cdfc34-f4e7-4e1b-bbd0-234fbd8feeaa'
