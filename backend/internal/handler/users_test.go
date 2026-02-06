@@ -24,6 +24,7 @@ type mockUsersRepository struct {
 	updateProfilePicFunc func(ctx context.Context, userId string, key string) error
 	deleteProfilePicFunc func(ctx context.Context, userId string) error
 	getKeyFunc           func(ctx context.Context, userId string) (string, error)
+	bulkInsertUsersFunc  func(ctx context.Context, users []*models.CreateUser) error
 }
 
 func (m *mockUsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {
@@ -72,6 +73,16 @@ func (m *mockUsersRepository) GetKey(
 		return m.getKeyFunc(ctx, userId)
 	}
 	return "", nil
+}
+
+func (m *mockUsersRepository) BulkInsertUsers(
+	ctx context.Context,
+	users []*models.CreateUser,
+) error {
+	if m.bulkInsertUsersFunc != nil {
+		return m.bulkInsertUsersFunc(ctx, users)
+	}
+	return nil
 }
 
 // Makes the compiler verify the mock
