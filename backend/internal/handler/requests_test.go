@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/aiflows"
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"

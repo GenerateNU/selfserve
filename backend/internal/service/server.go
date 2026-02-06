@@ -1,17 +1,17 @@
 package service
 
 import (
-	"fmt"
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
-	"errors"
 
 	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
-	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
@@ -40,9 +40,9 @@ func InitApp(cfg *config.Config) (*App, error) {
 	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
 
 	app := setupApp()
-	setupClerk()
+	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance); err != nil {
+	if err = setupRoutes(app, repo, genkitInstance, cfg); err != nil {
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -56,7 +56,9 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService) error {
+func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
+	 cfg *config.Config) error {
+
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -81,7 +83,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
-	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier()
+	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
 		return err
 	}
@@ -168,9 +170,9 @@ func setupApp() *fiber.App {
 	return app
 }
 
-func setupClerk() {
+func setupClerk(cfg *config.Config) {
 	if os.Getenv("ENV") == "development" {
-		clerksdk.SetKey(os.Getenv("CLERK_SECRET_KEY"))
+		clerksdk.SetKey(cfg.Clerk.SecretKey)
 	} else {
 		/*
 			Missing prod url to complete
