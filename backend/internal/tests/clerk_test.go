@@ -12,6 +12,7 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/models"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,6 +37,25 @@ func (m *mockUsersRepositoryClerk) InsertUser(ctx context.Context, user *models.
 func (m *mockUsersRepositoryClerk) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
 	return nil
 }
+
+func (m *mockUsersRepositoryClerk) FindUser(ctx context.Context, id string) (*models.User, error) {
+	return nil, nil
+}
+
+func (m *mockUsersRepositoryClerk) UpdateProfilePicture(ctx context.Context, userId string, key string) error {
+	return nil
+}
+
+func (m *mockUsersRepositoryClerk) DeleteProfilePicture(ctx context.Context, userId string) error {
+	return nil
+}
+
+func (m *mockUsersRepositoryClerk) GetKey(ctx context.Context, userId string) (string, error) {
+	return "", nil
+}
+
+// Makes the compiler verify the mock implements the interface
+var _ storage.UsersRepository = (*mockUsersRepositoryClerk)(nil)
 
 func TestClerkHandler_CreateUser(t *testing.T) {
 	t.Parallel()
