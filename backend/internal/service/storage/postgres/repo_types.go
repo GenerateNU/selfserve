@@ -8,16 +8,28 @@ import (
 )
 
 type UsersRepository interface {
+	FindUser(ctx context.Context, id string) (*models.User, error)
 	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
 	UpdateProfilePicture(ctx context.Context, userId string, key string) error
 	DeleteProfilePicture(ctx context.Context, userId string) error
 	GetKey(ctx context.Context, userId string) (string, error)
+	BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error
+}
+
+type GuestsRepository interface {
+	InsertGuest(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error)
+	FindGuest(ctx context.Context, id string) (*models.Guest, error)
+	UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error)
 }
 
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
 
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
+}
+
+type HotelRepository interface {
+	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 }
 
 type HotelsRepository interface {

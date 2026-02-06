@@ -1,5 +1,5 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import { helloService } from '../api/services/hello.service'
+import { getHello, getHelloName } from '../api/generated/endpoints/hello/hello'
 import { ApiError } from '../types/api.types'
 
 /**
@@ -8,7 +8,10 @@ import { ApiError } from '../types/api.types'
 export const useGetHello = (): UseQueryResult<string, ApiError> => {
   return useQuery({
     queryKey: ['hello'],
-    queryFn: () => helloService.getHello(),
+    queryFn: async () => {
+      const response = await getHello()
+      return response.data
+    },
   })
 }
 
@@ -20,7 +23,10 @@ export const useGetHelloName = (
 ): UseQueryResult<string, ApiError> => {
   return useQuery({
     queryKey: ['hello', name],
-    queryFn: () => helloService.getHelloName(name),
+    queryFn: async () => {
+      const response = await getHelloName(name)
+      return response.data
+    },
     enabled: !!name && name.trim().length > 0,
   })
 }

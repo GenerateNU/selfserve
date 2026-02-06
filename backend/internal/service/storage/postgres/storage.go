@@ -18,7 +18,9 @@ type Repository struct {
 	DB                *pgxpool.Pool
 	DevsRepository    DevsRepository
 	UsersRepository   UsersRepository
+	GuestsRepository  GuestsRepository
 	RequestRepository RequestsRepository
+	HotelRepository   HotelRepository
 	HotelsRepository  HotelsRepository
 }
 
@@ -63,7 +65,9 @@ func NewRepository(config config.DB) (*Repository, error) {
 		DB:                db,
 		DevsRepository:    repository.NewDevsRepository(db),
 		UsersRepository:   repository.NewUsersRepository(db),
+		GuestsRepository:  repository.NewGuestsRepository(db),
 		RequestRepository: repository.NewRequestsRepo(db),
+		HotelRepository:   repository.NewHotelRepository(db),
 		HotelsRepository:  repository.NewHotelsRepo(db),
 	}, nil
 }

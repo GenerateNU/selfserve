@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"sort"
+	"context"
+	"errors"
+	"log/slog"
 	"strings"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
-	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -24,6 +25,33 @@ type UsersHandler struct {
 
 func NewUsersHandler(repo storage.UsersRepository, s3 storage.S3Storage) *UsersHandler {
 	return &UsersHandler{UsersRepository: repo, S3Storage: s3}
+}
+
+// GetUserByID godoc
+// @Summary      Get user by ID
+// @Description  Retrieves a user by their unique app ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id  path      string  true  "User ID"
+// @Success      200   {object}  models.User
+// @Failure      400   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /users/{id} [get]
+func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return errs.BadRequest("id is required")
+	}
+	user, err := h.UsersRepository.FindUser(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("user", "id", id)
+		}
+		slog.Error(err.Error())
+		return errs.InternalServerError()
+	}
+	return c.JSON(user)
 }
 
 // CreateUser godoc
@@ -47,7 +75,7 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	res, err := h.UsersRepository.InsertUser(c.Context(), &CreateUserRequest)
+	res, err := h.repo.InsertUser(c.Context(), &CreateUserRequest)
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -66,32 +94,19 @@ func validateCreateUser(user *models.CreateUser) error {
 		errors["last_name"] = "must not be an empty string"
 	}
 
-	if strings.TrimSpace(user.Role) == "" {
-		errors["role"] = "must not be an empty string"
-	}
-
 	if user.Timezone != nil {
-		if _, err := time.LoadLocation(*user.Timezone); err != nil {
+		_, err := time.LoadLocation(*user.Timezone)
+		if err != nil || !strings.Contains(*user.Timezone, "/") {
 			errors["timezone"] = "invalid IANA timezone"
 		}
 	}
 
-	// Aggregates errors deterministically
-	if len(errors) > 0 {
-		var keys []string
-		for k := range errors {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		var parts []string
-		for _, k := range keys {
-			parts = append(parts, k+": "+errors[k])
-		}
-		return errs.BadRequest(strings.Join(parts, ", "))
+	if strings.TrimSpace(user.ClerkID) == "" {
+		errors["clerk_id"] = "must not be an empty string"
 	}
 
-	return nil
+	// Aggregates errors deterministically
+	return AggregateErrors(errors)
 }
 
 // GetProfilePicture godoc

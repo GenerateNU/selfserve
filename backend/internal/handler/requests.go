@@ -3,8 +3,10 @@ package handler
 import (
 	"errors"
 	"log/slog"
+	"sort"
 	"strings"
 
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
@@ -12,11 +14,15 @@ import (
 )
 
 type RequestsHandler struct {
-	RequestRepository storage.RequestsRepository
+	RequestRepository      storage.RequestsRepository
+	GenerateRequestService aiflows.GenerateRequestService
 }
 
-func NewRequestsHandler(repo storage.RequestsRepository) *RequestsHandler {
-	return &RequestsHandler{RequestRepository: repo}
+func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService aiflows.GenerateRequestService) *RequestsHandler {
+	return &RequestsHandler{
+		RequestRepository:      repo,
+		GenerateRequestService: generateRequestService,
+	}
 }
 
 // CreateRequest godoc
@@ -101,4 +107,92 @@ func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(dev)
+}
+
+func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
+	errors := make(map[string]string)
+
+	if !validUUID(incoming.HotelID) {
+		errors["hotel_id"] = "invalid uuid"
+	}
+
+	if incoming.RawText == "" {
+		errors["raw_text"] = "must not be an empty string"
+	}
+
+	if len(errors) > 0 {
+		var keys []string
+		for k := range errors {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		var parts []string
+		for _, k := range keys {
+			parts = append(parts, k+": "+errors[k])
+		}
+		return errs.BadRequest(strings.Join(parts, ", "))
+	}
+
+	return nil
+}
+
+// GenerateRequest godoc
+// @Summary      generates a request
+// @Description  Generates a request using AI
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param  request  body  models.GenerateRequestInput  true  "Request data with raw text"
+// @Success      200   {object}  models.Request
+// @Failure      400   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /request/generate [post]
+func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
+	var incoming models.GenerateRequestInput
+	if err := c.BodyParser(&incoming); err != nil {
+		return errs.InvalidJSON()
+	}
+
+	if err := validateGenerateRequest(&incoming); err != nil {
+		return err
+	}
+
+	parsed, err := r.GenerateRequestService.RunGenerateRequest(c.Context(), aiflows.GenerateRequestInput{
+		RawText: incoming.RawText,
+	})
+	if err != nil {
+		slog.Error("genkit failed to generate a request", "error", err)
+		return errs.InternalServerError()
+	}
+
+	req := models.Request{MakeRequest: models.MakeRequest{
+		HotelID:                 incoming.HotelID,
+		GuestID:                 parsed.GuestID,
+		UserID:                  parsed.UserID,
+		ReservationID:           parsed.ReservationID,
+		Name:                    parsed.Name,
+		Description:             parsed.Description,
+		RoomID:                  parsed.RoomID,
+		RequestCategory:         parsed.RequestCategory,
+		RequestType:             parsed.RequestType,
+		Department:              parsed.Department,
+		Status:                  parsed.Status,
+		Priority:                parsed.Priority,
+		EstimatedCompletionTime: parsed.EstimatedCompletionTime,
+		ScheduledTime:           nil, // TODO: Potentially add schedule time from user input / auto-scheduling
+		CompletedAt:             nil,
+		Notes:                   parsed.Notes,
+	}}
+
+	if err := validateCreateRequest(&req); err != nil {
+		return err
+	}
+
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(res)
 }
