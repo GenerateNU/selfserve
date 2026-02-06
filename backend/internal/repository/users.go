@@ -60,7 +60,7 @@ func (r *UsersRepository) GetKey(ctx context.Context, userId string) (string, er
 	return key, nil
 }
 
-func (r *UsersRepository) DeleteProfilePicture(ctx context.Context, userID string) error {
-	_, err := r.db.Exec(ctx, `UPDATE users SET profile_picture = NULL WHERE id=$1`, userID)
+func (r *UsersRepository) DeleteProfilePicture(ctx context.Context, userId string) error {
+	_, err := r.db.Exec(ctx, `UPDATE users SET profile_picture = NULL WHERE id=$1`, userId)
 	return err
 }

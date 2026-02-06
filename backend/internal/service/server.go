@@ -88,6 +88,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 	// User Routes
 	api.Route("/users", func(r fiber.Router) {
 		r.Post("/", usersHandler.CreateUser)
+		r.Get("/:userId/profile-picture", usersHandler.GetProfilePicture)
 		r.Put("/:userId/profile-picture", usersHandler.UpdateProfilePicture)
 		r.Delete("/:userId/profile-picture", usersHandler.DeleteProfilePicture)
 	})
@@ -104,10 +105,10 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 	})
 
 	// s3 routes
-
 	api.Route("/s3", func(r fiber.Router) {
-		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
+		r.Get("/presigned-url/*", s3Handler.GeneratePresignedURL)
 		r.Get("/upload-url/:userId", s3Handler.GetUploadURL)
+		r.Get("/presigned-get-url/*", s3Handler.GeneratePresignedGetURL)
 	})
 
 }

@@ -65,9 +65,17 @@ func (m *mockUsersRepository) GetKey(
 // Makes the compiler verify the mock
 var _ storage.UsersRepository = (*mockUsersRepository)(nil)
 
-// Mock S3 Storage for testing DeleteProfilePicture
+// Mock S3 Storage for testing
 type mockS3Storage struct {
 	deleteFileFunc func(ctx context.Context, key string) error
+}
+
+func (m *mockS3Storage) GeneratePresignedURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
+	return "", nil
+}
+
+func (m *mockS3Storage) GeneratePresignedGetURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
+	return "", nil
 }
 
 func (m *mockS3Storage) DeleteFile(ctx context.Context, key string) error {
@@ -103,7 +111,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Post("/users", h.CreateUser)
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(validBody))
@@ -135,7 +143,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Post("/users", h.CreateUser)
 
 		bodyWithOptionals := `{
@@ -170,7 +178,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Post("/users", h.CreateUser)
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(`{invalid json`))
@@ -192,7 +200,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Post("/users", h.CreateUser)
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(`{}`))
@@ -219,7 +227,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Post("/users", h.CreateUser)
 
 		invalidTimezoneBody := `{
@@ -251,7 +259,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Post("/users", h.CreateUser)
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(validBody))
@@ -277,7 +285,7 @@ func TestUsersHandler_UpdateProfilePicture(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Put("/users/:userId/profile-picture", h.UpdateProfilePicture)
 
 		body := `{"key": "profile-pictures/user123/1706540000.jpg"}`
@@ -299,7 +307,7 @@ func TestUsersHandler_UpdateProfilePicture(t *testing.T) {
 		mock := &mockUsersRepository{}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Put("/users/:userId/profile-picture", h.UpdateProfilePicture)
 
 		req := httptest.NewRequest("PUT", "/users/user123/profile-picture", bytes.NewBufferString(`{}`))
@@ -320,7 +328,7 @@ func TestUsersHandler_UpdateProfilePicture(t *testing.T) {
 		mock := &mockUsersRepository{}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Put("/users/:userId/profile-picture", h.UpdateProfilePicture)
 
 		req := httptest.NewRequest("PUT", "/users/user123/profile-picture", bytes.NewBufferString(`{"key": ""}`))
@@ -338,7 +346,7 @@ func TestUsersHandler_UpdateProfilePicture(t *testing.T) {
 		mock := &mockUsersRepository{}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Put("/users/:userId/profile-picture", h.UpdateProfilePicture)
 
 		req := httptest.NewRequest("PUT", "/users/user123/profile-picture", bytes.NewBufferString(`{invalid`))
@@ -360,7 +368,7 @@ func TestUsersHandler_UpdateProfilePicture(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, nil)
+		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Put("/users/:userId/profile-picture", h.UpdateProfilePicture)
 
 		body := `{"key": "profile-pictures/user123/1706540000.jpg"}`
@@ -423,7 +431,7 @@ func TestUsersHandler_DeleteProfilePicture(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := &UsersHandler{UsersRepository: mockRepo, S3Storage: nil}
+		h := &UsersHandler{UsersRepository: mockRepo, S3Storage: &mockS3Storage{}}
 		app.Delete("/users/:userId/profile-picture", h.DeleteProfilePicture)
 
 		req := httptest.NewRequest("DELETE", "/users/user123/profile-picture", nil)
@@ -444,7 +452,7 @@ func TestUsersHandler_DeleteProfilePicture(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := &UsersHandler{UsersRepository: mockRepo, S3Storage: nil}
+		h := &UsersHandler{UsersRepository: mockRepo, S3Storage: &mockS3Storage{}}
 		app.Delete("/users/:userId/profile-picture", h.DeleteProfilePicture)
 
 		req := httptest.NewRequest("DELETE", "/users/user123/profile-picture", nil)

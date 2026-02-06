@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	"github.com/generate/selfserve/internal/models"
 )
@@ -25,5 +26,7 @@ type HotelsRepository interface {
 
 // S3Storage defines the interface for S3 operations
 type S3Storage interface {
+	GeneratePresignedURL(ctx context.Context, key string, expiration time.Duration) (string, error)
+	GeneratePresignedGetURL(ctx context.Context, key string, expiration time.Duration) (string, error)
 	DeleteFile(ctx context.Context, key string) error
 }

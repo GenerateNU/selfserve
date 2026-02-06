@@ -94,6 +94,46 @@ func validateCreateUser(user *models.CreateUser) error {
 	return nil
 }
 
+// GetProfilePicture godoc
+// @Summary      Get user's profile picture
+// @Description  Retrieves the user's profile picture key and returns a presigned URL for display
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        userId   path      string                        true  "User ID"
+// @Success      200      {object}  map[string]string  "Returns key and presigned_url if profile picture exists"
+// @Failure      400      {object}  map[string]string
+// @Failure      404      {object}  map[string]string  "No profile picture found"
+// @Failure      500      {object}  map[string]string
+// @Router       /users/{userId}/profile-picture [get]
+func (h *UsersHandler) GetProfilePicture(c *fiber.Ctx) error {
+	userId := c.Params("userId")
+	if userId == "" {
+		return errs.BadRequest("userId is required")
+	}
+
+	key, err := h.UsersRepository.GetKey(c.Context(), userId)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	if key == "" {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "No profile picture found",
+		})
+	}
+
+	// Generate presigned URL for displaying the image
+	presignedURL, err := h.S3Storage.GeneratePresignedGetURL(c.Context(), key, 5*time.Minute)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(fiber.Map{
+		"key":           key,
+		"presigned_url": presignedURL,
+	})
+}
 
 // UpdateProfilePicture godoc
 // @Summary      Update user's profile picture
@@ -162,5 +202,3 @@ func (h *UsersHandler) DeleteProfilePicture(c *fiber.Ctx) error {
 		"message": "Profile picture deleted successfully",
 	})
 }
-	
-	
