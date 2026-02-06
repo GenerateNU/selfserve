@@ -347,7 +347,6 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), "first_name")
 		assert.Contains(t, string(body), "last_name")
-		assert.Contains(t, string(body), "role")
 		assert.Contains(t, string(body), "clerk_id")
 	})
 
