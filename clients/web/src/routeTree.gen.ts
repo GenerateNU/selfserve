@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestApiRouteImport } from './routes/test-api'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FlowsPfpRouteImport } from './routes/flows.pfp'
 
 const TestApiRoute = TestApiRouteImport.update({
   id: '/test-api',
@@ -22,31 +23,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FlowsPfpRoute = FlowsPfpRouteImport.update({
+  id: '/flows/pfp',
+  path: '/flows/pfp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/test-api': typeof TestApiRoute
+  '/flows/pfp': typeof FlowsPfpRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/test-api': typeof TestApiRoute
+  '/flows/pfp': typeof FlowsPfpRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/test-api': typeof TestApiRoute
+  '/flows/pfp': typeof FlowsPfpRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/test-api'
+  fullPaths: '/' | '/test-api' | '/flows/pfp'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/test-api'
-  id: '__root__' | '/' | '/test-api'
+  to: '/' | '/test-api' | '/flows/pfp'
+  id: '__root__' | '/' | '/test-api' | '/flows/pfp'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TestApiRoute: typeof TestApiRoute
+  FlowsPfpRoute: typeof FlowsPfpRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/flows/pfp': {
+      id: '/flows/pfp'
+      path: '/flows/pfp'
+      fullPath: '/flows/pfp'
+      preLoaderRoute: typeof FlowsPfpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TestApiRoute: TestApiRoute,
+  FlowsPfpRoute: FlowsPfpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
