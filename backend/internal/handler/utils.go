@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/models"
 	"github.com/google/uuid"
 )
 
@@ -29,4 +30,34 @@ func AggregateErrors(errors map[string]string) error {
 	}
 
 	return nil
+}
+
+func ValidateCreateUserClerk(user *models.ClerkUser) error {
+	errors := make(map[string]string)
+
+	if strings.TrimSpace(user.ID) == "" {
+		errors["id"] = "must not be an empty string"
+	}
+
+	if strings.TrimSpace(user.FirstName) == "" {
+		errors["first_name"] = "must not be an empty string"
+	}
+
+	if strings.TrimSpace(user.LastName) == "" {
+		errors["last_name"] = "must not be an empty string"
+	}
+
+	return AggregateErrors(errors)
+}
+
+func ReformatUserData(CreateUserRequest *models.ClerkUser) *models.CreateUser {
+	result := &models.CreateUser{
+		FirstName: CreateUserRequest.FirstName,
+		LastName:  CreateUserRequest.LastName,
+		ID:   CreateUserRequest.ID,
+	}
+	if CreateUserRequest.HasImage {
+		result.ProfilePicture = CreateUserRequest.ImageUrl
+	}
+	return result
 }

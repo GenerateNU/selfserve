@@ -63,3 +63,17 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 
 	return createdUser, nil
 }
+
+func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
+	batch := &pgx.Batch{}
+
+	for _, u := range users {
+		batch.Queue(`
+            INSERT INTO users (id, first_name, last_name, profile_picture)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (id) DO UPDATE
+        `, u.ID, u.FirstName, u.LastName, u.ProfilePicture)
+	}
+
+	return r.db.SendBatch(ctx, batch).Close()
+}
