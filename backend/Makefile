@@ -27,6 +27,9 @@ run: llm-start db-start
 	@$(LOAD_ENV) \
 	go run $(CMD_PATH)
 
+ngrok: 
+	@$(LOAD_ENV) ngrok http --domain=$$NGROK_DOMAIN $(PORT)
+
 dev: llm-start db-start clean build
 	@$(LOAD_ENV) \
 	./bin/$(APP_NAME)
@@ -34,6 +37,9 @@ dev: llm-start db-start clean build
 genkit-run: llm-start db-start
 	@$(LOAD_ENV) \
 	genkit start -- go run $(CMD_PATH)
+
+sync-users:
+	@$(LOAD_ENV) go run ./cmd/clerk/sync.go
 
 test:
 	@$(LOAD_ENV) \

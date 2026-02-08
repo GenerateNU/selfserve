@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"sort"
 	"strings"
 	"time"
 
@@ -93,30 +92,17 @@ func validateCreateUser(user *models.CreateUser) error {
 		errors["last_name"] = "must not be an empty string"
 	}
 
-	if strings.TrimSpace(user.Role) == "" {
-		errors["role"] = "must not be an empty string"
-	}
-
 	if user.Timezone != nil {
-		if _, err := time.LoadLocation(*user.Timezone); err != nil {
+		_, err := time.LoadLocation(*user.Timezone)
+		if err != nil || !strings.Contains(*user.Timezone, "/") {
 			errors["timezone"] = "invalid IANA timezone"
 		}
 	}
 
-	// Aggregates errors deterministically
-	if len(errors) > 0 {
-		var keys []string
-		for k := range errors {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		var parts []string
-		for _, k := range keys {
-			parts = append(parts, k+": "+errors[k])
-		}
-		return errs.BadRequest(strings.Join(parts, ", "))
+	if strings.TrimSpace(user.ClerkID) == "" {
+		errors["clerk_id"] = "must not be an empty string"
 	}
 
-	return nil
+	// Aggregates errors deterministically
+	return AggregateErrors(errors)
 }

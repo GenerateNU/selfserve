@@ -22,16 +22,16 @@ type MakeRequest struct {
 	ScheduledTime           *time.Time `json:"scheduled_time" example:"2024-01-01T00:00:00Z"`
 	CompletedAt             *time.Time `json:"completed_at" example:"2024-01-01T00:30:00Z"`
 	Notes                   *string    `json:"notes" example:"No special requests"`
-}
+} //@name MakeRequest
 
 type GenerateRequestInput struct {
 	RawText string `json:"raw_text" example:"Guest in room 504 needs extra towels urgently"`
 	HotelID string `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
-}
+} //@name GenerateRequestInput
 
 type Request struct {
 	ID        string    `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
 	CreatedAt time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`
 	UpdatedAt time.Time `json:"updated_at" example:"2024-01-02T00:00:00Z"`
 	MakeRequest
-}
+} //@name Request

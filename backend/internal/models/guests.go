@@ -21,4 +21,4 @@ type Guest struct {
 	CreatedAt time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`
 	UpdatedAt time.Time `json:"updated_at" example:"2024-01-02T00:00:00Z"`
 	CreateGuest
-}
+} //@name Guest
