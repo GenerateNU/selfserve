@@ -3,17 +3,17 @@ package models
 import "time"
 
 type CreateGuest struct {
-	FirstName      string  `json:"first_name" example:"John"`
-	LastName       string  `json:"last_name" example:"Doe"`
-	ProfilePicture *string `json:"profile_picture" example:"https://example.com/john.jpg"`
-	Timezone       *string `json:"timezone" example:"America/New_York"`
+	FirstName      string  `json:"first_name" validate:"notblank" example:"Jane"`
+	LastName       string  `json:"last_name" validate:"notblank" example:"Doe"`
+	ProfilePicture *string `json:"profile_picture,omitempty" validate:"omitempty,url" example:"https://example.com/john.jpg"`
+	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
 }
 
 type UpdateGuest struct {
-	FirstName      string  `json:"first_name" example:"John"`
-	LastName       string  `json:"last_name" example:"Doe"`
-	ProfilePicture *string `json:"profile_picture" example:"https://example.com/john.jpg"`
-	Timezone       *string `json:"timezone" example:"America/New_York"`
+	FirstName      string  `json:"first_name,omitempty" validate:"omitempty,notblank" example:"Jane"`
+	LastName       string  `json:"last_name,omitempty" validate:"omitempty,notblank" example:"Doe"`
+	ProfilePicture *string `json:"profile_picture,omitempty" validate:"omitempty,url" example:"https://example.com/john.jpg"`
+	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
 }
 
 type Guest struct {

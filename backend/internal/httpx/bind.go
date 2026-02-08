@@ -16,7 +16,8 @@ func BindAndValidate[T any](context *fiber.Ctx, output *T) error {
 	}
 
 	if err := validation.Validate.Struct(*output); err != nil {
-		return errs.InvalidRequestData(validation.ToFieldErrors(err))
+		fieldErrors := validation.ToFieldErrors(err)
+		return errs.BadRequest(validation.DeterministicErrorString(fieldErrors))
 	}
 
 	return nil
