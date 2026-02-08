@@ -3,6 +3,7 @@ module github.com/generate/selfserve
 go 1.24.1
 
 require (
+	github.com/clerk/clerk-sdk-go/v2 v2.5.1
 	github.com/firebase/genkit/go v1.4.0
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/gofiber/adaptor/v2 v2.2.1
@@ -20,6 +21,7 @@ require (
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.22.4 // indirect
@@ -76,6 +78,7 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
+	github.com/svix/svix-webhooks v1.84.1
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.69.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
