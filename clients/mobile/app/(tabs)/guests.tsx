@@ -40,6 +40,7 @@ export default function GuestsList() {
     'Guest Selected',
     `You selected guest ID: ${guestId}`,
     [{ text: 'OK' }]
+    // this is provisional, it will change when I finish the guest profile page
     );
   };
 

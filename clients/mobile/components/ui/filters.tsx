@@ -17,6 +17,9 @@ export interface Filter<T> {
 }
 
 interface FiltersProps {
+  // must use type any here because each filter's values can have a different type
+  // however, any is not a problem here because the only logic that interacts with the data
+  // is performed inside the filter component which has a type T and is type safe
   filters: Filter<any>[];
   className?: string;
 }
