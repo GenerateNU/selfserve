@@ -11,8 +11,10 @@ func TestRedisConnection(t *testing.T) {
 	if err != nil {
 		t.Skipf("Skipping test: Redis not available: %v", err)
 	}
-	defer Close()
 
+	defer func() {
+		_ = Close()
+	}()
 	ctx := context.Background()
 	
 	// Test Set
