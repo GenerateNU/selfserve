@@ -18,8 +18,9 @@ import (
 )
 
 type mockRequestRepository struct {
-	makeRequestFunc func(ctx context.Context, req *models.Request) (*models.Request, error)
-	findRequestFunc func(ctx context.Context, id string) (*models.Request, error)
+	makeRequestFunc          func(ctx context.Context, req *models.Request) (*models.Request, error)
+	findRequestFunc          func(ctx context.Context, id string) (*models.Request, error)
+	findRequestsByCursorFunc func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -28,6 +29,10 @@ func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.R
 
 func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
 	return m.findRequestFunc(ctx, id)
+}
+
+func (m *mockRequestRepository) FindRequestsByCursor(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+	return m.findRequestsByCursorFunc(ctx, cursor, status)
 }
 
 type mockLLMService struct {
@@ -703,5 +708,145 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 
 		assert.Equal(t, 200, resp.StatusCode)
 		assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", capturedRequest.HotelID)
+	})
+}
+
+func TestRequestHandler_GetRequestByCursor(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns 200 with requests and next cursor", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+				return []*models.Request{
+					{
+						ID:        "530e8400-e458-41d4-a716-446655440001",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+						MakeRequest: models.MakeRequest{
+							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							Name:        "room cleaning",
+							RequestType: "recurring",
+							Status:      "pending",
+							Priority:    "urgent",
+						},
+					},
+					{
+						ID:        "530e8400-e458-41d4-a716-446655440002",
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+						MakeRequest: models.MakeRequest{
+							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							Name:        "towel request",
+							RequestType: "one-time",
+							Status:      "pending",
+							Priority:    "normal",
+						},
+					},
+				}, "530e8400-e458-41d4-a716-446655440002", nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+
+		req := httptest.NewRequest("GET", "/request/cursor/530e8400-e458-41d4-a716-446655440000?status=pending", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "530e8400-e458-41d4-a716-446655440001")
+		assert.Contains(t, string(body), "530e8400-e458-41d4-a716-446655440002")
+		assert.Contains(t, string(body), "next_cursor")
+	})
+
+	t.Run("returns 400 when cursor is not a valid UUID", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+				return nil, "", errors.New("should not be called")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+
+		req := httptest.NewRequest("GET", "/request/cursor/notaUUID?status=pending", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "cursor")
+	})
+
+	t.Run("returns 400 when status is invalid", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+				return nil, "", errors.New("should not be called")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+
+		req := httptest.NewRequest("GET", "/request/cursor/530e8400-e458-41d4-a716-446655440000?status=invalid", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "Status")
+	})
+
+	t.Run("returns 404 when not found in db", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+				return nil, "", errs.ErrNotFoundInDB
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+
+		req := httptest.NewRequest("GET", "/request/cursor/530e8400-e458-41d4-a716-446655440000?status=pending", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 404, resp.StatusCode)
+	})
+
+	t.Run("returns 500 on db error", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+				return nil, "", errors.New("db connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+
+		req := httptest.NewRequest("GET", "/request/cursor/530e8400-e458-41d4-a716-446655440000?status=pending", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
 	})
 }

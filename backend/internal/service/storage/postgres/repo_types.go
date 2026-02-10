@@ -21,6 +21,8 @@ type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
 
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
+
+	FindRequestsByCursor(ctx context.Context, cursor string, status string) ([]*models.Request, string, error)
 }
 
 type HotelRepository interface {
