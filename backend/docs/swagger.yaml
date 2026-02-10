@@ -17,11 +17,14 @@ definitions:
     type: object
   CreateUser:
     properties:
+      clerk_id:
+        example: user_123
+        type: string
       department:
-        example: Engineering
+        example: Housekeeping
         type: string
       employee_id:
-        example: EMP-001
+        example: EMP-1234
         type: string
       first_name:
         example: John
@@ -30,13 +33,13 @@ definitions:
         example: Doe
         type: string
       profile_picture:
-        example: https://...
+        example: https://example.com/john.jpg
         type: string
       role:
-        example: admin
+        example: Receptionist
         type: string
       timezone:
-        example: UTC
+        example: America/New_York
         type: string
     type: object
   Dev:
@@ -230,14 +233,17 @@ definitions:
     type: object
   User:
     properties:
+      clerk_id:
+        example: user_123
+        type: string
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
       department:
-        example: Engineering
+        example: Housekeeping
         type: string
       employee_id:
-        example: EMP-001
+        example: EMP-1234
         type: string
       first_name:
         example: John
@@ -249,13 +255,13 @@ definitions:
         example: Doe
         type: string
       profile_picture:
-        example: https://...
+        example: https://example.com/john.jpg
         type: string
       role:
-        example: admin
+        example: Receptionist
         type: string
       timezone:
-        example: UTC
+        example: America/New_York
         type: string
       updated_at:
         example: "2024-01-01T00:00:00Z"
@@ -559,6 +565,45 @@ paths:
               type: string
             type: object
       summary: creates a request
+      tags:
+      - requests
+  /request/cursor/{cursor}:
+    get:
+      consumes:
+      - application/json
+      description: Gets 20 requests starting after the cursor ID, filtered by status
+      parameters:
+      - description: Cursor UUID
+        in: path
+        name: cursor
+        required: true
+        type: string
+      - description: 'Status filter: pending, assigned, in progress, completed'
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns requests array and next_cursor
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get requests by cursor
       tags:
       - requests
   /request/generate:
