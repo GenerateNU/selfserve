@@ -371,6 +371,7 @@ func (m *mockRequestRepository) GetAllRequests(ctx context.Context) ([]models.Re
 		return m.getAllRequestsFunc(ctx)
 	}
 	return nil, nil
+}
 
 func TestRequestHandler_Generate_Request(t *testing.T) {
 	t.Parallel()
