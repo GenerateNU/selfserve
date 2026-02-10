@@ -6,7 +6,7 @@ import { SearchBar } from '@/components/ui/search-bar';
 import { Filters } from '@/components/ui/filters';
 import { GuestCard } from '@/components/ui/guest-card';
 import { guestData } from '@/test-data/guests';
-import GuestProfile from '@/components/ui/guest-profile';
+import { router } from 'expo-router';
 
 export default function GuestsList() {
   const [search, setSearch] = useState('');
@@ -14,10 +14,7 @@ export default function GuestsList() {
   const [floor, setFloor] = useState<number | null>(null);
 
   const handleGuestPress = (guestId: number) => {
-    const guest = guestData.filter((g) => g.id === guestId)[0];
-    return (
-      <GuestProfile {...guest} />
-    );
+     router.push(`/guests/${guestId}`);
   };
 
   const filterConfig = [
