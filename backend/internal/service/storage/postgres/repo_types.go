@@ -8,6 +8,7 @@ import (
 
 type UsersRepository interface {
 	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error
 }
 
 type GuestsRepository interface {

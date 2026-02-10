@@ -1,0 +1,668 @@
+basePath: /api/v1
+definitions:
+  CreateGuest:
+    properties:
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+    type: object
+  CreateUser:
+    properties:
+      department:
+        example: Engineering
+        type: string
+      employee_id:
+        example: EMP-001
+        type: string
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://...
+        type: string
+      role:
+        example: admin
+        type: string
+      timezone:
+        example: UTC
+        type: string
+    type: object
+  Dev:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Dao Ho
+        type: string
+    type: object
+  GenerateRequestInput:
+    properties:
+      hotel_id:
+        example: 521e8400-e458-41d4-a716-446655440000
+        type: string
+      raw_text:
+        example: Guest in room 504 needs extra towels urgently
+        type: string
+    type: object
+  Guest:
+    properties:
+      created_at:
+        example: "2024-01-02T00:00:00Z"
+        type: string
+      first_name:
+        example: John
+        type: string
+      id:
+        example: 530e8400-e458-41d4-a716-446655440000
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+      updated_at:
+        example: "2024-01-02T00:00:00Z"
+        type: string
+    type: object
+  Hotel:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      floors:
+        example: 10
+        type: integer
+      id:
+        example: "550e8400-e29b-41d4-a\t716-446655440000"
+        type: string
+      name:
+        example: Hotel California
+        type: string
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    type: object
+  MakeRequest:
+    properties:
+      completed_at:
+        example: "2024-01-01T00:30:00Z"
+        type: string
+      department:
+        example: maintenance
+        type: string
+      description:
+        example: clean 504
+        type: string
+      estimated_completion_time:
+        example: 30
+        type: integer
+      guest_id:
+        example: 521e8417-e458-41d4-a716-446655440990
+        type: string
+      hotel_id:
+        example: 521e8400-e458-41d4-a716-446655440000
+        type: string
+      name:
+        example: room cleaning
+        type: string
+      notes:
+        example: No special requests
+        type: string
+      priority:
+        example: urgent
+        type: string
+      request_category:
+        example: Cleaning
+        type: string
+      request_type:
+        example: recurring
+        type: string
+      reservation_id:
+        example: 521e8400-e458-41d4-a716-498655440000
+        type: string
+      room_id:
+        example: 521e8422-e458-41d4-a716-446655440000
+        type: string
+      scheduled_time:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      status:
+        example: assigned
+        type: string
+      user_id:
+        example: 521ee400-e458-41d4-a716-446655440000
+        type: string
+    type: object
+  Request:
+    properties:
+      completed_at:
+        example: "2024-01-01T00:30:00Z"
+        type: string
+      created_at:
+        example: "2024-01-02T00:00:00Z"
+        type: string
+      department:
+        example: maintenance
+        type: string
+      description:
+        example: clean 504
+        type: string
+      estimated_completion_time:
+        example: 30
+        type: integer
+      guest_id:
+        example: 521e8417-e458-41d4-a716-446655440990
+        type: string
+      hotel_id:
+        example: 521e8400-e458-41d4-a716-446655440000
+        type: string
+      id:
+        example: 530e8400-e458-41d4-a716-446655440000
+        type: string
+      name:
+        example: room cleaning
+        type: string
+      notes:
+        example: No special requests
+        type: string
+      priority:
+        example: urgent
+        type: string
+      request_category:
+        example: Cleaning
+        type: string
+      request_type:
+        example: recurring
+        type: string
+      reservation_id:
+        example: 521e8400-e458-41d4-a716-498655440000
+        type: string
+      room_id:
+        example: 521e8422-e458-41d4-a716-446655440000
+        type: string
+      scheduled_time:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      status:
+        example: assigned
+        type: string
+      updated_at:
+        example: "2024-01-02T00:00:00Z"
+        type: string
+      user_id:
+        example: 521ee400-e458-41d4-a716-446655440000
+        type: string
+    type: object
+  UpdateGuest:
+    properties:
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+    type: object
+  User:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      department:
+        example: Engineering
+        type: string
+      employee_id:
+        example: EMP-001
+        type: string
+      first_name:
+        example: John
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://...
+        type: string
+      role:
+        example: admin
+        type: string
+      timezone:
+        example: UTC
+        type: string
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    type: object
+  github_com_generate_selfserve_internal_errs.HTTPError:
+    properties:
+      code:
+        type: integer
+      message: {}
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@selfserve.com
+    name: API Support
+  description: SelfServe backend API documentation
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: SelfServe API
+  version: "1.0"
+paths:
+  /api/v1/guests:
+    post:
+      consumes:
+      - application/json
+      description: Creates a guest with the given data
+      parameters:
+      - description: Guest data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateGuest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Guest'
+        "400":
+          description: Invalid guest body format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Creates a guest
+      tags:
+      - guests
+  /api/v1/guests/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single guest given an id
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Guest'
+        "400":
+          description: Invalid guest ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Guest not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Gets a guest
+      tags:
+      - guests
+    put:
+      consumes:
+      - application/json
+      description: Updates fields on a guest
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Guest update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateGuest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Guest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Updates a guest
+      tags:
+      - guests
+  /api/v1/hotels/{id}:
+    get:
+      description: Retrieve a hotel's details using its UUID
+      parameters:
+      - description: Hotel ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Hotel'
+        "400":
+          description: Invalid hotel ID format
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Hotel not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      summary: Get hotel by ID
+      tags:
+      - hotels
+  /devs/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a developer member by name
+      parameters:
+      - description: Developer name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Dev'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get developer member
+      tags:
+      - devs
+  /hello:
+    get:
+      consumes:
+      - application/json
+      description: Returns a simple hello message
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: 'Yogurt. Gurt: Yo!'
+          schema:
+            type: string
+      summary: Get hello message
+      tags:
+      - hello
+  /hello/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Returns a hello message with the provided name
+      parameters:
+      - description: Name to greet
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Yo, {name}!
+          schema:
+            type: string
+      summary: Get personalized hello message
+      tags:
+      - hello
+  /hotel:
+    post:
+      consumes:
+      - application/json
+      description: Create a new hotel with the given data
+      parameters:
+      - description: Hotel data
+        in: body
+        name: hotel
+        required: true
+        schema:
+          $ref: '#/definitions/Hotel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/Hotel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create hotel
+      tags:
+      - hotels
+  /request:
+    post:
+      consumes:
+      - application/json
+      description: Creates a request with the given data
+      parameters:
+      - description: Request data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/MakeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Request'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: creates a request
+      tags:
+      - requests
+  /request/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generates a request using AI
+      parameters:
+      - description: Request data with raw text
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/GenerateRequestInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Request'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: generates a request
+      tags:
+      - requests
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Creates a user with the given data
+      parameters:
+      - description: User data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Creates a user
+      tags:
+      - users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a user by their unique app ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user by ID
+      tags:
+      - users
+schemes:
+- http
+- https
+swagger: "2.0"

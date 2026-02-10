@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, UseQueryResult} from '@tanstack/react-query'
 import { requestsService } from '../api/services/requests.service'
 import { Request, MakeRequest } from '../types/request.types'
 import { ApiError } from '../types/api.types'
@@ -18,7 +18,9 @@ export const useGetRequest = (id: string): UseQueryResult<Request, ApiError> => 
   })
 }
 
-export const useCreateRequest = (): UseMutationResult<Request, ApiError, MakeRequest> => {
+
+
+export const useCreateRequest = () => {
   const queryClient = useQueryClient()
   
   return useMutation({

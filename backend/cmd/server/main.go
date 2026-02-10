@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -42,7 +43,11 @@ func main() {
 		log.Fatal("failed to initialize app:", err)
 	}
 
-	defer app.Repo.Close()
+	defer func() {
+		if err := app.Repo.Close(); err != nil {
+			panic(fmt.Sprintf("failed to close repo: %v", err))
+		}
+	}()
 
 	go func() {
 		if err := app.Server.Listen(":" + cfg.Application.Port); err != nil {
