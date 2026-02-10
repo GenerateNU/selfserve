@@ -127,6 +127,7 @@ func (r *RequestsHandler) GetAllRequests(c *fiber.Ctx) error {
 	}
 	
 	return c.Status(fiber.StatusOK).JSON(requests)
+}
 
 func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
 	errors := make(map[string]string)
