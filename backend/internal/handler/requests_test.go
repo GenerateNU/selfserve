@@ -233,7 +233,7 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 			},
 		}
 		app := fiber.New()
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Get("/request/", h.GetRequests)
 
 		req := httptest.NewRequest("GET", "/request/", nil)
@@ -253,7 +253,7 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Get("/request", h.GetRequests)
 
 		req := httptest.NewRequest("GET", "/request", nil)
@@ -273,7 +273,7 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Get("/request/:id", h.GetRequest)
 
 		req := httptest.NewRequest("GET", "/request/", nil)
