@@ -18,9 +18,9 @@ import (
 )
 
 type mockRequestRepository struct {
-	makeRequestFunc            func(ctx context.Context, req *models.Request) (*models.Request, error)
-	findRequestFunc            func(ctx context.Context, id string) (*models.Request, error)
-	findRequestsByCursorFunc   func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error)
+	makeRequestFunc          func(ctx context.Context, req *models.Request) (*models.Request, error)
+	findRequestFunc          func(ctx context.Context, id string) (*models.Request, error)
+	findRequestsByCursorFunc func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {

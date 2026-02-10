@@ -14,7 +14,7 @@ import (
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 
-	// "github.com/generate/selfserve/internal/service/clerk"
+	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -98,9 +98,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/user", clerkWebhookHandler.CreateUser)
 	})
 
-	// TODO: Re-enable auth after testing
-	// verifier := clerk.NewClerkJWTVerifier()
-	// app.Use(clerk.NewAuthMiddleware(verifier))
+	verifier := clerk.NewClerkJWTVerifier()
+	app.Use(clerk.NewAuthMiddleware(verifier))
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
