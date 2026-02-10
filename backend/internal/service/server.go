@@ -1,12 +1,19 @@
 package service
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
+	"os"
 
+	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
+	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -30,17 +37,28 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	app := setupApp()
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
 
-	setupRoutes(app, repo)
+	app := setupApp()
+	setupClerk(cfg)
+
+	if err = setupRoutes(app, repo, genkitInstance, cfg); err != nil {
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
+		return nil, err
+	}
 
 	return &App{
 		Server: app,
+		Repo:   repo,
 	}, nil
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
+	 cfg *config.Config) error {
+
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -54,16 +72,33 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		return c.SendStatus(http.StatusOK)
 	})
 
+	// initialize users repo
+	usersRepo := repository.NewUsersRepository(repo.DB)
+
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
+	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
+	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
+	if err != nil {
+		return err
+	}
+	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
 
 	// API v1 routes
 	api := app.Group("/api/v1")
+
+	// clerk webhook route
+	api.Route("/clerk", func(r fiber.Router) {
+		r.Post("/user", clerkWebhookHandler.CreateUser)
+	})
+
+	verifier := clerk.NewClerkJWTVerifier()
+	app.Use(clerk.NewAuthMiddleware(verifier))
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
@@ -76,13 +111,29 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 		r.Get("/:name", devsHandler.GetMember)
 	})
 
-	// User Routes
+	// users routes
 	api.Route("/users", func(r fiber.Router) {
+		r.Get("/:id", usersHandler.GetUserByID)
 		r.Post("/", usersHandler.CreateUser)
+	})
+
+	// Guest Routes
+	api.Route("/guests", func(r fiber.Router) {
+		r.Post("/", guestsHandler.CreateGuest)
+		r.Get("/:id", guestsHandler.GetGuest)
+		r.Put("/:id", guestsHandler.UpdateGuest)
+	})
+
+	// Guest Routes
+	api.Route("/guests", func(r fiber.Router) {
+		r.Post("/", guestsHandler.CreateGuest)
+		r.Get("/:id", guestsHandler.GetGuest)
+		r.Put("/:id", guestsHandler.UpdateGuest)
 	})
 
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
+		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
 		r.Get("/", reqsHandler.GetRequests)
 	})
@@ -95,6 +146,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository) {
 	api.Route("/hotel", func(r fiber.Router) {
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
+
+	return nil
 }
 
 // Initialize Fiber app with middlewares / configs
@@ -120,4 +173,15 @@ func setupApp() *fiber.App {
 	}))
 
 	return app
+}
+
+func setupClerk(cfg *config.Config) {
+	if os.Getenv("ENV") == "development" {
+		clerksdk.SetKey(cfg.Clerk.SecretKey)
+	} else {
+		/*
+			Missing prod url to complete
+		*/
+		fmt.Print("No clerk for prod yet.")
+	}
 }

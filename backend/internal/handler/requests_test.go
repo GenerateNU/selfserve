@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
@@ -33,6 +34,14 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
 	return m.findRequestsFunc(ctx)
 }
+type mockLLMService struct {
+	runGenerateRequestFunc func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error)
+}
+
+func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+	return m.runGenerateRequestFunc(ctx, input)
+}
+
 func TestRequestHandler_GetRequest(t *testing.T) {
 	t.Parallel()
 
@@ -57,7 +66,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Get("/request/:id", h.GetRequest)
 
 		req := httptest.NewRequest("GET", "/request/530e8400-e458-41d4-a716-446655440000", nil)
@@ -80,7 +89,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Get("/request/:id", h.GetRequest)
 
 		req := httptest.NewRequest("GET", "/request/notaUUID", nil)
@@ -100,7 +109,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Get("/request/:id", h.GetRequest)
 
 		req := httptest.NewRequest("GET", "/request/530e8400-e458-41d4-a716-446655440001", nil)
@@ -120,7 +129,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Get("/request/:id", h.GetRequest)
 
 		req := httptest.NewRequest("GET", "/request/530e8400-e458-41d4-a716-446655440001", nil)
@@ -140,7 +149,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Get("/request/:id", h.GetRequest)
 
 		req := httptest.NewRequest("GET", "/request/", nil)
@@ -297,7 +306,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Post("/request", h.CreateRequest)
 
 		req := httptest.NewRequest("POST", "/request", bytes.NewBufferString(validBody))
@@ -324,7 +333,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Post("/request", h.CreateRequest)
 
 		bodyWithOptionalUUIDs := `{
@@ -360,7 +369,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Post("/request", h.CreateRequest)
 
 		req := httptest.NewRequest("POST", "/request", bytes.NewBufferString(`{invalid json`))
@@ -381,7 +390,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Post("/request", h.CreateRequest)
 
 		req := httptest.NewRequest("POST", "/request", bytes.NewBufferString(`{}`))
@@ -406,7 +415,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Post("/request", h.CreateRequest)
 
 		invalidUUIDBody := `{
@@ -439,7 +448,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Post("/request", h.CreateRequest)
 
 		invalidGuestIDBody := `{
@@ -473,7 +482,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock)
+		h := NewRequestsHandler(mock, nil)
 		app.Post("/request", h.CreateRequest)
 
 		req := httptest.NewRequest("POST", "/request", bytes.NewBufferString(validBody))
@@ -482,5 +491,346 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, 500, resp.StatusCode)
+	})
+}
+
+func TestRequestHandler_Generate_Request(t *testing.T) {
+	t.Parallel()
+
+	validBody := `{
+		"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+		"raw_text": "Room 302 needs extra towels urgently"
+	}`
+
+	t.Run("returns 200 on success", func(t *testing.T) {
+		t.Parallel()
+
+		description := "Guest requested extra towels for their room"
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				req.ID = "generated-uuid"
+				req.CreatedAt = time.Now()
+				req.UpdatedAt = time.Now()
+				return req, nil
+			},
+		}
+
+		llmMock := &mockLLMService{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
+					Name:        "Extra Towels Request",
+					Description: &description,
+					RequestType: "one-time",
+					Status:      "pending",
+					Priority:    "urgent",
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/generate", h.GenerateRequest)
+
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "generated-uuid")
+		assert.Contains(t, string(body), "Extra Towels Request")
+		assert.Contains(t, string(body), "urgent")
+	})
+
+	t.Run("returns 200 with all LLM parsed fields", func(t *testing.T) {
+		t.Parallel()
+
+		description := "Full room cleaning requested"
+		department := "housekeeping"
+		category := "Cleaning"
+		notes := "Guest prefers eco-friendly products"
+		estimatedTime := 30
+
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				req.ID = "generated-uuid"
+				return req, nil
+			},
+		}
+
+		llmMock := &mockLLMService{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
+					Name:                    "Room Cleaning",
+					Description:             &description,
+					RequestCategory:         &category,
+					RequestType:             "one-time",
+					Department:              &department,
+					Status:                  "pending",
+					Priority:                "normal",
+					EstimatedCompletionTime: &estimatedTime,
+					Notes:                   &notes,
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/generate", h.GenerateRequest)
+
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "Room Cleaning")
+		assert.Contains(t, string(body), "housekeeping")
+		assert.Contains(t, string(body), "Cleaning")
+	})
+
+	t.Run("returns 400 on invalid JSON", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
+		app.Post("/request/generate", h.GenerateRequest)
+
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(`{invalid json`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("returns 400 on missing hotel_id", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
+		app.Post("/request/generate", h.GenerateRequest)
+
+		bodyMissingHotelID := `{"raw_text": "Need towels"}`
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(bodyMissingHotelID))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "hotel_id")
+	})
+
+	t.Run("returns 400 on invalid hotel_id uuid", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
+		app.Post("/request/generate", h.GenerateRequest)
+
+		bodyInvalidUUID := `{"hotel_id": "not-a-uuid", "raw_text": "Need towels"}`
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(bodyInvalidUUID))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "hotel_id")
+	})
+
+	t.Run("returns 400 on empty raw_text", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{})
+		app.Post("/request/generate", h.GenerateRequest)
+
+		bodyEmptyText := `{"hotel_id": "550e8400-e29b-41d4-a716-446655440000", "raw_text": ""}`
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(bodyEmptyText))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "raw_text")
+	})
+
+	t.Run("returns 400 when LLM output fails validation", func(t *testing.T) {
+		t.Parallel()
+
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				return req, nil
+			},
+		}
+
+		llmMock := &mockLLMService{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				// LLM returns invalid output - missing required fields
+				return aiflows.GenerateRequestOutput{
+					Name:        "", // Empty name should fail validation
+					RequestType: "",
+					Status:      "",
+					Priority:    "",
+				}, nil
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/generate", h.GenerateRequest)
+
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "name")
+	})
+
+	t.Run("returns 500 on LLM error", func(t *testing.T) {
+		t.Parallel()
+
+		repoMock := &mockRequestRepository{}
+
+		llmMock := &mockLLMService{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{}, errors.New("LLM service unavailable")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/generate", h.GenerateRequest)
+
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+
+	t.Run("returns 500 on db error", func(t *testing.T) {
+		t.Parallel()
+
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				return nil, errors.New("db connection failed")
+			},
+		}
+
+		llmMock := &mockLLMService{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
+					Name:        "Towel Request",
+					RequestType: "one-time",
+					Status:      "pending",
+					Priority:    "normal",
+				}, nil
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/generate", h.GenerateRequest)
+
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+
+	t.Run("passes raw_text to LLM correctly", func(t *testing.T) {
+		t.Parallel()
+
+		var capturedInput aiflows.GenerateRequestInput
+
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				req.ID = "generated-uuid"
+				return req, nil
+			},
+		}
+
+		llmMock := &mockLLMService{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				capturedInput = input
+				return aiflows.GenerateRequestOutput{
+					Name:        "Test Request",
+					RequestType: "one-time",
+					Status:      "pending",
+					Priority:    "normal",
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/generate", h.GenerateRequest)
+
+		customBody := `{
+			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+			"raw_text": "I need the AC fixed in room 101 ASAP"
+		}`
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(customBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+		assert.Equal(t, "I need the AC fixed in room 101 ASAP", capturedInput.RawText)
+	})
+
+	t.Run("uses hotel_id from request body not LLM", func(t *testing.T) {
+		t.Parallel()
+
+		var capturedRequest *models.Request
+
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				capturedRequest = req
+				req.ID = "generated-uuid"
+				return req, nil
+			},
+		}
+
+		llmMock := &mockLLMService{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
+					Name:        "Test Request",
+					RequestType: "one-time",
+					Status:      "pending",
+					Priority:    "normal",
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/generate", h.GenerateRequest)
+
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+		assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", capturedRequest.HotelID)
 	})
 }
