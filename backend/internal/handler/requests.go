@@ -137,6 +137,53 @@ func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
 	return nil
 }
 
+// GetRequestByCursor godoc
+// @Summary      Get requests by cursor
+// @Description  Gets 20 requests starting after the cursor ID, filtered by status
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        cursor  path      string  true  "Cursor UUID"
+// @Param        status  query     string  true  "Status filter: pending, assigned, in progress, completed"
+// @Success      200     {object}  map[string]interface{}  "Returns requests array and next_cursor"
+// @Failure      400     {object}  map[string]string
+// @Failure      500     {object}  map[string]string
+// @Router       /request/cursor/{cursor} [get]
+func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
+	cursor := c.Params("cursor")
+	status := c.Query("status")
+	if !validUUID(cursor) {
+		return errs.BadRequest("cursor is not a valid request UUID")
+	}
+
+	//QUESTION FOR REVIEWER: how do we want to represent status?
+	// should we make an enum AND how are we defining status in our db
+
+	validStatuses := map[string]struct{}{
+		"pending":     {},
+		"assigned":    {},
+		"in progress": {},
+		"completed":   {},
+	}
+
+	if _, ok := validStatuses[status]; !ok {
+		return errs.BadRequest("Status must be one of: pending, assigned, in progress, completed")
+	}
+
+	requests, nextCursor, err := r.RequestRepository.FindRequestsByCursor(c.Context(), cursor, status)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request cursor id", "cursor", cursor)
+		}
+		return c.SendStatus(fiber.ErrInternalServerError.Code)
+	}
+
+	return c.JSON(fiber.Map{
+		"requests":    requests,
+		"next_cursor": nextCursor,
+	})
+}
+
 // GenerateRequest godoc
 // @Summary      generates a request
 // @Description  Generates a request using AI
