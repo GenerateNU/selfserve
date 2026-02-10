@@ -5,7 +5,7 @@ import { User } from 'lucide-react-native';
 interface GuestCardProps {
   name: string;
   floor: number;
-  room: string;
+  room: number;
   group: number;
   onPress: () => void;
   className?: string;
