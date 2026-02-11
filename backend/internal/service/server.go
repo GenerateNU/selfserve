@@ -13,7 +13,8 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
-	"github.com/generate/selfserve/internal/service/clerk"
+
+	// "github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -57,7 +58,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	 cfg *config.Config) error {
+	cfg *config.Config) error {
 
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
@@ -97,8 +98,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/user", clerkWebhookHandler.CreateUser)
 	})
 
-	verifier := clerk.NewClerkJWTVerifier()
-	app.Use(clerk.NewAuthMiddleware(verifier))
+	// verifier := clerk.NewClerkJWTVerifier()
+	// app.Use(clerk.NewAuthMiddleware(verifier))
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
@@ -129,6 +130,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
+		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
 	})
 
 	// Hotel routes

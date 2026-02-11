@@ -40,17 +40,18 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
 
 	row := r.db.QueryRow(ctx, `
-        SELECT * 
-        FROM requests 
+        SELECT *
+        FROM requests
         WHERE id = $1
     `, id)
 
 	var request models.Request
 
-	err := row.Scan(&request.ID, &request.CreatedAt, &request.UpdatedAt, &request.HotelID, &request.GuestID,
+	err := row.Scan(&request.ID, &request.HotelID, &request.GuestID,
 		&request.UserID, &request.ReservationID, &request.Name, &request.Description,
 		&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
-		&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes)
+		&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
+		&request.CreatedAt, &request.UpdatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -60,4 +61,45 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	}
 
 	return &request, nil
+}
+
+func (r *RequestsRepository) FindRequestsByCursor(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+	rows, err := r.db.Query(ctx, `
+			SELECT *
+			FROM requests
+			WHERE id > $1 AND status = $2
+			ORDER BY id
+			LIMIT 20
+		`, cursor, status)
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	defer rows.Close()
+
+	var requests []*models.Request
+	for rows.Next() {
+		var request models.Request
+		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
+			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
+			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
+			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
+			&request.CreatedAt, &request.UpdatedAt)
+		if err != nil {
+			return nil, "", err
+		}
+		requests = append(requests, &request)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, "", errs.ErrNotFoundInDB
+	}
+
+	var nextCursor string
+	if len(requests) > 0 {
+		nextCursor = requests[len(requests)-1].ID
+	}
+
+	return requests, nextCursor, nil
 }
