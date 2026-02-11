@@ -7,8 +7,7 @@ interface FetchRequestsResponse {
 }
 
 const INITIAL_CURSOR = '00000000-0000-0000-0000-000000000000'
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const API_BASE_URL = 'http://localhost:8080'
 
 export const fetchRequests = async (
   status: string,
