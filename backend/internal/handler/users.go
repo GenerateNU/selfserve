@@ -79,29 +79,3 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 
 	return c.JSON(res)
 }
-
-// func validateCreateUser(user *models.CreateUser) error {
-// 	errors := make(map[string]string)
-
-// 	if strings.TrimSpace(user.FirstName) == "" {
-// 		errors["first_name"] = "must not be an empty string"
-// 	}
-
-// 	if strings.TrimSpace(user.LastName) == "" {
-// 		errors["last_name"] = "must not be an empty string"
-// 	}
-
-// 	if user.Timezone != nil {
-// 		_, err := time.LoadLocation(*user.Timezone)
-// 		if err != nil || !strings.Contains(*user.Timezone, "/") {
-// 			errors["timezone"] = "invalid IANA timezone"
-// 		}
-// 	}
-
-// 	if strings.TrimSpace(user.ClerkID) == "" {
-// 		errors["clerk_id"] = "must not be an empty string"
-// 	}
-
-// 	// Aggregates errors deterministically
-// 	return AggregateErrors(errors)
-// }
