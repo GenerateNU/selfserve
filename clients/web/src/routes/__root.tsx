@@ -46,11 +46,9 @@ export const Route = createRootRoute({
 
 // Component to configure auth provider
 function AuthConfigurator() {
-  const { getToken } = useAuth();
-  setConfig({API_BASE_URL: process.env.API_BASE_URL ?? '',
-  getToken,
-  })
-  return null;
+  const { getToken } = useAuth()
+  setConfig({ API_BASE_URL: process.env.API_BASE_URL ?? '', getToken })
+  return null
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
