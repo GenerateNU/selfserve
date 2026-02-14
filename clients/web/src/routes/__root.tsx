@@ -4,8 +4,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { setAuthProvider } from '@shared'
-import { useEffect } from 'react'
+import { setConfig } from '@shared'
 import Header from '../components/Header'
 import appCss from '../styles.css?url'
 
@@ -47,13 +46,11 @@ export const Route = createRootRoute({
 
 // Component to configure auth provider
 function AuthConfigurator() {
-  const { getToken } = useAuth()
-
-  useEffect(() => {
-    setAuthProvider({ getToken })
-  }, [getToken])
-
-  return null
+  const { getToken } = useAuth();
+  setConfig({API_BASE_URL: process.env.API_BASE_URL ?? '',
+  getToken,
+  })
+  return null;
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {

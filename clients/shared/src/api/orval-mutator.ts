@@ -1,4 +1,4 @@
-import { getAuthProvider } from "./auth-provider";
+import { getAuthProvider } from "./config";
 import { createRequest, getBaseUrl } from "./client";
 import { RequestConfig } from "../types/api.types";
 

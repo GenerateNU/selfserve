@@ -1,6 +1,5 @@
-import { buildQueryString } from "../utils";
 import { ApiError, HttpClient, RequestConfig } from "../types/api.types";
-import { getAuthProvider } from "./auth-provider";
+import { getConfig } from "./config";
 
 /**
  * Internal helper to make HTTP requests w/ error handling
@@ -12,7 +11,8 @@ export const createRequest = (
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
     if (config.params && Object.keys(config.params).length > 0) {
-      fullUrl += '?' + buildQueryString(config.params);
+      const searchParams = new URLSearchParams(config.params);
+      fullUrl += '?' + searchParams.toString();
     }
 
     try {
@@ -68,7 +68,7 @@ export const createRequest = (
 };
 
 export const useAPIClient = (): HttpClient => {
-  const { getToken } = getAuthProvider();
+  const { getToken } = getConfig();
   const request = createRequest(getToken, getBaseUrl());
 
   return {
@@ -86,9 +86,7 @@ export const useAPIClient = (): HttpClient => {
 };
 
 export const getBaseUrl = (): string => {
-  // @ts-ignore - Environment variable injected by bundler (Vite/Metro)
-  const url = process.env.API_BASE_URL;
-
+  const url = getConfig().API_BASE_URL; 
   if (!url) {
     throw new Error("API_BASE_URL is not configured. Check your .env file.");
   }

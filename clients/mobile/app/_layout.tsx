@@ -13,8 +13,7 @@ import {
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { setAuthProvider } from "@shared";
-import { useEffect } from "react";
+import { setConfig } from "@shared";
 
 // Client explicity created outside component to avoid recreation
 const queryClient = new QueryClient({
@@ -31,13 +30,12 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-function AuthConfigurator() {
+function AppConfigurator() {
   const { getToken } = useAuth();
-
-  useEffect(() => {
-    setAuthProvider({ getToken });
-  }, [getToken]);
-
+  setConfig({
+  API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? '',
+  getToken,
+});
   return null;
 }
 
@@ -50,7 +48,7 @@ export default function RootLayout() {
       tokenCache={tokenCache}
     >
       <ClerkLoaded>
-        <AuthConfigurator />
+        <AppConfigurator />
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <ThemeProvider

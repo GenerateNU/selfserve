@@ -1,10 +1,10 @@
 // Custom Types (non-generated)
 export { ApiError } from "./types/api.types";
 export type { ApiConfig } from "./types/api.types";
-export type { AuthProvider } from "./api/auth-provider";
+export type { Config } from "./api/config";
 
 // config functions
-export { setAuthProvider, getAuthProvider } from "./api/auth-provider";
+export { setConfig, getConfig } from "./api/config";
 
 // Generated Types - Models
 export type {
