@@ -1,4 +1,4 @@
-import { getAuthProvider } from "./config";
+import { getConfig } from "./config";
 import { createRequest, getBaseUrl } from "./client";
 import { RequestConfig } from "../types/api.types";
 
@@ -10,7 +10,7 @@ import { RequestConfig } from "../types/api.types";
 export const useCustomInstance = <T>(): ((
   config: RequestConfig,
 ) => Promise<T>) => {
-  const { getToken } = getAuthProvider();
+  const { getToken } = getConfig();
   const request = createRequest(getToken, getBaseUrl());
 
   return async (config: RequestConfig): Promise<T> => {
