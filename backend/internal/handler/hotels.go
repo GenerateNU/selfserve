@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -85,13 +86,8 @@ func (h *HotelsHandler) CreateHotel(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
-	// Validate required fields
-	if hotelRequest.Name == "" {
-		return errs.BadRequest("hotel name is required")
-	}
-
-	if hotelRequest.Floors <= 0 {
-		return errs.BadRequest("hotel floors must be greater than 0")
+	if err := httpx.BindAndValidate(c, &hotelRequest); err != nil {
+		return err
 	}
 
 	createdHotel, err := h.repo.InsertHotel(c.Context(), &hotelRequest)
