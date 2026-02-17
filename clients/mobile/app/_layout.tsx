@@ -14,6 +14,7 @@ import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { setConfig } from "@shared";
+import { useEffect } from "react";
 
 // Client explicity created outside component to avoid recreation
 const queryClient = new QueryClient({
@@ -30,13 +31,14 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+// Component to configure auth provider and the api base url
 function AppConfigurator() {
-  const { getToken } = useAuth();
-  setConfig({
-  API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? '',
-  getToken,
-});
-  return null;
+  const { getToken } = useAuth()
+  useEffect(() => {
+    setConfig({ API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? '', getToken })
+  }, [getToken])
+  
+  return null
 }
 
 export default function RootLayout() {
