@@ -103,3 +103,63 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 	return requests, nil
 
 }
+
+func (r *RequestsRepository) InsertRequestVersion(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+	latest, err := r.FindRequest(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// if body contains changes, update otherwise keep the same
+	if update.Description != nil {
+		latest.Description = update.Description
+	}
+	if update.Status != nil {
+		latest.Status = *update.Status
+	}
+	if update.Priority != nil {
+		latest.Priority = *update.Priority
+	}
+	if update.EstimatedCompletionTime != nil {
+		latest.EstimatedCompletionTime = update.EstimatedCompletionTime
+	}
+	if update.ScheduledTime != nil {
+		latest.ScheduledTime = update.ScheduledTime
+	}
+	if update.CompletedAt != nil {
+		latest.CompletedAt = update.CompletedAt
+	}
+	if update.Notes != nil {
+		latest.Notes = update.Notes
+	}
+
+	row := r.db.QueryRow(ctx, `
+		INSERT INTO requests (
+			id, hotel_id, guest_id, user_id, reservation_id, name, description,
+			room_id, request_category, request_type, department, status,
+			priority, estimated_completion_time, scheduled_time, completed_at,
+			notes, request_version
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+		RETURNING id, created_at, updated_at, request_version
+	`,
+		latest.ID, latest.HotelID, latest.GuestID, latest.UserID, latest.ReservationID,
+		latest.Name, latest.Description, latest.RoomID, latest.RequestCategory,
+		latest.RequestType, latest.Department, latest.Status, latest.Priority,
+		latest.EstimatedCompletionTime, latest.ScheduledTime, latest.CompletedAt,
+		latest.Notes)
+
+	var newVersion models.Request
+	newVersion.MakeRequest = latest.MakeRequest
+
+	err = row.Scan(&newVersion.ID, &newVersion.CreatedAt, &newVersion.UpdatedAt, &newVersion.RequestVersion)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	return &newVersion, nil
+}

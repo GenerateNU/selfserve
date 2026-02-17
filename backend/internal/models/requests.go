@@ -36,3 +36,13 @@ type Request struct {
 	RequestVersion time.Time `json:"request_version" example:"2024-01-02T00:00:00Z"`
 	MakeRequest
 } //@name Request
+
+type UpdateRequest struct {
+	Description             *string    `json:"description,omitempty" validate:"omitempty"`
+	Status                  *string    `json:"status,omitempty" validate:"omitempty,notblank"`
+	Priority                *string    `json:"priority,omitempty" validate:"omitempty,notblank"`
+	EstimatedCompletionTime *int       `json:"estimated_completion_time,omitempty"`
+	ScheduledTime           *time.Time `json:"scheduled_time,omitempty"`
+	CompletedAt             *time.Time `json:"completed_at,omitempty"`
+	Notes                   *string    `json:"notes,omitempty"`
+} //@name UpdateRequest

@@ -205,3 +205,39 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 
 	return c.JSON(res)
 }
+
+// UpdateRequest godoc
+// @Summary      updates a request
+// @Description  Creates a new version of the request with updated data (immutable versioning)
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                 true  "Request ID"
+// @Param        request  body      models.UpdateRequest   true  "Request update data"
+// @Success      200      {object}  models.Request
+// @Failure      400      {object}  map[string]string
+// @Failure      404      {object}  map[string]string
+// @Failure      500      {object}  map[string]string
+// @Router       /request/{id} [put]
+func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if !validUUID(id) {
+		return errs.BadRequest("request id is not a valid UUID")
+	}
+
+	var update models.UpdateRequest
+	if err := c.BodyParser(&update); err != nil {
+		return errs.InvalidJSON()
+	}
+
+	request, err := r.RequestRepository.InsertRequestVersion(c.Context(), id, &update)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request", "id", id)
+		}
+
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(request)
+}

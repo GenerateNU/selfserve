@@ -18,9 +18,10 @@ import (
 )
 
 type mockRequestRepository struct {
-	makeRequestFunc  func(ctx context.Context, req *models.Request) (*models.Request, error)
-	findRequestFunc  func(ctx context.Context, id string) (*models.Request, error)
-	findRequestsFunc func(ctx context.Context) ([]models.Request, error)
+	makeRequestFunc          func(ctx context.Context, req *models.Request) (*models.Request, error)
+	findRequestFunc          func(ctx context.Context, id string) (*models.Request, error)
+	findRequestsFunc         func(ctx context.Context) ([]models.Request, error)
+	insertRequestVersionFunc func(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -33,6 +34,10 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 
 func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
 	return m.findRequestsFunc(ctx)
+}
+
+func (m *mockRequestRepository) InsertRequestVersion(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+	return m.insertRequestVersionFunc(ctx, id, update)
 }
 type mockLLMService struct {
 	runGenerateRequestFunc func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error)
@@ -838,5 +843,176 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 
 		assert.Equal(t, 200, resp.StatusCode)
 		assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", capturedRequest.HotelID)
+	})
+}
+
+func TestRequestsHandler_UpdateRequest(t *testing.T) {
+	t.Parallel()
+
+	t.Run("successfully updates request", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			insertRequestVersionFunc: func(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+				return &models.Request{
+					ID:             "530e8400-e458-41d4-a716-446655440000",
+					CreatedAt:      time.Now(),
+					UpdatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						Name:        "room cleaning",
+						RequestType: "recurring",
+						Status:      *update.Status,
+						Priority:    *update.Priority,
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		updateBody := `{"status":"completed","priority":"low"}`
+		req := httptest.NewRequest("PUT", "/request/530e8400-e458-41d4-a716-446655440000", bytes.NewBufferString(updateBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "530e8400-e458-41d4-a716-446655440000")
+		assert.Contains(t, string(body), "completed")
+		assert.Contains(t, string(body), "low")
+	})
+
+	t.Run("returns 400 for invalid UUID", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			insertRequestVersionFunc: func(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+				return nil, errors.New("should not be called")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		updateBody := `{"status":"completed"}`
+		req := httptest.NewRequest("PUT", "/request/notaUUID", bytes.NewBufferString(updateBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("returns 404 for non-existent request", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			insertRequestVersionFunc: func(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+				return nil, errs.ErrNotFoundInDB
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		updateBody := `{"status":"completed"}`
+		req := httptest.NewRequest("PUT", "/request/530e8400-e458-41d4-a716-446655440000", bytes.NewBufferString(updateBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 404, resp.StatusCode)
+	})
+
+	t.Run("returns 500 on database error", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			insertRequestVersionFunc: func(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+				return nil, errors.New("db connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		updateBody := `{"status":"completed"}`
+		req := httptest.NewRequest("PUT", "/request/530e8400-e458-41d4-a716-446655440000", bytes.NewBufferString(updateBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+
+	t.Run("returns 400 on invalid JSON", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			insertRequestVersionFunc: func(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+				return nil, errors.New("should not be called")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/530e8400-e458-41d4-a716-446655440000", bytes.NewBufferString("invalid json"))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("partially updates request fields", func(t *testing.T) {
+		t.Parallel()
+
+		var capturedUpdate *models.UpdateRequest
+
+		mock := &mockRequestRepository{
+			insertRequestVersionFunc: func(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+				capturedUpdate = update
+				return &models.Request{
+					ID:             "530e8400-e458-41d4-a716-446655440000",
+					CreatedAt:      time.Now(),
+					UpdatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						Name:        "room cleaning",
+						RequestType: "recurring",
+						Status:      "completed",
+						Priority:    "urgent",
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		// Only update status, leave other fields unchanged
+		updateBody := `{"status":"completed"}`
+		req := httptest.NewRequest("PUT", "/request/530e8400-e458-41d4-a716-446655440000", bytes.NewBufferString(updateBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+		assert.NotNil(t, capturedUpdate.Status)
+		assert.Equal(t, "completed", *capturedUpdate.Status)
+		assert.Nil(t, capturedUpdate.Priority) // Not updated
 	})
 }
