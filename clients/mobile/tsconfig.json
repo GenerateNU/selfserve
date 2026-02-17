@@ -2,17 +2,12 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "types": [
-      "jest",
-      "nativewind/types"
-    ],
+    "types": ["jest", "nativewind/types"],
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@shared/*": [
-        "../shared/src/*"
-      ]
+      "@/*": ["./*"],
+      "@shared": ["../shared/src"],
+      "@shared/*": ["../shared/src/*"],
+      "@app/clerk": ["./hooks/clerk.ts"]
     }
   },
   "include": [
