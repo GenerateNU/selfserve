@@ -5,9 +5,10 @@ import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { setConfig } from '@shared'
+import { useEffect } from 'react'
 import Header from '../components/Header'
 import appCss from '../styles.css?url'
-import { useEffect } from 'react'
+
 
 // Client explicity created outside the component to avoid recreation
 const queryClient = new QueryClient({
