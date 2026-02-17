@@ -111,7 +111,7 @@ func (r *RequestsRepository) InsertRequestVersion(ctx context.Context, id string
 		return nil, err
 	}
 
-	// if body contains changes, update otherwise keep the same
+	// if body contains changes, update otherwise keep original request field data
 	if update.Description != nil {
 		latest.Description = update.Description
 	}
