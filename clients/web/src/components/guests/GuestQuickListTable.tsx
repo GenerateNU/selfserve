@@ -67,8 +67,12 @@ export function GuestQuickListTable({
             className="grid w-full grid-cols-[auto_5fr_5fr_2fr_2fr_2fr] items-center gap-[1vw] border-b border-black px-[1vw] py-[1vh] text-left last:border-b-0 hover:bg-neutral-50"
           >
             {avatarPill()}
-            <p className="truncate text-[1vw] text-black">{guest.governmentName}</p>
-            <p className="truncate text-[1vw] text-black">{guest.preferredName}</p>
+            <p className="truncate text-[1vw] text-black">
+              {guest.governmentName}
+            </p>
+            <p className="truncate text-[1vw] text-black">
+              {guest.preferredName}
+            </p>
             <p className="text-[1vw] text-black">{guest.groupSize}</p>
             <p className="text-[1vw] text-black">{guest.floor}</p>
             <p className="text-[1vw] text-black">{guest.room}</p>

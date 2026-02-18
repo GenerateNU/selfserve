@@ -28,10 +28,13 @@ function GuestsQuickListPage() {
       const matchesGroup =
         groupFilter === 'all' ||
         (groupFilter === '1-2' && guest.groupSize <= 2) ||
-        (groupFilter === '3-4' && guest.groupSize >= 3 && guest.groupSize <= 4) ||
+        (groupFilter === '3-4' &&
+          guest.groupSize >= 3 &&
+          guest.groupSize <= 4) ||
         (groupFilter === '5+' && guest.groupSize >= 5)
 
-      const matchesFloor = floorFilter === 'all' || guest.floor === Number(floorFilter)
+      const matchesFloor =
+        floorFilter === 'all' || guest.floor === Number(floorFilter)
 
       return matchesSearch && matchesGroup && matchesFloor
     })
@@ -46,7 +49,13 @@ function GuestsQuickListPage() {
         floorFilter={floorFilter}
         onGroupFilterChange={setGroupFilter}
         onFloorFilterChange={setFloorFilter}
-        onGuestClick={(guestId) => navigate({ to: '/guests/$guestId', params: { guestId } })}
+        onGuestClick={
+          (guestId) =>
+            navigate({
+              to: '/guests/$guestId' as any,
+              params: { guestId } as any,
+            }) // ^ Will be updated in next PR, very temporary
+        }
       />
     </GuestPageShell>
   )
