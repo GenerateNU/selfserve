@@ -9,13 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TestApiRouteImport } from './routes/test-api'
-import { Route as RoomsRouteImport } from './routes/rooms'
+import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProtectedTestApiRouteImport } from './routes/_protected/test-api'
 
-const TestApiRoute = TestApiRouteImport.update({
-  id: '/test-api',
-  path: '/test-api',
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedRoute = ProtectedRouteImport.update({
+  id: '/_protected',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoomsRoute = RoomsRouteImport.update({
@@ -28,44 +39,74 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedTestApiRoute = ProtectedTestApiRouteImport.update({
+  id: '/test-api',
+  path: '/test-api',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/rooms': typeof RoomsRoute
-  '/test-api': typeof TestApiRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
+  '/test-api': typeof ProtectedTestApiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/rooms': typeof RoomsRoute
-  '/test-api': typeof TestApiRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
+  '/test-api': typeof ProtectedTestApiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/rooms': typeof RoomsRoute
-  '/test-api': typeof TestApiRoute
+  '/_protected': typeof ProtectedRouteWithChildren
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
+  '/_protected/test-api': typeof ProtectedTestApiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/rooms' | '/test-api'
+  fullPaths: '/' | '/sign-in' | '/sign-up' | '/test-api'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/rooms' | '/test-api'
-  id: '__root__' | '/' | '/rooms' | '/test-api'
+  to: '/' | '/sign-in' | '/sign-up' | '/test-api'
+  id:
+    | '__root__'
+    | '/'
+    | '/_protected'
+    | '/sign-in'
+    | '/sign-up'
+    | '/_protected/test-api'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  RoomsRoute: typeof RoomsRoute
-  TestApiRoute: typeof TestApiRoute
+  ProtectedRoute: typeof ProtectedRouteWithChildren
+  SignInRoute: typeof SignInRoute
+  SignUpRoute: typeof SignUpRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/test-api': {
-      id: '/test-api'
-      path: '/test-api'
-      fullPath: '/test-api'
-      preLoaderRoute: typeof TestApiRouteImport
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected': {
+      id: '/_protected'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ProtectedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rooms': {
@@ -82,13 +123,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/test-api': {
+      id: '/_protected/test-api'
+      path: '/test-api'
+      fullPath: '/test-api'
+      preLoaderRoute: typeof ProtectedTestApiRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
   }
 }
 
+interface ProtectedRouteChildren {
+  ProtectedTestApiRoute: typeof ProtectedTestApiRoute
+}
+
+const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedTestApiRoute: ProtectedTestApiRoute,
+}
+
+const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
+  ProtectedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  RoomsRoute: RoomsRoute,
-  TestApiRoute: TestApiRoute,
+  ProtectedRoute: ProtectedRouteWithChildren,
+  SignInRoute: SignInRoute,
+  SignUpRoute: SignUpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
