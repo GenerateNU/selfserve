@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import type { Request } from '../routes/requests'
 
 interface FetchRequestsResponse {
-  requests: Request[]
+  requests: Array<Request>
   next_cursor: string
 }
 
@@ -13,7 +13,7 @@ export const fetchRequests = async (
   status: string,
   cursor: string | null = null,
 ): Promise<{
-  data: Request[]
+  data: Array<Request>
   nextCursor: string | null
   hasMore: boolean
 }> => {
@@ -29,14 +29,14 @@ export const fetchRequests = async (
   const result: FetchRequestsResponse = await response.json()
 
   return {
-    data: result.requests || [],
+    data: result.requests,
     nextCursor: result.next_cursor || null,
     hasMore: !!result.next_cursor,
   }
 }
 
 export const useRequests = (status: string) => {
-  const [requests, setRequests] = useState<Request[]>([])
+  const [requests, setRequests] = useState<Array<Request>>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
 

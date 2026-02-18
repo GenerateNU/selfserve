@@ -83,7 +83,9 @@ const KanbanColumn = ({
             <RequestInformationCard key={request.id} request={request} />
           ))}
 
-          {hasMore && <div ref={observerTarget} className="text-center p-2.5" />}
+          {hasMore && (
+            <div ref={observerTarget} className="text-center p-2.5" />
+          )}
 
           {!hasMore && (
             <div className="text-center p-2.5 text-gray-400">
