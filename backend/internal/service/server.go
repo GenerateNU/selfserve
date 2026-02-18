@@ -15,6 +15,7 @@ import (
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/validation"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -31,6 +32,8 @@ type App struct {
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
+	validation.Init()
+
 	// Init DB/repository(ies)
 	repo, err := storage.NewRepository(cfg.DB)
 	if err != nil {
@@ -129,6 +132,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
+		r.Get("/", reqsHandler.GetRequests)
 	})
 
 	// Hotel routes
@@ -161,8 +165,10 @@ func setupApp() *fiber.App {
 	}))
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins: "http://localhost:3000, http://localhost:8081",
 		AllowMethods: "GET,POST,PUT,DELETE",
+		AllowHeaders: "Origin, Content-Type, Authorization",
+		AllowCredentials: true,
 	}))
 
 	return app

@@ -12,6 +12,7 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/validation"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,33 +24,29 @@ type mockGuestsRepository struct {
 	updateGuestFunc func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error)
 }
 
-func (m *mockGuestsRepository) InsertGuest(
-	ctx context.Context,
-	guest *models.CreateGuest,
-) (*models.Guest, error) {
+func (m *mockGuestsRepository) InsertGuest(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error) {
 	return m.insertGuestFunc(ctx, guest)
 }
 
-func (m *mockGuestsRepository) FindGuest(
-	ctx context.Context,
-	id string,
-) (*models.Guest, error) {
+func (m *mockGuestsRepository) FindGuest(ctx context.Context, id string) (*models.Guest, error) {
 	return m.findGuestFunc(ctx, id)
 }
 
-func (m *mockGuestsRepository) UpdateGuest(
-	ctx context.Context,
-	id string,
-	update *models.UpdateGuest,
-) (*models.Guest, error) {
+func (m *mockGuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
 	return m.updateGuestFunc(ctx, id, update)
 }
 
 // Makes the compiler verify the mock
 var _ storage.GuestsRepository = (*mockGuestsRepository)(nil)
 
+func TestMain(m *testing.M) {
+	validation.Init()
+	m.Run()
+}
+
 func TestGuestsHandler_CreateGuest(t *testing.T) {
 	t.Parallel()
+
 	validBody := `{
 		"first_name": "John",
 		"last_name": "Doe"
@@ -250,7 +247,6 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), "already exists")
 	})
-
 }
 
 func TestGuestsHandler_GetGuest(t *testing.T) {
@@ -346,7 +342,6 @@ func TestGuestsHandler_GetGuest(t *testing.T) {
 
 		assert.Equal(t, 500, resp.StatusCode)
 	})
-
 }
 
 func TestGuestsHandler_UpdateGuest(t *testing.T) {
@@ -476,7 +471,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		req := httptest.NewRequest(
 			"PUT",
 			"/guests/not-a-uuid",
-			bytes.NewBufferString(`{"first_name":"Jane"}`),
+			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith"}`),
 		)
 		req.Header.Set("Content-Type", "application/json")
 
@@ -516,13 +511,16 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		req := httptest.NewRequest(
 			"PUT",
 			"/guests/"+validID,
-			bytes.NewBufferString(`{"timezone":"Eastern"}`),
+			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith","timezone":"Eastern"}`),
 		)
 		req.Header.Set("Content-Type", "application/json")
 
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "timezone")
 	})
 
 	t.Run("returns 404 when guest not found", func(t *testing.T) {
@@ -574,5 +572,4 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 500, resp.StatusCode)
 	})
-
 }
