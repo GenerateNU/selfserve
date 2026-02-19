@@ -49,12 +49,8 @@ function GuestsQuickListPage() {
         floorFilter={floorFilter}
         onGroupFilterChange={setGroupFilter}
         onFloorFilterChange={setFloorFilter}
-        onGuestClick={
-          (guestId) =>
-            navigate({
-              to: '/guests/$guestId' as any,
-              params: { guestId } as any,
-            }) // ^ Will be updated in next PR, very temporary
+        onGuestClick={(guestId) =>
+          navigate({ to: '/guests/$guestId', params: { guestId } })
         }
       />
     </GuestPageShell>
