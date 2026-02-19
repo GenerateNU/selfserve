@@ -16,6 +16,7 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedTestApiRouteImport } from './routes/_protected/test-api'
 import { Route as ProtectedRoomsIndexRouteImport } from './routes/_protected/rooms.index'
+import { Route as ProtectedGuestsIndexRouteImport } from './routes/_protected/guests.index'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -51,6 +52,11 @@ const ProtectedRoomsIndexRoute = ProtectedRoomsIndexRouteImport.update({
   path: '/rooms/',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedGuestsIndexRoute = ProtectedGuestsIndexRouteImport.update({
+  id: '/guests/',
+  path: '/guests/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/test-api': typeof ProtectedTestApiRoute
+  '/guests/': typeof ProtectedGuestsIndexRoute
   '/rooms/': typeof ProtectedRoomsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/test-api': typeof ProtectedTestApiRoute
+  '/guests': typeof ProtectedGuestsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -75,13 +83,21 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/_protected/test-api': typeof ProtectedTestApiRoute
+  '/_protected/guests/': typeof ProtectedGuestsIndexRoute
   '/_protected/rooms/': typeof ProtectedRoomsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/rooms' | '/sign-in' | '/sign-up' | '/test-api' | '/rooms/'
+  fullPaths:
+    | '/'
+    | '/rooms'
+    | '/sign-in'
+    | '/sign-up'
+    | '/test-api'
+    | '/guests/'
+    | '/rooms/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/rooms' | '/sign-in' | '/sign-up' | '/test-api'
+  to: '/' | '/rooms' | '/sign-in' | '/sign-up' | '/test-api' | '/guests'
   id:
     | '__root__'
     | '/'
@@ -90,6 +106,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/_protected/test-api'
+    | '/_protected/guests/'
     | '/_protected/rooms/'
   fileRoutesById: FileRoutesById
 }
@@ -152,16 +169,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedRoomsIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/guests/': {
+      id: '/_protected/guests/'
+      path: '/guests'
+      fullPath: '/guests/'
+      preLoaderRoute: typeof ProtectedGuestsIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
   }
 }
 
 interface ProtectedRouteChildren {
   ProtectedTestApiRoute: typeof ProtectedTestApiRoute
+  ProtectedGuestsIndexRoute: typeof ProtectedGuestsIndexRoute
   ProtectedRoomsIndexRoute: typeof ProtectedRoomsIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedTestApiRoute: ProtectedTestApiRoute,
+  ProtectedGuestsIndexRoute: ProtectedGuestsIndexRoute,
   ProtectedRoomsIndexRoute: ProtectedRoomsIndexRoute,
 }
 
