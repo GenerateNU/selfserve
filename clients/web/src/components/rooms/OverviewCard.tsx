@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 export type OverviewCardColumn = {
   field: string
@@ -19,11 +20,7 @@ export function OverviewCard({
 }: OverviewCardProps) {
   return (
     <section
-      className={[
-        'bg-white dark:bg-zinc-900',
-        'px-[1vw] py-[1.5vh]',
-        className,
-      ].join(' ')}
+      className={cn('bg-white dark:bg-zinc-900 px-[1vw] py-[1.5vh]', className)}
     >
       <h2 className="text-md font-medium text-zinc-600 light:text-zinc-100">
         {title}

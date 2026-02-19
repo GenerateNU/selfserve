@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 const FLOOR_OPTIONS = [1, 2, 3, 4, 5]
@@ -19,17 +19,6 @@ export function FloorFilterDropdown({
   onChange,
 }: FloorFilterDropdownProps) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   const toggle = (floor: number) => {
     onChange(
@@ -40,21 +29,30 @@ export function FloorFilterDropdown({
   }
 
   return (
-    <div ref={ref} className="relative inline-block">
+    <div
+      className="relative inline-block"
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          setOpen(false)
+        }
+      }}
+    >
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="flex w-[8.5vw] items-center justify-between rounded-md bg-white/20 px-[0.6vw] py-[0.55vh] text-sm font-medium text-white transition-colors hover:bg-white/30"
       >
         <span>{getLabel(selected)}</span>
-
         <ChevronDown
           className={`h-[1.3vh] w-[1.3vh] shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-[0.4vh] w-full rounded-md border border-gray-200 bg-white py-[0.4vh] shadow-lg">
+        <div
+          className="absolute left-0 top-full z-50 mt-[0.4vh] w-full rounded-md border border-gray-200 bg-white py-[0.4vh] shadow-lg"
+          tabIndex={-1}
+        >
           {FLOOR_OPTIONS.map((floor) => (
             <label
               key={floor}
