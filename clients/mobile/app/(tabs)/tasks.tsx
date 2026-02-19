@@ -6,18 +6,12 @@ import { ActiveFilterChips } from "@/components/tasks/active-filter-chips";
 import { TabBar } from "@/components/tasks/tab-bar";
 import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
+import { TAB, TabName, VARIANT } from "@/constants/tasks";
 import { myTasks, unassignedTasks } from "@/data/mockTasks";
 
-const TAB = {
-  MY_TASKS: "myTasks",
-  UNASSIGNED: "unassigned",
-} as const;
-
-type TabName = (typeof TAB)[keyof typeof TAB];
-
-const tabConfigs: Record<TabName, { tasks: typeof myTasks; variant: "assigned" | "unassigned"; showFilters: boolean }> = {
-  [TAB.MY_TASKS]: { tasks: myTasks, variant: "assigned", showFilters: false },
-  [TAB.UNASSIGNED]: { tasks: unassignedTasks, variant: "unassigned", showFilters: true },
+const tabConfigs: Record<TabName, { tasks: typeof myTasks; variant: (typeof VARIANT)[keyof typeof VARIANT]; showFilters: boolean }> = {
+  [TAB.MY_TASKS]: { tasks: myTasks, variant: VARIANT.ASSIGNED, showFilters: false },
+  [TAB.UNASSIGNED]: { tasks: unassignedTasks, variant: VARIANT.UNASSIGNED, showFilters: true },
 };
 
 export default function TasksScreen() {
@@ -28,7 +22,7 @@ export default function TasksScreen() {
     <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <TasksHeader />
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-      {activeTab === "unassigned" && (
+      {currentTab.showFilters && (
         <ActiveFilterChips
           filters={[{ label: "Department: Room Service", value: "room-service" }]}
           onRemoveFilter={() => {}}
@@ -36,9 +30,7 @@ export default function TasksScreen() {
         />
       )}
       <View className="flex-1">
-        <TaskList
-          tasks={currentTab.tasks} variant={currentTab.variant}
-        />
+        <TaskList tasks={currentTab.tasks} variant={currentTab.variant} />
       </View>
     </SafeAreaView>
   );

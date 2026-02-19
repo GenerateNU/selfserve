@@ -2,16 +2,17 @@ import { FlatList, ListRenderItem } from "react-native";
 
 import { TaskCard } from "@/components/tasks/task-card";
 import type { Task } from "@/data/mockTasks";
+import {VARIANT} from "@/constants/tasks";
 
 interface TaskListProps {
   tasks: Task[];
-  variant: "assigned" | "unassigned";
+  variant: (typeof VARIANT)[keyof typeof VARIANT];
 }
 
 export function TaskList({ tasks, variant }: TaskListProps) {
   const renderItem: ListRenderItem<Task> = ({ item, index }) => {
     const isExpanded =
-      variant === "assigned" ? index === 0 : item.priority === "High";
+      variant === VARIANT.ASSIGNED ? index === 0 : item.priority === "High";
     return (
       <TaskCard task={item} variant={variant} isExpanded={isExpanded} />
     );

@@ -1,16 +1,11 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Pressable, Text, View } from "react-native";
 
-const TAB = {
-  MY_TASKS: "myTasks",
-  UNASSIGNED: "unassigned",
-} as const;
-
-type TabId = (typeof TAB)[keyof typeof TAB];
+import {TAB, TabName} from "@/constants/tasks";
 
 interface TabBarProps {
-  activeTab: TabId;
-  onTabChange: (tab: TabId) => void;
+  activeTab: TabName;
+  onTabChange: (tab: TabName) => void;
 }
 
 export function TabBar({ activeTab, onTabChange }: TabBarProps) {
