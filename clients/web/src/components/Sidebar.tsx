@@ -42,7 +42,7 @@ export function Sidebar() {
     user?.fullName ?? [user?.firstName, user?.lastName].filter(Boolean).join(' ')
 
   return (
-    <aside className="flex w-64 flex-col border-r bg-white p-4">
+    <aside className="flex w-64 flex-col border-r border-stroke-subtle bg-white p-4">
       {/* LOGO */}
       <div className="mb-5 flex items-center gap-3">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
