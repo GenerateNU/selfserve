@@ -6,7 +6,7 @@ import { cn } from '@shared/utils'
 interface GuestCardProps {
   name: string;
   floor: number;
-  room: string;
+  room: number;
   group: number;
   onPress: () => void;
   className?: string;
