@@ -3,10 +3,10 @@ import { SignOutButton, UserButton, useUser } from '@clerk/clerk-react'
 import {
   Home,
   LayoutGrid,
-  UserRound,
-  Settings,
   LogOut,
   Octagon,
+  Settings,
+  UserRound,
 } from 'lucide-react'
 
 function NavLink({
@@ -91,9 +91,7 @@ export function Sidebar() {
               {displayName || 'User'}
             </p>
             <p className="truncate text-xs text-gray-500">
-              {typeof user?.publicMetadata?.organization === 'string'
-                ? user.publicMetadata.organization
-                : 'Hotel Chain'}
+              Hotel Chain
             </p>
           </div>
         </div>
