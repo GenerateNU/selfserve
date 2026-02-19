@@ -7,18 +7,15 @@ import {
   CheckCircle2,
   Heart,
   LayoutDashboard,
-  MessageSquare,
   Monitor,
   Octagon,
   Phone,
   Radio,
   Route as RouteIcon,
   Send,
-  Smartphone,
   Star,
   StickyNote,
   TrendingDown,
-  XCircle,
   Zap,
 } from 'lucide-react'
 
@@ -93,7 +90,7 @@ const chaos = [
 const testimonials = [
   {
     quote:
-      "We replaced three separate tools with SelfServe. Response time dropped by half and guest complaints about lost requests went to basically zero.",
+      'We replaced three separate tools with SelfServe. Response time dropped by half and guest complaints about lost requests went to basically zero.',
     name: 'Jordan M.',
     role: 'Operations Manager',
     hotel: 'The Piedmont Hotel',
@@ -244,11 +241,11 @@ function App() {
               Guest expectations are rising. Your tools haven't kept up.
             </h2>
             <p className="text-[17px] text-stone-500 leading-relaxed">
-              Staff juggle disconnected systems all shift long. Requests get lost
-              between handoffs. Operators can't see what's happening without
-              calling three departments. The problem isn't your people — it's
-              that no single system was ever designed for how independent hotels
-              actually run.
+              Staff juggle disconnected systems all shift long. Requests get
+              lost between handoffs. Operators can't see what's happening
+              without calling three departments. The problem isn't your people —
+              it's that no single system was ever designed for how independent
+              hotels actually run.
             </p>
           </div>
 
@@ -259,7 +256,10 @@ function App() {
                 key={label}
                 className="flex items-center gap-2.5 px-5 py-2.5 rounded-[10px] bg-white border border-stone-200"
               >
-                <Icon className="size-[18px] text-stone-400" strokeWidth={1.8} />
+                <Icon
+                  className="size-[18px] text-stone-400"
+                  strokeWidth={1.8}
+                />
                 <span className="text-sm font-medium text-stone-500">
                   {label}
                 </span>
@@ -271,8 +271,8 @@ function App() {
           <div className="max-w-[680px] mx-auto p-9 rounded-2xl bg-primary/[0.06] border-l-[3px] border-primary">
             <p className="text-[17px] text-primary font-medium leading-relaxed">
               SelfServe replaces all of it with one command center. Every guest
-              request becomes a structured, assignable task — routed to the right
-              person, tracked to resolution, visible in real time.
+              request becomes a structured, assignable task — routed to the
+              right person, tracked to resolution, visible in real time.
             </p>
           </div>
         </div>
