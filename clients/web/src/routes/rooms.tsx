@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { RoomsHeader } from '@/components/rooms/RoomsHeader'
 import { RoomsOverview } from '@/components/rooms/RoomsOverview'
@@ -21,6 +21,16 @@ export default function RoomsPage() {
     useState<RoomFilters>(initialRoomFilters)
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
 
+  const filteredRooms = useMemo(() => {
+    let result = rooms
+
+    if (roomFilters.floor.length > 0) {
+      result = result.filter((r) => roomFilters.floor.includes(r.floor))
+    }
+
+    return result
+  }, [roomFilters])
+
   const selectedRoom =
     selectedRoomId == null
       ? null
@@ -42,13 +52,13 @@ export default function RoomsPage() {
 
       <section className="flex flex-1 min-h-0">
         <RoomsList
-          rooms={rooms}
+          rooms={filteredRooms}
           onRoomSelect={(roomId) =>
             setSelectedRoomId((prev) => (prev === roomId ? null : roomId))
           }
           selectedRoomId={selectedRoomId}
         />
-        <RoomsOverview rooms={rooms} />
+        <RoomsOverview rooms={filteredRooms} />
       </section>
       <RoomDetailsDrawer
         room={selectedRoom}
