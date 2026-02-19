@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, View, Text } from 'react-native';
 import { User } from 'lucide-react-native';
+import { cn } from '@shared/utils'
 
 interface GuestCardProps {
   name: string;
@@ -15,7 +16,10 @@ export function GuestCard({ name, floor, room, group, onPress, className }: Gues
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center p-[3vw] border border-gray-300 rounded-md active:bg-gray-100 ${className || ''}`}
+      className={cn(
+      'flex-row items-center p-[3vw] border border-gray-300 rounded-md active:bg-gray-100',
+      className
+      )}
     >
       <View className="w-[10vw] h-[10vw] rounded-full border-2 border-gray-400 items-center justify-center mr-[3vw]">
         <User className="w-[6vw] h-[6vw]" color="#374151" />
