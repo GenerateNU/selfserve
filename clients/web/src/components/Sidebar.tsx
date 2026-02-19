@@ -52,7 +52,7 @@ export function Sidebar() {
       </div>
 
       {/* Main nav */}
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav className="flex flex-1 flex-col gap-4">
         <NavLink to="/home" icon={Home}>
           Home
         </NavLink>
@@ -65,7 +65,7 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom section */}
-      <div className="mt-auto space-y-1 border-t pt-4">
+      <div className="mt-auto space-y-3">
         <NavLink to="/settings" icon={Settings}>
           Settings
         </NavLink>
