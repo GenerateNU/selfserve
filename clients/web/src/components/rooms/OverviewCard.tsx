@@ -12,7 +12,11 @@ type OverviewCardProps = {
   className?: string
 }
 
-export function OverviewCard({ title, columns, className = '' }: OverviewCardProps) {
+export function OverviewCard({
+  title,
+  columns,
+  className = '',
+}: OverviewCardProps) {
   return (
     <section
       className={[
@@ -22,7 +26,9 @@ export function OverviewCard({ title, columns, className = '' }: OverviewCardPro
         className,
       ].join(' ')}
     >
-      <h2 className="text-2xl font-medium text-zinc-900 dark:text-zinc-100">{title}</h2>
+      <h2 className="text-2xl font-medium text-zinc-900 dark:text-zinc-100">
+        {title}
+      </h2>
 
       <div className="mt-3 h-px w-full bg-zinc-200 dark:bg-zinc-800" />
 
@@ -37,7 +43,9 @@ export function OverviewCard({ title, columns, className = '' }: OverviewCardPro
               {col.value}
             </div>
 
-            <div className="text-sm text-zinc-500 dark:text-zinc-400">{col.description}</div>
+            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+              {col.description}
+            </div>
           </div>
         ))}
       </div>

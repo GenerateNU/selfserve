@@ -1,43 +1,43 @@
-import { useEffect, useRef, useState  } from "react";
-import { ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 
-const FLOOR_OPTIONS = [1, 2, 3, 4, 5];
+const FLOOR_OPTIONS = [1, 2, 3, 4, 5]
 
 type FloorFilterDropdownProps = {
-  selected: Array<number>;
-  onChange: (selected: Array<number>) => void;
-};
+  selected: Array<number>
+  onChange: (selected: Array<number>) => void
+}
 
 function getLabel(selected: Array<number>): string {
-  if (selected.length === 0) return "All floors";
-  if (selected.length === 1) return `Floor ${selected[0]}`;
-  return "Multiple floors";
+  if (selected.length === 0) return 'All floors'
+  if (selected.length === 1) return `Floor ${selected[0]}`
+  return 'Multiple floors'
 }
 
 export function FloorFilterDropdown({
   selected,
   onChange,
 }: FloorFilterDropdownProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
+        setOpen(false)
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const toggle = (floor: number) => {
     onChange(
       selected.includes(floor)
         ? selected.filter((f) => f !== floor)
         : [...selected, floor],
-    );
-  };
+    )
+  }
 
   return (
     <div ref={ref} className="relative inline-block">
@@ -48,7 +48,9 @@ export function FloorFilterDropdown({
       >
         <span>{getLabel(selected)}</span>
 
-        <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}/>
+        <ChevronDown
+          className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
@@ -70,5 +72,5 @@ export function FloorFilterDropdown({
         </div>
       )}
     </div>
-  );
+  )
 }

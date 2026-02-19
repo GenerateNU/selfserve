@@ -11,17 +11,16 @@ export function RoomCard({ room, isSelected = false, onClick }: RoomCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col items-start gap-4 flex-1 min-w-0 w-full min-h-30 text-left rounded-md border px-3 py-2.5 transition-colors ${isSelected
-        ? 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 shadow-sm'
-        : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
-        }`}
+      className={`flex flex-col items-start gap-4 flex-1 min-w-0 w-full min-h-30 text-left rounded-md border px-3 py-2.5 transition-colors ${
+        isSelected
+          ? 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 shadow-sm'
+          : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
+      }`}
     >
       <span className="text-xl font-bold text-zinc-900 ">
         Room {room.room_number}
       </span>
-      <span className="text-sm font-light text-zinc-500">
-        {room.room_type}
-      </span>
+      <span className="text-sm font-light text-zinc-500">{room.room_type}</span>
       <span className="text-xs font-medium text-zinc-900">
         Jane Doe, John Doe
       </span>
