@@ -6,6 +6,10 @@
   --font-playfair: 'Playfair Display', ui-serif, serif;
 }
 
+button {
+  cursor: pointer;
+}
+
 body {
   @apply m-0;
   font-family:
