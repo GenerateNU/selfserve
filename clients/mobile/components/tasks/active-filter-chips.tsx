@@ -7,15 +7,15 @@ interface FilterItem {
 }
 
 interface ActiveFilterChipsProps {
-  filters: FilterItem[];
-  onRemoveFilter?: (value: string) => void;
-  onClearAll?: () => void;
+  filters: { label: string; value: string }[];
+  onRemoveFilter: (value: string) => void;
+  onClearAll: () => void;
 }
 
 export function ActiveFilterChips({
   filters,
-  onRemoveFilter = () => {},
-  onClearAll = () => {},
+  onRemoveFilter,
+  onClearAll,
 }: ActiveFilterChipsProps) {
   return (
     <View className="flex-row items-center gap-3 px-[5vw] py-2">
