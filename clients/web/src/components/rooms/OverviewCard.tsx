@@ -26,16 +26,16 @@ export function OverviewCard({
         className,
       ].join(' ')}
     >
-      <h2 className="text-2xl font-medium text-zinc-900 dark:text-zinc-100">
+      <h2 className="text-md font-medium text-zinc-600 light:text-zinc-100">
         {title}
       </h2>
 
-      <div className="mt-3 h-px w-full bg-zinc-200 dark:bg-zinc-800" />
+      <div className="mt-[1vh] h-[0.125vh] w-full bg-zinc-200 dark:bg-zinc-800" />
 
       <div className="mt-5 grid grid-cols-3 gap-8">
         {columns.map((col) => (
-          <div key={col.field} className="flex flex-col gap-2">
-            <div className="text-lg font-medium leading-tight text-zinc-900 dark:text-zinc-100">
+          <div key={col.field} className="flex flex-col gap-[1vw]">
+            <div className="text-sm font-medium leading-tight text-zinc-900 dark:text-zinc-100">
               {col.field}
             </div>
 

@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { RoomsHeader } from '@/components/rooms/RoomsHeader'
 import { RoomsOverview } from '@/components/rooms/RoomsOverview'
 import { RoomsList } from '@/components/rooms/RoomsList'
+import { RoomDetailsDrawer } from '@/components/rooms/RoomDetailsDrawer'
 import { rooms } from '@/data/rooms'
 
 export const Route = createFileRoute('/rooms')({ component: RoomsPage })
@@ -19,6 +20,11 @@ export default function RoomsPage() {
   const [roomFilters, setRoomFilters] =
     useState<RoomFilters>(initialRoomFilters)
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
+
+  const selectedRoom =
+    selectedRoomId == null
+      ? null
+      : (rooms.find((r) => r.id === selectedRoomId) ?? null)
 
   const updateRoomFilter = <TKey extends keyof RoomFilters>(
     key: TKey,
@@ -37,11 +43,17 @@ export default function RoomsPage() {
       <section className="flex flex-1 min-h-0">
         <RoomsList
           rooms={rooms}
-          onRoomSelect={setSelectedRoomId}
+          onRoomSelect={(roomId) =>
+            setSelectedRoomId((prev) => (prev === roomId ? null : roomId))
+          }
           selectedRoomId={selectedRoomId}
         />
         <RoomsOverview rooms={rooms} />
       </section>
+      <RoomDetailsDrawer
+        room={selectedRoom}
+        onClose={() => setSelectedRoomId(null)}
+      />
     </main>
   )
 }
