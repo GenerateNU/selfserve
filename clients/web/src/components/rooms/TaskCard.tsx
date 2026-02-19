@@ -7,7 +7,7 @@ type TaskCardProps = {
 export function TaskCard({ task, onAssign }: TaskCardProps) {
   return (
     <div className="flex flex-col gap-[1.5vh] rounded-md border border-zinc-200 p-[1vw]">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-[0.4vw]">
         <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" />
         <span className="text-md font-bold">{task}</span>
       </div>

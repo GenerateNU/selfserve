@@ -50,23 +50,23 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
                   Room features
                 </h4>
                 <div className="flex flex-wrap gap-[0.9vh]">
-                  <span className="flex items-center gap-2 rounded-md p-[0.5vh] text-sm bg-zinc-50">
+                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
                     <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" />{' '}
                     Room Size: 500 sq ft
                   </span>
-                  <span className="flex items-center gap-2 rounded-md p-[0.5vh] text-sm bg-zinc-50">
+                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
                     <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" />{' '}
                     Bed: queen
                   </span>
-                  <span className="flex items-center gap-2 rounded-md p-[0.5vh] text-sm bg-zinc-50">
+                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
                     <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" /> Bar
                     / Lounge
                   </span>
-                  <span className="flex items-center gap-2 rounded-md p-[0.5vh] text-sm bg-zinc-50">
+                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
                     <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" /> 1
                     bathroom
                   </span>
-                  <span className="flex items-center gap-2 rounded-md p-[0.5vh] text-sm bg-zinc-50">
+                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
                     <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" /> 1
                     toilet
                   </span>

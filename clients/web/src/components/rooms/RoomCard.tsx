@@ -11,7 +11,7 @@ export function RoomCard({ room, isSelected = false, onClick }: RoomCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col items-start gap-4 flex-1 min-w-0 w-full min-h-30 text-left rounded-md border px-3 py-2.5 transition-colors ${
+      className={`flex flex-col items-start gap-[1.5vh] flex-1 min-w-0 w-full min-h-[11vh] text-left rounded-md border px-[0.6vw] py-[0.9vh] transition-colors ${
         isSelected
           ? 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 shadow-sm'
           : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
@@ -25,7 +25,7 @@ export function RoomCard({ room, isSelected = false, onClick }: RoomCardProps) {
         Jane Doe, John Doe
       </span>
       {room.tags && room.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-[0.4vh]">
           {room.tags.map((tag) => (
             <span
               key={tag}

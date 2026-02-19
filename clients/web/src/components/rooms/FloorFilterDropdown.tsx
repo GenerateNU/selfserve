@@ -44,27 +44,27 @@ export function FloorFilterDropdown({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-40 items-center justify-between rounded-md bg-white/20 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-white/30"
+        className="flex w-[8.5vw] items-center justify-between rounded-md bg-white/20 px-[0.6vw] py-[0.55vh] text-sm font-medium text-white transition-colors hover:bg-white/30"
       >
         <span>{getLabel(selected)}</span>
 
         <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`h-[1.3vh] w-[1.3vh] shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-full rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-[0.4vh] w-full rounded-md border border-gray-200 bg-white py-[0.4vh] shadow-lg">
           {FLOOR_OPTIONS.map((floor) => (
             <label
               key={floor}
-              className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+              className="flex cursor-pointer items-center gap-[0.4vw] px-[0.6vw] py-[0.55vh] text-sm text-gray-700 hover:bg-gray-100"
             >
               <input
                 type="checkbox"
                 checked={selected.includes(floor)}
                 onChange={() => toggle(floor)}
-                className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="h-[1.3vh] w-[1.3vh] rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               Floor {floor}
             </label>
