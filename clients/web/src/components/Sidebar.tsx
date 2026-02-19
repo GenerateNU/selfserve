@@ -6,6 +6,7 @@ import {
   UserRound,
   Settings,
   LogOut,
+  Octagon,
 } from 'lucide-react'
 
 function NavLink({
@@ -42,13 +43,11 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-64 flex-col border-r bg-white p-4">
-      {/* Branding */}
+      {/* LOGO */}
       <div className="mb-8 flex items-center gap-3">
-        <img
-          src="/logosquare.webp"
-          alt=""
-          className="size-10 shrink-0 rounded-lg object-cover"
-        />
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary">
+          <Octagon className="size-5 text-white" fill="white" strokeWidth={2.5} />
+        </div>
         <span className="text-lg font-bold text-gray-900">SelfServe</span>
       </div>
 
