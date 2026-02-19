@@ -63,6 +63,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <ClerkProvider
           publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ''}
+          signInForceRedirectUrl={import.meta.env.VITE_CLERK_SIGN_IN_FORCE_REDIRECT_URL ?? ''}
+          signUpForceRedirectUrl={import.meta.env.VITE_CLERK_SIGN_UP_FORCE_REDIRECT_URL ?? ''}
+          signInFallbackRedirectUrl={import.meta.env.VITE_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL ?? ''}
+          signUpFallbackRedirectUrl={import.meta.env.VITE_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL ?? ''}
         >
           <AppConfigurator />
           <QueryClientProvider client={queryClient}>
