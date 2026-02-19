@@ -54,7 +54,7 @@ export function Sidebar() {
 
       {/* Main nav */}
       <nav className="flex flex-1 flex-col gap-1">
-        <NavLink to="/dashboard" icon={Home}>
+        <NavLink to="/home" icon={Home}>
           Home
         </NavLink>
         <NavLink to="/rooms" icon={LayoutGrid}>

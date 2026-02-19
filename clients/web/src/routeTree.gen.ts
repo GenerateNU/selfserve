@@ -15,6 +15,8 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedTestApiRouteImport } from './routes/_protected/test-api'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
+import { Route as ProtectedRoomsRouteImport } from './routes/_protected/rooms'
+import { Route as ProtectedHomeRouteImport } from './routes/_protected/home'
 import { Route as ProtectedGuestsIndexRouteImport } from './routes/_protected/guests.index'
 import { Route as ProtectedGuestsGuestIdRouteImport } from './routes/_protected/guests.$guestId'
 
@@ -47,6 +49,16 @@ const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedRoomsRoute = ProtectedRoomsRouteImport.update({
+  id: '/rooms',
+  path: '/rooms',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedHomeRoute = ProtectedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedGuestsIndexRoute = ProtectedGuestsIndexRouteImport.update({
   id: '/guests/',
   path: '/guests/',
@@ -62,6 +74,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/home': typeof ProtectedHomeRoute
+  '/rooms': typeof ProtectedRoomsRoute
   '/settings': typeof ProtectedSettingsRoute
   '/test-api': typeof ProtectedTestApiRoute
   '/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
@@ -71,6 +85,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/home': typeof ProtectedHomeRoute
+  '/rooms': typeof ProtectedRoomsRoute
   '/settings': typeof ProtectedSettingsRoute
   '/test-api': typeof ProtectedTestApiRoute
   '/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
@@ -82,6 +98,8 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/_protected/home': typeof ProtectedHomeRoute
+  '/_protected/rooms': typeof ProtectedRoomsRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
   '/_protected/test-api': typeof ProtectedTestApiRoute
   '/_protected/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
@@ -93,6 +111,8 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/sign-up'
+    | '/home'
+    | '/rooms'
     | '/settings'
     | '/test-api'
     | '/guests/$guestId'
@@ -102,6 +122,8 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/sign-up'
+    | '/home'
+    | '/rooms'
     | '/settings'
     | '/test-api'
     | '/guests/$guestId'
@@ -112,6 +134,8 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/sign-in'
     | '/sign-up'
+    | '/_protected/home'
+    | '/_protected/rooms'
     | '/_protected/settings'
     | '/_protected/test-api'
     | '/_protected/guests/$guestId'
@@ -169,6 +193,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedSettingsRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/rooms': {
+      id: '/_protected/rooms'
+      path: '/rooms'
+      fullPath: '/rooms'
+      preLoaderRoute: typeof ProtectedRoomsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/home': {
+      id: '/_protected/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof ProtectedHomeRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/guests/': {
       id: '/_protected/guests/'
       path: '/guests'
@@ -187,6 +225,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface ProtectedRouteChildren {
+  ProtectedHomeRoute: typeof ProtectedHomeRoute
+  ProtectedRoomsRoute: typeof ProtectedRoomsRoute
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
   ProtectedTestApiRoute: typeof ProtectedTestApiRoute
   ProtectedGuestsGuestIdRoute: typeof ProtectedGuestsGuestIdRoute
@@ -194,6 +234,8 @@ interface ProtectedRouteChildren {
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedHomeRoute: ProtectedHomeRoute,
+  ProtectedRoomsRoute: ProtectedRoomsRoute,
   ProtectedSettingsRoute: ProtectedSettingsRoute,
   ProtectedTestApiRoute: ProtectedTestApiRoute,
   ProtectedGuestsGuestIdRoute: ProtectedGuestsGuestIdRoute,
