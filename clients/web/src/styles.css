@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-primary: #15502c;
+  --color-stroke-subtle: #d8d8d8;
+}
+
 body {
   @apply m-0;
   font-family:

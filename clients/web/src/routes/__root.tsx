@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { setConfig } from '@shared'
 import { useEffect } from 'react'
-import Header from '../components/Header'
 import appCss from '../styles.css?url'
 
 // Client explicity created outside the component to avoid recreation
@@ -67,7 +66,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         >
           <AppConfigurator />
           <QueryClientProvider client={queryClient}>
-            <Header />
             {children}
             <ReactQueryDevtools initialIsOpen={false} />
           </QueryClientProvider>
