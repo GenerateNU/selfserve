@@ -39,14 +39,19 @@ export function Sidebar() {
   const { user } = useUser()
 
   const displayName =
-    user?.fullName ?? [user?.firstName, user?.lastName].filter(Boolean).join(' ')
+    user?.fullName ??
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ')
 
   return (
     <aside className="flex w-64 flex-col border-r border-stroke-subtle bg-white p-4">
       {/* LOGO */}
       <div className="mb-5 flex items-center gap-3">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-          <Octagon className="size-3.5 text-white" fill="white" strokeWidth={1.5} />
+          <Octagon
+            className="size-3.5 text-white"
+            fill="white"
+            strokeWidth={1.5}
+          />
         </div>
         <span className="text-lg font-bold text-gray-900">SelfServe</span>
       </div>
@@ -90,9 +95,7 @@ export function Sidebar() {
             <p className="truncate text-sm font-medium text-gray-700">
               {displayName || 'User'}
             </p>
-            <p className="truncate text-xs text-gray-500">
-              Hotel Chain
-            </p>
+            <p className="truncate text-xs text-gray-500">Hotel Chain</p>
           </div>
         </div>
       </div>
