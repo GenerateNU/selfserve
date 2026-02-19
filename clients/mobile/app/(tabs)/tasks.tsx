@@ -15,8 +15,14 @@ const TAB = {
 
 type TabName = (typeof TAB)[keyof typeof TAB];
 
+const tabConfigs: Record<TabName, { tasks: typeof myTasks; variant: "assigned" | "unassigned"; showFilters: boolean }> = {
+  [TAB.MY_TASKS]: { tasks: myTasks, variant: "assigned", showFilters: false },
+  [TAB.UNASSIGNED]: { tasks: unassignedTasks, variant: "unassigned", showFilters: true },
+};
+
 export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
+  const currentTab = tabConfigs[activeTab];
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
@@ -31,8 +37,7 @@ export default function TasksScreen() {
       )}
       <View className="flex-1">
         <TaskList
-          tasks={activeTab === "myTasks" ? myTasks : unassignedTasks}
-          variant={activeTab === "myTasks" ? "assigned" : "unassigned"}
+          tasks={currentTab.tasks} variant={currentTab.variant}
         />
       </View>
     </SafeAreaView>
