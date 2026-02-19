@@ -1,4 +1,5 @@
 import type { Room } from '@/components/rooms/RoomsList'
+import { cn } from '@/lib/utils'
 
 type RoomCardProps = {
   room: Room
@@ -11,11 +12,12 @@ export function RoomCard({ room, isSelected = false, onClick }: RoomCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col items-start gap-[1.5vh] flex-1 min-w-0 w-full min-h-[11vh] text-left rounded-md border px-[0.6vw] py-[0.9vh] transition-colors ${
+      className={cn(
+        'flex flex-col items-start gap-[1.5vh] flex-1 min-w-0 w-full min-h-[11vh] text-left rounded-md border px-[0.6vw] py-[0.9vh] transition-colors',
         isSelected
           ? 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 shadow-sm'
-          : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
-      }`}
+          : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60',
+      )}
     >
       <span className="text-xl font-bold text-zinc-900 ">
         Room {room.room_number}

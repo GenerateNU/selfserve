@@ -4,7 +4,7 @@ import { RoomsHeader } from '@/components/rooms/RoomsHeader'
 import { RoomsOverview } from '@/components/rooms/RoomsOverview'
 import { RoomsList } from '@/components/rooms/RoomsList'
 import { RoomDetailsDrawer } from '@/components/rooms/RoomDetailsDrawer'
-import { rooms } from '@/data/rooms'
+import { rooms } from '@/mock-data/rooms'
 
 export const Route = createFileRoute('/_protected/rooms/')({
   component: RoomsPage,
@@ -21,6 +21,7 @@ const initialRoomFilters: RoomFilters = {
 function RoomsPage() {
   const [roomFilters, setRoomFilters] =
     useState<RoomFilters>(initialRoomFilters)
+
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
 
   const filteredRooms = useMemo(() => {
@@ -38,11 +39,19 @@ function RoomsPage() {
       ? null
       : (rooms.find((r) => r.id === selectedRoomId) ?? null)
 
+  const toggleRoom = (roomId: string) => {
+    setSelectedRoomId((prev) => (prev === roomId ? null : roomId))
+  }
+
   const updateRoomFilter = <TKey extends keyof RoomFilters>(
     key: TKey,
     value: RoomFilters[TKey],
   ) => {
     setRoomFilters((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleCloseDrawer = () => {
+    setSelectedRoomId(null)
   }
 
   return (
@@ -55,17 +64,12 @@ function RoomsPage() {
       <section className="flex flex-1 min-h-0">
         <RoomsList
           rooms={filteredRooms}
-          onRoomSelect={(roomId) =>
-            setSelectedRoomId((prev) => (prev === roomId ? null : roomId))
-          }
+          onRoomSelect={toggleRoom}
           selectedRoomId={selectedRoomId}
         />
         <RoomsOverview rooms={filteredRooms} />
       </section>
-      <RoomDetailsDrawer
-        room={selectedRoom}
-        onClose={() => setSelectedRoomId(null)}
-      />
+      <RoomDetailsDrawer room={selectedRoom} onClose={handleCloseDrawer} />
     </main>
   )
 }

@@ -1,4 +1,4 @@
-import type { RoomFilters } from '@/routes/rooms'
+import type { RoomFilters } from '@/routes/_protected/rooms.index'
 import { FloorFilterDropdown } from '@/components/rooms/FloorFilterDropdown'
 
 type RoomsHeaderProps = {
