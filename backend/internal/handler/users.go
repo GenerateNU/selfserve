@@ -99,8 +99,8 @@ func validateCreateUser(user *models.CreateUser) error {
 		}
 	}
 
-	if strings.TrimSpace(user.ClerkID) == "" {
-		errors["clerk_id"] = "must not be an empty string"
+	if strings.TrimSpace(user.ID) == "" {
+		errors["id"] = "must not be an empty string"
 	}
 
 	// Aggregates errors deterministically
