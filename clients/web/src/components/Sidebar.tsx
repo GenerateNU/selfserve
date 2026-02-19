@@ -72,7 +72,7 @@ export function Sidebar() {
         <SignOutButton>
           <button
             type="button"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            className="flex w-full hover:cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
           >
             <LogOut className="size-5 shrink-0" />
             Logout
