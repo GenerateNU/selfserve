@@ -10,6 +10,11 @@
     "generate:api": "orval --config ./orval.config.ts",
     "generate:api:watch": "orval --config ./orval.config.ts --watch"
   },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.5.0"
+  },
   "peerDependencies": {
     "@tanstack/react-query": "^5.90.0",
     "react": "^19.2.3",
