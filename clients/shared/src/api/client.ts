@@ -1,84 +1,95 @@
-import { ApiError } from '../types/api.types'
-
-// @ts-ignore - Environment variable injected by bundler (Vite/Metro)
-const API_BASE_URL = process.env.API_BASE_URL
+import { ApiError, HttpClient, RequestConfig } from "../types/api.types";
+import { getConfig } from "./config";
 
 /**
  * Internal helper to make HTTP requests w/ error handling
  */
-const request = async <T>(
-  endpoint: string,
-  options: RequestInit
-): Promise<T> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    })
+export const createRequest = (
+  getToken: () => Promise<string | null>,
+  baseUrl: string,
+) => {
+  return async <T>(config: RequestConfig): Promise<T> => {
+    let fullUrl = `${baseUrl}${config.url}`;
+    if (config.params && Object.keys(config.params).length > 0) {
+      const searchParams = new URLSearchParams(config.params);
+      fullUrl += '?' + searchParams.toString();
+    }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+    try {
+      const token = await getToken();
+
+      const response = await fetch(fullUrl, {
+        method: config.method,
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+          ...config.headers,
+        },
+        body: config.data ? JSON.stringify(config.data) : undefined,
+        signal: config.signal,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiError(
+          errorData.message || "Request failed",
+          response.status,
+          errorData,
+        );
+      }
+
+      const contentType = response.headers.get("content-type");
+      let data: T;
+
+      switch (true) {
+        case contentType?.includes("application/json"):
+          data = await response.json();
+          break;
+        case contentType?.includes("text/plain"):
+          data = (await response.text()) as T;
+          break;
+        default:
+          data = (await response.text()) as T;
+          break;
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
       throw new ApiError(
-        errorData.message || 'Request failed',
-        response.status,
-        errorData
-      )
+        error instanceof Error ? error.message : "Network error",
+        0,
+        error,
+      );
     }
+  };
+};
 
-    // Handle text responses
-    const contentType = response.headers.get('content-type')
-    if (contentType && contentType.includes('text/plain')) {
-      return (await response.text()) as T
-    }
+export const useAPIClient = (): HttpClient => {
+  const { getToken } = getConfig();
+  const request = createRequest(getToken, getBaseUrl());
 
-    return response.json()
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error
-    }
-    throw new ApiError(
-      error instanceof Error ? error.message : 'Network error',
-      0,
-      error
-    )
+  return {
+    get: <T>(endpoint: string, params?: Record<string, any>) =>
+      request<T>({ url: endpoint, method: "GET", params }),
+    post: <T>(endpoint: string, data: unknown) =>
+      request<T>({ url: endpoint, method: "POST", data }),
+    put: <T>(endpoint: string, data: unknown) =>
+      request<T>({ url: endpoint, method: "PUT", data }),
+    patch: <T>(endpoint: string, data: unknown) =>
+      request<T>({ url: endpoint, method: "PATCH", data }),
+    delete: <T>(endpoint: string) =>
+      request<T>({ url: endpoint, method: "DELETE" }),
+  };
+};
+
+export const getBaseUrl = (): string => {
+  const url = getConfig().API_BASE_URL; 
+  if (!url) {
+    throw new Error("API_BASE_URL is not configured. Check your .env file.");
   }
-}
 
-export const apiClient = {
-  /**
-   * Performs a GET request
-   */
-  get: <T>(endpoint: string): Promise<T> => {
-    return request<T>(endpoint, { method: 'GET' })
-  },
-
-  /**
-   * Performs a POST request
-   */
-  post: <T>(endpoint: string, data: any): Promise<T> => {
-    return request<T>(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
-
-  /**
-   * Performs a PUT request
-   */
-  put: <T>(endpoint: string, data: any): Promise<T> => {
-    return request<T>(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  },
-
-  /**
-   * Performs a DELETE request
-   */
-  delete: <T>(endpoint: string): Promise<T> => {
-    return request<T>(endpoint, { method: 'DELETE' })
-  },
-}
+  return url;
+};
