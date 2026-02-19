@@ -1,7 +1,12 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Pressable, Text, View } from "react-native";
 
-type TabId = "myTasks" | "unassigned";
+const TAB = {
+  MY_TASKS: "myTasks",
+  UNASSIGNED: "unassigned",
+} as const;
+
+type TabId = (typeof TAB)[keyof typeof TAB];
 
 interface TabBarProps {
   activeTab: TabId;
@@ -12,9 +17,9 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
   return (
     <View className="flex-row w-full">
       <Pressable
-        onPress={() => onTabChange("myTasks")}
+        onPress={() => onTabChange(TAB.MY_TASKS)}
         className={`w-1/2 items-center py-3 border-b-2 ${
-          activeTab === "myTasks"
+          activeTab === TAB.MY_TASKS
             ? "border-blue-600"
             : "border-b border-gray-200"
         }`}
@@ -23,11 +28,11 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
           <MaterialCommunityIcons
             name="dots-grid"
             size={14}
-            color={activeTab === "myTasks" ? "#000" : "#9ca3af"}
+            color={activeTab === TAB.MY_TASKS ? "#000" : "#9ca3af"}
           />
           <Text
             className={
-              activeTab === "myTasks"
+              activeTab === TAB.MY_TASKS
                 ? "text-black font-semibold"
                 : "text-gray-400"
             }
@@ -37,9 +42,9 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
         </View>
       </Pressable>
       <Pressable
-        onPress={() => onTabChange("unassigned")}
+        onPress={() => onTabChange(TAB.UNASSIGNED)}
         className={`w-1/2 items-center py-3 border-b-2 ${
-          activeTab === "unassigned"
+          activeTab === TAB.UNASSIGNED
             ? "border-blue-600"
             : "border-b border-gray-200"
         }`}
@@ -48,11 +53,11 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
           <MaterialCommunityIcons
             name="dots-grid"
             size={14}
-            color={activeTab === "unassigned" ? "#000" : "#9ca3af"}
+            color={activeTab === TAB.UNASSIGNED ? "#000" : "#9ca3af"}
           />
           <Text
             className={
-              activeTab === "unassigned"
+              activeTab === TAB.UNASSIGNED
                 ? "text-black font-semibold"
                 : "text-gray-400"
             }
