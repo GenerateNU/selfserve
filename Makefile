@@ -1,4 +1,4 @@
-.PHONY: install-clients install-shared install-mobile install-web
+.PHONY: install-clients install-shared install-mobile install-web dev-web dev-mobile
 
 # Install dependencies in shared, mobile, and web
 install-clients: install-shared install-mobile install-web
@@ -15,3 +15,10 @@ install-mobile:
 install-web:
 	@echo "Installing web..."
 	@cd clients/web && npm install
+
+# Start development servers
+dev-web:
+	@cd clients/web && npm run dev
+
+dev-mobile:
+	@cd clients/mobile && npx expo start
