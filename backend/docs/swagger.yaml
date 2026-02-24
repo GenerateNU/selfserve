@@ -1,25 +1,7 @@
 basePath: /api/v1
 definitions:
-  CreateGuest:
-    properties:
-      first_name:
-        example: John
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
   CreateUser:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       department:
         example: Housekeeping
         type: string
@@ -28,6 +10,9 @@ definitions:
         type: string
       first_name:
         example: John
+        type: string
+      id:
+        example: user_123
         type: string
       last_name:
         example: Doe
@@ -69,7 +54,7 @@ definitions:
         example: "2024-01-02T00:00:00Z"
         type: string
       first_name:
-        example: John
+        example: Jane
         type: string
       id:
         example: 530e8400-e458-41d4-a716-446655440000
@@ -216,26 +201,27 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
-  UpdateGuest:
+  Room:
     properties:
-      first_name:
-        example: John
+      created_at:
+        example: "2024-01-01T00:00:00Z"
         type: string
-      last_name:
-        example: Doe
+      features:
+        items:
+          type: string
+        type: array
+      id:
         type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
+      room_number:
+        type: integer
+      room_type:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.RoomType'
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
         type: string
     type: object
   User:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
@@ -249,7 +235,7 @@ definitions:
         example: John
         type: string
       id:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: user_123
         type: string
       last_name:
         example: Doe
@@ -272,6 +258,48 @@ definitions:
       code:
         type: integer
       message: {}
+    type: object
+  github_com_generate_selfserve_internal_models.CreateGuest:
+    properties:
+      first_name:
+        example: Jane
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+    type: object
+  github_com_generate_selfserve_internal_models.RoomType:
+    enum:
+    - single
+    - double
+    - queen
+    - king
+    type: string
+    x-enum-varnames:
+    - RoomTypeSingle
+    - RoomTypeDouble
+    - RoomTypeQueen
+    - RoomTypeKing
+  github_com_generate_selfserve_internal_models.UpdateGuest:
+    properties:
+      first_name:
+        example: Jane
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -297,7 +325,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/CreateGuest'
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.CreateGuest'
       produces:
       - application/json
       responses:
@@ -372,7 +400,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/UpdateGuest'
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.UpdateGuest'
       produces:
       - application/json
       responses:
