@@ -133,6 +133,7 @@ const afterItems = [
 /* ── Component ── */
 
 function App() {
+  console.log("hallo")
   return (
     <div className="min-h-screen bg-[#FAFAF8] font-sans selection:bg-primary/20 selection:text-primary">
       <style>{`
