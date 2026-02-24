@@ -54,7 +54,7 @@ func ReformatUserData(CreateUserRequest *models.ClerkUser) *models.CreateUser {
 	result := &models.CreateUser{
 		FirstName: CreateUserRequest.FirstName,
 		LastName:  CreateUserRequest.LastName,
-		ID:   CreateUserRequest.ID,
+		ID:        CreateUserRequest.ID,
 	}
 	if CreateUserRequest.HasImage {
 		result.ProfilePicture = CreateUserRequest.ImageUrl

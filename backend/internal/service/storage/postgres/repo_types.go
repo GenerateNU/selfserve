@@ -32,3 +32,8 @@ type HotelRepository interface {
 type HotelsRepository interface {
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
 }
+
+type RoomsRepository interface {
+	FindRooms(ctx context.Context) ([]models.Room, error)
+	FindRoomsByCursor(ctx context.Context, cursor string, status string) ([]models.Room, error)
+}

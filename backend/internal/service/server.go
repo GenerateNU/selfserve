@@ -60,7 +60,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	 cfg *config.Config) error {
+	cfg *config.Config) error {
 
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
@@ -165,9 +165,9 @@ func setupApp() *fiber.App {
 	}))
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000, http://localhost:8081",
-		AllowMethods: "GET,POST,PUT,DELETE",
-		AllowHeaders: "Origin, Content-Type, Authorization",
+		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Authorization",
 		AllowCredentials: true,
 	}))
 
