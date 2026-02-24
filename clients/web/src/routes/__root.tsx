@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { setConfig } from '@shared'
 import { useEffect } from 'react'
-import Header from '../components/Header'
 import appCss from '../styles.css?url'
 
 // Client explicity created outside the component to avoid recreation
@@ -39,6 +38,19 @@ export const Route = createRootRoute({
         rel: 'stylesheet',
         href: appCss,
       },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap',
+      },
     ],
   }),
 
@@ -64,10 +76,21 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <ClerkProvider
           publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ''}
+          signInForceRedirectUrl={
+            import.meta.env.VITE_CLERK_SIGN_IN_FORCE_REDIRECT_URL ?? '/home'
+          }
+          signUpForceRedirectUrl={
+            import.meta.env.VITE_CLERK_SIGN_UP_FORCE_REDIRECT_URL ?? '/home'
+          }
+          signInFallbackRedirectUrl={
+            import.meta.env.VITE_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL ?? '/home'
+          }
+          signUpFallbackRedirectUrl={
+            import.meta.env.VITE_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL ?? '/home'
+          }
         >
           <AppConfigurator />
           <QueryClientProvider client={queryClient}>
-            <Header />
             {children}
             <ReactQueryDevtools initialIsOpen={false} />
           </QueryClientProvider>
