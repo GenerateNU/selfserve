@@ -4,7 +4,7 @@ import "time"
 
 type CreateHotelRequest struct {
 	Name   string `json:"name" validate:"notblank" example:"Hotel California"`
-	Floors int    `json:"floors" validate:"gt=1" example:"10"`
+	Floors int    `json:"floors" validate:"gte=1" example:"10"`
 } //@name CreateHotelRequest
 
 type Hotel struct {
