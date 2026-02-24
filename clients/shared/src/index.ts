@@ -1,12 +1,10 @@
-// API Client
-export { apiClient } from './api/client'
-
-// Hooks
-export { useGetHello, useGetHelloName } from './hooks/use-hello'
-
 // Custom Types (non-generated)
-export { ApiError } from './types/api.types'
-export type { ApiConfig } from './types/api.types'
+export { ApiError } from "./types/api.types";
+export type { ApiConfig } from "./types/api.types";
+export type { Config } from "./api/config";
+
+// config functions
+export { setConfig, getConfig } from "./api/config";
 
 // Generated Types - Models
 export type {
@@ -20,35 +18,33 @@ export type {
   UpdateGuest,
   Guest,
   Dev,
-} from './api/generated/models'
+} from "./api/generated/models";
 
 // Generated API Functions
 export {
-  getHello,
-  getHelloName,
-} from './api/generated/endpoints/hello/hello'
+  useGetHello,
+  useGetHelloName,
+} from "./api/generated/endpoints/hello/hello";
 
 export {
-  postRequest,
-  postRequestGenerate,
-} from './api/generated/endpoints/requests/requests'
+  usePostRequest,
+  usePostRequestGenerate,
+} from "./api/generated/endpoints/requests/requests";
 
 export {
-  postUsers,
-  getUsersId,
-} from './api/generated/endpoints/users/users'
+  usePostUsers,
+  useGetUsersId,
+} from "./api/generated/endpoints/users/users";
 
 export {
-  postHotel,
-  getApiV1HotelsId,
-} from './api/generated/endpoints/hotels/hotels'
+  usePostHotel,
+  useGetApiV1HotelsId,
+} from "./api/generated/endpoints/hotels/hotels";
+
+export { useGetDevsName } from "./api/generated/endpoints/devs/devs";
 
 export {
-  getDevsName,
-} from './api/generated/endpoints/devs/devs'
-
-export {
-  postApiV1Guests,
-  getApiV1GuestsId,
-  putApiV1GuestsId,
-} from './api/generated/endpoints/guests/guests'
+  usePostApiV1Guests,
+  useGetApiV1GuestsId,
+  usePutApiV1GuestsId,
+} from "./api/generated/endpoints/guests/guests";

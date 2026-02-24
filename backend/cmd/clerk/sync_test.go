@@ -67,11 +67,11 @@ func TestSyncUsers(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Len(t, capturedUsers, 2)
-		assert.Equal(t, "user_123", capturedUsers[0].ClerkID)
+		assert.Equal(t, "user_123", capturedUsers[0].ID)
 		assert.Equal(t, "John", capturedUsers[0].FirstName)
 		assert.Equal(t, "Doe", capturedUsers[0].LastName)
 		assert.Nil(t, capturedUsers[0].ProfilePicture)
-		assert.Equal(t, "user_456", capturedUsers[1].ClerkID)
+		assert.Equal(t, "user_456", capturedUsers[1].ID)
 		assert.Equal(t, "Jane", capturedUsers[1].FirstName)
 		assert.Equal(t, "Smith", capturedUsers[1].LastName)
 		assert.Equal(t, "https://example.com/jane.jpg", *capturedUsers[1].ProfilePicture)
