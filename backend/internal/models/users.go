@@ -3,6 +3,7 @@ package models
 import "time"
 
 type CreateUser struct {
+	ID             string  `json:"id" validate:"notblank" example:"user_123"`
 	FirstName      string  `json:"first_name" validate:"notblank" example:"John"`
 	LastName       string  `json:"last_name" validate:"notblank" example:"Doe"`
 	EmployeeID     *string `json:"employee_id,omitempty" validate:"omitempty" example:"EMP-1234"`
