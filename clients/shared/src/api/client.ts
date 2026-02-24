@@ -68,8 +68,15 @@ export const createRequest = (
 };
 
 export const useAPIClient = (): HttpClient => {
-  const { getToken } = getConfig();
-  const request = createRequest(getToken, getBaseUrl());
+  // Lazily resolve config at request time so that setConfig()
+  // can be called during app startup (e.g. in a useEffect)
+  // before any API calls are executed.
+  const request = async <T>(config: RequestConfig): Promise<T> => {
+    const { getToken } = getConfig();
+    const baseUrl = getBaseUrl();
+    const doRequest = createRequest(getToken, baseUrl);
+    return doRequest<T>(config);
+  };
 
   return {
     get: <T>(endpoint: string, params?: Record<string, any>) =>
@@ -86,7 +93,7 @@ export const useAPIClient = (): HttpClient => {
 };
 
 export const getBaseUrl = (): string => {
-  const url = getConfig().API_BASE_URL; 
+  const url = getConfig().API_BASE_URL;
   if (!url) {
     throw new Error("API_BASE_URL is not configured. Check your .env file.");
   }
