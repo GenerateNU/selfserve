@@ -22,13 +22,14 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 	err := r.db.QueryRow(ctx, `INSERT INTO requests (
 	hotel_id, guest_id, user_id, reservation_id, name, description,
 	room_id, request_category, request_type, department, status,
-	priority, estimated_completion_time, scheduled_time, notes
-	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-		RETURNING id, created_at, updated_at
+	priority, estimated_completion_time, scheduled_time, notes,
+	request_version
+	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+		RETURNING id, created_at, updated_at, request_version
 	`, req.HotelID, req.GuestID, req.UserID, req.ReservationID, req.Name,
 		req.Description, req.RoomID, req.RequestCategory, req.RequestType, req.Department,
 		req.Status, req.Priority, req.EstimatedCompletionTime,
-		req.ScheduledTime, req.Notes).Scan(&req.ID, &req.CreatedAt, &req.UpdatedAt)
+		req.ScheduledTime, req.Notes).Scan(&req.ID, &req.CreatedAt, &req.UpdatedAt, &req.RequestVersion)
 
 	if err != nil {
 		return nil, err
@@ -40,9 +41,11 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
 
 	row := r.db.QueryRow(ctx, `
-        SELECT * 
-        FROM requests 
+        SELECT *
+        FROM requests
         WHERE id = $1
+        ORDER BY request_version DESC
+        LIMIT 1
     `, id)
 
 	var request models.Request
@@ -50,7 +53,8 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	err := row.Scan(&request.ID, &request.CreatedAt, &request.UpdatedAt, &request.HotelID, &request.GuestID,
 		&request.UserID, &request.ReservationID, &request.Name, &request.Description,
 		&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
-		&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes)
+		&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
+		&request.RequestVersion)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -64,8 +68,9 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 
 func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT * 
+		SELECT DISTINCT ON (id) *
 		FROM requests
+		ORDER BY id, request_version DESC
 	`)
 
 	if err != nil {
@@ -83,7 +88,8 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 		err := rows.Scan(&request.ID, &request.CreatedAt, &request.UpdatedAt, &request.HotelID, &request.GuestID,
 			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
 			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
-			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes)
+			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
+			&request.RequestVersion)
 		if err != nil {
 			return nil, err
 		}
