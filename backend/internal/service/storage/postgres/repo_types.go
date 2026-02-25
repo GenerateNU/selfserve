@@ -23,6 +23,8 @@ type RequestsRepository interface {
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
 
 	FindRequests(ctx context.Context) ([]models.Request, error)
+
+	InsertRequestVersion(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error)
 }
 
 type HotelRepository interface {
