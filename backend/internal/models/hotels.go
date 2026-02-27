@@ -3,8 +3,8 @@ package models
 import "time"
 
 type CreateHotelRequest struct {
-	Name   string `json:"name" example:"Hotel California"`
-	Floors int    `json:"floors" example:"10"`
+	Name   string `json:"name" validate:"notblank" example:"Hotel California"`
+	Floors int    `json:"floors" validate:"gte=1" example:"10"`
 } //@name CreateHotelRequest
 
 type Hotel struct {

@@ -12,7 +12,6 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
-	"github.com/generate/selfserve/internal/validation"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,11 +37,6 @@ func (m *mockGuestsRepository) UpdateGuest(ctx context.Context, id string, updat
 
 // Makes the compiler verify the mock
 var _ storage.GuestsRepository = (*mockGuestsRepository)(nil)
-
-func TestMain(m *testing.M) {
-	validation.Init()
-	m.Run()
-}
 
 func TestGuestsHandler_CreateGuest(t *testing.T) {
 	t.Parallel()
