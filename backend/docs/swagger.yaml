@@ -1,5 +1,20 @@
 basePath: /api/v1
 definitions:
+  CreateGuest:
+    properties:
+      first_name:
+        example: Jane
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+    type: object
   CreateUser:
     properties:
       department:
@@ -222,6 +237,21 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
     type: object
+  UpdateGuest:
+    properties:
+      first_name:
+        example: Jane
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+    type: object
   User:
     properties:
       created_at:
@@ -261,21 +291,6 @@ definitions:
         type: integer
       message: {}
     type: object
-  github_com_generate_selfserve_internal_models.CreateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
   github_com_generate_selfserve_internal_models.RoomType:
     enum:
     - single
@@ -288,21 +303,6 @@ definitions:
     - RoomTypeDouble
     - RoomTypeQueen
     - RoomTypeKing
-  github_com_generate_selfserve_internal_models.UpdateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
 host: localhost:8080
 info:
   contact:
@@ -327,7 +327,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.CreateGuest'
+          $ref: '#/definitions/CreateGuest'
       produces:
       - application/json
       responses:
@@ -402,7 +402,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.UpdateGuest'
+          $ref: '#/definitions/UpdateGuest'
       produces:
       - application/json
       responses:

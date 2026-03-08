@@ -26,8 +26,3 @@ type Room struct {
 	CreatedAt time.Time `json:"created_at" example:"2024-01-01T00:00:00Z"`
 	UpdatedAt time.Time `json:"updated_at" example:"2024-01-01T00:00:00Z"`
 } //@name Room
-
-type RoomFilters struct {
-	Floors    []int      `json:"floors"`
-	RoomTypes []RoomType `json:"room_types"`
-}
