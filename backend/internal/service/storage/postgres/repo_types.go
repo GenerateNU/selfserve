@@ -25,11 +25,8 @@ type RequestsRepository interface {
 	FindRequests(ctx context.Context) ([]models.Request, error)
 }
 
-type HotelRepository interface {
-	FindByID(ctx context.Context, id string) (*models.Hotel, error)
-}
-
 type HotelsRepository interface {
+	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
 }
 
