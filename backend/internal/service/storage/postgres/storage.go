@@ -20,8 +20,7 @@ type Repository struct {
 	UsersRepository   UsersRepository
 	GuestsRepository  GuestsRepository
 	RequestRepository RequestsRepository
-	HotelRepository   HotelRepository
-	HotelsRepository  HotelsRepository
+	HotelsRepository   HotelsRepository
 }
 
 // Establishes a sustained connection to the PostgreSQL database / pooling
@@ -67,7 +66,6 @@ func NewRepository(config config.DB) (*Repository, error) {
 		UsersRepository:   repository.NewUsersRepository(db),
 		GuestsRepository:  repository.NewGuestsRepository(db),
 		RequestRepository: repository.NewRequestsRepo(db),
-		HotelRepository:   repository.NewHotelRepository(db),
-		HotelsRepository:  repository.NewHotelsRepo(db),
+		HotelsRepository:   repository.NewHotelsRepository(db),
 	}, nil
 }

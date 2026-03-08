@@ -17,16 +17,13 @@ import (
 )
 
 // Mock repository
-type mockHotelRepository struct {
-	findByIDFunc func(ctx context.Context, id string) (*models.Hotel, error)
-}
-
-func (m *mockHotelRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
-	return m.findByIDFunc(ctx, id)
-}
-
 type mockHotelsRepository struct {
+	findByIDFunc    func(ctx context.Context, id string) (*models.Hotel, error)
 	insertHotelFunc func(ctx context.Context, req *models.CreateHotelRequest) (*models.Hotel, error)
+}
+
+func (m *mockHotelsRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
+	return m.findByIDFunc(ctx, id)
 }
 
 func (m *mockHotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
@@ -39,7 +36,7 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 	t.Run("returns 200 on success", func(t *testing.T) {
 		t.Parallel()
 
-		mock := &mockHotelRepository{
+		mock := &mockHotelsRepository{
 			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return &models.Hotel{
 					ID: id,
@@ -49,10 +46,11 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 					},
 				}, nil
 			},
+			insertHotelFunc: nil, // unused for this test
 		}
 
 		app := fiber.New()
-		h := NewHotelHandler(mock)
+		h := NewHotelsHandler(mock)
 		app.Get("/hotels/:id", h.GetHotelByID)
 
 		req := httptest.NewRequest("GET", "/hotels/123e4567-e89b-12d3-a456-426614174000", nil)
@@ -65,14 +63,15 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 	t.Run("returns 400 on invalid UUID", func(t *testing.T) {
 		t.Parallel()
 
-		mock := &mockHotelRepository{
+		mock := &mockHotelsRepository{
 			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return nil, nil
 			},
+			insertHotelFunc: nil,
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewHotelHandler(mock)
+		h := NewHotelsHandler(mock)
 		app.Get("/hotels/:id", h.GetHotelByID)
 
 		req := httptest.NewRequest("GET", "/hotels/invalid-uuid", nil)
@@ -85,14 +84,15 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 	t.Run("returns 404 when hotel not found", func(t *testing.T) {
 		t.Parallel()
 
-		mock := &mockHotelRepository{
+		mock := &mockHotelsRepository{
 			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return nil, errs.ErrNotFoundInDB
 			},
+			insertHotelFunc: nil,
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewHotelHandler(mock)
+		h := NewHotelsHandler(mock)
 		app.Get("/hotels/:id", h.GetHotelByID)
 
 		req := httptest.NewRequest("GET", "/hotels/123e4567-e89b-12d3-a456-426614174000", nil)
@@ -122,13 +122,14 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 					CreateHotelRequest: *hotel,
 				}, nil
 			},
+			findByIDFunc: nil,
 		}
 
 		app := fiber.New()
 		h := NewHotelsHandler(mock)
-		app.Post("/hotel", h.CreateHotel)
+		app.Post("/hotels", h.CreateHotel)
 
-		req := httptest.NewRequest("POST", "/hotel", bytes.NewBufferString(validBody))
+		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -157,9 +158,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewHotelsHandler(mock)
-		app.Post("/hotel", h.CreateHotel)
+		app.Post("/hotels", h.CreateHotel)
 
-		req := httptest.NewRequest("POST", "/hotel", bytes.NewBufferString(`{invalid json`))
+		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(`{invalid json`))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -183,13 +184,13 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewHotelsHandler(mock)
-		app.Post("/hotel", h.CreateHotel)
+		app.Post("/hotels", h.CreateHotel)
 
 		missingNameBody := `{
 			"floors": 10
 		}`
 
-		req := httptest.NewRequest("POST", "/hotel", bytes.NewBufferString(missingNameBody))
+		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(missingNameBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -216,14 +217,14 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewHotelsHandler(mock)
-		app.Post("/hotel", h.CreateHotel)
+		app.Post("/hotels", h.CreateHotel)
 
 		emptyNameBody := `{
 			"name": "",
 			"floors": 10
 		}`
 
-		req := httptest.NewRequest("POST", "/hotel", bytes.NewBufferString(emptyNameBody))
+		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(emptyNameBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -250,13 +251,13 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewHotelsHandler(mock)
-		app.Post("/hotel", h.CreateHotel)
+		app.Post("/hotels", h.CreateHotel)
 
 		missingFloorsBody := `{
 			"name": "The Grand Budapest Hotel"
 		}`
 
-		req := httptest.NewRequest("POST", "/hotel", bytes.NewBufferString(missingFloorsBody))
+		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(missingFloorsBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -283,14 +284,14 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewHotelsHandler(mock)
-		app.Post("/hotel", h.CreateHotel)
+		app.Post("/hotels", h.CreateHotel)
 
 		zeroFloorsBody := `{
 			"name": "The Grand Budapest Hotel",
 			"floors": 0
 		}`
 
-		req := httptest.NewRequest("POST", "/hotel", bytes.NewBufferString(zeroFloorsBody))
+		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(zeroFloorsBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -317,14 +318,14 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewHotelsHandler(mock)
-		app.Post("/hotel", h.CreateHotel)
+		app.Post("/hotels", h.CreateHotel)
 
 		negativeFloorsBody := `{
 			"name": "The Grand Budapest Hotel",
 			"floors": -1
 		}`
 
-		req := httptest.NewRequest("POST", "/hotel", bytes.NewBufferString(negativeFloorsBody))
+		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(negativeFloorsBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -346,9 +347,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewHotelsHandler(mock)
-		app.Post("/hotel", h.CreateHotel)
+		app.Post("/hotels", h.CreateHotel)
 
-		req := httptest.NewRequest("POST", "/hotel", bytes.NewBufferString(validBody))
+		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(validBody))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
