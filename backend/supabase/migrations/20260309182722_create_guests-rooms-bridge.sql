@@ -5,10 +5,13 @@ CREATE TABLE IF NOT EXISTS public.guest_bookings (
     arrival_date DATE NOT NULL,
     departure_date DATE NOT NULL,
     notes TEXT,
-    status string NOT NULL,
+    status VARCHAR(50) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+CREATE INDEX idx_guest_bookings_guest_id ON public.guest_bookings;
+CREATE INDEX idx_guest_bookings_room_id ON public.guest_bookings;
 
 --Enable RLS 
 ALTER TABLE public.guest_bookings ENABLE ROW LEVEL SECURITY;
