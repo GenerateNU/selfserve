@@ -22,24 +22,23 @@ func NewGuestBookingsHandler(repo GuestBookingsRepository) *GuestBookingHandler 
 	return &GuestBookingHandler{repo: repo}
 }
 
-// GetMember godoc
-// @Summary      Get developer member
-// @Description  Retrieves a developer member by name
-// @Tags         devs
-// @Accept       json
+// GetBookingByFloor godoc
+// @Summary      Get guest Bookings By Floor
+// @Description  Retrieves multiple guest bookings whose booked rooms are in the provided floors array
+// @Tags         guest-bookings
 // @Produce      json
-// @Param        name  path      string  true  "Developer name"
-// @Success      200   {object}  models.Dev
-// @Failure      400   {object}  map[string]string
-// @Failure      500   {object}  map[string]string
-// @Router       /devs/{name} [get]
-func (h *GuestBookingHandler) FindBookingByFloor(c *fiber.Ctx) error {
-	ids, err := getQueryIDs(c)
+// @Param        floors  query     string  true  "Comma-separated floor numbers"
+// @Success      200       {object}  []models.GuestBooking
+// @Failure      400       {object}  map[string]string
+// @Failure      500       {object}  map[string]string
+// @Router       /guest_bookings/floor [get]
+func (h *GuestBookingHandler) GetBookingByFloor(c *fiber.Ctx) error {
+	floors, err := getQueryFloors(c)
 	if err != nil {
 		return err
 	}
 
-	bookings, err := h.repo.FindBookingByFloor(c.Context(), ids)
+	bookings, err := h.repo.FindBookingByFloor(c.Context(), floors)
 
 	if err != nil {
 		return errs.InternalServerError()
@@ -49,16 +48,16 @@ func (h *GuestBookingHandler) FindBookingByFloor(c *fiber.Ctx) error {
 }
 
 
-func getQueryIDs(c *fiber.Ctx) ([]int, error) {
-	parts := strings.Split(c.Query("ids"), ",")
-	ids := make([]int, len(parts))
+func getQueryFloors(c *fiber.Ctx) ([]int, error) {
+	parts := strings.Split(c.Query("floors"), ",")
+	floors := make([]int, len(parts))
     for i, p := range parts {
-    id, err := strconv.Atoi(strings.TrimSpace(p))
+    floor, err := strconv.Atoi(strings.TrimSpace(p))
     if err != nil {
-        return nil, errs.BadRequest("Ids must be an array of integers")
+        return nil, errs.BadRequest("Floors must be an array of integers")
     }
-    ids[i] = id
+    floors[i] = floor
 	}
-	return ids, nil
+	return floors, nil
 }
 
