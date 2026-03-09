@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS public.guest_bookings (
 );
 
 --Enable RLS 
-ALTER TABLE public.rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guest_bookings ENABLE ROW LEVEL SECURITY;
