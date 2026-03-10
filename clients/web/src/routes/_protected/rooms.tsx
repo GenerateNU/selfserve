@@ -1,13 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
 import { PageShell } from '@/components/ui/PageShell'
-import { useState } from 'react';
 
 export const Route = createFileRoute('/_protected/rooms')({
   component: RoomsPage,
 })
 
 function RoomsPage() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
   return (
     <PageShell
       header={
