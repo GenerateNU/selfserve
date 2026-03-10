@@ -10,5 +10,7 @@ CREATE TABLE IF NOT EXISTS public.rooms (
     hotel_id uuid NOT NULL REFERENCES public.hotels(id) ON DELETE CASCADE,
 );
 
+CREATE INDEX idx_floor ON public.rooms (floor);
+
 --Enable RLS 
 ALTER TABLE public.rooms ENABLE ROW LEVEL SECURITY;
