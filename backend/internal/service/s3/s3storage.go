@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -28,7 +29,7 @@ func NewS3Storage(cfg config.S3) (*Storage, error) {
 		)),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create AWS config: %w", err)
 	}
 
 	// Create S3 client
@@ -42,7 +43,12 @@ func NewS3Storage(cfg config.S3) (*Storage, error) {
 }
 
 func (s *Storage) GeneratePresignedURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
-
+	if key == "" {
+		return "", fmt.Errorf("key is required")
+	}
+	if expiration <= 0 {
+		return "", fmt.Errorf("expiration must be greater than 0")
+	}
 	presignedURL, err := s.URL.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
@@ -52,19 +58,22 @@ func (s *Storage) GeneratePresignedURL(ctx context.Context, key string, expirati
 )
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate presigned URL with key %s: %w", key, err)
 	}
 
 	return presignedURL.URL, nil
 }
 
-func (s *Storage) DeleteFile(ctx context.Context, key string) (error) {
+func (s *Storage) DeleteFile(ctx context.Context, key string) error {
+	if key == "" {
+		return fmt.Errorf("key is required")
+	}
 	_, err := s.Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete file with key %s: %w", key, err)
 	}
 
 	return nil
