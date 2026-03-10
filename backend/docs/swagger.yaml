@@ -3,7 +3,7 @@ definitions:
   CreateGuest:
     properties:
       first_name:
-        example: John
+        example: Jane
         type: string
       last_name:
         example: Doe
@@ -17,9 +17,6 @@ definitions:
     type: object
   CreateUser:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       department:
         example: Housekeeping
         type: string
@@ -28,6 +25,9 @@ definitions:
         type: string
       first_name:
         example: John
+        type: string
+      id:
+        example: user_123
         type: string
       last_name:
         example: Doe
@@ -69,7 +69,7 @@ definitions:
         example: "2024-01-02T00:00:00Z"
         type: string
       first_name:
-        example: John
+        example: Jane
         type: string
       id:
         example: 530e8400-e458-41d4-a716-446655440000
@@ -219,7 +219,7 @@ definitions:
   UpdateGuest:
     properties:
       first_name:
-        example: John
+        example: Jane
         type: string
       last_name:
         example: Doe
@@ -233,9 +233,6 @@ definitions:
     type: object
   User:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
@@ -249,7 +246,7 @@ definitions:
         example: John
         type: string
       id:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: user_123
         type: string
       last_name:
         example: Doe
@@ -401,6 +398,40 @@ paths:
       summary: Updates a guest
       tags:
       - guests
+  /api/v1/hotels:
+    post:
+      consumes:
+      - application/json
+      description: Create a new hotel with the given data
+      parameters:
+      - description: Hotel data
+        in: body
+        name: hotel
+        required: true
+        schema:
+          $ref: '#/definitions/Hotel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/Hotel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create hotel
+      tags:
+      - hotels
   /api/v1/hotels/{id}:
     get:
       description: Retrieve a hotel's details using its UUID
@@ -499,40 +530,6 @@ paths:
       summary: Get personalized hello message
       tags:
       - hello
-  /hotel:
-    post:
-      consumes:
-      - application/json
-      description: Create a new hotel with the given data
-      parameters:
-      - description: Hotel data
-        in: body
-        name: hotel
-        required: true
-        schema:
-          $ref: '#/definitions/Hotel'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/Hotel'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create hotel
-      tags:
-      - hotels
   /request:
     post:
       consumes:

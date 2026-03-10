@@ -37,7 +37,7 @@ export {
 } from "./api/generated/endpoints/users/users";
 
 export {
-  usePostHotel,
+  usePostApiV1Hotels,
   useGetApiV1HotelsId,
 } from "./api/generated/endpoints/hotels/hotels";
 
