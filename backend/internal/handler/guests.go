@@ -79,6 +79,39 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 	return c.JSON(guest)
 }
 
+
+// GetGuest godoc
+// @Summary      Gets a guest with previous stays 
+// @Description  Retrieves a single guest with previous stays given an id
+// @Tags         guests
+// @Accept       json
+// @Produce      json
+// @Param        id  path   string  true  "Guest ID (UUID)"
+// @Success      200   {object}  models.GuestWithStays
+// @Failure      400   {object}  map[string]string "Invalid guest ID format"
+// @Failure      404  {object}  errs.HTTPError  "Guest not found"
+// @Failure      500   {object}  map[string]string "Internal server error"
+// @Router       /api/v1/guests/stays/{id} [get]
+func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
+	id := c.Params("id")
+	_, err := uuid.Parse(id)
+	if err != nil {
+		return errs.BadRequest("guest id is not a valid UUID")
+	}
+
+	guest, err := h.GuestsRepository.FindGuestWithStays(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("guest", "id", id)
+		}
+		slog.Error("failed to get guest", "id", id, "error", err)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(guest)
+}
+
+
 // UpdateGuest godoc
 // @Summary      Updates a guest
 // @Description  Updates fields on a guest

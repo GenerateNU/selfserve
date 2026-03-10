@@ -16,6 +16,7 @@ type GuestsRepository interface {
 	FindGuest(ctx context.Context, id string) (*models.Guest, error)
 	UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error)
 	FindGuests(ctx context.Context, filters *models.GuestFilter) ([]*models.GuestWithBooking, error)
+	FindGuestWithStays(ctx context.Context, id string) (*models.GuestWithStays, error)
 }
 
 type RequestsRepository interface {
