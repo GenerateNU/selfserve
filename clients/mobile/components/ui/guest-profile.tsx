@@ -5,23 +5,20 @@ import { Collapsible } from "./collapsible";
 import { router } from "expo-router";
 
 interface GuestProfileProps {
-    name: string, 
-    pronouns: string 
-    dateOfBirth: Date, 
+    firstName: string,
+    lastName: string, 
     room: number,
-    groupSize: number,
-    arrival: Date,
-    departure: Date,
+    arrival: string,
+    departure: string,
     notes: string,
     preferences: string,
-    needs: string,
     previousStays: Stay[],
 }
 
 type Stay = {
-    notes: string, 
-    arrival: Date,
-    departure: Date,
+    room: string, 
+    arrival: string,
+    departure: string,
 }
 
 
@@ -65,8 +62,7 @@ function GuestDescription(props : GuestProfileProps) {
                     <User className="w-[10vw] h-[10vw]" color="#374151" />
                 </View>
                 <View>
-                    <Text className="text-[5vw] font-semibold text-gray-900">{props.name}</Text>
-                    <Text className="text-[3.5vw] text-gray-600">{props. pronouns}</Text>
+                    <Text className="text-[5vw] font-semibold text-gray-900">{props.firstName + " " + props.lastName}</Text>
                 </View>
             </View>
 
@@ -107,10 +103,10 @@ function GuestInfoCollapsibles(props : GuestProfileProps) {
                     <View className="gap-[1vh]">
                         {props.previousStays.map((stay, index) => (
                             <View key={index} className="border-b border-gray-200 pb-[1vh]">
-                                <Text className="text-[3.5vw] text-gray-900">{stay.notes}</Text>
+                                <Text className="text-[3.5vw] text-gray-900">{stay.room}</Text>
                                 <Text className="text-[3vw] text-gray-600">
-                                    {stay.arrival.toLocaleDateString()}
-                                     - {stay.departure.toLocaleDateString()}
+                                    {new Date(stay.arrival).toLocaleDateString()}
+                                     -  {new Date(stay.departure).toLocaleDateString()}
                                 </Text>
                             </View>
                         ))}
@@ -127,12 +123,7 @@ const GUEST_PROFILE_CONFIG = {
         { 
             key: 'governmentName', 
             label: 'Government Name', 
-            format: (props: GuestProfileProps) => props.name 
-        },
-        { 
-            key: 'dateOfBirth', 
-            label: 'Date of Birth', 
-            format: (props: GuestProfileProps) => props.dateOfBirth.toLocaleDateString() 
+            format: (props: GuestProfileProps) => props.firstName + " " + props.lastName 
         },
         { 
             key: 'room', 
@@ -140,21 +131,16 @@ const GUEST_PROFILE_CONFIG = {
             format: (props: GuestProfileProps) => props.room 
         },
         { 
-            key: 'groupSize', 
-            label: 'Group Size', 
-            format: (props: GuestProfileProps) => props.groupSize.toString() 
-        },
-        { 
             key: 'arrival', 
             label: 'Arrival', 
             format: (props: GuestProfileProps) => 
-                `${props.arrival.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${props.arrival.toLocaleDateString()}` 
+                `${new Date(props.arrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${new Date(props.arrival).toLocaleDateString()}` 
         },
         { 
             key: 'departure', 
             label: 'Departure', 
             format: (props: GuestProfileProps) => 
-                `${props.departure.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${props.departure.toLocaleDateString()}` 
+                `${new Date(props.departure).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${new Date(props.departure).toLocaleDateString()}` 
         },
     ],
     collapsibles: [
@@ -167,11 +153,6 @@ const GUEST_PROFILE_CONFIG = {
             key: 'preferences', 
             title: 'Housekeeping Preferences', 
             format: (props: GuestProfileProps) => props.preferences 
-        },
-        { 
-            key: 'needs', 
-            title: 'Special Needs', 
-            format: (props: GuestProfileProps) => props.needs 
         },
     ],
 };

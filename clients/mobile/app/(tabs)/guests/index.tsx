@@ -5,32 +5,29 @@ import { Header } from '@/components/ui/header';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Filters } from '@/components/ui/filters';
 import { GuestCard } from '@/components/ui/guest-card';
-import { guestData } from '@/test-data/guests';
 import { router } from 'expo-router';
+import { useGetApiV1Guests } from '@shared/api/generated/endpoints/guests/guests';
 
 export default function GuestsList() {
   const [search, setSearch] = useState('');
-  const [group, setGroup] = useState<number | null>(null);
-  const [floor, setFloor] = useState<number | null>(null);
+  const [floors, setFloor] = useState<number[] | null>(null);
 
-  const handleGuestPress = (guestId: number) => {
+  const onFloorChange = (floor: number) => {
+    if (floors?.includes(floor)) {
+      setFloor(floors.filter(elem => elem !== floor));
+    } else {
+      floors?.push(floor)
+      setFloor(floors)
+    }
+  }
+
+  const handleGuestPress = (guestId: string) => {
      router.push(`/guests/${guestId}`);
   };
 
   const filterConfig = [
     {
-      value: group,
-      onChange: setGroup,
-      placeholder: 'Group',
-      emptyValue: null,
-      options: [
-        { label: 'Group 1', value: 1 },
-        { label: 'Group 2', value: 2 },
-        { label: 'Group 3', value: 3 },
-      ]
-    },
-    {
-      value: floor,
+      value: floors,
       onChange: setFloor,
       placeholder: 'Floor',
       emptyValue: null,
@@ -38,17 +35,19 @@ export default function GuestsList() {
         { label: 'Floor 1', value: 1 },
         { label: 'Floor 2', value: 2 },
         { label: 'Floor 3', value: 3 },
+        { label: 'Floor 4', value: 4 },
+        { label: 'Floor 5', value: 5 },
+        { label: 'Floor 6', value: 6 },
+        { label: 'Floor 7', value: 7 },
+        { label: 'Floor 8', value: 8 },
+        { label: 'Floor 9', value: 9 },
       ]
     }
   ];
 
-  const filteredGuests = guestData.filter((guest) => {
-    const matchesSearch = guest.name.toLowerCase().includes(search.toLowerCase());
-    const matchesGroup = group === null || guest.group === group;
-    const matchesFloor = floor === null || guest.floor === floor;
-
-    return matchesSearch && matchesGroup && matchesFloor;
-  });
+  const { data } = useGetApiV1Guests({
+    "floors[]": floors ?? undefined
+  })
 
   return (
     <View className="flex-1 bg-white">
@@ -66,13 +65,13 @@ export default function GuestsList() {
         />
 
         <View className="mt-[2vh] gap-[1vh]">
-          {filteredGuests.map((guest) => (
+          {data?.map((guest) => (
             <GuestCard
               key={guest.id}
-              name={guest.name}
+              firstName={guest.first_name}
+              lastName={guest.last_name}
               floor={guest.floor}
-              room={guest.room}
-              group={guest.group}
+              room={guest.room_number}
               onPress={() => handleGuestPress(guest.id)}
             />
           ))}

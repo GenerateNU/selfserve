@@ -86,7 +86,7 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*models.GuestWithStays, error) {
 
 	rows, err := r.db.Query(ctx, `
-		SELECT guests.id, guests.first_name, guests.last_name, guest.profile_picture, guests.phone, guests.email,
+		SELECT guests.id, guests.first_name, guests.last_name, guests.phone, guests.email,
 		 	guests.preferences, guests.notes, guest_bookings.arrival_date, guest_bookings.departure_date, rooms.room_number
 		FROM public.guests
 		LEFT JOIN guest_bookings ON guests.id = guest_bookings.guest_id
@@ -106,8 +106,7 @@ func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*
 			guest = &models.GuestWithStays{}
 		}
 		err := rows.Scan(
-			&guest.ID, &guest.FirstName, &guest.LastName, &guest.ProfilePicture,
-			&guest.Phone, &guest.Email, &guest.Preferences, &guest.Notes,
+			&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email, &guest.Preferences, &guest.Notes,
 			&stay.ArrivalDate, &stay.DepartureDate, &stay.RoomNumber,
 		)
 		if err != nil {

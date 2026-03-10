@@ -161,7 +161,7 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Description  Retrieves guests ptionally filtered by floor in which they are staying
 // @Tags         guests
 // @Produce      json
-// @Param        number  query     string  false  "Floor"
+// @Param floors[]  query  []int  false  "Floor numbers"
 // @Success      200     {object}  []models.GuestWithBooking
 // @Failure      400     {object}  map[string]string
 // @Failure      500     {object}  map[string]string
