@@ -121,3 +121,28 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 
 	return c.JSON(guest)
 }
+
+
+// GetGuests godoc
+// @Summary      Get Guests
+// @Description  Retrieves guests ptionally filtered by floor in which they are staying
+// @Tags         guests
+// @Produce      json
+// @Param        number  query     string  false  "Floor"
+// @Success      200     {object}  []models.GuestWithBooking
+// @Failure      400     {object}  map[string]string
+// @Failure      500     {object}  map[string]string
+// @Router       /api/v1/guests [get]
+func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
+	filter := new(models.GuestFilter)
+	if err := c.QueryParser(filter); err != nil {
+		return errs.BadRequest("invalid filters")
+	}
+
+	guests, err := h.GuestsRepository.FindGuests(c.Context(), filter)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(guests)
+}

@@ -123,3 +123,36 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	return &guest, nil
 
 }
+
+func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.GuestFilter) ([]*models.GuestWithBooking, error) {
+
+	rows, err := r.db.Query(ctx, `
+	SELECT 
+		guests.id, guests.first_name, guests.last_name, rooms.room_number, rooms.floor
+	FROM guests
+	JOIN guest_bookings ON guests.id = guest_bookings.guest_id
+		AND guest_bookings.status = 'active'
+	JOIN rooms ON rooms.id = guest_bookings.room_id
+	WHERE rooms.floor = ANY($1)`, filters.Floors)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var guests []*models.GuestWithBooking
+	for rows.Next() {
+		var g models.GuestWithBooking
+		err := rows.Scan(&g.ID, &g.FirstName, &g.LastName, &g.RoomNumber, &g.Floor)
+		if err != nil {
+			return nil, err
+		}
+		guests = append(guests, &g)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return guests, nil
+}

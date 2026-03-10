@@ -22,3 +22,15 @@ type Guest struct {
 	UpdatedAt time.Time `json:"updated_at" example:"2024-01-02T00:00:00Z"`
 	CreateGuest
 } //@name Guest
+
+type GuestFilter struct {
+    Floors *[]int `query:"floors"`
+}
+
+type GuestWithBooking struct {
+	Guest
+	RoomNumber int  `json:"room_number"`
+	Floor int      `json:"floor"`
+	ArrivalDate   string        `json:"arrival_date"`
+    DepartureDate string        `json:"departure_date"`
+}

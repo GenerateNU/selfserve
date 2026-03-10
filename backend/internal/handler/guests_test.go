@@ -22,6 +22,7 @@ type mockGuestsRepository struct {
 	insertGuestFunc func(ctx context.Context, req *models.CreateGuest) (*models.Guest, error)
 	findGuestFunc   func(ctx context.Context, id string) (*models.Guest, error)
 	updateGuestFunc func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error)
+	findGuestsFunc func(ctx context.Context, f *models.GuestFilter) ([]*models.GuestWithBooking, error)
 }
 
 func (m *mockGuestsRepository) InsertGuest(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error) {
@@ -34,6 +35,10 @@ func (m *mockGuestsRepository) FindGuest(ctx context.Context, id string) (*model
 
 func (m *mockGuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
 	return m.updateGuestFunc(ctx, id, update)
+}
+
+func (m *mockGuestsRepository) FindGuests(ctx context.Context, f *models.GuestFilter) ([]*models.GuestWithBooking, error) {
+	return m.findGuestsFunc(ctx, f)
 }
 
 // Makes the compiler verify the mock
