@@ -21,10 +21,10 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 
 // GetRooms godoc
 // @Summary      Get Rooms
-// @Description  Retrieves rooms optionally filtered by room number
+// @Description  Retrieves rooms optionally filtered by floor
 // @Tags         rooms
 // @Produce      json
-// @Param        number  query     string  false  "Room number"
+// @Param        number  query     string  false  "floor"
 // @Success      200     {object}  []models.RoomWithBooking
 // @Failure      400     {object}  map[string]string
 // @Failure      500     {object}  map[string]string
