@@ -81,6 +81,58 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 	return &guest, nil
 }
 
+
+
+func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*models.GuestWithStays, error) {
+
+	rows, err := r.db.Query(ctx, `
+		SELECT guests.id, guests.created_at, guests.updated_at, guests.first_name, guests.last_name, 
+			guests.profile_picture, guests.timezone, guests.phone, guests.email, guests.preferences, guests.notes,
+			guest_bookings.arrival_date, guest_bookings.departure_date,
+			rooms.room_number
+		FROM public.guests
+		LEFT JOIN guest_bookings ON guests.id = guest_bookings.guest_id
+		LEFT JOIN rooms ON rooms.id = guest_bookings.room_id
+		WHERE guests.id = $1
+	`, id)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var guest *models.GuestWithStays
+	for rows.Next() {
+		var stay models.Stay
+		if guest == nil {
+			guest = &models.GuestWithStays{}
+		}
+		err := rows.Scan(
+			&guest.ID, &guest.CreatedAt, &guest.UpdatedAt,
+			&guest.FirstName, &guest.LastName, &guest.ProfilePicture, &guest.Timezone,
+			&guest.Phone, &guest.Email, &guest.Preferences, &guest.Notes,
+			&stay.ArrivalDate, &stay.DepartureDate, &stay.RoomNumber,
+		)
+		if err != nil {
+			return nil, err
+		}
+		if stay.ArrivalDate != nil {
+			guest.Stays = append(guest.Stays, stay)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if guest == nil {
+		return nil, errs.ErrNotFoundInDB
+	}
+
+	return guest, nil
+}
+
+
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
 	var guest models.Guest
 

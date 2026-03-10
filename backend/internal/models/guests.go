@@ -7,6 +7,10 @@ type CreateGuest struct {
 	LastName       string  `json:"last_name" validate:"notblank" example:"Doe"`
 	ProfilePicture *string `json:"profile_picture,omitempty" validate:"omitempty,url" example:"https://example.com/john.jpg"`
 	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
+	Phone          *string `json:"phone,omitempty" example:"+1 (617) 012-3456"`
+	Email          *string `json:"email,omitempty" validate:"omitempty,email" example:"jane.doe@example.com"`
+	Preferences    *string `json:"preferences,omitempty" example:"extra pillows"`
+	Notes          *string `json:"notes,omitempty" example:"VIP"`
 }
 
 type UpdateGuest struct {
@@ -28,9 +32,22 @@ type GuestFilter struct {
 }
 
 type GuestWithBooking struct {
-	Guest
+	ID   string `json:"id"`
+	FirstName      string  `json:"first_name"`
+	LastName      string  `json:"last_name"`
 	RoomNumber int  `json:"room_number"`
 	Floor int      `json:"floor"`
 	ArrivalDate   string        `json:"arrival_date"`
     DepartureDate string        `json:"departure_date"`
+}
+
+type Stay struct {
+    ArrivalDate   *string `json:"arrival_date"`
+    DepartureDate *string `json:"departure_date"`
+    RoomNumber    *string `json:"room_number"`
+}
+
+type GuestWithStays struct {
+    Guest
+    Stays []Stay `json:"stays"`
 }
