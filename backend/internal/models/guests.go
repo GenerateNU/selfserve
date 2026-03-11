@@ -28,11 +28,11 @@ type GuestFilter struct {
 }
 
 type GuestWithBooking struct {
-	ID   string `json:"id"`
-	FirstName      string  `json:"first_name"`
-	LastName      string  `json:"last_name"`
-	Floor int      `json:"floor"`
-	RoomNumber int  `json:"room_number"`
+	ID   string `json:"id" validate:"required"` 
+	FirstName      string  `json:"first_name" validate:"required"`
+	LastName      string  `json:"last_name" validate:"required"`
+	Floor int      `json:"floor" validate:"required"`
+	RoomNumber int  `json:"room_number" validate:"required"`
 }
 
 type GuestWithStays struct {
@@ -43,8 +43,8 @@ type GuestWithStays struct {
 	Email          *string `json:"email,omitempty" validate:"omitempty,email" example:"jane.doe@example.com"`
 	Preferences    *string `json:"preferences,omitempty" example:"extra pillows"`
 	Notes          *string `json:"notes,omitempty" example:"VIP"`
-	CurrentStays []Stay `json:"current_stays"`
-    PastStays   []Stay `json:"past_stays"`
+	CurrentStays []Stay `json:"current_stays" validate:"required" example:"[]"`
+	PastStays    []Stay `json:"past_stays" validate:"required" example:"[]"`
 } //@name GuestWithStays
 
 

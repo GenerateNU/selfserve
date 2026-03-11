@@ -53,6 +53,31 @@ definitions:
       created_at:
         example: "2024-01-02T00:00:00Z"
         type: string
+      first_name:
+        example: Jane
+        type: string
+      id:
+        example: 530e8400-e458-41d4-a716-446655440000
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+      updated_at:
+        example: "2024-01-02T00:00:00Z"
+        type: string
+    type: object
+  GuestWithStays:
+    properties:
+      current_stays:
+        items:
+          $ref: '#/definitions/Stay'
+        type: array
       email:
         example: jane.doe@example.com
         type: string
@@ -68,21 +93,20 @@ definitions:
       notes:
         example: VIP
         type: string
+      past_stays:
+        items:
+          $ref: '#/definitions/Stay'
+        type: array
       phone:
         example: +1 (617) 012-3456
         type: string
       preferences:
         example: extra pillows
         type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-      updated_at:
-        example: "2024-01-02T00:00:00Z"
-        type: string
+    required:
+    - first_name
+    - id
+    - last_name
     type: object
   Hotel:
     properties:
@@ -213,6 +237,25 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
+  Stay:
+    properties:
+      arrival_date:
+        example: "2024-01-02"
+        type: string
+      departure_date:
+        example: "2024-01-05"
+        type: string
+      room_number:
+        example: 101
+        type: integer
+      status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+    required:
+    - arrival_date
+    - departure_date
+    - room_number
+    - status
+    type: object
   User:
     properties:
       created_at:
@@ -262,23 +305,11 @@ definitions:
     - BookingStatusInactive
   github_com_generate_selfserve_internal_models.CreateGuest:
     properties:
-      email:
-        example: jane.doe@example.com
-        type: string
       first_name:
         example: Jane
         type: string
       last_name:
         example: Doe
-        type: string
-      notes:
-        example: VIP
-        type: string
-      phone:
-        example: +1 (617) 012-3456
-        type: string
-      preferences:
-        example: extra pillows
         type: string
       profile_picture:
         example: https://example.com/john.jpg
@@ -305,10 +336,6 @@ definitions:
     type: object
   github_com_generate_selfserve_internal_models.GuestWithBooking:
     properties:
-      arrival_date:
-        type: string
-      departure_date:
-        type: string
       first_name:
         type: string
       floor:
@@ -320,53 +347,11 @@ definitions:
       room_number:
         type: integer
     required:
-    - arrival_date
-    - departure_date
     - first_name
     - floor
     - id
     - last_name
     - room_number
-    type: object
-  github_com_generate_selfserve_internal_models.GuestWithStays:
-    properties:
-      created_at:
-        example: "2024-01-02T00:00:00Z"
-        type: string
-      email:
-        example: jane.doe@example.com
-        type: string
-      first_name:
-        example: Jane
-        type: string
-      id:
-        example: 530e8400-e458-41d4-a716-446655440000
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      notes:
-        example: VIP
-        type: string
-      phone:
-        example: +1 (617) 012-3456
-        type: string
-      preferences:
-        example: extra pillows
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      stays:
-        items:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.Stay'
-        type: array
-      timezone:
-        example: America/New_York
-        type: string
-      updated_at:
-        example: "2024-01-02T00:00:00Z"
-        type: string
     type: object
   github_com_generate_selfserve_internal_models.Room:
     properties:
@@ -394,15 +379,6 @@ definitions:
       room_status:
         type: string
       suite_type:
-        type: string
-    type: object
-  github_com_generate_selfserve_internal_models.Stay:
-    properties:
-      arrival_date:
-        type: string
-      departure_date:
-        type: string
-      room_number:
         type: string
     type: object
   github_com_generate_selfserve_internal_models.UpdateGuest:
@@ -600,7 +576,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestWithStays'
+            $ref: '#/definitions/GuestWithStays'
         "400":
           description: Invalid guest ID format
           schema:
