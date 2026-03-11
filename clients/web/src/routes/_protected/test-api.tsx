@@ -1,14 +1,19 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useGetHelloName } from '@shared/hooks/use-hello'
+import { useGetHelloName } from '@shared/api/generated/endpoints/hello/hello.ts'
+import type { ApiError } from '@shared'
 
-export const Route = createFileRoute('/test-api')({ component: TestApi })
+export const Route = createFileRoute('/_protected/test-api')({
+  component: TestApi,
+})
 
 function TestApi() {
   const [name, setName] = useState('')
   const [submittedName, setSubmittedName] = useState('')
 
-  const { data, isLoading, error, refetch } = useGetHelloName(submittedName)
+  const { data, isLoading, error, refetch } = useGetHelloName<string, ApiError>(
+    submittedName,
+  )
 
   const handleSubmitName = (name: string) => {
     setSubmittedName(name)

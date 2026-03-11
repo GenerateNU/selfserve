@@ -1,14 +1,22 @@
 package service
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
+	"os"
 
+	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
+	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	s3storage "github.com/generate/selfserve/internal/service/s3"
+	"github.com/generate/selfserve/internal/validation"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -26,6 +34,8 @@ type App struct {
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
+	validation.Init()
+
 	// Init DB/repository(ies)
 
 	repo, err := storage.NewRepository(cfg.DB)
@@ -35,12 +45,23 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
 		return nil, err
 	}
 
-	app := setupApp()
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
 
-	setupRoutes(app, repo, s3Store)
+	app := setupApp()
+	setupClerk(cfg)
+
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store); err != nil {
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
+		return nil, err
+	}
 
 	return &App{
 		Server:    app,
@@ -50,7 +71,8 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.Storage) {
+func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
+	cfg *config.Config, s3Store *s3storage.Storage) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -64,15 +86,33 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 		return c.SendStatus(http.StatusOK)
 	})
 
+	// initialize users repo
+	usersRepo := repository.NewUsersRepository(repo.DB)
+
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB))
-	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
+	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
+	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
+
+	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
+	if err != nil {
+		return err
+	}
+	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
 	// API v1 routes
 	api := app.Group("/api/v1")
+
+	// clerk webhook route
+	api.Route("/clerk", func(r fiber.Router) {
+		r.Post("/user", clerkWebhookHandler.CreateUser)
+	})
+
+	verifier := clerk.NewClerkJWTVerifier()
+	app.Use(clerk.NewAuthMiddleware(verifier))
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
@@ -85,19 +125,30 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 		r.Get("/:name", devsHandler.GetMember)
 	})
 
-	// User Routes
+	// users routes
 	api.Route("/users", func(r fiber.Router) {
+		r.Get("/:id", usersHandler.GetUserByID)
 		r.Post("/", usersHandler.CreateUser)
+	})
+
+	// Guest Routes
+	api.Route("/guests", func(r fiber.Router) {
+		r.Post("/", guestsHandler.CreateGuest)
+		r.Get("/:id", guestsHandler.GetGuest)
+		r.Put("/:id", guestsHandler.UpdateGuest)
 	})
 
 	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
-		r.Post("/:id", reqsHandler.GetRequest)
+		r.Post("/generate", reqsHandler.GenerateRequest)
+		r.Get("/:id", reqsHandler.GetRequest)
+		r.Get("/", reqsHandler.GetRequests)
 	})
 
 	// Hotel routes
-	api.Route("/hotel", func(r fiber.Router) {
+	api.Route("/hotels", func(r fiber.Router) {
+		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
 
@@ -107,6 +158,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
 	})
 
+	return nil
 }
 
 // Initialize Fiber app with middlewares / configs
@@ -127,9 +179,22 @@ func setupApp() *fiber.App {
 	}))
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,PUT,DELETE",
+		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Authorization",
+		AllowCredentials: true,
 	}))
 
 	return app
+}
+
+func setupClerk(cfg *config.Config) {
+	if os.Getenv("ENV") == "development" {
+		clerksdk.SetKey(cfg.Clerk.SecretKey)
+	} else {
+		/*
+			Missing prod url to complete
+		*/
+		fmt.Print("No clerk for prod yet.")
+	}
 }

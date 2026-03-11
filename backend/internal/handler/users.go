@@ -1,22 +1,54 @@
 package handler
 
 import (
-	"sort"
-	"strings"
-	"time"
+	"context"
+	"errors"
+	"log/slog"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
-	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 )
 
-type UsersHandler struct {
-	UsersRepository storage.UsersRepository
+type UsersRepository interface {
+	FindUser(ctx context.Context, id string) (*models.User, error)
+	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
 }
 
-func NewUsersHandler(repo storage.UsersRepository) *UsersHandler {
-	return &UsersHandler{UsersRepository: repo}
+type UsersHandler struct {
+	repo UsersRepository
+}
+
+func NewUsersHandler(repo UsersRepository) *UsersHandler {
+	return &UsersHandler{repo: repo}
+}
+
+// GetUserByID godoc
+// @Summary      Get user by ID
+// @Description  Retrieves a user by their unique app ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id  path      string  true  "User ID"
+// @Success      200   {object}  models.User
+// @Failure      400   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /users/{id} [get]
+func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return errs.BadRequest("id is required")
+	}
+	user, err := h.repo.FindUser(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("user", "id", id)
+		}
+		slog.Error(err.Error())
+		return errs.InternalServerError()
+	}
+	return c.JSON(user)
 }
 
 // CreateUser godoc
@@ -36,53 +68,14 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
-	if err := validateCreateUser(&CreateUserRequest); err != nil {
+	if err := httpx.BindAndValidate(c, &CreateUserRequest); err != nil {
 		return err
 	}
 
-	res, err := h.UsersRepository.InsertUser(c.Context(), &CreateUserRequest)
+	res, err := h.repo.InsertUser(c.Context(), &CreateUserRequest)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
 	return c.JSON(res)
-}
-
-func validateCreateUser(user *models.CreateUser) error {
-	errors := make(map[string]string)
-
-	if strings.TrimSpace(user.FirstName) == "" {
-		errors["first_name"] = "must not be an empty string"
-	}
-
-	if strings.TrimSpace(user.LastName) == "" {
-		errors["last_name"] = "must not be an empty string"
-	}
-
-	if strings.TrimSpace(user.Role) == "" {
-		errors["role"] = "must not be an empty string"
-	}
-
-	if user.Timezone != nil {
-		if _, err := time.LoadLocation(*user.Timezone); err != nil {
-			errors["timezone"] = "invalid IANA timezone"
-		}
-	}
-
-	// Aggregates errors deterministically
-	if len(errors) > 0 {
-		var keys []string
-		for k := range errors {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		var parts []string
-		for _, k := range keys {
-			parts = append(parts, k+": "+errors[k])
-		}
-		return errs.BadRequest(strings.Join(parts, ", "))
-	}
-
-	return nil
 }

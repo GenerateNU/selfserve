@@ -21,6 +21,8 @@ tmp/
 **/.DS_Store
 docs/docs.go
 docs/swagger.json
-docs/swagger.yaml
 supabase/.branches/
 supabase/.temp/
+
+# Disables Genkit Dev UI metadata (local only)
+.genkit/
