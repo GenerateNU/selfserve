@@ -1,5 +1,15 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-primary: #15502c;
+  --color-stroke-subtle: #d8d8d8;
+  --font-playfair: 'Playfair Display', ui-serif, serif;
+}
+
+button {
+  cursor: pointer;
+}
+
 body {
   @apply m-0;
   font-family:

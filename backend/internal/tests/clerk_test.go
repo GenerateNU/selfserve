@@ -116,7 +116,6 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 				capturedUser = user
 				return &models.User{
-					ID:         "generated-uuid",
 					CreatedAt:  time.Now(),
 					UpdatedAt:  time.Now(),
 					CreateUser: *user,
@@ -138,7 +137,7 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, 200, resp.StatusCode)
-		assert.Equal(t, "user_123", capturedUser.ClerkID)
+		assert.Equal(t, "user_123", capturedUser.ID)
 		assert.Equal(t, "John", capturedUser.FirstName)
 		assert.Equal(t, "Doe", capturedUser.LastName)
 	})
@@ -260,7 +259,6 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 		userMock := &mockUsersRepositoryClerk{
 			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 				return &models.User{
-					ID:         "uuid",
 					CreatedAt:  time.Now(),
 					UpdatedAt:  time.Now(),
 					CreateUser: *user,
@@ -301,7 +299,6 @@ func TestClerkHandler_CreateUser(t *testing.T) {
 			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 				capturedUser = user
 				return &models.User{
-					ID:         "uuid",
 					CreatedAt:  time.Now(),
 					UpdatedAt:  time.Now(),
 					CreateUser: *user,

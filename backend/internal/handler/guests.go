@@ -3,11 +3,9 @@ package handler
 import (
 	"errors"
 	"log/slog"
-	"sort"
-	"strings"
-	"time"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
@@ -35,11 +33,7 @@ func NewGuestsHandler(repo storage.GuestsRepository) *GuestsHandler {
 // @Router       /api/v1/guests [post]
 func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 	var CreateGuestRequest models.CreateGuest
-	if err := c.BodyParser(&CreateGuestRequest); err != nil {
-		return errs.InvalidJSON()
-	}
-
-	if err := validateCreateGuest(&CreateGuestRequest); err != nil {
+	if err := httpx.BindAndValidate(c, &CreateGuestRequest); err != nil {
 		return err
 	}
 
@@ -106,11 +100,7 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 	}
 
 	var update models.UpdateGuest
-	if err := c.BodyParser(&update); err != nil {
-		return errs.InvalidJSON()
-	}
-
-	if err := validateUpdateGuest(&update); err != nil {
+	if err := httpx.BindAndValidate(c, &update); err != nil {
 		return err
 	}
 
@@ -130,73 +120,4 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(guest)
-}
-
-func validateCreateGuest(guest *models.CreateGuest) error {
-	errors := make(map[string]string)
-
-	if strings.TrimSpace(guest.FirstName) == "" {
-		errors["first_name"] = "must not be an empty string"
-	}
-
-	if strings.TrimSpace(guest.LastName) == "" {
-		errors["last_name"] = "must not be an empty string"
-	}
-
-	if guest.Timezone != nil {
-		if _, err := time.LoadLocation(*guest.Timezone); err != nil {
-			errors["timezone"] = "invalid IANA timezone"
-		}
-	}
-
-	// Aggregates errors deterministically
-	if len(errors) > 0 {
-		var keys []string
-		for k := range errors {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		var parts []string
-		for _, k := range keys {
-			parts = append(parts, k+": "+errors[k])
-		}
-		return errs.BadRequest(strings.Join(parts, ", "))
-	}
-
-	return nil
-}
-
-func validateUpdateGuest(update *models.UpdateGuest) error {
-	errors := make(map[string]string)
-
-	if strings.TrimSpace(update.FirstName) == "" {
-		errors["first_name"] = "must not be an empty string"
-	}
-
-	if strings.TrimSpace(update.LastName) == "" {
-		errors["last_name"] = "must not be an empty string"
-	}
-
-	if update.Timezone != nil {
-		if _, err := time.LoadLocation(*update.Timezone); err != nil {
-			errors["timezone"] = "invalid IANA timezone"
-		}
-	}
-
-	if len(errors) > 0 {
-		var keys []string
-		for k := range errors {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		var parts []string
-		for _, k := range keys {
-			parts = append(parts, k+": "+errors[k])
-		}
-		return errs.BadRequest(strings.Join(parts, ", "))
-	}
-
-	return nil
 }

@@ -3,10 +3,9 @@ package handler
 import (
 	"errors"
 	"log/slog"
-	"strings"
-	"time"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
@@ -71,7 +70,7 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
-	if err := validateCreateUser(&CreateUserRequest); err != nil {
+	if err := httpx.BindAndValidate(c, &CreateUserRequest); err != nil {
 		return err
 	}
 

@@ -6,7 +6,7 @@ import { HelloWave } from "@/components/hello-wave";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { useGetHelloName } from "@shared/hooks/use-hello";
+import { useGetHelloName } from "@/hooks/use-hello";
 
 export default function HomeScreen() {
   const [name, setName] = useState("");
