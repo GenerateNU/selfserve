@@ -35,19 +35,27 @@ type GuestWithBooking struct {
 	ID   string `json:"id"`
 	FirstName      string  `json:"first_name"`
 	LastName      string  `json:"last_name"`
-	RoomNumber int  `json:"room_number"`
 	Floor int      `json:"floor"`
-	ArrivalDate   string        `json:"arrival_date"`
-    DepartureDate string        `json:"departure_date"`
-}
-
-type Stay struct {
-    ArrivalDate   *string `json:"arrival_date"`
-    DepartureDate *string `json:"departure_date"`
-    RoomNumber    *string `json:"room_number"`
+	RoomNumber int  `json:"room_number"`
 }
 
 type GuestWithStays struct {
-    Guest
-    Stays []Stay `json:"stays"`
-}
+	ID             string  `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`
+	FirstName      string  `json:"first_name" validate:"required" example:"Jane"`
+	LastName       string  `json:"last_name" validate:"required" example:"Doe"`
+	Phone          *string `json:"phone,omitempty" example:"+1 (617) 012-3456"`
+	Email          *string `json:"email,omitempty" validate:"omitempty,email" example:"jane.doe@example.com"`
+	Preferences    *string `json:"preferences,omitempty" example:"extra pillows"`
+	Notes          *string `json:"notes,omitempty" example:"VIP"`
+	CurrentStays []Stay `json:"current_stays"`
+    PastStays   []Stay `json:"past_stays"`
+} //@name GuestWithStays
+
+
+type Stay struct {
+    ArrivalDate   string        `json:"arrival_date" validate:"required" example:"2024-01-02"`
+    DepartureDate string        `json:"departure_date" validate:"required" example:"2024-01-05"`
+    RoomNumber    int           `json:"room_number" validate:"required" example:"101"`
+    Status        BookingStatus `json:"status" validate:"required"`
+} //@name Stay
+
