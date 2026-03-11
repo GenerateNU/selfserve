@@ -233,7 +233,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		"first_name": "John",
 		"last_name": "Doe",
 		"role": "Receptionist",
-		"id": "user_123"
+		"clerk_id": "user_123"
 	}`
 
 	t.Run("returns 200 on valid user creation", func(t *testing.T) {
@@ -291,7 +291,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"employee_id": "EMP-67",
 			"department": "Front Desk",
 			"timezone": "America/New_York",
-			"id": "user_123"
+			"clerk_id": "user_123"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(bodyWithOptionals))
@@ -361,7 +361,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"first_name": "John",
 			"last_name": "Doe",
 			"role": "Receptionist",
-			"id": "user_123",
+			"clerk_id": "user_123",
 			"timezone": "Invalid/Not_A_Timezone"
 		}`
 
@@ -399,7 +399,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		assert.Equal(t, 500, resp.StatusCode)
 	})
 
-	t.Run("returns_400_when_id_is_missing", func(t *testing.T) {
+	t.Run("returns_400_when_clerk_id_is_missing", func(t *testing.T) {
 		body := `{
 		"first_name": "John",
 		"last_name": "Doe",
@@ -425,7 +425,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		assert.Equal(t, 400, resp.StatusCode)
 
 		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "id")
+		assert.Contains(t, string(respBody), "clerk_id")
 	})
 }
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
-	"github.com/generate/selfserve/internal/httpx"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 )
@@ -72,7 +71,7 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
-	if err := httpx.BindAndValidate(c, &CreateUserRequest); err != nil {
+	if err := validateCreateUser(&CreateUserRequest); err != nil {
 		return err
 	}
 
