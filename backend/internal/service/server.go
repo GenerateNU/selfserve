@@ -15,7 +15,7 @@ import (
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
-	s3storage "github.com/generate/selfserve/internal/service/storage/postgres/s3"
+	s3storage "github.com/generate/selfserve/internal/service/s3"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
