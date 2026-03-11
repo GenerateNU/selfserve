@@ -1,24 +1,30 @@
-import type { RoomFilters } from '@/routes/_protected/rooms.index'
-import { FloorFilterDropdown } from '@/components/rooms/FloorFilterDropdown'
+import { PanelRight } from 'lucide-react'
+import { FloorDropdown } from '@/components/rooms/FloorDropdown'
 
 type RoomsHeaderProps = {
-  roomFilters: RoomFilters
-  onRoomFilterChange: <TKey extends keyof RoomFilters>(
-    key: TKey,
-    value: RoomFilters[TKey],
-  ) => void
+  onOpenDrawer?: () => void
+  selectedFloors: Array<number>
+  onChangeSelectedFloors: (floors: Array<number>) => void
 }
 
 export function RoomsHeader({
-  roomFilters,
-  onRoomFilterChange,
+  onOpenDrawer,
+  selectedFloors,
+  onChangeSelectedFloors,
 }: RoomsHeaderProps) {
   return (
-    <header className="z-30 bg-blue-600 text-white px-[2vw] py-[1vw] flex items-center justify-between">
-      <FloorFilterDropdown
-        selected={roomFilters.floor}
-        onChange={(values) => onRoomFilterChange('floor', values)}
+    <header className="flex h-full w-full min-w-0 items-center justify-between">
+      <FloorDropdown
+        selected={selectedFloors}
+        onChangeSelectedFloors={onChangeSelectedFloors}
       />
+      <button
+        type="button"
+        onClick={onOpenDrawer}
+        className="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+      >
+        <PanelRight className="h-5 w-5" />
+      </button>
     </header>
   )
 }

@@ -1,25 +1,36 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { PageShell } from '@/components/ui/PageShell'
+import { RoomsHeader } from '@/components/rooms/RoomsHeader'
 
 export const Route = createFileRoute('/_protected/rooms')({
   component: RoomsPage,
 })
 
+function dummyRoomsQuery(selectedFloors: Array<number>) {
+  return new Promise<Array<{ id: number; floor: number }>>((resolve) => {
+    resolve(selectedFloors.map((f) => ({ id: f, floor: f })))
+  })
+}
+
 function RoomsPage() {
   const [open, setOpen] = useState(false)
+  const [selectedFloors, setSelectedFloors] = useState<Array<number>>([])
+
+  const { data } = useQuery({
+    queryKey: ['rooms', { floors: selectedFloors }],
+    queryFn: () => dummyRoomsQuery(selectedFloors),
+  })
+
   return (
     <PageShell
       header={
-        <div className="flex items-center justify-between h-full">
-          <span className="text-[2vh] font-medium text-black">Rooms</span>
-          <button
-            onClick={() => setOpen(!open)}
-            className="border border-gray-300 rounded text-sm"
-          >
-            Open
-          </button>
-        </div>
+        <RoomsHeader
+          onOpenDrawer={() => setOpen((o) => !o)}
+          selectedFloors={selectedFloors}
+          onChangeSelectedFloors={setSelectedFloors}
+        />
       }
       drawerOpen={open}
       drawer={
@@ -29,7 +40,11 @@ function RoomsPage() {
       }
     >
       <div>
-        <p>Main content goes here.</p>
+        <ul>
+          {data?.map((room) => (
+            <li key={room.id}>Floor {room.floor} selected</li>
+          ))}
+        </ul>
       </div>
     </PageShell>
   )
