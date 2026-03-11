@@ -3,22 +3,17 @@ import { Box } from "./box";
 import { ChevronLeft, User } from "lucide-react-native";
 import { Collapsible } from "./collapsible";
 import { router } from "expo-router";
+import type { Stay } from '@shared/api/generated/models'
 
 interface GuestProfileProps {
     firstName: string,
     lastName: string, 
-    room: number,
-    arrival: string,
-    departure: string,
-    notes: string,
-    preferences: string,
+    phone?: string, 
+    email?: string, 
+    notes?: string,
+    preferences?: string,
+    currentStays: Stay[],
     previousStays: Stay[],
-}
-
-type Stay = {
-    room: string, 
-    arrival: string,
-    departure: string,
 }
 
 
@@ -95,7 +90,23 @@ function GuestInfoCollapsibles(props : GuestProfileProps) {
                     <Text className="text-[3.5vw] text-gray-900">{item.format(props)}</Text>
                 </Collapsible>
             ))}
-
+            <Collapsible title="Current Stays">
+                {props.previousStays.length === 0 ? (
+                    <Text className="text-[3.5vw] text-gray-400">No previous stays</Text>
+                ) : (
+                    <View className="gap-[1vh]">
+                        {props.currentStays.map((stay, index) => (
+                            <View key={index} className="border-b border-gray-200 pb-[1vh]">
+                                <Text className="text-[3.5vw] text-gray-900">{stay.room_number}</Text>
+                                <Text className="text-[3vw] text-gray-600">
+                                    {new Date(stay.arrival_date).toLocaleDateString()}
+                                     -  {new Date(stay.departure_date).toLocaleDateString()}
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                )}
+            </Collapsible>
             <Collapsible title="Previous Stays">
                 {props.previousStays.length === 0 ? (
                     <Text className="text-[3.5vw] text-gray-400">No previous stays</Text>
@@ -103,10 +114,10 @@ function GuestInfoCollapsibles(props : GuestProfileProps) {
                     <View className="gap-[1vh]">
                         {props.previousStays.map((stay, index) => (
                             <View key={index} className="border-b border-gray-200 pb-[1vh]">
-                                <Text className="text-[3.5vw] text-gray-900">{stay.room}</Text>
+                                <Text className="text-[3.5vw] text-gray-900">{stay.room_number}</Text>
                                 <Text className="text-[3vw] text-gray-600">
-                                    {new Date(stay.arrival).toLocaleDateString()}
-                                     -  {new Date(stay.departure).toLocaleDateString()}
+                                    {new Date(stay.arrival_date).toLocaleDateString()}
+                                     -  {new Date(stay.departure_date).toLocaleDateString()}
                                 </Text>
                             </View>
                         ))}
@@ -126,21 +137,14 @@ const GUEST_PROFILE_CONFIG = {
             format: (props: GuestProfileProps) => props.firstName + " " + props.lastName 
         },
         { 
-            key: 'room', 
-            label: 'Room', 
-            format: (props: GuestProfileProps) => props.room 
+            key: 'phone', 
+            label: 'Phone', 
+            format: (props: GuestProfileProps) => props.phone 
         },
         { 
-            key: 'arrival', 
-            label: 'Arrival', 
-            format: (props: GuestProfileProps) => 
-                `${new Date(props.arrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${new Date(props.arrival).toLocaleDateString()}` 
-        },
-        { 
-            key: 'departure', 
-            label: 'Departure', 
-            format: (props: GuestProfileProps) => 
-                `${new Date(props.departure).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${new Date(props.departure).toLocaleDateString()}` 
+            key: 'email', 
+            label: 'Email', 
+            format: (props: GuestProfileProps) => props.email 
         },
     ],
     collapsibles: [

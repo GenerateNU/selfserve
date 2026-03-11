@@ -8,18 +8,18 @@ export default function ProfileScreen() {
 
   const query = useGetApiV1GuestsStaysId(id as string)
   
-  if (!query) {
+  if (!query || !query.data) {
     return <Text>Guest not found</Text>;
   }
   
   return <GuestProfile
-    firstName={query.data?.first_name}
-    lastName={query.data?.last_name}
-    room={query.data?.room_number}
-    arrival={query.data?.arrival_date}
-    departure={query.data?.departure_date}
-    notes={query.data?.notes}
-    preferences={query.data?.preferences}
-    previousStays={query.data?.stays ?? []}
-/>;
+    firstName={query.data.first_name}
+    lastName={query.data.last_name}
+    phone={query.data.phone}
+    email={query.data.email}
+    notes={query.data.notes}
+    preferences={query.data.preferences}
+    currentStays={query.data.current_stays ?? []}
+    previousStays={query.data?.past_stays ?? []}
+  />;
 }
