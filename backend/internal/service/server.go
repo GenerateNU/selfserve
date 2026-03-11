@@ -152,7 +152,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 
 	// s3 routes
 	api.Route("/s3", func(r fiber.Router) {
-		r.Get("/presigned-url/*", s3Handler.GeneratePresignedURL)
+		r.Get("/presigned-url/*", s3Handler.GeneratePresignedUploadURL)
 		r.Get("/upload-url/:userId", s3Handler.GetUploadURL)
 		r.Get("/presigned-get-url/*", s3Handler.GeneratePresignedGetURL)
 	})

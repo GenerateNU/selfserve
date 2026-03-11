@@ -41,7 +41,7 @@ func NewS3Storage(cfg config.S3) (*Storage, error) {
 	}, nil
 }
 
-func (s *Storage) GeneratePresignedURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
+func (s *Storage) GeneratePresignedUploadURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
 
 	presignedURL, err := s.URL.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(s.BucketName),

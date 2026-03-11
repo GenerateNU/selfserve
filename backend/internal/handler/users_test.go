@@ -92,7 +92,7 @@ type mockS3Storage struct {
 	deleteFileFunc func(ctx context.Context, key string) error
 }
 
-func (m *mockS3Storage) GeneratePresignedURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
+func (m *mockS3Storage) GeneratePresignedUploadURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
 	return "", nil
 }
 

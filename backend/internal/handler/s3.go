@@ -17,7 +17,7 @@ func NewS3Handler(s3Storage *s3storage.Storage) *S3Handler {
 	return &S3Handler{S3Storage: s3Storage}
 }
 
-// GeneratePresignedURL godoc
+// GeneratePresignedUploadURL godoc
 // @Summary      Generate a presigned URL for a file
 // @Description  Generates a presigned URL for a file. The key is the full S3 path (e.g., profile-pictures/user123/image.jpg)
 // @Tags         s3
@@ -29,13 +29,13 @@ func NewS3Handler(s3Storage *s3storage.Storage) *S3Handler {
 // @Failure      500  {object}  map[string]string
 // @Router       /s3/presigned-url/{key} [get]
 
-func (h *S3Handler) GeneratePresignedURL(c *fiber.Ctx) error {
+func (h *S3Handler) GeneratePresignedUploadURL(c *fiber.Ctx) error {
 	key := c.Params("*")
 	if key == "" {
 		return errs.BadRequest("key is required")
 	}
 
-	presignedURL, err := h.S3Storage.GeneratePresignedURL(c.Context(), key, 5*time.Minute)
+	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), key, 5*time.Minute)
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -68,7 +68,7 @@ func (h *S3Handler) GetUploadURL(c *fiber.Ctx) error {
 	}
 
 	key := fmt.Sprintf("profile-pictures/%s/%d.%s", userId, time.Now().Unix(), ext)
-	presignedURL, err := h.S3Storage.GeneratePresignedURL(c.Context(), key, 5*time.Minute)
+	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), key, 5*time.Minute)
 	if err != nil {
 		return errs.InternalServerError()
 	}
