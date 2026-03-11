@@ -81,13 +81,12 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 	return &guest, nil
 }
 
-
-
 func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*models.GuestWithStays, error) {
 
 	rows, err := r.db.Query(ctx, `
 		SELECT guests.id, guests.first_name, guests.last_name, guests.phone, guests.email,
-		 	guests.preferences, guests.notes, guest_bookings.arrival_date, guest_bookings.departure_date, rooms.room_number
+			guests.preferences, guests.notes, guest_bookings.arrival_date, guest_bookings.departure_date, 
+			rooms.room_number, guest_bookings.status
 		FROM public.guests
 		LEFT JOIN guest_bookings ON guests.id = guest_bookings.guest_id
 		LEFT JOIN rooms ON rooms.id = guest_bookings.room_id
@@ -102,18 +101,36 @@ func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*
 	var guest *models.GuestWithStays
 	for rows.Next() {
 		var stay models.Stay
+		var arrivalDate *string
+		var departureDate *string
+		var roomNumber *int
+		var status *models.BookingStatus
+
 		if guest == nil {
 			guest = &models.GuestWithStays{}
 		}
+
 		err := rows.Scan(
 			&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email, &guest.Preferences, &guest.Notes,
-			&stay.ArrivalDate, &stay.DepartureDate, &stay.RoomNumber,
+			&arrivalDate, &departureDate, &roomNumber, &status,
 		)
 		if err != nil {
 			return nil, err
 		}
-		if stay.ArrivalDate != nil {
-			guest.Stays = append(guest.Stays, stay)
+
+		if arrivalDate == nil {
+			continue
+		}
+
+		stay.ArrivalDate = *arrivalDate
+		stay.DepartureDate = *departureDate
+		stay.RoomNumber = *roomNumber
+		stay.Status = *status
+
+		if *status == models.BookingStatusActive {
+			guest.CurrentStays = append(guest.CurrentStays, stay)
+		} else {
+			guest.PastStays = append(guest.PastStays, stay)
 		}
 	}
 
@@ -169,8 +186,9 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	}
 
 	return &guest, nil
-
 }
+
+
 
 func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.GuestFilter) ([]*models.GuestWithBooking, error) {
 

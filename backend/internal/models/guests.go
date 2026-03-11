@@ -28,20 +28,12 @@ type GuestFilter struct {
 }
 
 type GuestWithBooking struct {
-    ID            string `json:"id" validate:"required"`
-    FirstName     string `json:"first_name" validate:"required"`
-    LastName      string `json:"last_name" validate:"required"`
-    RoomNumber    int    `json:"room_number" validate:"required"`
-    Floor         int    `json:"floor" validate:"required"`
-    ArrivalDate   string `json:"arrival_date" validate:"required"`
-    DepartureDate string `json:"departure_date" validate:"required"`
+	ID   string `json:"id"`
+	FirstName      string  `json:"first_name"`
+	LastName      string  `json:"last_name"`
+	Floor int      `json:"floor"`
+	RoomNumber int  `json:"room_number"`
 }
-
-type Stay struct {
-	ArrivalDate   string `json:"arrival_date" validate:"required" example:"2024-01-02"`
-	DepartureDate string `json:"departure_date" validate:"required" example:"2024-01-05"`
-	RoomNumber    int    `json:"room_number" validate:"required" example:"101"`
-} //@name Stay
 
 type GuestWithStays struct {
 	ID             string  `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`
@@ -51,7 +43,15 @@ type GuestWithStays struct {
 	Email          *string `json:"email,omitempty" validate:"omitempty,email" example:"jane.doe@example.com"`
 	Preferences    *string `json:"preferences,omitempty" example:"extra pillows"`
 	Notes          *string `json:"notes,omitempty" example:"VIP"`
-	Stays          []Stay  `json:"stays" validate:"required"`
+	CurrentStays []Stay `json:"current_stays"`
+    PastStays   []Stay `json:"past_stays"`
 } //@name GuestWithStays
 
+
+type Stay struct {
+    ArrivalDate   string        `json:"arrival_date" validate:"required" example:"2024-01-02"`
+    DepartureDate string        `json:"departure_date" validate:"required" example:"2024-01-05"`
+    RoomNumber    int           `json:"room_number" validate:"required" example:"101"`
+    Status        BookingStatus `json:"status" validate:"required"`
+} //@name Stay
 
