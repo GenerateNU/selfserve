@@ -3,6 +3,7 @@ package models
 import "time"
 
 type CreateUser struct {
+	ID             string  `json:"id" validate:"notblank" example:"user_123"`
 	FirstName      string  `json:"first_name" validate:"notblank" example:"John"`
 	LastName       string  `json:"last_name" validate:"notblank" example:"Doe"`
 	EmployeeID     *string `json:"employee_id,omitempty" validate:"omitempty" example:"EMP-1234"`
@@ -10,7 +11,6 @@ type CreateUser struct {
 	Role           *string `json:"role,omitempty" validate:"omitempty" example:"Receptionist"`
 	Department     *string `json:"department,omitempty" validate:"omitempty" example:"Housekeeping"`
 	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
-	ClerkID        string  `json:"clerk_id" validate:"notblank" example:"user_123"`
 } //@name CreateUser
 
 type CreateUserWebhook struct {
