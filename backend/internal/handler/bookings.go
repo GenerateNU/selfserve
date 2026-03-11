@@ -22,7 +22,7 @@ func NewGuestBookingsHandler(repo GuestBookingsRepository) *GuestBookingHandler 
 	return &GuestBookingHandler{repo: repo}
 }
 
-// GetBookingByFloor godoc
+// GetBookingsByFloor godoc
 // @Summary      Get guest Bookings By Floor
 // @Description  Retrieves multiple guest bookings whose booked rooms are in the provided floors array
 // @Tags         guest-bookings
@@ -32,8 +32,8 @@ func NewGuestBookingsHandler(repo GuestBookingsRepository) *GuestBookingHandler 
 // @Failure      400       {object}  map[string]string
 // @Failure      500       {object}  map[string]string
 // @Router       /guest_bookings/floor [get]
-func (h *GuestBookingHandler) GetBookingByFloor(c *fiber.Ctx) error {
-	floors, err := getQueryFloors(c)
+func (h *GuestBookingHandler) GetBookingsByFloor(c *fiber.Ctx) error {
+	floors, err := getQueryFloors(c.Query("floors"))
 	if err != nil {
 		return err
 	}
@@ -47,17 +47,19 @@ func (h *GuestBookingHandler) GetBookingByFloor(c *fiber.Ctx) error {
 	return c.JSON(bookings)
 }
 
+func getQueryFloors(rawFloors string) ([]int, error) {
+	if rawFloors == "" {
+		return nil, errs.BadRequest("Floors must be provided")
+	}
 
-func getQueryFloors(c *fiber.Ctx) ([]int, error) {
-	parts := strings.Split(c.Query("floors"), ",")
-	floors := make([]int, len(parts))
-    for i, p := range parts {
-    floor, err := strconv.Atoi(strings.TrimSpace(p))
-    if err != nil {
-        return nil, errs.BadRequest("Floors must be an array of integers")
-    }
-    floors[i] = floor
+	parts := strings.Split(rawFloors, ",")
+	floors := make([]int, 0, len(parts))
+	for _, p := range parts {
+		floor, err := strconv.Atoi(strings.TrimSpace(p))
+		if err != nil {
+			return nil, errs.BadRequest("Floors must be an array of integers")
+		}
+		floors = append(floors, floor)
 	}
 	return floors, nil
 }
-
