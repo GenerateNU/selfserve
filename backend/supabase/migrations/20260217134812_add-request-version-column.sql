@@ -1,4 +1,4 @@
--- DEFAULT NOW() is not what we want but is necesarry with a NOT NULL expression
+-- DEFAULT NOW() is not what we want but is necessary with a NOT NULL expression
 ALTER TABLE public.requests
 ADD COLUMN request_version TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
@@ -9,3 +9,5 @@ SET request_version = created_at;
 -- this is just to modify existing data that we already have in the DB
 ALTER TABLE public.requests
 ALTER COLUMN request_version DROP DEFAULT;
+
+ALTER TABLE public.requests DROP COLUMN updated_at
