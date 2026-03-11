@@ -43,8 +43,8 @@ type GuestWithStays struct {
 	Email          *string `json:"email,omitempty" validate:"omitempty,email" example:"jane.doe@example.com"`
 	Preferences    *string `json:"preferences,omitempty" example:"extra pillows"`
 	Notes          *string `json:"notes,omitempty" example:"VIP"`
-	CurrentStays []Stay `json:"current_stays" validate:"required" example:"[]"`
-	PastStays    []Stay `json:"past_stays" validate:"required" example:"[]"`
+	CurrentStays []Stay `json:"current_stays" validate:"required"`
+	PastStays    []Stay `json:"past_stays" validate:"required"`
 } //@name GuestWithStays
 
 

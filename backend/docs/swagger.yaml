@@ -104,9 +104,11 @@ definitions:
         example: extra pillows
         type: string
     required:
+    - current_stays
     - first_name
     - id
     - last_name
+    - past_stays
     type: object
   Hotel:
     properties:
