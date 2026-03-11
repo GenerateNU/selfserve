@@ -27,6 +27,10 @@ run: llm-start db-start
 	@$(LOAD_ENV) \
 	go run $(CMD_PATH)
 
+air: llm-start db-start
+	@$(LOAD_ENV) \
+	air
+
 ngrok: 
 	@$(LOAD_ENV) ngrok http --domain=$$NGROK_DOMAIN $(PORT)
 
