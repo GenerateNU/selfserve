@@ -90,7 +90,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB), s3Store)
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
-	hotelHandler := handler.NewHotelsHandler(repository.NewHotelRepository(repo.DB))
+	hotelHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
 
