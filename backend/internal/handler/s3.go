@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
-	s3storage "github.com/generate/selfserve/internal/service/storage/postgres/s3"
+	s3storage "github.com/generate/selfserve/internal/service/s3"
 	"github.com/gofiber/fiber/v2"
 )
 type S3Handler struct {
