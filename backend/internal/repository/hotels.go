@@ -10,15 +10,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type HotelRepository struct {
+type HotelsRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewHotelRepository(db *pgxpool.Pool) *HotelRepository {
-	return &HotelRepository{db: db}
+func NewHotelsRepository(db *pgxpool.Pool) *HotelsRepository {
+	return &HotelsRepository{db: db}
 }
 
-func (r *HotelRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
+func (r *HotelsRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
 	row := r.db.QueryRow(ctx, `
 		SELECT id, name, floors, created_at, updated_at
 		FROM hotels 
@@ -35,14 +35,6 @@ func (r *HotelRepository) FindByID(ctx context.Context, id string) (*models.Hote
 	}
 
 	return &hotel, nil
-}
-
-type HotelsRepository struct {
-	db *pgxpool.Pool
-}
-
-func NewHotelsRepo(db *pgxpool.Pool) *HotelsRepository {
-	return &HotelsRepository{db: db}
 }
 
 func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {

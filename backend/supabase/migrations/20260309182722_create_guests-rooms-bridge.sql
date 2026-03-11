@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS public.guest_bookings (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_guest_bookings_guest_id ON public.guest_bookings;
-CREATE INDEX idx_guest_bookings_room_id ON public.guest_bookings;
+CREATE INDEX idx_guest_bookings_guest_id ON public.guest_bookings (guest_id);
+CREATE INDEX idx_guest_bookings_room_id ON public.guest_bookings (room_id);
 
 --Enable RLS 
 ALTER TABLE public.guest_bookings ENABLE ROW LEVEL SECURITY;

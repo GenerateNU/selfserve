@@ -60,7 +60,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	 cfg *config.Config) error {
+	cfg *config.Config) error {
 
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
@@ -84,8 +84,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
-	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
-	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
+	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
+
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
 		return err
@@ -138,10 +138,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// Hotel routes
 	api.Route("/hotels", func(r fiber.Router) {
-		r.Get("/:id", hotelHandler.GetHotelByID)
-	})
-
-	api.Route("/hotel", func(r fiber.Router) {
+		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
 
@@ -171,9 +168,9 @@ func setupApp() *fiber.App {
 	}))
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000, http://localhost:8081",
-		AllowMethods: "GET,POST,PUT,DELETE",
-		AllowHeaders: "Origin, Content-Type, Authorization",
+		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Authorization",
 		AllowCredentials: true,
 	}))
 
