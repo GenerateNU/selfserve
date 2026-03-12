@@ -2,14 +2,16 @@ package handler
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
 type RoomsRepository interface {
-	FindRooms(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithBooking, error)
+	FindRoomsWithOptionalGuestBooking(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithOptionalGuestBooking, error)
 }
 
 type RoomsHandler struct {
@@ -22,13 +24,15 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 
 // GetRooms godoc
 // @Summary      Get Rooms
-// @Description  Retrieves rooms optionally filtered by floor
+// @Description  Retrieves rooms optionally filtered by floor, with any active guest bookings
 // @Tags         rooms
 // @Produce      json
-// @Param        number  query     string  false  "floor"
-// @Success      200     {object}  []models.RoomWithBooking
-// @Failure      400     {object}  map[string]string
-// @Failure      500     {object}  map[string]string
+// @Param        floors      query     []int   false  "floors"
+// @Param        cursor      query     string  false  "Opaque cursor for the next page"
+// @Param        limit       query     int     false  "Number of items per page (1-100, default 20)"
+// @Success      200         {object}  utils.CursorPage[models.RoomWithOptionalGuestBooking]
+// @Failure      400         {object}  map[string]string
+// @Failure      500         {object}  map[string]string
 // @Router       /rooms [get]
 func (h *RoomsHandler) GetRooms(c *fiber.Ctx) error {
 	filter := new(models.RoomFilter)
@@ -36,10 +40,18 @@ func (h *RoomsHandler) GetRooms(c *fiber.Ctx) error {
 		return errs.BadRequest("invalid filters")
 	}
 
-	rooms, err := h.repo.FindRooms(c.Context(), filter)
+	if _, _, err := utils.DecodeCursorInt(filter.Cursor); err != nil {
+		return errs.BadRequest("invalid cursor")
+	}
+
+	rooms, err := h.repo.FindRoomsWithOptionalGuestBooking(c.Context(), filter)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	return c.JSON(rooms)
+	page := utils.BuildCursorPage(rooms, filter.Limit, func(r *models.RoomWithOptionalGuestBooking) string {
+		return strconv.Itoa(r.RoomNumber)
+	})
+
+	return c.JSON(page)
 }

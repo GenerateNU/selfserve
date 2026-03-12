@@ -9,12 +9,13 @@ type Room struct {
 
 type RoomFilter struct {
 	Floors *[]int `query:"floors"`
+	Cursor string `query:"cursor"`
+	Limit  int    `query:"limit"`
 }
 
 // Read model for rooms page on the frontend
-type RoomWithBooking struct {
+type RoomWithOptionalGuestBooking struct {
 	Room
-	FirstName     *string        `json:"first_name"`
-	LastName      *string        `json:"last_name"`
-	BookingStatus *BookingStatus `json:"booking_status"`
-} //@name RoomWithBooking
+	Guests        []Guest       `json:"guests"`
+	BookingStatus BookingStatus `json:"booking_status"`
+} //@name RoomWithOptionalGuestBooking
