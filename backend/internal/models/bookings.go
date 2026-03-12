@@ -14,4 +14,4 @@ type GuestBooking struct {
 	Status  BookingStatus `json:"status"`
 	ArrivalDate   string        `json:"arrival_date"`
     DepartureDate string        `json:"departure_date"`
-}
+} //@name GuestBooking
