@@ -1,21 +1,21 @@
-import { UserRound } from 'lucide-react'
-import type { GuestListItem } from './guest-mocks'
+import { UserRound } from "lucide-react";
+import type { GuestListItem } from "./guest-mocks";
 
 type GuestQuickListTableProps = {
-  guests: Array<GuestListItem>
-  groupFilter: string
-  floorFilter: string
-  onGroupFilterChange: (value: string) => void
-  onFloorFilterChange: (value: string) => void
-  onGuestClick: (guestId: string) => void
-}
+  guests: Array<GuestListItem>;
+  groupFilter: string;
+  floorFilter: string;
+  onGroupFilterChange: (value: string) => void;
+  onFloorFilterChange: (value: string) => void;
+  onGuestClick: (guestId: string) => void;
+};
 
 function avatarPill() {
   return (
     <div className="flex h-[2vw] w-[2vw] items-center justify-center rounded-full border border-black">
       <UserRound className="h-[2vh] w-[2vh] text-black" />
     </div>
-  )
+  );
 }
 
 export function GuestQuickListTable({
@@ -85,5 +85,5 @@ export function GuestQuickListTable({
         )}
       </div>
     </section>
-  )
+  );
 }
