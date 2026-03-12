@@ -176,4 +176,3 @@ func TestGetQueryFloors(t *testing.T) {
 		assert.Equal(t, 400, httpErr.Code)
 	})
 }
-

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
