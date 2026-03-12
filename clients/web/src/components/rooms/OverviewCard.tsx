@@ -1,26 +1,26 @@
-import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 export type OverviewCardColumn = {
-  field: string
-  value: ReactNode
-  description: string
-}
+  field: string;
+  value: ReactNode;
+  description: string;
+};
 
 type OverviewCardProps = {
-  title: string
-  columns: [OverviewCardColumn, OverviewCardColumn, OverviewCardColumn]
-  className?: string
-}
+  title: string;
+  columns: [OverviewCardColumn, OverviewCardColumn, OverviewCardColumn];
+  className?: string;
+};
 
 export function OverviewCard({
   title,
   columns,
-  className = '',
+  className = "",
 }: OverviewCardProps) {
   return (
     <section
-      className={cn('bg-white dark:bg-zinc-900 px-[1vw] py-[1.5vh]', className)}
+      className={cn("bg-white dark:bg-zinc-900 px-[1vw] py-[1.5vh]", className)}
     >
       <h2 className="text-md font-medium text-zinc-600 light:text-zinc-100">
         {title}
@@ -46,5 +46,5 @@ export function OverviewCard({
         ))}
       </div>
     </section>
-  )
+  );
 }

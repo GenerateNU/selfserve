@@ -1,39 +1,39 @@
-import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
-const FLOOR_OPTIONS = [1, 2, 3, 4, 5]
+const FLOOR_OPTIONS = [1, 2, 3, 4, 5];
 
 type FloorFilterDropdownProps = {
-  selected: Array<number>
-  onChange: (selected: Array<number>) => void
-}
+  selected: Array<number>;
+  onChange: (selected: Array<number>) => void;
+};
 
 function getLabel(selected: Array<number>): string {
-  if (selected.length === 0) return 'All floors'
-  if (selected.length === 1) return `Floor ${selected[0]}`
-  return 'Multiple floors'
+  if (selected.length === 0) return "All floors";
+  if (selected.length === 1) return `Floor ${selected[0]}`;
+  return "Multiple floors";
 }
 
 export function FloorFilterDropdown({
   selected,
   onChange,
 }: FloorFilterDropdownProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   const toggle = (floor: number) => {
     onChange(
       selected.includes(floor)
         ? selected.filter((f) => f !== floor)
         : [...selected, floor],
-    )
-  }
+    );
+  };
 
   return (
     <div
       className="relative inline-block"
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) {
-          setOpen(false)
+          setOpen(false);
         }
       }}
     >
@@ -44,7 +44,7 @@ export function FloorFilterDropdown({
       >
         <span>{getLabel(selected)}</span>
         <ChevronDown
-          className={`h-[1.3vh] w-[1.3vh] shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`h-[1.3vh] w-[1.3vh] shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -70,5 +70,5 @@ export function FloorFilterDropdown({
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, TextInput } from 'react-native';
-import { Search } from 'lucide-react-native';
+import React from "react";
+import { View, TextInput } from "react-native";
+import { Search } from "lucide-react-native";
 
 interface SearchBarProps {
   value: string;
@@ -8,7 +8,11 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export function SearchBar({ value, onChangeText, placeholder = "Search Guests" }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChangeText,
+  placeholder = "Search Guests",
+}: SearchBarProps) {
   return (
     <View className="relative">
       <TextInput
