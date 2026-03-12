@@ -1,13 +1,14 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 	svix "github.com/svix/svix-webhooks/go"
-	"net/http"
 )
 
 type ClerkWebHookHandler struct {
