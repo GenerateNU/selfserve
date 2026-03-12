@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query'
 import { PageShell } from '@/components/ui/PageShell'
 import { RoomsHeader } from '@/components/rooms/RoomsHeader'
 
-export const Route = createFileRoute('/_protected/rooms')({
+export const Route = createFileRoute("/_protected/rooms")({
   component: RoomsPage,
-})
+});
 
 function dummyRoomsQuery(selectedFloors: Array<number>) {
   return new Promise<Array<{ id: number; floor: number }>>((resolve) => {
@@ -47,5 +47,5 @@ function RoomsPage() {
         </ul>
       </div>
     </PageShell>
-  )
+  );
 }

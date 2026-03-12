@@ -26,5 +26,5 @@ export function RoomsHeader({
         <PanelRight className="h-5 w-5" />
       </button>
     </header>
-  )
+  );
 }

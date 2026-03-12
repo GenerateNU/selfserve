@@ -1,12 +1,12 @@
-import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 type PageShellProps = {
-  header: ReactNode
-  drawer?: ReactNode
-  drawerOpen?: boolean
-  children: ReactNode
-}
+  header: ReactNode;
+  drawer?: ReactNode;
+  drawerOpen?: boolean;
+  children: ReactNode;
+};
 
 export function PageShell({
   header,
@@ -14,7 +14,7 @@ export function PageShell({
   drawerOpen = false,
   children,
 }: PageShellProps) {
-  const hasDrawer = !!drawer
+  const hasDrawer = !!drawer;
 
   return (
     <main className="flex h-screen w-full min-w-0 overflow-hidden">
@@ -41,5 +41,5 @@ export function PageShell({
         </aside>
       )}
     </main>
-  )
+  );
 }
