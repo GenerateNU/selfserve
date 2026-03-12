@@ -50,8 +50,8 @@ test:
 	go test ./...
 
 format:
-	go fmt ./...
-	goimports -w $$(find . -name "*.go" -not -path "*/vendor/*")
+	@go fmt ./...
+	@goimports -w $$(find . -name "*.go" -not -path "*/vendor/*")
 
 tidy:
 	go mod tidy
