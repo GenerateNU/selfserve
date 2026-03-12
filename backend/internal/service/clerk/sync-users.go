@@ -2,9 +2,9 @@ package clerk
 
 import (
 	"encoding/json"
-	"net/http"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/models"
+	"net/http"
 )
 
 func ValidateAndReformatUserData(users []models.ClerkUser) ([]*models.CreateUser, error) {

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/generate/selfserve/config" 
+	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"

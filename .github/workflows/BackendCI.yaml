@@ -36,7 +36,7 @@ jobs:
         run: make swagger
       - name: Check code formatting
         run: |
-          gofmt_files=$(gofmt -l ./...)
+          gofmt_files=$(gofmt -l .)
           if [ -n "$gofmt_files" ]; then
             echo "The following files are not gofmt'd:"
             echo "$gofmt_files"
