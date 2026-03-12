@@ -1,23 +1,23 @@
-import { ChevronDown } from 'lucide-react'
-import { Button } from '../ui/Button'
-import { useDropdown } from '../../hooks/use-dropdown'
-import { FloorList } from './FloorsList'
-import { FloorSearchInput } from './FloorSearchInput'
+import { ChevronDown } from "lucide-react";
+import { Button } from "../ui/Button";
+import { useDropdown } from "../../hooks/use-dropdown";
+import { FloorList } from "./FloorsList";
+import { FloorSearchInput } from "./FloorSearchInput";
 
-const FLOOR_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8]
+const FLOOR_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 type FloorDropdownProps = {
-  selected?: Array<number>
-  onChangeSelectedFloors?: (floors: Array<number>) => void
-}
+  selected?: Array<number>;
+  onChangeSelectedFloors?: (floors: Array<number>) => void;
+};
 
 function getFloorLabel(selected: Array<number>) {
   if (selected.length === 0) {
-    return 'Select a Floor'
+    return "Select a Floor";
   } else if (selected.length === 1) {
-    return `Floor ${selected[0]}`
+    return `Floor ${selected[0]}`;
   } else {
-    return `${selected.length} floors selected`
+    return `${selected.length} floors selected`;
   }
 }
 
@@ -37,22 +37,22 @@ export function FloorDropdown({
   } = useDropdown<number>({
     selected,
     onChangeSelectedItems: onChangeSelectedFloors,
-  })
+  });
 
   const filtered = FLOOR_OPTIONS.filter((f) =>
     `floor ${f}`.includes(search.trim().toLowerCase()),
-  )
+  );
 
   return (
     <div className="relative min-w-0 w-full max-w-[18vw]">
       <button
         type="button"
         {...triggerProps}
-        className={`flex w-full min-w-0 items-center justify-between border border-gray-300 bg-white px-[1vw] py-[1vh] text-md ${open ? 'rounded-t-md' : 'rounded-md'}`}
+        className={`flex w-full min-w-0 items-center justify-between border border-gray-300 bg-white px-[1vw] py-[1vh] text-md ${open ? "rounded-t-md" : "rounded-md"}`}
       >
         <span className="truncate text-sm">{getFloorLabel(selected)}</span>
         <ChevronDown
-          className={`h-[2.25vh] w-[2.25vh] shrink-0 transition-transform duration-200 text-black ${open ? 'rotate-180' : ''}`}
+          className={`h-[2.25vh] w-[2.25vh] shrink-0 transition-transform duration-200 text-black ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -78,5 +78,5 @@ export function FloorDropdown({
         </div>
       )}
     </div>
-  )
+  );
 }

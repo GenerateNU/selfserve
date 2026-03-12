@@ -1,9 +1,9 @@
 type FloorListProps = {
-  floors: Array<number>
-  pending: Array<number>
-  search: string
-  onToggle: (floor: number) => void
-}
+  floors: Array<number>;
+  pending: Array<number>;
+  search: string;
+  onToggle: (floor: number) => void;
+};
 
 export function FloorList({
   floors,
@@ -34,5 +34,5 @@ export function FloorList({
         ))
       )}
     </div>
-  )
+  );
 }

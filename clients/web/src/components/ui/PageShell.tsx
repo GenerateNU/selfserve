@@ -33,8 +33,8 @@ export function PageShell({
       {hasDrawer && (
         <aside
           className={cn(
-            'relative min-w-0 shrink-0 overflow-hidden shadow-xl shadow-black/25 transition-[flex-basis] duration-300 ease-in-out',
-            drawerOpen ? 'basis-[60vw]' : 'basis-0',
+            "relative min-w-0 shrink-0 overflow-hidden shadow-xl shadow-black/25 transition-[flex-basis] duration-300 ease-in-out",
+            drawerOpen ? "basis-[60vw]" : "basis-0",
           )}
         >
           <div className="h-full w-[60vw] px-[4vw] py-[3vh]">{drawer}</div>

@@ -1,11 +1,11 @@
-import { PanelRight } from 'lucide-react'
-import { FloorDropdown } from '@/components/rooms/FloorDropdown'
+import { PanelRight } from "lucide-react";
+import { FloorDropdown } from "@/components/rooms/FloorDropdown";
 
 type RoomsHeaderProps = {
-  onOpenDrawer?: () => void
-  selectedFloors: Array<number>
-  onChangeSelectedFloors: (floors: Array<number>) => void
-}
+  onOpenDrawer?: () => void;
+  selectedFloors: Array<number>;
+  onChangeSelectedFloors: (floors: Array<number>) => void;
+};
 
 export function RoomsHeader({
   onOpenDrawer,

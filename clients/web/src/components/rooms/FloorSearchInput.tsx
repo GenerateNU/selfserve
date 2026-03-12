@@ -1,24 +1,24 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react'
-import { Search, X } from 'lucide-react'
+import { forwardRef, useImperativeHandle, useRef } from "react";
+import { Search, X } from "lucide-react";
 
 export type FloorSearchInputHandle = {
-  focus: () => void
-}
+  focus: () => void;
+};
 
 type FloorSearchInputProps = {
-  value: string
-  onChange: (value: string) => void
-}
+  value: string;
+  onChange: (value: string) => void;
+};
 
 export const FloorSearchInput = forwardRef<
   FloorSearchInputHandle,
   FloorSearchInputProps
 >(({ value, onChange }, ref) => {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useImperativeHandle(ref, () => ({
     focus: () => inputRef.current?.focus(),
-  }))
+  }));
 
   return (
     <div className="flex items-center gap-[0.5vw] border-b border-gray-300 px-[1vw] py-[1vh]">
@@ -38,13 +38,13 @@ export const FloorSearchInput = forwardRef<
         <button
           type="button"
           onClick={() => {
-            onChange('')
-            inputRef.current?.focus()
+            onChange("");
+            inputRef.current?.focus();
           }}
         >
           <X className="h-[1.75vh] w-[1.75vh] text-gray-500 hover:text-gray-600" />
         </button>
       )}
     </div>
-  )
-})
+  );
+});
