@@ -8,6 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "lint": "expo lint",
+    "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "jest",
     "test:watch": "jest --watch",

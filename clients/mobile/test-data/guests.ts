@@ -8,11 +8,12 @@ export const guestData = [
     floor: 1,
     room: 1,
     group: 1,
-    groupSize: 1, 
+    groupSize: 1,
     arrival: new Date('2026-01-25T11:00:00'),
     departure: new Date('2026-02-04T11:00:00'),
     notes: 'Prefers quiet rooms. Early riser.',
-    preferences: 'Daily housekeeping between 10 AM - 12 PM. Do not disturb sign respected.',
+    preferences:
+      'Daily housekeeping between 10 AM - 12 PM. Do not disturb sign respected.',
     needs: 'Wheelchair accessible room required. Extra pillows requested.',
     previousStays: [
       {
@@ -36,7 +37,7 @@ export const guestData = [
     floor: 2,
     room: 2,
     group: 2,
-    groupSize: 2, 
+    groupSize: 2,
     arrival: new Date('2026-01-26T15:00:00'),
     departure: new Date('2026-02-05T10:00:00'),
     notes: 'Allergic to feather pillows.',
@@ -53,7 +54,7 @@ export const guestData = [
     floor: 3,
     room: 3,
     group: 3,
-    groupSize: 3, 
+    groupSize: 3,
     arrival: new Date('2026-01-24T16:00:00'),
     departure: new Date('2026-02-10T11:00:00'),
     notes: 'VIP guest. Business traveler.',
@@ -67,4 +68,4 @@ export const guestData = [
       },
     ],
   },
-];
+]

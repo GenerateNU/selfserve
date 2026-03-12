@@ -1,35 +1,35 @@
-import { Image } from "expo-image";
-import { TextInput, Pressable, ActivityIndicator } from "react-native";
-import { useState } from "react";
+import { Image } from 'expo-image'
+import { TextInput, Pressable, ActivityIndicator } from 'react-native'
+import { useState } from 'react'
 
-import { HelloWave } from "@/components/hello-wave";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { useGetHelloName } from "@/hooks/use-hello";
+import { HelloWave } from '@/components/hello-wave'
+import ParallaxScrollView from '@/components/parallax-scroll-view'
+import { ThemedText } from '@/components/themed-text'
+import { ThemedView } from '@/components/themed-view'
+import { useGetHelloName } from '@/hooks/use-hello'
 
 export default function HomeScreen() {
-  const [name, setName] = useState("");
-  const [submittedName, setSubmittedName] = useState("");
+  const [name, setName] = useState('')
+  const [submittedName, setSubmittedName] = useState('')
 
-  const { data, isLoading, error, refetch } = useGetHelloName(submittedName);
+  const { data, isLoading, error, refetch } = useGetHelloName(submittedName)
 
   const handleSubmit = () => {
     if (name.trim()) {
-      setSubmittedName(name);
+      setSubmittedName(name)
     }
-  };
+  }
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
       headerImage={
         <Image
-          source={require("@/assets/images/dao.webp")}
+          source={require('@/assets/images/dao.webp')}
           contentFit="cover"
           style={{
-            width: "100%",
-            height: "100%",
+            width: '100%',
+            height: '100%',
           }}
         />
       }
@@ -59,12 +59,12 @@ export default function HomeScreen() {
           disabled={!name.trim() || isLoading}
           className={`rounded-lg px-4 py-3 items-center ${
             !name.trim() || isLoading
-              ? "bg-gray-400 dark:bg-gray-600"
-              : "bg-blue-500"
+              ? 'bg-gray-400 dark:bg-gray-600'
+              : 'bg-blue-500'
           }`}
         >
           <ThemedText className="text-white font-semibold">
-            {isLoading ? "Loading..." : "Call API"}
+            {isLoading ? 'Loading...' : 'Call API'}
           </ThemedText>
         </Pressable>
 
@@ -101,5 +101,5 @@ export default function HomeScreen() {
         </ThemedView>
       </ThemedView>
     </ParallaxScrollView>
-  );
+  )
 }

@@ -1,18 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
-import { useAPIClient } from "@shared/api/client";
+import { useQuery } from '@tanstack/react-query'
+import { useAPIClient } from '@shared/api/client'
 
 export const useGetHello = () => {
-  const api = useAPIClient();
+  const api = useAPIClient()
   return useQuery({
-    queryKey: ["hello"],
-    queryFn: () => api.get<string>("/api/v1/hello"),
-  });
-};
+    queryKey: ['hello'],
+    queryFn: () => api.get<string>('/api/v1/hello'),
+  })
+}
 
 export const useGetHelloName = (name: string) => {
-  const api = useAPIClient();
+  const api = useAPIClient()
   return useQuery({
-    queryKey: ["hello", name],
+    queryKey: ['hello', name],
     queryFn: () => api.get<string>(`/api/v1/hello/${name}`),
-  });
-};
+  })
+}

@@ -47,15 +47,15 @@ describe("MyComponent", () => {
 ### Hook Tests
 
 ```typescript
-import { renderHook } from "@testing-library/react-native";
-import { useMyHook } from "../use-my-hook";
+import { renderHook } from '@testing-library/react-native'
+import { useMyHook } from '../use-my-hook'
 
-describe("useMyHook", () => {
-  it("returns expected value", () => {
-    const { result } = renderHook(() => useMyHook());
-    expect(result.current).toBe("expected");
-  });
-});
+describe('useMyHook', () => {
+  it('returns expected value', () => {
+    const { result } = renderHook(() => useMyHook())
+    expect(result.current).toBe('expected')
+  })
+})
 ```
 
 ### Screen Tests
