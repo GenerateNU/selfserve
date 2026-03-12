@@ -34,6 +34,14 @@ jobs:
         run: go install github.com/swaggo/swag/cmd/swag@latest
       - name: Generate swagger docs
         run: make swagger
+      - name: Check code formatting
+        run: |
+          gofmt_files=$(gofmt -l ./...)
+          if [ -n "$gofmt_files" ]; then
+            echo "The following files are not gofmt'd:"
+            echo "$gofmt_files"
+            exit 1
+          fi
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:

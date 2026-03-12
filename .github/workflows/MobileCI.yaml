@@ -42,6 +42,8 @@ jobs:
         run: cd ../shared && npm run generate:api
       - name: Run ESLint
         run: npm run lint
+      - name: Check code formatting
+        run: npm run format:check
   mobile-typecheck:
     name: Type Check
     runs-on: ubuntu-latest
