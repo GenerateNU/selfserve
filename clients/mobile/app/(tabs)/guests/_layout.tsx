@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router'
+import { Stack } from "expo-router";
 
 export default function GuestsLayout() {
   return (
@@ -10,15 +10,15 @@ export default function GuestsLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Guests',
+          title: "Guests",
         }}
       />
       <Stack.Screen
         name="[id]"
         options={{
-          title: 'Guest Profile',
+          title: "Guest Profile",
         }}
       />
     </Stack>
-  )
+  );
 }

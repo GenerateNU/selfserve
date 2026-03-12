@@ -1,8 +1,8 @@
-import type { GuestProfile } from './guest-mocks'
+import type { GuestProfile } from "./guest-mocks";
 
 type HousekeepingPreferencesCardProps = {
-  housekeeping: GuestProfile['housekeeping']
-}
+  housekeeping: GuestProfile["housekeeping"];
+};
 
 function PreferenceRow({ label, value }: { label: string; value: string }) {
   return (
@@ -10,7 +10,7 @@ function PreferenceRow({ label, value }: { label: string; value: string }) {
       <p className="text-[#b6bac3]">{label}</p>
       <p className="text-black">{value}</p>
     </div>
-  )
+  );
 }
 
 export function HousekeepingPreferencesCard({
@@ -24,5 +24,5 @@ export function HousekeepingPreferencesCard({
       <PreferenceRow label="Frequency" value={housekeeping.frequency} />
       <PreferenceRow label="Do Not Disturb" value={housekeeping.doNotDisturb} />
     </section>
-  )
+  );
 }

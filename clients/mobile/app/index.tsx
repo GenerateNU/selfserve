@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from "react-native";
 
 export default function Page() {
   return (
@@ -8,5 +8,5 @@ export default function Page() {
         <Text className="text-4xl text-gray-700">World</Text>
       </View>
     </View>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import { render } from '@testing-library/react-native'
-import HomeScreen from '../index'
+import { render } from "@testing-library/react-native";
+import HomeScreen from "../index";
 
-jest.mock('@clerk/clerk-expo', () => {
-  const actual = jest.requireActual('@clerk/clerk-expo')
+jest.mock("@clerk/clerk-expo", () => {
+  const actual = jest.requireActual("@clerk/clerk-expo");
   return {
     ...actual,
     useAuth: () => ({
@@ -12,43 +12,43 @@ jest.mock('@clerk/clerk-expo', () => {
       userId: null,
       sessionId: null,
     }),
-  }
-})
+  };
+});
 
-jest.mock('../../../hooks/use-hello', () => ({
+jest.mock("../../../hooks/use-hello", () => ({
   useGetHello: () => ({
-    data: 'hello',
+    data: "hello",
     isLoading: false,
     error: null,
     refetch: jest.fn(),
   }),
   useGetHelloName: () => ({
-    data: 'hello-name',
+    data: "hello-name",
     isLoading: false,
     error: null,
     refetch: jest.fn(),
   }),
-}))
+}));
 
 // Mock expo-image
-jest.mock('expo-image', () => ({
-  Image: 'Image',
-}))
+jest.mock("expo-image", () => ({
+  Image: "Image",
+}));
 
 // Mock parallax scroll view - just render children
-jest.mock('@/components/parallax-scroll-view', () => ({
+jest.mock("@/components/parallax-scroll-view", () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
-}))
+}));
 
-describe('HomeScreen', () => {
-  it('renders without crashing', () => {
-    const { getByText } = render(<HomeScreen />)
-    expect(getByText('Welcome!')).toBeTruthy()
-  })
+describe("HomeScreen", () => {
+  it("renders without crashing", () => {
+    const { getByText } = render(<HomeScreen />);
+    expect(getByText("Welcome!")).toBeTruthy();
+  });
 
-  it('displays the API Test section', () => {
-    const { getByText } = render(<HomeScreen />)
-    expect(getByText('API Test')).toBeTruthy()
-  })
-})
+  it("displays the API Test section", () => {
+    const { getByText } = render(<HomeScreen />);
+    expect(getByText("API Test")).toBeTruthy();
+  });
+});

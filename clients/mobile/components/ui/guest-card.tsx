@@ -1,15 +1,15 @@
-import React from 'react'
-import { Pressable, View, Text } from 'react-native'
-import { User } from 'lucide-react-native'
-import { cn } from '@shared/utils'
+import React from "react";
+import { Pressable, View, Text } from "react-native";
+import { User } from "lucide-react-native";
+import { cn } from "@shared/utils";
 
 interface GuestCardProps {
-  name: string
-  floor: number
-  room: number
-  group: number
-  onPress: () => void
-  className?: string
+  name: string;
+  floor: number;
+  room: number;
+  group: number;
+  onPress: () => void;
+  className?: string;
 }
 
 export function GuestCard({
@@ -24,7 +24,7 @@ export function GuestCard({
     <Pressable
       onPress={onPress}
       className={cn(
-        'flex-row items-center p-[3vw] border border-gray-300 rounded-md active:bg-gray-100',
+        "flex-row items-center p-[3vw] border border-gray-300 rounded-md active:bg-gray-100",
         className,
       )}
     >
@@ -39,5 +39,5 @@ export function GuestCard({
         </Text>
       </View>
     </Pressable>
-  )
+  );
 }

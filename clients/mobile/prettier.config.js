@@ -1,10 +1,6 @@
 // @ts-check
 
 /** @type {import('prettier').Config} */
-const config = {
-  semi: false,
-  singleQuote: true,
-  trailingComma: 'all',
-}
+const config = {};
 
-module.exports = config
+module.exports = config;

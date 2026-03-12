@@ -1,13 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
-import { PageShell } from '@/components/ui/PageShell'
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { PageShell } from "@/components/ui/PageShell";
 
-export const Route = createFileRoute('/_protected/rooms')({
+export const Route = createFileRoute("/_protected/rooms")({
   component: RoomsPage,
-})
+});
 
 function RoomsPage() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
   return (
     <PageShell
       header={
@@ -32,5 +32,5 @@ function RoomsPage() {
         <p>Main content goes here.</p>
       </div>
     </PageShell>
-  )
+  );
 }

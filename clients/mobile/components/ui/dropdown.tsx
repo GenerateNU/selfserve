@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { Filter } from './filters'
-import { View, Text, Pressable, Modal } from 'react-native'
-import { ChevronDown } from 'lucide-react-native'
+import { useState } from "react";
+import { Filter } from "./filters";
+import { View, Text, Pressable, Modal } from "react-native";
+import { ChevronDown } from "lucide-react-native";
 
 export function Dropdown<T>({
   value,
@@ -10,8 +10,8 @@ export function Dropdown<T>({
   placeholder,
   emptyValue,
 }: Filter<T>) {
-  const [isOpen, setIsOpen] = useState(false)
-  const selectedOption = options.find((opt) => opt.value === value)
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedOption = options.find((opt) => opt.value === value);
 
   return (
     <View className="flex-1">
@@ -37,8 +37,8 @@ export function Dropdown<T>({
           <View className="bg-white rounded-md">
             <Pressable
               onPress={() => {
-                onChange(emptyValue)
-                setIsOpen(false)
+                onChange(emptyValue);
+                setIsOpen(false);
               }}
               className="p-[4vw] border-b border-gray-300"
             >
@@ -48,8 +48,8 @@ export function Dropdown<T>({
               <Pressable
                 key={idx}
                 onPress={() => {
-                  onChange(option.value)
-                  setIsOpen(false)
+                  onChange(option.value);
+                  setIsOpen(false);
                 }}
                 className="p-[4vw] border-b border-gray-300"
               >
@@ -60,5 +60,5 @@ export function Dropdown<T>({
         </Pressable>
       </Modal>
     </View>
-  )
+  );
 }

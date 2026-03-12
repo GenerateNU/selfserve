@@ -1,8 +1,8 @@
-import React from 'react'
-import { View, ViewProps } from 'react-native'
+import React from "react";
+import { View, ViewProps } from "react-native";
 
 interface BoxProps extends ViewProps {
-  className?: string
+  className?: string;
 }
 
 export function Box({ className, children, ...props }: BoxProps) {
@@ -10,5 +10,5 @@ export function Box({ className, children, ...props }: BoxProps) {
     <View className={className} {...props}>
       {children}
     </View>
-  )
+  );
 }
