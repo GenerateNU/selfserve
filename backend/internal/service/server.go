@@ -91,6 +91,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		return err
 	}
 	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
+	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
 
 	// API v1 routes
 	api := app.Group("/api/v1")
@@ -139,6 +140,11 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/hotels", func(r fiber.Router) {
 		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
+	})
+
+	// rooms routes
+	api.Route("/rooms", func(r fiber.Router) {
+		r.Get("/", roomsHandler.GetRoomsByFloor)
 	})
 
 	return nil
