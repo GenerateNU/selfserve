@@ -10,8 +10,12 @@ type RoomDetailsDrawerProps = {
 function Field({ label, value }: { label: string; value?: string | number }) {
   return (
     <div className="flex flex-col gap-[0.3vh]">
-      <span className="text-xs text-zinc-500 uppercase tracking-wide">{label}</span>
-      <span className="text-sm text-zinc-900 dark:text-zinc-100">{value ?? "—"}</span>
+      <span className="text-xs text-zinc-500 uppercase tracking-wide">
+        {label}
+      </span>
+      <span className="text-sm text-zinc-900 dark:text-zinc-100">
+        {value ?? "—"}
+      </span>
     </div>
   );
 }
@@ -35,16 +39,25 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
         <Field label="Booking Status" value={room.booking_status} />
 
         <div className="flex flex-col gap-[0.3vh]">
-          <span className="text-xs text-zinc-500 uppercase tracking-wide">Guests</span>
+          <span className="text-xs text-zinc-500 uppercase tracking-wide">
+            Guests
+          </span>
           {room.guests && room.guests.length > 0 ? (
             <ul className="flex flex-col gap-[1.5vh]">
               {room.guests.map((guest) => (
-                <li key={guest.id} className="flex flex-col gap-[0.2vh] text-sm text-zinc-900 dark:text-zinc-100">
+                <li
+                  key={guest.id}
+                  className="flex flex-col gap-[0.2vh] text-sm text-zinc-900 dark:text-zinc-100"
+                >
                   <span className="font-medium">
-                    {[guest.first_name, guest.last_name].filter(Boolean).join(" ") || "—"}
+                    {[guest.first_name, guest.last_name]
+                      .filter(Boolean)
+                      .join(" ") || "—"}
                   </span>
                   {guest.timezone && (
-                    <span className="text-xs text-zinc-500">{guest.timezone}</span>
+                    <span className="text-xs text-zinc-500">
+                      {guest.timezone}
+                    </span>
                   )}
                 </li>
               ))}

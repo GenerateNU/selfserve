@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useGetRooms, type RoomWithOptionalGuestBooking } from "@shared";
+import { useGetRooms } from "@shared";
+import type { RoomWithOptionalGuestBooking } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
 import { RoomsHeader } from "@/components/rooms/RoomsHeader";
 import { RoomsList } from "@/components/rooms/RoomsList";
@@ -12,7 +13,8 @@ export const Route = createFileRoute("/_protected/rooms")({
 
 function RoomsPage() {
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
-  const [selectedRoom, setSelectedRoom] = useState<RoomWithOptionalGuestBooking | null>(null);
+  const [selectedRoom, setSelectedRoom] =
+    useState<RoomWithOptionalGuestBooking | null>(null);
 
   const { data } = useGetRooms({
     floors: selectedFloors.length > 0 ? selectedFloors : undefined,

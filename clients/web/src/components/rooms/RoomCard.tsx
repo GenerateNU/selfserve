@@ -27,7 +27,9 @@ export function RoomCard({ room, isSelected = false, onClick }: RoomCardProps) {
         Room {room.room_number}
       </span>
       {room.suite_type && (
-        <span className="text-sm font-light text-zinc-500">{room.suite_type}</span>
+        <span className="text-sm font-light text-zinc-500">
+          {room.suite_type}
+        </span>
       )}
       {guestNames && guestNames.length > 0 && (
         <span className="text-xs font-medium text-zinc-900">
