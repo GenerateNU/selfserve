@@ -19,13 +19,13 @@ type mockRoomsRepository struct {
 	findRoomsFunc func(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithOptionalGuestBooking, error)
 }
 
-func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBooking(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithOptionalGuestBooking, error) {
+func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithOptionalGuestBooking, error) {
 	return m.findRoomsFunc(ctx, filter)
 }
 
 var _ RoomsRepository = (*mockRoomsRepository)(nil)
 
-func TestRoomsHandler_GetRooms(t *testing.T) {
+func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 	t.Parallel()
 
 	t.Run("returns 200 with rooms and no guests when rooms are vacant", func(t *testing.T) {
@@ -44,7 +44,7 @@ func TestRoomsHandler_GetRooms(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRooms)
+		app.Get("/rooms", h.GetRoomsByFloor)
 
 		req := httptest.NewRequest("GET", "/rooms", nil)
 		resp, err := app.Test(req)
@@ -87,7 +87,7 @@ func TestRoomsHandler_GetRooms(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRooms)
+		app.Get("/rooms", h.GetRoomsByFloor)
 
 		req := httptest.NewRequest("GET", "/rooms?floors=2", nil)
 		resp, err := app.Test(req)
@@ -114,7 +114,7 @@ func TestRoomsHandler_GetRooms(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRooms)
+		app.Get("/rooms", h.GetRoomsByFloor)
 
 		req := httptest.NewRequest("GET", "/rooms?floors=99", nil)
 		resp, err := app.Test(req)
@@ -145,7 +145,7 @@ func TestRoomsHandler_GetRooms(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRooms)
+		app.Get("/rooms", h.GetRoomsByFloor)
 
 		req := httptest.NewRequest("GET", "/rooms?limit=5", nil)
 		resp, err := app.Test(req)
@@ -173,7 +173,7 @@ func TestRoomsHandler_GetRooms(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRooms)
+		app.Get("/rooms", h.GetRoomsByFloor)
 
 		req := httptest.NewRequest("GET", "/rooms?cursor="+cursor+"&limit=10", nil)
 		resp, err := app.Test(req)
@@ -196,7 +196,7 @@ func TestRoomsHandler_GetRooms(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRooms)
+		app.Get("/rooms", h.GetRoomsByFloor)
 
 		req := httptest.NewRequest("GET", "/rooms?cursor=not-valid-base64!!!", nil)
 		resp, err := app.Test(req)
@@ -216,7 +216,7 @@ func TestRoomsHandler_GetRooms(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRooms)
+		app.Get("/rooms", h.GetRoomsByFloor)
 
 		req := httptest.NewRequest("GET", "/rooms", nil)
 		resp, err := app.Test(req)

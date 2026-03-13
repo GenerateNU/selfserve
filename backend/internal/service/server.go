@@ -142,9 +142,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
 
-	// guest booking routes
+	// rooms routes
 	api.Route("/rooms", func(r fiber.Router) {
-		r.Get("/", roomsHandler.GetRooms)
+		r.Get("/", roomsHandler.GetRoomsByFloor)
 	})
 
 	return nil
