@@ -1,16 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useGetRooms } from "@shared";
+import { useGetRooms, type RoomWithOptionalGuestBooking } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
 import { RoomsHeader } from "@/components/rooms/RoomsHeader";
+import { RoomsList } from "@/components/rooms/RoomsList";
+import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
 
 export const Route = createFileRoute("/_protected/rooms")({
   component: RoomsPage,
 });
 
 function RoomsPage() {
-  const [open, setOpen] = useState(false);
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
+  const [selectedRoom, setSelectedRoom] = useState<RoomWithOptionalGuestBooking | null>(null);
 
   const { data } = useGetRooms({
     floors: selectedFloors.length > 0 ? selectedFloors : undefined,
@@ -20,27 +22,23 @@ function RoomsPage() {
     <PageShell
       header={
         <RoomsHeader
-          onOpenDrawer={() => setOpen((o) => !o)}
           selectedFloors={selectedFloors}
           onChangeSelectedFloors={setSelectedFloors}
         />
       }
-      drawerOpen={open}
+      drawerOpen={selectedRoom !== null}
       drawer={
-        <div>
-          <p>Drawer content</p>
-        </div>
+        <RoomDetailsDrawer
+          room={selectedRoom}
+          onClose={() => setSelectedRoom(null)}
+        />
       }
     >
-      <div>
-        <ul>
-          {data?.items?.map((room) => (
-            <li key={room.room_number}>
-              Room {room.room_number} — Floor {room.floor}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <RoomsList
+        rooms={data?.items ?? []}
+        onRoomSelect={setSelectedRoom}
+        selectedRoomNumber={selectedRoom?.room_number ?? null}
+      />
     </PageShell>
   );
 }

@@ -14,7 +14,7 @@ export function PageShell({
   drawerOpen = false,
   children,
 }: PageShellProps) {
-  const hasDrawer = !!drawer;
+  const hasDrawer = drawer !== undefined;
 
   return (
     <main className="flex h-screen w-full min-w-0 overflow-hidden">
@@ -34,10 +34,10 @@ export function PageShell({
         <aside
           className={cn(
             "relative min-w-0 shrink-0 overflow-hidden shadow-xl shadow-black/25 transition-[flex-basis] duration-300 ease-in-out",
-            drawerOpen ? "basis-[60vw]" : "basis-0",
+            drawerOpen ? "basis-[50vw]" : "basis-0",
           )}
         >
-          <div className="h-full w-[60vw] px-[4vw] py-[3vh]">{drawer}</div>
+          <div className="h-full w-[50vw] px-[3vw] py-[3vh]">{drawer}</div>
         </aside>
       )}
     </main>
