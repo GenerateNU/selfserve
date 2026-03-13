@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useGetRooms } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
 import { RoomsHeader } from "@/components/rooms/RoomsHeader";
 
@@ -8,19 +8,12 @@ export const Route = createFileRoute("/_protected/rooms")({
   component: RoomsPage,
 });
 
-function dummyRoomsQuery(selectedFloors: Array<number>) {
-  return new Promise<Array<{ id: number; floor: number }>>((resolve) => {
-    resolve(selectedFloors.map((f) => ({ id: f, floor: f })));
-  });
-}
-
 function RoomsPage() {
   const [open, setOpen] = useState(false);
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
 
-  const { data } = useQuery({
-    queryKey: ["rooms", { floors: selectedFloors }],
-    queryFn: () => dummyRoomsQuery(selectedFloors),
+  const { data } = useGetRooms({
+    floors: selectedFloors.length > 0 ? selectedFloors : undefined,
   });
 
   return (
@@ -41,8 +34,10 @@ function RoomsPage() {
     >
       <div>
         <ul>
-          {data?.map((room) => (
-            <li key={room.id}>Floor {room.floor} selected</li>
+          {data?.items?.map((room) => (
+            <li key={room.room_number}>
+              Room {room.room_number} — Floor {room.floor}
+            </li>
           ))}
         </ul>
       </div>
