@@ -10,22 +10,13 @@ export const createRequest = (
 ) => {
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
-    if (config.params) {
-      const filteredParams = Object.fromEntries(
-        Object.entries(config.params).filter(([, v]) => v != null),
-      );
-      if (Object.keys(filteredParams).length > 0) {
-        const searchParams = new URLSearchParams(filteredParams);
-        fullUrl += '?' + searchParams.toString();
-      }
+    if (config.params && Object.keys(config.params).length > 0) {
+      const searchParams = new URLSearchParams(config.params);
+      fullUrl += '?' + searchParams.toString();
     }
 
     try {
       const token = await getToken();
-
-      if (config.signal?.aborted) {
-        throw new DOMException("Request aborted", "AbortError");
-      }
 
       const response = await fetch(fullUrl, {
         method: config.method,
@@ -65,9 +56,6 @@ export const createRequest = (
       return data;
     } catch (error) {
       if (error instanceof ApiError) {
-        throw error;
-      }
-      if (error instanceof DOMException && error.name === "AbortError") {
         throw error;
       }
       throw new ApiError(
