@@ -76,11 +76,11 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 
 	var request models.Request
 
-	err := row.Scan(&request.ID, &request.CreatedAt, &request.UpdatedAt, &request.HotelID, &request.GuestID,
+	err := row.Scan(&request.ID, &request.HotelID, &request.GuestID,
 		&request.UserID, &request.ReservationID, &request.Name, &request.Description,
 		&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 		&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-		&request.RequestVersion)
+		&request.CreatedAt, &request.RequestVersion)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -111,11 +111,11 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 
 	for rows.Next() {
 		var request models.Request
-		err := rows.Scan(&request.ID, &request.CreatedAt, &request.UpdatedAt, &request.HotelID, &request.GuestID,
+		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
 			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
 			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-			&request.RequestVersion)
+			&request.CreatedAt, &request.RequestVersion)
 		if err != nil {
 			return nil, err
 		}

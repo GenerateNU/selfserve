@@ -32,7 +32,6 @@ type GenerateRequestInput struct {
 type Request struct {
 	ID             string    `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
 	CreatedAt      time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`
-	UpdatedAt      time.Time `json:"updated_at" example:"2024-01-02T00:00:00Z"`
 	RequestVersion time.Time `json:"request_version" example:"2024-01-02T00:00:00Z"`
 	MakeRequest
 } //@name Request

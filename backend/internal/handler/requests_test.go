@@ -34,6 +34,7 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
 	return m.findRequestsFunc(ctx)
 }
+
 type mockLLMService struct {
 	runGenerateRequestFunc func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error)
 }
@@ -53,7 +54,6 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 				return &models.Request{
 					ID:             "530e8400-e458-41d4-a716-446655440000",
 					CreatedAt:      time.Now(),
-					UpdatedAt:      time.Now(),
 					RequestVersion: time.Now(),
 					MakeRequest: models.MakeRequest{
 						HotelID:     "521e8400-e458-41d4-a716-446655440000",
@@ -172,7 +172,6 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 					{
 						ID:             "530e8400-e458-41d4-a716-446655440000",
 						CreatedAt:      time.Now(),
-						UpdatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
@@ -185,7 +184,6 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 					{
 						ID:             "530e8400-e458-41d4-a716-446655440001",
 						CreatedAt:      time.Now(),
-						UpdatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
@@ -198,7 +196,6 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 					{
 						ID:             "530e8400-e458-41d4-a716-446655440002",
 						CreatedAt:      time.Now(),
-						UpdatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
@@ -211,7 +208,6 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 					{
 						ID:             "530e8400-e458-41d4-a716-446655440003",
 						CreatedAt:      time.Now(),
-						UpdatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
@@ -224,7 +220,6 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 					{
 						ID:             "530e8400-e458-41d4-a716-446655440004",
 						CreatedAt:      time.Now(),
-						UpdatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
@@ -516,7 +511,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
 				req.ID = "generated-uuid"
 				req.CreatedAt = time.Now()
-				req.UpdatedAt = time.Now()
 				return req, nil
 			},
 		}
