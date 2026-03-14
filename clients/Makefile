@@ -33,3 +33,6 @@ dev-web:
 
 dev-mobile:
 	@cd mobile && npx expo start
+
+generate:
+	@cd shared && npm run generate:api
