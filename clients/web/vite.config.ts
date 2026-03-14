@@ -1,23 +1,23 @@
-import path from 'node:path'
-import { defineConfig, loadEnv } from 'vite'
-import { devtools } from '@tanstack/devtools-vite'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
-import viteReact from '@vitejs/plugin-react'
-import viteTsConfigPaths from 'vite-tsconfig-paths'
-import tailwindcss from '@tailwindcss/vite'
+import path from "node:path";
+import { defineConfig, loadEnv } from "vite";
+import { devtools } from "@tanstack/devtools-vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import viteTsConfigPaths from "vite-tsconfig-paths";
+import tailwindcss from "@tailwindcss/vite";
 
 const config = defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  const env = loadEnv(mode, process.cwd(), "");
 
   return {
     define: {
-      'process.env.API_BASE_URL': JSON.stringify(env.API_BASE_URL),
+      "process.env.API_BASE_URL": JSON.stringify(env.API_BASE_URL),
     },
     plugins: [
       devtools(),
       viteTsConfigPaths({
         // This is the plugin that enables path aliases
-        projects: ['./tsconfig.json'],
+        projects: ["./tsconfig.json"],
       }),
       tailwindcss(),
       tanstackStart(),
@@ -25,19 +25,20 @@ const config = defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@shared': path.resolve(__dirname, '../shared/src'),
+        "@shared": path.resolve(__dirname, "../shared/src"),
+        "@app/clerk": path.resolve(__dirname, "./src/hooks/clerk.ts"),
       },
       // Deduplicate deps to use web app's node_modules
-      dedupe: ['@tanstack/react-query', 'react', 'react-dom'],
+      dedupe: ["@tanstack/react-query", "react", "react-dom"],
     },
     optimizeDeps: {
-      exclude: ['@shared'],
+      exclude: ["@shared"],
     },
     test: {
       globals: true,
-      environment: 'jsdom',
+      environment: "jsdom",
       setupFiles: [],
     },
-  }
-})
-export default config
+  };
+});
+export default config;

@@ -41,12 +41,13 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO public.users (
-			first_name, last_name, employee_id, profile_picture, role, department, timezone, clerk_id
+			id, first_name, last_name, employee_id, profile_picture, role, department, timezone
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, COALESCE($7, 'UTC'), $8 
 		)
 		RETURNING id, created_at, updated_at
 	`,
+		user.ID,
 		user.FirstName,
 		user.LastName,
 		user.EmployeeID,
@@ -54,7 +55,6 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 		user.Role,
 		user.Department,
 		user.Timezone,
-		user.ClerkID,
 	).Scan(&createdUser.ID, &createdUser.CreatedAt, &createdUser.UpdatedAt)
 
 	if err != nil {
@@ -69,10 +69,10 @@ func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.C
 
 	for _, u := range users {
 		batch.Queue(`
-            INSERT INTO users (clerk_id, first_name, last_name, profile_picture)
+            INSERT INTO users (id, first_name, last_name, profile_picture)
             VALUES ($1, $2, $3, $4)
-            ON CONFLICT (clerk_id) DO UPDATE
-        `, u.ClerkID, u.FirstName, u.LastName, u.ProfilePicture)
+            ON CONFLICT (id) DO UPDATE
+        `, u.ID, u.FirstName, u.LastName, u.ProfilePicture)
 	}
 
 	return r.db.SendBatch(ctx, batch).Close()

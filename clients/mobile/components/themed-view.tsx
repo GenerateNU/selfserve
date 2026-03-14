@@ -1,4 +1,4 @@
-import { View, type ViewProps } from 'react-native';
+import { View, type ViewProps } from "react-native";
 
 export type ThemedViewProps = ViewProps & {
   lightColor?: string;
@@ -6,24 +6,24 @@ export type ThemedViewProps = ViewProps & {
   className?: string;
 };
 
-export function ThemedView({ 
-  style, 
-  lightColor, 
-  darkColor, 
-  className = '',
-  ...otherProps 
+export function ThemedView({
+  style,
+  lightColor,
+  darkColor,
+  className = "",
+  ...otherProps
 }: ThemedViewProps) {
-  const bgColorClass = lightColor || darkColor 
-    ? '' 
-    : 'bg-white dark:bg-black';
+  const bgColorClass = lightColor || darkColor ? "" : "bg-white dark:bg-black";
 
   const combinedClassName = `${bgColorClass} ${className}`.trim();
 
   return (
-    <View 
+    <View
       className={combinedClassName}
       style={[
-        lightColor || darkColor ? { backgroundColor: lightColor || darkColor } : {},
+        lightColor || darkColor
+          ? { backgroundColor: lightColor || darkColor }
+          : {},
         style,
       ]}
       {...otherProps}
