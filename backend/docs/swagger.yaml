@@ -17,6 +17,9 @@ definitions:
     type: object
   CreateUser:
     properties:
+      clerk_id:
+        example: user_123
+        type: string
       department:
         example: Housekeeping
         type: string
@@ -233,6 +236,9 @@ definitions:
     type: object
   User:
     properties:
+      clerk_id:
+        example: user_123
+        type: string
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
@@ -562,6 +568,45 @@ paths:
               type: string
             type: object
       summary: creates a request
+      tags:
+      - requests
+  /request/cursor/{cursor}:
+    get:
+      consumes:
+      - application/json
+      description: Gets 20 requests starting after the cursor ID, filtered by status
+      parameters:
+      - description: Cursor UUID
+        in: path
+        name: cursor
+        required: true
+        type: string
+      - description: 'Status filter: pending, assigned, in progress, completed'
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns requests array and next_cursor
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get requests by cursor
       tags:
       - requests
   /request/generate:

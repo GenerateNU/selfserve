@@ -13,6 +13,7 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
+
 	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/validation"
@@ -132,7 +133,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
-		r.Get("/", reqsHandler.GetRequests)
+		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
 	})
 
 	// Hotel routes
