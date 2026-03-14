@@ -84,6 +84,8 @@ jobs:
         working-directory: ./clients/web
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version-file: "./clients/web/package.json"
@@ -95,8 +97,14 @@ jobs:
         run: cd ../shared && npm ci
       - name: Generate API types
         run: cd ../shared && npm run generate:api
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: npx vitest run --coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: web
   web-build:
     name: Build
     runs-on: ubuntu-latest
