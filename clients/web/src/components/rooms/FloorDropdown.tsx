@@ -1,10 +1,9 @@
 import { ChevronDown } from "lucide-react";
+import { useGetRoomsFloors } from "@shared";
 import { Button } from "../ui/Button";
 import { useDropdown } from "../../hooks/use-dropdown";
 import { FloorList } from "./FloorsList";
 import { FloorSearchInput } from "./FloorSearchInput";
-
-const FLOOR_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 type FloorDropdownProps = {
   selected?: Array<number>;
@@ -12,12 +11,13 @@ type FloorDropdownProps = {
 };
 
 function getFloorLabel(selected: Array<number>) {
-  if (selected.length === 0) {
-    return "Select a Floor";
-  } else if (selected.length === 1) {
-    return `Floor ${selected[0]}`;
-  } else {
-    return `${selected.length} floors selected`;
+  switch (selected.length) {
+    case 0:
+      return "Select a Floor";
+    case 1:
+      return `Floor ${selected[0]}`;
+    default:
+      return `${selected.length} floors selected`;
   }
 }
 
@@ -25,6 +25,8 @@ export function FloorDropdown({
   selected = [],
   onChangeSelectedFloors,
 }: FloorDropdownProps) {
+  const { data: floors = [] } = useGetRoomsFloors();
+
   const {
     open,
     search,
@@ -39,7 +41,7 @@ export function FloorDropdown({
     onChangeSelectedItems: onChangeSelectedFloors,
   });
 
-  const filtered = FLOOR_OPTIONS.filter((f) =>
+  const filtered = floors.filter((f) =>
     `floor ${f}`.includes(search.trim().toLowerCase()),
   );
 
