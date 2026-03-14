@@ -52,9 +52,10 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		mock := &mockRequestRepository{
 			findRequestFunc: func(ctx context.Context, name string) (*models.Request, error) {
 				return &models.Request{
-					ID:        "530e8400-e458-41d4-a716-446655440000",
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
+					ID:             "530e8400-e458-41d4-a716-446655440000",
+					CreatedAt:      time.Now(),
+					UpdatedAt:      time.Now(),
+					RequestVersion: time.Now(),
 					MakeRequest: models.MakeRequest{
 						HotelID:     "521e8400-e458-41d4-a716-446655440000",
 						Name:        "room cleaning",
@@ -170,9 +171,10 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 			findRequestsFunc: func(ctx context.Context) ([]models.Request, error) {
 				requests := []models.Request{
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440000",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440000",
+						CreatedAt:      time.Now(),
+						UpdatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "room cleaning",
@@ -182,9 +184,10 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440001",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440001",
+						CreatedAt:      time.Now(),
+						UpdatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "towel replacement",
@@ -194,9 +197,10 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440002",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440002",
+						CreatedAt:      time.Now(),
+						UpdatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "maintenance repair",
@@ -206,9 +210,10 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440003",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440003",
+						CreatedAt:      time.Now(),
+						UpdatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "extra pillows",
@@ -218,9 +223,10 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440004",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440004",
+						CreatedAt:      time.Now(),
+						UpdatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "minibar refill",
