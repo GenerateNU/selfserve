@@ -34,5 +34,7 @@ func (h *Handler) GetHello(c *fiber.Ctx) error {
 // @Router       /hello/{name} [get]
 func (h *Handler) GetHelloName(c *fiber.Ctx) error {
 	name := c.Params("name")
+
+	// Returns "Yo, " + name + "!"
 	return c.SendString("Yo, " + name + "!")
 }
