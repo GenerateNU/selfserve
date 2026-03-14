@@ -1,5 +1,5 @@
-import { Outlet } from '@tanstack/react-router'
-import { Sidebar } from './Sidebar'
+import { Outlet } from "@tanstack/react-router";
+import { Sidebar } from "./Sidebar";
 
 export function SideBarWithContent() {
   return (
@@ -9,5 +9,5 @@ export function SideBarWithContent() {
         <Outlet />
       </main>
     </div>
-  )
+  );
 }

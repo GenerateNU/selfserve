@@ -2,7 +2,7 @@ name: Web Frontend CI
 on:
   push:
     branches:
-      - "**"
+      - main
     paths:
       - "clients/web/**"
       - "clients/shared/**"
@@ -21,6 +21,17 @@ permissions:
   checks: write
   pull-requests: write
 jobs:
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: TruffleHog secrets scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
   web-lint:
     name: Lint & Format Check
     runs-on: ubuntu-latest

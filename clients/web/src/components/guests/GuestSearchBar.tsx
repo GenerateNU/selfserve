@@ -1,9 +1,9 @@
-import { Search } from 'lucide-react'
+import { Search } from "lucide-react";
 
 type GuestSearchBarProps = {
-  value: string
-  onChange: (value: string) => void
-}
+  value: string;
+  onChange: (value: string) => void;
+};
 
 export function GuestSearchBar({ value, onChange }: GuestSearchBarProps) {
   return (
@@ -17,5 +17,5 @@ export function GuestSearchBar({ value, onChange }: GuestSearchBarProps) {
       />
       <Search className="h-[2vh] w-[2vh] text-black" />
     </label>
-  )
+  );
 }

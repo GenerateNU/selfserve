@@ -1,23 +1,23 @@
-import type { Room } from '@/components/rooms/RoomsList'
-import { OverviewCard } from '@/components/rooms/OverviewCard'
+import type { Room } from "@/components/rooms/RoomsList";
+import { OverviewCard } from "@/components/rooms/OverviewCard";
 
 type RoomsOverviewProps = {
-  rooms: Array<Room>
-}
+  rooms: Array<Room>;
+};
 
 export function RoomsOverview({ rooms }: RoomsOverviewProps) {
-  const totalRooms = rooms.length
-  const hasTag = (room: Room, tag: string) => (room.tags ?? []).includes(tag)
+  const totalRooms = rooms.length;
+  const hasTag = (room: Room, tag: string) => (room.tags ?? []).includes(tag);
 
-  const occupiedRooms = rooms.filter((r) => hasTag(r, 'occupied')).length
-  const cleaningRooms = rooms.filter((r) => hasTag(r, 'cleaning')).length
+  const occupiedRooms = rooms.filter((r) => hasTag(r, "occupied")).length;
+  const cleaningRooms = rooms.filter((r) => hasTag(r, "cleaning")).length;
   const cleaningOnlyRooms = rooms.filter(
-    (r) => hasTag(r, 'cleaning') && !hasTag(r, 'occupied'),
-  ).length
+    (r) => hasTag(r, "cleaning") && !hasTag(r, "occupied"),
+  ).length;
   const occupiedAndCleaningRooms = rooms.filter(
-    (r) => hasTag(r, 'occupied') && hasTag(r, 'cleaning'),
-  ).length
-  const vacantRooms = totalRooms - occupiedRooms
+    (r) => hasTag(r, "occupied") && hasTag(r, "cleaning"),
+  ).length;
+  const vacantRooms = totalRooms - occupiedRooms;
 
   return (
     <aside className="w-1/4 shrink-0 min-h-0 overflow-y-auto bg-white dark:bg-zinc-950 p-[2vw]">
@@ -25,13 +25,13 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
         <OverviewCard
           title="Tasks"
           columns={[
-            { field: 'Urgent', value: 0, description: 'Tasks' },
+            { field: "Urgent", value: 0, description: "Tasks" },
             {
-              field: 'Unassigned',
+              field: "Unassigned",
               value: cleaningOnlyRooms,
-              description: 'Tasks',
+              description: "Tasks",
             },
-            { field: 'Pending', value: cleaningRooms, description: 'Tasks' },
+            { field: "Pending", value: cleaningRooms, description: "Tasks" },
           ]}
         />
 
@@ -39,23 +39,23 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
           title="Guest Flow"
           columns={[
             {
-              field: 'Floor Occupancy',
+              field: "Floor Occupancy",
               value: vacantRooms,
-              description: 'Rooms left',
+              description: "Rooms left",
             },
             {
-              field: 'Expected Arrivals',
+              field: "Expected Arrivals",
               value: vacantRooms,
-              description: 'Guests',
+              description: "Guests",
             },
             {
-              field: 'Expected Departures',
+              field: "Expected Departures",
               value: occupiedAndCleaningRooms,
-              description: 'Guests',
+              description: "Guests",
             },
           ]}
         />
       </div>
     </aside>
-  )
+  );
 }

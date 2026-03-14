@@ -1,4 +1,4 @@
-# SelfServe
+# SelfServe [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/GenerateNU/selfserve)
 
 **Streamline hospitality staff operations**
 

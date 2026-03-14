@@ -1,5 +1,5 @@
-import { SignInButton } from '@clerk/clerk-react'
-import { createFileRoute } from '@tanstack/react-router'
+import { SignInButton } from "@clerk/clerk-react";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowRight,
   BarChart3,
@@ -17,118 +17,118 @@ import {
   StickyNote,
   TrendingDown,
   Zap,
-} from 'lucide-react'
+} from "lucide-react";
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute("/")({ component: App });
 
 /* ── Data ── */
 
 const benefits = [
   {
     icon: Zap,
-    title: 'Operational Efficiency',
+    title: "Operational Efficiency",
     description:
-      'Consolidate phones, radios, legacy PMS, and messaging into one platform. Reduce manual work and missed requests.',
+      "Consolidate phones, radios, legacy PMS, and messaging into one platform. Reduce manual work and missed requests.",
   },
   {
     icon: LayoutDashboard,
-    title: 'Real-Time Visibility',
+    title: "Real-Time Visibility",
     description:
-      'Live dashboards show request status, ownership, and SLA risks across front desk, housekeeping, maintenance, and F&B.',
+      "Live dashboards show request status, ownership, and SLA risks across front desk, housekeeping, maintenance, and F&B.",
   },
   {
     icon: Building2,
-    title: 'Enterprise for Boutiques',
+    title: "Enterprise for Boutiques",
     description:
       "Command-center capabilities that independent properties couldn't otherwise build in-house.",
   },
   {
     icon: BarChart3,
-    title: 'Data-Driven Decisions',
+    title: "Data-Driven Decisions",
     description:
-      'Actionable analytics on service performance and guest needs. Improve quality and prevent recurring issues.',
+      "Actionable analytics on service performance and guest needs. Improve quality and prevent recurring issues.",
   },
   {
     icon: Heart,
-    title: 'Higher Guest Satisfaction',
+    title: "Higher Guest Satisfaction",
     description:
-      'Every request becomes a closed-loop, trackable task. Nothing falls through the cracks.',
+      "Every request becomes a closed-loop, trackable task. Nothing falls through the cracks.",
   },
-]
+];
 
 const steps = [
   {
     icon: Send,
-    n: '01',
-    title: 'Guest submits a request',
+    n: "01",
+    title: "Guest submits a request",
     description:
-      'Via mobile, in-room tablet, or front desk — structured and categorized automatically.',
+      "Via mobile, in-room tablet, or front desk — structured and categorized automatically.",
   },
   {
     icon: RouteIcon,
-    n: '02',
-    title: 'Smart routing & assignment',
+    n: "02",
+    title: "Smart routing & assignment",
     description:
-      'Requests land with the right team member instantly. No radio tag, no sticky notes.',
+      "Requests land with the right team member instantly. No radio tag, no sticky notes.",
   },
   {
     icon: CheckCircle2,
-    n: '03',
-    title: 'Track, resolve, close the loop',
+    n: "03",
+    title: "Track, resolve, close the loop",
     description:
-      'Real-time status for staff and operators. Every request is accountable.',
+      "Real-time status for staff and operators. Every request is accountable.",
   },
-]
+];
 
 const chaos = [
-  { icon: Phone, label: 'Phone calls' },
-  { icon: Radio, label: 'Radios' },
-  { icon: StickyNote, label: 'Sticky notes' },
-  { icon: Monitor, label: 'Legacy PMS' },
-]
+  { icon: Phone, label: "Phone calls" },
+  { icon: Radio, label: "Radios" },
+  { icon: StickyNote, label: "Sticky notes" },
+  { icon: Monitor, label: "Legacy PMS" },
+];
 
 const testimonials = [
   {
     quote:
-      'We replaced three separate tools with SelfServe. Response time dropped by half and guest complaints about lost requests went to basically zero.',
-    name: 'Jordan M.',
-    role: 'Operations Manager',
-    hotel: 'The Piedmont Hotel',
-    initials: 'JM',
+      "We replaced three separate tools with SelfServe. Response time dropped by half and guest complaints about lost requests went to basically zero.",
+    name: "Jordan M.",
+    role: "Operations Manager",
+    hotel: "The Piedmont Hotel",
+    initials: "JM",
   },
   {
     quote:
       "Our front desk used to spend 40 minutes a shift just relaying requests over the radio. Now it's all routed automatically. The team actually trusts the system.",
-    name: 'Priya S.',
-    role: 'General Manager',
-    hotel: 'Wren & Fig Boutique',
-    initials: 'PS',
+    name: "Priya S.",
+    role: "General Manager",
+    hotel: "Wren & Fig Boutique",
+    initials: "PS",
   },
   {
     quote:
       "For the first time I can see what's happening on property in real time without calling three departments. That alone was worth the switch.",
-    name: 'David L.',
-    role: 'Owner-Operator',
-    hotel: 'The Larchmont',
-    initials: 'DL',
+    name: "David L.",
+    role: "Owner-Operator",
+    hotel: "The Larchmont",
+    initials: "DL",
   },
-]
+];
 
 const beforeItems = [
-  'Requests lost between handoffs',
-  'No visibility until someone complains',
-  'Staff juggling 4+ disconnected tools',
-  'Manual tracking, if any at all',
-  'Recurring issues go unnoticed',
-]
+  "Requests lost between handoffs",
+  "No visibility until someone complains",
+  "Staff juggling 4+ disconnected tools",
+  "Manual tracking, if any at all",
+  "Recurring issues go unnoticed",
+];
 
 const afterItems = [
-  'Every request structured and assigned',
-  'Real-time dashboards for operators',
-  'One platform for every department',
-  'Closed-loop tracking on every task',
-  'Data to prevent problems before they repeat',
-]
+  "Every request structured and assigned",
+  "Real-time dashboards for operators",
+  "One platform for every department",
+  "Closed-loop tracking on every task",
+  "Data to prevent problems before they repeat",
+];
 
 /* ── Component ── */
 
@@ -523,5 +523,5 @@ function App() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

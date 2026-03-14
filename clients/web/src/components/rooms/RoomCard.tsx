@@ -1,11 +1,11 @@
-import type { Room } from '@/components/rooms/RoomsList'
-import { cn } from '@/lib/utils'
+import type { Room } from "@/components/rooms/RoomsList";
+import { cn } from "@/lib/utils";
 
 type RoomCardProps = {
-  room: Room
-  isSelected?: boolean
-  onClick: () => void
-}
+  room: Room;
+  isSelected?: boolean;
+  onClick: () => void;
+};
 
 export function RoomCard({ room, isSelected = false, onClick }: RoomCardProps) {
   return (
@@ -13,10 +13,10 @@ export function RoomCard({ room, isSelected = false, onClick }: RoomCardProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        'flex flex-col items-start gap-[1.5vh] flex-1 min-w-0 w-full min-h-[11vh] text-left rounded-md border px-[0.6vw] py-[0.9vh] transition-colors',
+        "flex flex-col items-start gap-[1.5vh] flex-1 min-w-0 w-full min-h-[11vh] text-left rounded-md border px-[0.6vw] py-[0.9vh] transition-colors",
         isSelected
-          ? 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 shadow-sm'
-          : 'border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60',
+          ? "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 shadow-sm"
+          : "border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60",
       )}
     >
       <span className="text-xl font-bold text-zinc-900 ">
@@ -39,5 +39,5 @@ export function RoomCard({ room, isSelected = false, onClick }: RoomCardProps) {
         </div>
       )}
     </button>
-  )
+  );
 }

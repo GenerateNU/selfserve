@@ -1,12 +1,12 @@
-import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 type PageShellProps = {
-  header: ReactNode
-  drawer?: ReactNode
-  drawerOpen?: boolean
-  children: ReactNode
-}
+  header: ReactNode;
+  drawer?: ReactNode;
+  drawerOpen?: boolean;
+  children: ReactNode;
+};
 
 export function PageShell({
   header,
@@ -14,14 +14,14 @@ export function PageShell({
   drawerOpen = false,
   children,
 }: PageShellProps) {
-  const hasDrawer = !!drawer
+  const hasDrawer = !!drawer;
 
   return (
     <main className="flex h-screen overflow-hidden">
       <div
         className={cn(
-          'shrink-0 flex flex-col overflow-hidden transition-[flex-basis] duration-300 ease-in-out',
-          hasDrawer && drawerOpen ? 'basis-2/5' : 'basis-full',
+          "shrink-0 flex flex-col overflow-hidden transition-[flex-basis] duration-300 ease-in-out",
+          hasDrawer && drawerOpen ? "basis-2/5" : "basis-full",
         )}
       >
         <header className="shrink-0 bg-gray-100 h-[10vh] px-[4vw]">
@@ -38,8 +38,8 @@ export function PageShell({
       {hasDrawer && (
         <aside
           className={cn(
-            'shrink-0 overflow-hidden transition-[flex-basis] duration-300 ease-in-out shadow-xl shadow-black/25 px-[4vw] py-[3vh]',
-            drawerOpen ? 'basis-3/5' : 'basis-0',
+            "shrink-0 overflow-hidden transition-[flex-basis] duration-300 ease-in-out shadow-xl shadow-black/25 px-[4vw] py-[3vh]",
+            drawerOpen ? "basis-3/5" : "basis-0",
           )}
         >
           {/* Nested div to a fixed width to avoid animation issues */}
@@ -47,5 +47,5 @@ export function PageShell({
         </aside>
       )}
     </main>
-  )
+  );
 }
