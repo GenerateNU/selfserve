@@ -2,7 +2,7 @@ name: Backend CI
 on:
   push:
     branches:
-      - "**"
+      - main
     paths:
       - "backend/**"
       - ".github/workflows/BackendCI.yaml"
@@ -17,6 +17,17 @@ permissions:
   checks: write
   pull-requests: write
 jobs:
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: TruffleHog secrets scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
   backend-lint:
     name: Lint
     runs-on: ubuntu-latest
