@@ -31,7 +31,7 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 	return m.findRequestFunc(ctx, id)
 }
 
-func (m *mockRequestRepository) FindRequestsByCursor(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
+func (m *mockRequestRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
 	return m.findRequestsByCursorFunc(ctx, cursor, status, pageSize)
 }
 

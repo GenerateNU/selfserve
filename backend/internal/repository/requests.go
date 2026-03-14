@@ -63,7 +63,7 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequestsByCursor(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
+func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
 	rows, err := r.db.Query(ctx, `
 			SELECT *
 			FROM requests

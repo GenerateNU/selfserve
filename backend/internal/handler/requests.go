@@ -162,7 +162,7 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 		return errs.BadRequest("Status must be one of: pending, assigned, in progress, completed")
 	}
 
-	requests, nextCursor, err := r.RequestRepository.FindRequestsByCursor(c.Context(), cursor, status, defaultPageSize)
+	requests, nextCursor, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursor, status, defaultPageSize)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("request cursor id", "cursor", cursor)
