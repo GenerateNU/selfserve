@@ -32,7 +32,10 @@ func ConnectDatabase(ctx context.Context, config config.DB) (*pgxpool.Pool, erro
 
 	// Apply connection pool configuration from config
 	dbConfig.MaxConns = config.MaxConns
+	dbConfig.MinConns = config.MinConns
 	dbConfig.MaxConnLifetime = config.MaxConnLifetime
+	dbConfig.MaxConnIdleTime = config.MaxConnIdleTime
+	dbConfig.HealthCheckPeriod = config.HealthCheckPeriod
 
 	conn, err := pgxpool.NewWithConfig(ctx, dbConfig)
 	if err != nil {
