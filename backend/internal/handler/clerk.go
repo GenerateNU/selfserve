@@ -1,8 +1,8 @@
 package handler
 
 import (
-  
 	"net/http"
+
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
