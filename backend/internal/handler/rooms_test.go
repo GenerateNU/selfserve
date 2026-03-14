@@ -16,11 +16,16 @@ import (
 )
 
 type mockRoomsRepository struct {
-	findRoomsFunc func(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithOptionalGuestBooking, error)
+	findRoomsFunc  func(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithOptionalGuestBooking, error)
+	findFloorsFunc func(ctx context.Context) ([]int, error)
 }
 
 func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithOptionalGuestBooking, error) {
 	return m.findRoomsFunc(ctx, filter)
+}
+
+func (m *mockRoomsRepository) FindFloors(ctx context.Context) ([]int, error) {
+	return m.findFloorsFunc(ctx)
 }
 
 var _ RoomsRepository = (*mockRoomsRepository)(nil)
@@ -219,6 +224,78 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		app.Get("/rooms", h.GetRoomsByFloor)
 
 		req := httptest.NewRequest("GET", "/rooms", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+}
+
+func TestRoomsHandler_GetFloors(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns 200 with floors", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRoomsRepository{
+			findFloorsFunc: func(ctx context.Context) ([]int, error) {
+				return []int{1, 2, 3}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRoomsHandler(mock)
+		app.Get("/rooms/floors", h.GetFloors)
+
+		req := httptest.NewRequest("GET", "/rooms/floors", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "1")
+		assert.Contains(t, string(body), "2")
+		assert.Contains(t, string(body), "3")
+	})
+
+	t.Run("returns 200 with empty array when no floors exist", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRoomsRepository{
+			findFloorsFunc: func(ctx context.Context) ([]int, error) {
+				return nil, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRoomsHandler(mock)
+		app.Get("/rooms/floors", h.GetFloors)
+
+		req := httptest.NewRequest("GET", "/rooms/floors", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Equal(t, "[]", string(body))
+	})
+
+	t.Run("returns 500 when repository fails", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRoomsRepository{
+			findFloorsFunc: func(ctx context.Context) ([]int, error) {
+				return nil, errors.New("db error")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRoomsHandler(mock)
+		app.Get("/rooms/floors", h.GetFloors)
+
+		req := httptest.NewRequest("GET", "/rooms/floors", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
