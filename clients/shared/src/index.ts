@@ -14,8 +14,6 @@ export type {
   MakeRequest,
   GenerateRequestInput,
   Hotel,
-  CreateGuest,
-  UpdateGuest,
   Guest,
   Dev,
 } from "./api/generated/models";

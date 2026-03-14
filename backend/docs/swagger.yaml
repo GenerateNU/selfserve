@@ -678,6 +678,27 @@ paths:
       summary: Get Rooms By Floor
       tags:
       - rooms
+  /rooms/floors:
+    get:
+      description: Retrieves all distinct floor numbers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Floors
+      tags:
+      - rooms
   /users:
     post:
       consumes:
