@@ -24,7 +24,7 @@ type RequestsRepository interface {
 
 	FindRequests(ctx context.Context) ([]models.Request, error)
 
-	FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error)
+	FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
 }
 
 type HotelsRepository interface {

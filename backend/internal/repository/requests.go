@@ -63,14 +63,14 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
+func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
 	rows, err := r.db.Query(ctx, `
 			SELECT *
 			FROM requests
-			WHERE id > $1 AND status = $2
+			WHERE id > $1 AND status = $2 AND hotel_id = $3
 			ORDER BY id
-			LIMIT $3
-		`, cursor, status, pageSize+1)
+			LIMIT $4
+		`, cursor, status, hotelID, pageSize+1)
 
 	if err != nil {
 		return nil, "", err

@@ -154,8 +154,9 @@ func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
 // @Tags         requests
 // @Accept       json
 // @Produce      json
-// @Param        cursor  path      string  true  "Cursor UUID"
-// @Param        status  query     string  true  "Status filter: pending, assigned, in progress, completed"
+// @Param        cursor    path      string  true  "Cursor UUID"
+// @Param        status    query     string  true  "Status filter: pending, assigned, in progress, completed"
+// @Param        hotel_id  query     string  true  "Hotel UUID"
 // @Success      200     {object}  map[string]interface{}  "Returns requests array and next_cursor"
 // @Failure      400     {object}  map[string]string
 // @Failure      500     {object}  map[string]string
@@ -163,6 +164,8 @@ func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
 func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 	cursor := c.Params("cursor")
 	status := c.Query("status")
+	hotelID := c.Query("hotel_id")
+
 	if !validUUID(cursor) {
 		return errs.BadRequest("cursor is not a valid request UUID")
 	}
@@ -171,7 +174,11 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 		return errs.BadRequest("Status must be one of: pending, assigned, in progress, completed")
 	}
 
-	requests, nextCursor, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursor, status, defaultPageSize)
+	if !validUUID(hotelID) {
+		return errs.BadRequest("hotel_id is not a valid UUID")
+	}
+
+	requests, nextCursor, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursor, status, hotelID, defaultPageSize)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("request cursor id", "cursor", cursor)
