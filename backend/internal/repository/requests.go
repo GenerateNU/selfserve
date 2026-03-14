@@ -70,7 +70,7 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 			WHERE id > $1 AND status = $2
 			ORDER BY id
 			LIMIT $3
-		`, cursor, status, pageSize)
+		`, cursor, status, pageSize+1)
 
 	if err != nil {
 		return nil, "", err
@@ -96,10 +96,37 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 		return nil, "", errs.ErrNotFoundInDB
 	}
 
-	var nextCursor string
-	if len(requests) > 0 {
-		nextCursor = requests[len(requests)-1].ID
+	if len(requests) == pageSize+1 {
+		return requests[:pageSize], requests[pageSize-1].ID, nil
 	}
 
-	return requests, nextCursor, nil
+	return requests, "", nil
+}
+
+func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
+	rows, err := r.db.Query(ctx, `SELECT * FROM requests ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var requests []models.Request
+	for rows.Next() {
+		var request models.Request
+		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
+			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
+			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
+			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
+			&request.CreatedAt, &request.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		requests = append(requests, request)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return requests, nil
 }
