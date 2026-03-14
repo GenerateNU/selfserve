@@ -1,28 +1,28 @@
-import { useState } from "react";
+import { useState } from 'react'
 
 type GuestNotesCardProps = {
-  initialNotes: string;
-};
+  initialNotes: string
+}
 
 export function GuestNotesCard({ initialNotes }: GuestNotesCardProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [notes, setNotes] = useState(initialNotes);
-  const [draft, setDraft] = useState(initialNotes);
+  const [isEditing, setIsEditing] = useState(false)
+  const [notes, setNotes] = useState(initialNotes)
+  const [draft, setDraft] = useState(initialNotes)
 
   const startEditing = () => {
-    setDraft(notes);
-    setIsEditing(true);
-  };
+    setDraft(notes)
+    setIsEditing(true)
+  }
 
   const cancelEditing = () => {
-    setDraft(notes);
-    setIsEditing(false);
-  };
+    setDraft(notes)
+    setIsEditing(false)
+  }
 
   const saveNotes = () => {
-    setNotes(draft);
-    setIsEditing(false);
-  };
+    setNotes(draft)
+    setIsEditing(false)
+  }
 
   return (
     <section className="border border-black bg-white px-[1vw] py-[2vh]">
@@ -30,6 +30,7 @@ export function GuestNotesCard({ initialNotes }: GuestNotesCardProps) {
         <div>
           <div className="mb-[1vh] flex items-center justify-between">
             <h2 className="text-[2vw] font-medium text-black">Notes</h2>
+            {/* Edit button */}
             <button
               type="button"
               onClick={startEditing}
@@ -69,5 +70,5 @@ export function GuestNotesCard({ initialNotes }: GuestNotesCardProps) {
         </div>
       )}
     </section>
-  );
+  )
 }
