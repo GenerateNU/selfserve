@@ -38,6 +38,10 @@ const config = defineConfig(({ mode }) => {
       globals: true,
       environment: "jsdom",
       setupFiles: [],
+      coverage: {
+        provider: "v8",
+        reporter: ["text", "lcov"],
+      },
     },
   };
 });
