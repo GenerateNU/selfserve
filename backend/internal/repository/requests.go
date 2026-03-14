@@ -63,14 +63,14 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequestsByCursor(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+func (r *RequestsRepository) FindRequestsByCursor(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
 	rows, err := r.db.Query(ctx, `
 			SELECT *
 			FROM requests
 			WHERE id > $1 AND status = $2
 			ORDER BY id
-			LIMIT 20
-		`, cursor, status)
+			LIMIT $3
+		`, cursor, status, pageSize)
 
 	if err != nil {
 		return nil, "", err

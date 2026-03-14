@@ -20,7 +20,7 @@ import (
 type mockRequestRepository struct {
 	makeRequestFunc          func(ctx context.Context, req *models.Request) (*models.Request, error)
 	findRequestFunc          func(ctx context.Context, id string) (*models.Request, error)
-	findRequestsByCursorFunc func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error)
+	findRequestsByCursorFunc func(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -31,8 +31,8 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 	return m.findRequestFunc(ctx, id)
 }
 
-func (m *mockRequestRepository) FindRequestsByCursor(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
-	return m.findRequestsByCursorFunc(ctx, cursor, status)
+func (m *mockRequestRepository) FindRequestsByCursor(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
+	return m.findRequestsByCursorFunc(ctx, cursor, status, pageSize)
 }
 
 type mockLLMService struct {
@@ -718,7 +718,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
 				return []*models.Request{
 					{
 						ID:        "530e8400-e458-41d4-a716-446655440001",
@@ -768,7 +768,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
 				return nil, "", errors.New("should not be called")
 			},
 		}
@@ -791,7 +791,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
 				return nil, "", errors.New("should not be called")
 			},
 		}
@@ -814,7 +814,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
 				return nil, "", errs.ErrNotFoundInDB
 			},
 		}
@@ -834,7 +834,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string) ([]*models.Request, string, error) {
+			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, pageSize int) ([]*models.Request, string, error) {
 				return nil, "", errors.New("db connection failed")
 			},
 		}

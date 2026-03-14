@@ -13,6 +13,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+const defaultPageSize = 20
+
 type RequestsHandler struct {
 	RequestRepository      storage.RequestsRepository
 	GenerateRequestService aiflows.GenerateRequestService
@@ -156,21 +158,11 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 		return errs.BadRequest("cursor is not a valid request UUID")
 	}
 
-	//QUESTION FOR REVIEWER: how do we want to represent status?
-	// should we make an enum AND how are we defining status in our db
-
-	validStatuses := map[string]struct{}{
-		"pending":     {},
-		"assigned":    {},
-		"in progress": {},
-		"completed":   {},
-	}
-
-	if _, ok := validStatuses[status]; !ok {
+	if !models.RequestStatus(status).IsValid() {
 		return errs.BadRequest("Status must be one of: pending, assigned, in progress, completed")
 	}
 
-	requests, nextCursor, err := r.RequestRepository.FindRequestsByCursor(c.Context(), cursor, status)
+	requests, nextCursor, err := r.RequestRepository.FindRequestsByCursor(c.Context(), cursor, status, defaultPageSize)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("request cursor id", "cursor", cursor)

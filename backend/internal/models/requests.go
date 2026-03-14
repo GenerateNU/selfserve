@@ -2,6 +2,23 @@ package models
 
 import "time"
 
+type RequestStatus string
+
+const (
+	StatusPending    RequestStatus = "pending"
+	StatusAssigned   RequestStatus = "assigned"
+	StatusInProgress RequestStatus = "in progress"
+	StatusCompleted  RequestStatus = "completed"
+)
+
+func (s RequestStatus) IsValid() bool {
+	switch s {
+	case StatusPending, StatusAssigned, StatusInProgress, StatusCompleted:
+		return true
+	}
+	return false
+}
+
 // pointer fields are for easy handling of optional fields
 
 // for post because the ID and timestamps should always be generated
