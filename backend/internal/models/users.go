@@ -6,6 +6,7 @@ type CreateUser struct {
 	ID             string  `json:"id" validate:"notblank" example:"user_123"`
 	FirstName      string  `json:"first_name" validate:"notblank" example:"John"`
 	LastName       string  `json:"last_name" validate:"notblank" example:"Doe"`
+	HotelID        string  `json:"hotel_id" validate:"notblank" example:"550e8400-e29b-41d4-a716-446655440000"`
 	EmployeeID     *string `json:"employee_id,omitempty" validate:"omitempty" example:"EMP-1234"`
 	ProfilePicture *string `json:"profile_picture,omitempty" validate:"omitempty,url" example:"https://example.com/john.jpg"`
 	Role           *string `json:"role,omitempty" validate:"omitempty" example:"Receptionist"`
@@ -13,16 +14,37 @@ type CreateUser struct {
 	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
 } //@name CreateUser
 
-type CreateUserWebhook struct {
-	ClerkUser `json:"data"`
-}
-
 type ClerkUser struct {
 	ID        string  `json:"id" example:"user123402"`
 	FirstName string  `json:"first_name" example:"John"`
 	LastName  string  `json:"last_name" example:"Doe"`
 	ImageUrl  *string `json:"image_url" example:"https://photo.com/john.jpg"`
 	HasImage  bool    `json:"has_image" example:"true"`
+}
+
+// CreateUserOrgMembershipWebhook is the payload for Clerk's organizationMembership.created event.
+// Clerk fires this when a user accepts an invitation to join an organization (hotel).
+type CreateUserOrgMembershipWebhook struct {
+	Data OrgMembershipData `json:"data"`
+}
+
+type OrgMembershipData struct {
+	Organization   ClerkOrganization     `json:"organization"`
+	PublicUserData OrgMembershipUserData `json:"public_user_data"`
+}
+
+type ClerkOrganization struct {
+	ID string `json:"id"`
+}
+
+// OrgMembershipUserData is the limited user snapshot Clerk includes in org membership events.
+// Note: the user ID field is "user_id" here, unlike ClerkUser which uses "id".
+type OrgMembershipUserData struct {
+	UserID    string  `json:"user_id"`
+	FirstName string  `json:"first_name"`
+	LastName  string  `json:"last_name"`
+	ImageUrl  *string `json:"image_url"`
+	HasImage  bool    `json:"has_image"`
 }
 
 type User struct {
