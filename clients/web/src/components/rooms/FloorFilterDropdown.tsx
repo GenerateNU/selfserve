@@ -40,7 +40,7 @@ export function FloorFilterDropdown({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-[8.5vw] items-center justify-between rounded-md bg-white/20 px-[0.6vw] py-[0.55vh] text-sm font-medium text-white transition-colors hover:bg-white/30"
+        className="flex w-[8.5vw] items-center justify-between rounded-md border border-gray-300 bg-white px-[0.6vw] py-[0.55vh] text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
       >
         <span>{getLabel(selected)}</span>
         <ChevronDown
