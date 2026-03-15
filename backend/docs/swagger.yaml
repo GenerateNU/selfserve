@@ -26,6 +26,9 @@ definitions:
       first_name:
         example: John
         type: string
+      hotel_id:
+        example: hotel_123
+        type: string
       id:
         example: user_123
         type: string
@@ -94,6 +97,7 @@ definitions:
         type: string
       floors:
         example: 10
+        minimum: 1
         type: integer
       id:
         example: "550e8400-e29b-41d4-a\t716-446655440000"
@@ -244,6 +248,9 @@ definitions:
         type: string
       first_name:
         example: John
+        type: string
+      hotel_id:
+        example: hotel_123
         type: string
       id:
         example: user_123
