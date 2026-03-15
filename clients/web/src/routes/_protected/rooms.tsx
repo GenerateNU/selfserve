@@ -1,36 +1,46 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useGetRooms } from "@shared";
+import type { RoomWithOptionalGuestBooking } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
+import { RoomsHeader } from "@/components/rooms/RoomsHeader";
+import { RoomsList } from "@/components/rooms/RoomsList";
+import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
 
 export const Route = createFileRoute("/_protected/rooms")({
   component: RoomsPage,
 });
 
 function RoomsPage() {
-  const [open, setOpen] = useState(false);
+  const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
+  const [selectedRoom, setSelectedRoom] =
+    useState<RoomWithOptionalGuestBooking | null>(null);
+
+  const { data } = useGetRooms({
+    floors: selectedFloors.length > 0 ? selectedFloors : undefined,
+  });
+
   return (
     <PageShell
       header={
-        <div className="flex items-center justify-between h-full">
-          <span className="text-[2vh] font-medium text-black">Rooms</span>
-          <button
-            onClick={() => setOpen(!open)}
-            className="border border-gray-300 rounded text-sm"
-          >
-            Open
-          </button>
-        </div>
+        <RoomsHeader
+          selectedFloors={selectedFloors}
+          onChangeSelectedFloors={setSelectedFloors}
+        />
       }
-      drawerOpen={open}
+      drawerOpen={selectedRoom !== null}
       drawer={
-        <div>
-          <p>Drawer content</p>
-        </div>
+        <RoomDetailsDrawer
+          room={selectedRoom}
+          onClose={() => setSelectedRoom(null)}
+        />
       }
     >
-      <div>
-        <p>Main content goes here.</p>
-      </div>
+      <RoomsList
+        rooms={data?.items ?? []}
+        onRoomSelect={setSelectedRoom}
+        selectedRoomNumber={selectedRoom?.room_number ?? null}
+      />
     </PageShell>
   );
 }
