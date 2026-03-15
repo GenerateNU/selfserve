@@ -67,6 +67,8 @@ jobs:
         working-directory: ./backend
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-go@v5
         with:
           go-version-file: './backend/go.mod'
@@ -76,8 +78,14 @@ jobs:
         run: go install github.com/swaggo/swag/cmd/swag@latest
       - name: Generate swagger docs
         run: make swagger
-      - name: Run tests
-        run: make test
+      - name: Run tests with coverage
+        run: go test -coverprofile=coverage.out ./...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.out
+          flags: backend
   backend-build:
     name: Build
     runs-on: ubuntu-latest

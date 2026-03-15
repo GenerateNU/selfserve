@@ -84,6 +84,8 @@ jobs:
         working-directory: ./clients/mobile
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version-file: "./clients/mobile/package.json"
@@ -97,12 +99,12 @@ jobs:
         run: cd ../shared && npm run generate:api
       - name: Run tests with coverage
         run: npm run test:coverage
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          name: mobile-coverage
-          path: clients/mobile/coverage
-          retention-days: 7
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: mobile
   mobile-build:
     name: Build Validation
     runs-on: ubuntu-latest
