@@ -30,7 +30,8 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		WITH paginated_rooms AS (
 			SELECT id, room_number, floor, suite_type, room_status
 			FROM rooms
-			WHERE ($1::int[] IS NULL OR floor = ANY($1))
+			WHERE hotel_id = $4
+				AND ($1::int[] IS NULL OR floor = ANY($1))
 				AND room_number > $2
 			ORDER BY room_number ASC
 			LIMIT $3
@@ -48,6 +49,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		FROM paginated_rooms pr
 		LEFT JOIN guest_bookings ON pr.id = guest_bookings.room_id
 			AND guest_bookings.status = 'active'
+			AND guest_bookings.hotel_id = $4
 		LEFT JOIN guests ON guests.id = guest_bookings.guest_id
 		GROUP BY pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status
 		ORDER BY pr.room_number ASC`,

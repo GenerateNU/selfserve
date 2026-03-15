@@ -97,13 +97,13 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
+	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
 		return err
 	}
 	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
-	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
 
 	// API v1 routes
 	api := app.Group("/api/v1")
@@ -115,6 +115,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	verifier := clerk.NewClerkJWTVerifier()
 	app.Use(clerk.NewAuthMiddleware(verifier))
+	app.Use()
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
@@ -157,8 +158,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// rooms routes
 	api.Route("/rooms", func(r fiber.Router) {
 		r.Get("/", roomsHandler.GetRoomsByFloor)
-	// s3 routes
+	})
 
+	// s3 routes
 	api.Route("/s3", func(r fiber.Router) {
 		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
 	})
