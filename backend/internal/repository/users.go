@@ -20,11 +20,11 @@ func NewUsersRepository(db *pgxpool.Pool) *UsersRepository {
 
 func (r *UsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {
 	row := r.db.QueryRow(ctx, `
-		SELECT id, first_name,  last_name, employee_id, profile_picture, role, department, timezone, created_at, updated_at FROM users where id = $1
+		SELECT id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, created_at, updated_at FROM users WHERE id = $1
 		`, id)
 
 	var user models.User
-	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.EmployeeID, &user.ProfilePicture, &user.Role, &user.Department, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
+	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.HotelID, &user.EmployeeID, &user.ProfilePicture, &user.Role, &user.Department, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
@@ -41,15 +41,16 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO public.users (
-			id, first_name, last_name, employee_id, profile_picture, role, department, timezone
+			id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, COALESCE($7, 'UTC'), $8 
+			$1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, 'UTC')
 		)
 		RETURNING id, created_at, updated_at
 	`,
 		user.ID,
 		user.FirstName,
 		user.LastName,
+		user.HotelID,
 		user.EmployeeID,
 		user.ProfilePicture,
 		user.Role,
