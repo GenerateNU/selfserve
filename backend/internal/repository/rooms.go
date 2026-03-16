@@ -17,7 +17,7 @@ func NewRoomsRepository(pool *pgxpool.Pool) *RoomsRepository {
 	return &RoomsRepository{db: pool}
 }
 
-func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filters *models.RoomFilter) ([]*models.RoomWithOptionalGuestBooking, error) {
+func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filters *models.RoomFilter, hotelID string) ([]*models.RoomWithOptionalGuestBooking, error) {
 	_, cursorRoomNumber, err := utils.DecodeCursorInt(filters.Cursor)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		LEFT JOIN guests ON guests.id = guest_bookings.guest_id
 		GROUP BY pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status
 		ORDER BY pr.room_number ASC`,
-		filters.Floors, cursorRoomNumber, limit+1)
+		filters.Floors, cursorRoomNumber, limit+1, hotelID)
 
 	if err != nil {
 		return nil, err

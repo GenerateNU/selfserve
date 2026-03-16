@@ -11,7 +11,7 @@ import (
 )
 
 type RoomsRepository interface {
-	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter, hotelID string) ([]*models.RoomWithOptionalGuestBooking, error)
 }
 
 type RoomsHandler struct {
@@ -27,6 +27,7 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 // @Description  Retrieves rooms optionally filtered by floor, with any active guest bookings
 // @Tags         rooms
 // @Produce      json
+// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
 // @Param        floors      query     []int   false  "floors"
 // @Param        cursor      query     string  false  "Opaque cursor for the next page"
 // @Param        limit       query     int     false  "Number of items per page (1-100, default 20)"
@@ -35,6 +36,11 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 // @Failure      500         {object}  map[string]string
 // @Router       /rooms [get]
 func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
 	filter := new(models.RoomFilter)
 	if err := c.QueryParser(filter); err != nil {
 		return errs.BadRequest("invalid filters")
@@ -44,7 +50,7 @@ func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
 		return errs.BadRequest("invalid cursor")
 	}
 
-	rooms, err := h.repo.FindRoomsWithOptionalGuestBookingsByFloor(c.Context(), filter)
+	rooms, err := h.repo.FindRoomsWithOptionalGuestBookingsByFloor(c.Context(), filter, hotelID)
 	if err != nil {
 		return errs.InternalServerError()
 	}
