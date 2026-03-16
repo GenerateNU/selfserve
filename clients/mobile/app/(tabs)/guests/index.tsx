@@ -14,10 +14,9 @@ export default function GuestsList() {
 
   const onFloorChange = (floor: number) => {
     if (floors?.includes(floor)) {
-      setFloor(floors.filter(elem => elem !== floor));
+    setFloor(floors.filter(elem => elem !== floor));
     } else {
-      floors?.push(floor)
-      setFloor(floors)
+        setFloor([...(floors ?? []), floor]);
     }
   }
 
@@ -28,7 +27,7 @@ export default function GuestsList() {
   const filterConfig = [
     {
       value: floors,
-      onChange: setFloor,
+      onChange: onFloorChange,
       placeholder: 'Floor',
       emptyValue: null,
       options: [
@@ -45,9 +44,15 @@ export default function GuestsList() {
     }
   ];
 
-  const { data } = useGetApiV1Guests({
+  const { data, isLoading, isError, error } = useGetApiV1Guests({
     "floors[]": floors ?? undefined
   })
+
+  console.log("data", data)
+  console.log("isLoading", isLoading)
+  console.log("isError", isError)
+  console.log("error", error)
+
 
   return (
     <View className="flex-1 bg-white">

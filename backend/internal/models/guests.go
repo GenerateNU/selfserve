@@ -24,7 +24,7 @@ type Guest struct {
 } //@name Guest
 
 type GuestFilter struct {
-    Floors *[]int `query:"floors"`
+    Floors []int `query:"floors"`
 }
 
 type GuestWithBooking struct {
