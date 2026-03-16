@@ -1,19 +1,19 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { GuestNotesCard } from '../../components/guests/GuestNotesCard'
-import { GuestPageShell } from '../../components/guests/GuestPageShell'
-import { GuestProfileCard } from '../../components/guests/GuestProfileCard'
-import { GuestSpecialNeedsCard } from '../../components/guests/GuestSpecialNeedsCard'
-import { HousekeepingPreferencesCard } from '../../components/guests/HousekeepingPreferencesCard'
-import { PreviousStaysCard } from '../../components/guests/PreviousStaysCard'
-import { guestProfilesById } from '../../components/guests/guest-mocks'
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { GuestNotesCard } from "../../components/guests/GuestNotesCard";
+import { GuestPageShell } from "../../components/guests/GuestPageShell";
+import { GuestProfileCard } from "../../components/guests/GuestProfileCard";
+import { GuestSpecialNeedsCard } from "../../components/guests/GuestSpecialNeedsCard";
+import { HousekeepingPreferencesCard } from "../../components/guests/HousekeepingPreferencesCard";
+import { PreviousStaysCard } from "../../components/guests/PreviousStaysCard";
+import { guestProfilesById } from "../../components/guests/guest-mocks";
 
-export const Route = createFileRoute('/_protected/guests/$guestId')({
+export const Route = createFileRoute("/_protected/guests/$guestId")({
   component: GuestProfilePage,
-})
+});
 
 function GuestProfilePage() {
-  const { guestId } = Route.useParams()
-  const guestProfile = guestProfilesById[guestId]
+  const { guestId } = Route.useParams();
+  const guestProfile = guestProfilesById[guestId];
 
   if (!guestProfile) {
     return (
@@ -28,7 +28,7 @@ function GuestProfilePage() {
           </Link>
         </section>
       </GuestPageShell>
-    )
+    );
   }
 
   return (
@@ -47,5 +47,5 @@ function GuestProfilePage() {
         </div>
       </div>
     </GuestPageShell>
-  )
+  );
 }

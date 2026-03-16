@@ -1,19 +1,19 @@
-import type { GuestProfile } from './guest-mocks'
+import type { GuestProfile } from "./guest-mocks";
 
 type GuestSpecialNeedsCardProps = {
-  specialNeeds: GuestProfile['specialNeeds']
-}
+  specialNeeds: GuestProfile["specialNeeds"];
+};
 
 function SpecialNeedsRow({ label, value }: { label: string; value: string }) {
-  const displayValue = value.trim().length > 0 ? value : '-'
+  const displayValue = value.trim().length > 0 ? value : "-";
   return (
     <div className="grid grid-cols-[48%_1fr] py-[1vh] text-[1vw]">
       <p className="text-[#b6bac3]">{label}</p>
-      <p className={displayValue === '-' ? 'text-[#b6bac3]' : 'text-black'}>
+      <p className={displayValue === "-" ? "text-[#b6bac3]" : "text-black"}>
         {displayValue}
       </p>
     </div>
-  )
+  );
 }
 
 export function GuestSpecialNeedsCard({
@@ -41,5 +41,5 @@ export function GuestSpecialNeedsCard({
         value={specialNeeds.medicalConditions}
       />
     </section>
-  )
+  );
 }

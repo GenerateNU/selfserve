@@ -34,6 +34,7 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
 	return m.findRequestsFunc(ctx)
 }
+
 type mockLLMService struct {
 	runGenerateRequestFunc func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error)
 }

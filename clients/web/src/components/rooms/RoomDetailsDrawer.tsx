@@ -1,14 +1,14 @@
-import { DiamondIcon, X } from 'lucide-react'
-import { TaskCard } from './TaskCard'
-import type { Room } from '@/components/rooms/RoomsList'
+import { DiamondIcon, X } from "lucide-react";
+import { TaskCard } from "./TaskCard";
+import type { Room } from "@/components/rooms/RoomsList";
 
 type RoomDetailsDrawerProps = {
-  room: Room | null
-  onClose: () => void
-}
+  room: Room | null;
+  onClose: () => void;
+};
 
 export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
-  if (!room) return null
+  if (!room) return null;
 
   return (
     <aside className="fixed top-0 right-0 z-50 flex h-full w-full max-w-[45vw] flex-col border-l border-zinc-200 bg-white">
@@ -51,11 +51,11 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
                 </h4>
                 <div className="flex flex-wrap gap-[0.9vh]">
                   <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
-                    <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" />{' '}
+                    <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" />{" "}
                     Room Size: 500 sq ft
                   </span>
                   <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
-                    <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" />{' '}
+                    <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" />{" "}
                     Bed: queen
                   </span>
                   <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
@@ -103,5 +103,5 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
         </div>
       </div>
     </aside>
-  )
+  );
 }

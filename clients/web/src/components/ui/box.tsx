@@ -1,5 +1,5 @@
 interface BoxProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
+  className?: string;
 }
 
 export function Box({ className, children, ...props }: BoxProps) {
@@ -7,5 +7,5 @@ export function Box({ className, children, ...props }: BoxProps) {
     <div className={className} {...props}>
       {children}
     </div>
-  )
+  );
 }

@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { Filter } from "./filters";
-import { View, Text, Pressable, Modal } from 'react-native';
-import { ChevronDown } from 'lucide-react-native';
+import { View, Text, Pressable, Modal } from "react-native";
+import { ChevronDown } from "lucide-react-native";
 
-export function Dropdown<T>({ value, onChange, options, placeholder, emptyValue }: Filter<T>) {
+export function Dropdown<T>({
+  value,
+  onChange,
+  options,
+  placeholder,
+  emptyValue,
+}: Filter<T>) {
   const [isOpen, setIsOpen] = useState(false);
-  const selectedOption = options.find(opt => opt.value === value);
+  const selectedOption = options.find((opt) => opt.value === value);
 
   return (
     <View className="flex-1">
