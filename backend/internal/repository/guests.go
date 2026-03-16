@@ -191,7 +191,10 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 
 
 func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.GuestFilter) ([]*models.GuestWithBooking, error) {
-
+	floors := []int{}
+	if filters.Floors != nil {
+		floors = *filters.Floors
+	}
 	rows, err := r.db.Query(ctx, `
 	SELECT 
 		guests.id, guests.first_name, guests.last_name, rooms.room_number, rooms.floor
@@ -199,8 +202,8 @@ func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.Guest
 	JOIN guest_bookings ON guests.id = guest_bookings.guest_id
 		AND guest_bookings.status = 'active'
 	JOIN rooms ON rooms.id = guest_bookings.room_id
-	WHERE rooms.floor = ANY($1)`, filters.Floors)
-
+	WHERE guest_bookings.hotel_id = $1 
+	AND ($2::int[] = '{}' OR rooms.floor = ANY($2))`, filters.HotelID, floors)
 	if err != nil {
 		return nil, err
 	}

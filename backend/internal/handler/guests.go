@@ -158,16 +158,23 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 
 // GetGuests godoc
 // @Summary      Get Guests
-// @Description  Retrieves guests ptionally filtered by floor in which they are staying
+// @Description  Retrieves guests optionally filtered by floor in which they are staying
 // @Tags         guests
 // @Produce      json
-// @Param        number  query     string  false  "Floor"
-// @Success      200     {object}  []models.GuestWithBooking
-// @Failure      400     {object}  map[string]string
-// @Failure      500     {object}  map[string]string
+// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
+// @Param        number      query     string  false  "Floor"
+// @Success      200         {object}  []models.GuestWithBooking
+// @Failure      400         {object}  map[string]string
+// @Failure      500         {object}  map[string]string
 // @Router       /api/v1/guests [get]
 func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
+	hotelID := c.Get("X-Hotel-ID")
+	if !validUUID(hotelID) {
+		return errs.BadRequest("invalid hotel id")
+	}
+
 	filter := new(models.GuestFilter)
+	filter.HotelID = hotelID
 	if err := c.QueryParser(filter); err != nil {
 		return errs.BadRequest("invalid filters")
 	}

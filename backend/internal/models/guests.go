@@ -28,6 +28,7 @@ type Guest struct {
 } //@name Guest
 
 type GuestFilter struct {
+	HotelID string 
     Floors *[]int `query:"floors"`
 }
 
