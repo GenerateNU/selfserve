@@ -5,7 +5,47 @@
   --color-stroke-subtle: #d8d8d8;
   --font-playfair: "Playfair Display", ui-serif, serif;
   --color-primary-hover: #0A2916;
+  --color-success-accent: #E8FFF0;
+  --color-success-container: #BDFFDD;
+  --color-success-stroke: #00A575;
+  --color-success: #006C4C;
+  --color-success-on: #FFFFFF;
+  --color-success-on-container: #003826;
+  --color-success-strong: #003826;
+  --color-success-hover: #005138;
+  --color-success-hover-on: #FFFFFF;
+  --color-warning-accent: #FFF9EA;
+  --color-warning-container: #FFF2AB;
+  --color-warning-stroke: #A39100;
+  --color-warning: #6A5F00;
+  --color-warning-on: #FFFFFF;
+  --color-warning-on-container: #373100;
+  --color-warning-status: #C0AC00;
+  --color-warning-hover: #504700;
+  --color-warning-hover-on: #FFFFFF;
+  --color-danger-accent: #FFD5D5;
+  --color-danger-container: #FFBFBF;
+  --color-danger-stroke: #F93333;
+  --color-danger: #E71B1B;
+  --color-danger-on: #FFFFFF;
+  --color-danger-on-container: #990000;
+  --color-danger-strong: #F93333;
+  --color-danger-hover: #C90505;
+  --color-danger-hover-on: #FFFFFF;
+  --color-info-accent: #E9F2FF;
+  --color-info-container: #DFECFF;
+  --color-info-stroke: #AAC7FF;
+  --color-info: #A1BFFF;
+  --color-info-on: #FFFFFF;
+  --color-info-on-container: #556F99;
+  --color-info-strong: #AAC7FF;
+  --color-info-hover: #7996CC;
+  --color-info-hover-on: #FFFFFF;
+  --color-shadow-weak: #e5e5e5;
+  --color-shadow: #e7e7e7;
+  --color-shadow-strong: #dcdcdc;
   
+
 }
 
 button {
