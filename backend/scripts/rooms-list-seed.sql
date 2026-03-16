@@ -14,7 +14,7 @@ BEGIN;
 -- Hotel
 -- -----------------------------------------------------------------------------
 INSERT INTO public.hotels (id, name, floors)
-VALUES ('00000000-0000-0000-0000-000000000001', 'Grand Hotel', 5)
+VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Grand Hotel', 5)
 ON CONFLICT (id) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
@@ -25,28 +25,44 @@ INSERT INTO public.rooms (id, room_number, floor, suite_type, room_status, featu
 VALUES
   -- Floor 1
   ('10000000-0000-0000-0000-000000000101', 101, 1, 'standard',  'available',
-   ARRAY['wifi','tv'],                           '00000000-0000-0000-0000-000000000001'),
+   ARRAY['wifi','tv'],                           'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000102', 102, 1, 'deluxe',    'occupied',
-   ARRAY['wifi','tv','minibar'],                 '00000000-0000-0000-0000-000000000001'),
+   ARRAY['wifi','tv','minibar'],                 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000103', 103, 1, 'suite',     'available',
-   ARRAY['wifi','tv','jacuzzi','minibar'],        '00000000-0000-0000-0000-000000000001'),
+   ARRAY['wifi','tv','jacuzzi','minibar'],        'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
 
   -- Floor 2
   ('10000000-0000-0000-0000-000000000201', 201, 2, 'standard',  'available',
-   ARRAY['wifi','tv'],                           '00000000-0000-0000-0000-000000000001'),
+   ARRAY['wifi','tv'],                           'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000202', 202, 2, 'deluxe',    'occupied',
-   ARRAY['wifi','tv','balcony'],                 '00000000-0000-0000-0000-000000000001'),
+   ARRAY['wifi','tv','balcony'],                 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000203', 203, 2, 'penthouse', 'maintenance',
-   ARRAY['wifi','tv','kitchen','jacuzzi'],        '00000000-0000-0000-0000-000000000001'),
+   ARRAY['wifi','tv','kitchen','jacuzzi'],        'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
 
   -- Floor 3
   ('10000000-0000-0000-0000-000000000301', 301, 3, 'standard',  'available',
-   ARRAY['wifi','tv'],                           '00000000-0000-0000-0000-000000000001'),
+   ARRAY['wifi','tv'],                           'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000302', 302, 3, 'deluxe',    'available',
-   ARRAY['wifi','tv','balcony'],                 '00000000-0000-0000-0000-000000000001'),
+   ARRAY['wifi','tv','balcony'],                 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000303', 303, 3, 'suite',     'occupied',
-   ARRAY['wifi','tv','jacuzzi','minibar','balcony'], '00000000-0000-0000-0000-000000000001')
+   ARRAY['wifi','tv','jacuzzi','minibar','balcony'], 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
 ON CONFLICT (id) DO NOTHING;
+
+-- If these rows already existed from an earlier seed, ensure they point at the
+-- new hardcoded hotel id (keeps the seed idempotent across schema/data tweaks).
+UPDATE public.rooms
+SET hotel_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+WHERE id IN (
+  '10000000-0000-0000-0000-000000000101',
+  '10000000-0000-0000-0000-000000000102',
+  '10000000-0000-0000-0000-000000000103',
+  '10000000-0000-0000-0000-000000000201',
+  '10000000-0000-0000-0000-000000000202',
+  '10000000-0000-0000-0000-000000000203',
+  '10000000-0000-0000-0000-000000000301',
+  '10000000-0000-0000-0000-000000000302',
+  '10000000-0000-0000-0000-000000000303'
+);
 
 -- -----------------------------------------------------------------------------
 -- Guests
@@ -63,6 +79,9 @@ ON CONFLICT (id) DO NOTHING;
 -- Guest bookings
 --   active   → guest appears on the room in GET /api/v1/rooms
 --   inactive → filtered out (verifies the LEFT JOIN WHERE status = 'active')
+--
+-- Note: `guest_bookings.hotel_id` was added later; this seed remains compatible
+-- with databases that haven't applied that migration yet.
 -- -----------------------------------------------------------------------------
 INSERT INTO public.guest_bookings (id, guest_id, room_id, arrival_date, departure_date, notes, status)
 VALUES
@@ -91,12 +110,29 @@ VALUES
    '2026-03-01', '2026-03-07', NULL, 'inactive')
 ON CONFLICT (id) DO NOTHING;
 
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'guest_bookings'
+      AND column_name = 'hotel_id'
+  ) THEN
+    UPDATE public.guest_bookings gb
+    SET hotel_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+    WHERE gb.id::text LIKE 'b0000000%'
+      AND gb.hotel_id IS NULL;
+  END IF;
+END
+$$;
+
 COMMIT;
 
 -- Quick sanity-check (printed after the transaction commits)
-SELECT 'hotels'        AS "table", COUNT(*) FROM public.hotels        WHERE id  = '00000000-0000-0000-0000-000000000001'
+SELECT 'hotels'        AS "table", COUNT(*) FROM public.hotels        WHERE id  = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
 UNION ALL
-SELECT 'rooms',                    COUNT(*) FROM public.rooms          WHERE hotel_id = '00000000-0000-0000-0000-000000000001'
+SELECT 'rooms',                    COUNT(*) FROM public.rooms          WHERE hotel_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
 UNION ALL
 SELECT 'guests',                   COUNT(*) FROM public.guests         WHERE id::text LIKE 'a0000000%'
 UNION ALL
