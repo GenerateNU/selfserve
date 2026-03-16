@@ -358,6 +358,15 @@ definitions:
       status:
         $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
     type: object
+  github_com_generate_selfserve_internal_models.GuestPage:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestWithBooking'
+        type: array
+      next_cursor:
+        type: string
+    type: object
   github_com_generate_selfserve_internal_models.GuestWithBooking:
     properties:
       first_name:
@@ -435,15 +444,21 @@ paths:
           type: integer
         name: floors
         type: array
+      - description: Cursor for pagination
+        in: query
+        name: cursor
+        type: string
+      - description: Number of results to return
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestWithBooking'
-            type: array
+            $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestPage'
         "400":
           description: Bad Request
           schema:

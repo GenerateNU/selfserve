@@ -8,8 +8,10 @@ export const createRequest = (
   getToken: () => Promise<string | null>,
   baseUrl: string,
 ) => {
+  const hardCodedHotelId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
+    console.log("fetching", fullUrl);
     if (config.params && Object.keys(config.params).length > 0) {
       const searchParams = new URLSearchParams(config.params);
       fullUrl += '?' + searchParams.toString();
@@ -23,6 +25,7 @@ export const createRequest = (
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
+          "X-Hotel-ID": hardCodedHotelId,
           ...config.headers,
         },
         body: config.data ? JSON.stringify(config.data) : undefined,

@@ -163,7 +163,9 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Produce      json
 // @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
 // @Param        floors      query     []int   false  "Floors"
-// @Success      200         {object}  []models.GuestWithBooking
+// @Param        cursor      query     string  false  "Cursor for pagination"
+// @Param        limit       query     int     false  "Number of results to return"
+// @Success      200         {object}  models.GuestPage
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
 // @Router       /api/v1/guests [get]
@@ -177,6 +179,14 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	filter.HotelID = hotelID
 	if err := c.QueryParser(filter); err != nil {
 		return errs.BadRequest("invalid filters")
+	}
+
+	if !validUUID(filter.Cursor) {
+		return errs.BadRequest("invalid cursor")
+	}
+
+	if filter.Limit <= 0 {
+		return errs.BadRequest("invalid limit")
 	}
 
 	guests, err := h.GuestsRepository.FindGuests(c.Context(), filter)

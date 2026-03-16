@@ -24,8 +24,15 @@ type Guest struct {
 } //@name Guest
 
 type GuestFilter struct {
-	HotelID string 
-    Floors *[]int `query:"floors"`
+    HotelID string
+    Floors  *[]int `query:"floors"`
+    Cursor  string `query:"cursor"`
+    Limit   int    `query:"limit"`
+}
+
+type GuestPage struct {
+    Data       []*GuestWithBooking `json:"data"`
+    NextCursor *string             `json:"next_cursor"`
 }
 
 type GuestWithBooking struct {

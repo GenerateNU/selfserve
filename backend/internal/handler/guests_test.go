@@ -21,7 +21,7 @@ type mockGuestsRepository struct {
 	insertGuestFunc func(ctx context.Context, req *models.CreateGuest) (*models.Guest, error)
 	findGuestFunc   func(ctx context.Context, id string) (*models.Guest, error)
 	updateGuestFunc func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error)
-	findGuestsFunc func(ctx context.Context, f *models.GuestFilter) ([]*models.GuestWithBooking, error)
+	findGuestsFunc func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error)
 	findGuestStaysFunc func (ctx context.Context, id string) (*models.GuestWithStays, error)
 }
 
@@ -37,7 +37,7 @@ func (m *mockGuestsRepository) UpdateGuest(ctx context.Context, id string, updat
 	return m.updateGuestFunc(ctx, id, update)
 }
 
-func (m *mockGuestsRepository) FindGuests(ctx context.Context, f *models.GuestFilter) ([]*models.GuestWithBooking, error) {
+func (m *mockGuestsRepository) FindGuests(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error) {
 	return m.findGuestsFunc(ctx, f)
 }
 

@@ -35,6 +35,7 @@ export const unstable_settings = {
 function AppConfigurator() {
   const { getToken } = useAuth();
   useEffect(() => {
+    console.log("setting config", process.env.EXPO_PUBLIC_API_BASE_URL);
     setConfig({
       API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
       getToken,
