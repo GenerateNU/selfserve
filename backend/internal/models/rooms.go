@@ -9,7 +9,6 @@ type Room struct {
 
 type RoomFilter struct {
 	Floors *[]int `query:"floors"`
-	Cursor string `query:"cursor"`
 	Limit  int    `query:"limit"`
 }
 

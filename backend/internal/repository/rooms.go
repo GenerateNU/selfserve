@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/generate/selfserve/internal/models"
 	"github.com/generate/selfserve/internal/utils"
@@ -17,10 +18,14 @@ func NewRoomsRepository(pool *pgxpool.Pool) *RoomsRepository {
 	return &RoomsRepository{db: pool}
 }
 
-func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filters *models.RoomFilter, hotelID string) ([]*models.RoomWithOptionalGuestBooking, error) {
-	_, cursorRoomNumber, err := utils.DecodeCursorInt(filters.Cursor)
-	if err != nil {
-		return nil, err
+func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filters *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
+	cursorRoomNumber := 0
+	if cursor != "" {
+		var err error
+		cursorRoomNumber, err = strconv.Atoi(cursor)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	limit := utils.ResolveLimit(filters.Limit)
