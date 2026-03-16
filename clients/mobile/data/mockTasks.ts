@@ -68,8 +68,7 @@ export const unassignedTasks: Task[] = [
     priority: "High",
     department: "Room Service",
     location: "Floor 30, Penthouse 2",
-    description:
-      "Lorem Ipsum dolor sit amet description here...",
+    description: "Lorem Ipsum dolor sit amet description here...",
     isAssigned: false,
   },
   {
@@ -78,8 +77,7 @@ export const unassignedTasks: Task[] = [
     priority: "High",
     department: "Room Service",
     location: "Floor 30, Penthouse 5",
-    description:
-      "Lorem Ipsum dolor sit amet description here...",
+    description: "Lorem Ipsum dolor sit amet description here...",
     isAssigned: false,
   },
   {

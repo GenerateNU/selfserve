@@ -1,7 +1,7 @@
 // components/ui/filters.tsx
-import React from 'react';
-import { View } from 'react-native';
-import { Dropdown } from './dropdown';
+import React from "react";
+import { View } from "react-native";
+import { Dropdown } from "./dropdown";
 
 interface FilterOption<T> {
   label: string;
@@ -13,7 +13,7 @@ export interface Filter<T> {
   onChange: (value: T) => void;
   options: FilterOption<T>[];
   placeholder: string;
-  emptyValue: T; 
+  emptyValue: T;
 }
 
 interface FiltersProps {
@@ -26,7 +26,7 @@ interface FiltersProps {
 
 export function Filters({ filters, className }: FiltersProps) {
   return (
-    <View className={`flex-row gap-[2vw] ${className || ''}`}>
+    <View className={`flex-row gap-[2vw] ${className || ""}`}>
       {filters.map((filter, index) => (
         <Dropdown key={index} {...filter} />
       ))}

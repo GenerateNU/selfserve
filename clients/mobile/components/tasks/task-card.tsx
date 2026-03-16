@@ -12,9 +12,7 @@ interface TaskCardProps {
 }
 
 function DotSeparator() {
-  return (
-    <View className="w-1 h-1 rounded-full bg-blue-600 mx-1.5" />
-  );
+  return <View className="w-1 h-1 rounded-full bg-blue-600 mx-1.5" />;
 }
 
 export function TaskCard({ task, variant, isExpanded }: TaskCardProps) {

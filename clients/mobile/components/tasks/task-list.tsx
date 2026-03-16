@@ -12,10 +12,10 @@ interface TaskListProps {
 export function TaskList({ tasks, variant }: TaskListProps) {
   const renderItem: ListRenderItem<Task> = ({ item, index }) => {
     const isExpanded =
-      variant === TASK_ASSIGNMENT_STATE.ASSIGNED ? index === 0 : item.priority === "High";
-    return (
-      <TaskCard task={item} variant={variant} isExpanded={isExpanded} />
-    );
+      variant === TASK_ASSIGNMENT_STATE.ASSIGNED
+        ? index === 0
+        : item.priority === "High";
+    return <TaskCard task={item} variant={variant} isExpanded={isExpanded} />;
   };
 
   return (

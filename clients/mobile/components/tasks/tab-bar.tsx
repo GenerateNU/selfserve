@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Pressable, Text, View } from "react-native";
 
-import {TAB, TabName} from "@/constants/tasks";
+import { TAB, TabName } from "@/constants/tasks";
 
 interface TabBarProps {
   activeTab: TabName;

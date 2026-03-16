@@ -39,7 +39,9 @@ export default function TasksScreen() {
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
       {currentTab.showFilters && (
         <ActiveFilterChips
-          filters={[{ label: "Department: Room Service", value: "room-service" }]}
+          filters={[
+            { label: "Department: Room Service", value: "room-service" },
+          ]}
           onRemoveFilter={() => {}}
           onClearAll={() => {}}
         />
