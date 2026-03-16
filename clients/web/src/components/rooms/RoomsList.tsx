@@ -1,18 +1,18 @@
-import { RoomCard } from '@/components/rooms/RoomCard'
+import { RoomCard } from "@/components/rooms/RoomCard";
 
 export type Room = {
-  id: string
-  room_number: string
-  floor: number
-  room_type: string
-  tags?: Array<string>
-}
+  id: string;
+  room_number: string;
+  floor: number;
+  room_type: string;
+  tags?: Array<string>;
+};
 
 type RoomsListProps = {
-  rooms: Array<Room>
-  onRoomSelect: (roomId: string) => void
-  selectedRoomId?: string | null
-}
+  rooms: Array<Room>;
+  onRoomSelect: (roomId: string) => void;
+  selectedRoomId?: string | null;
+};
 
 export function RoomsList({
   rooms,
@@ -35,5 +35,5 @@ export function RoomsList({
         </ul>
       </nav>
     </section>
-  )
+  );
 }

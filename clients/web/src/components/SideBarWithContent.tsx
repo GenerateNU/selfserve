@@ -1,13 +1,13 @@
-import { Outlet } from '@tanstack/react-router'
-import { Sidebar } from './Sidebar'
+import { Outlet } from "@tanstack/react-router";
+import { Sidebar } from "./Sidebar";
 
 export function SideBarWithContent() {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 p-6">
+      <main className="flex-1">
         <Outlet />
       </main>
     </div>
-  )
+  );
 }

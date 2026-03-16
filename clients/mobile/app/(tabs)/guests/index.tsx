@@ -57,17 +57,11 @@ export default function GuestsList() {
   return (
     <View className="flex-1 bg-white">
       <Header title="Guests" />
-      
+
       <ScrollView className="flex-1 px-[4vw] py-[2vh]">
-        <SearchBar 
-          value={search}
-          onChangeText={setSearch}
-        />
-        
-        <Filters
-          filters={filterConfig}
-          className="mt-[2vh]"
-        />
+        <SearchBar value={search} onChangeText={setSearch} />
+
+        <Filters filters={filterConfig} className="mt-[2vh]" />
 
         <View className="mt-[2vh] gap-[1vh]">
           {data?.map((guest) => (

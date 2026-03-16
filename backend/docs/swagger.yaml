@@ -11,6 +11,9 @@ definitions:
       first_name:
         example: John
         type: string
+      hotel_id:
+        example: hotel_123
+        type: string
       id:
         example: user_123
         type: string
@@ -117,6 +120,7 @@ definitions:
         type: string
       floors:
         example: 10
+        minimum: 1
         type: integer
       id:
         example: "550e8400-e29b-41d4-a\t716-446655440000"
@@ -258,6 +262,21 @@ definitions:
     - room_number
     - status
     type: object
+  UpdateGuest:
+    properties:
+      first_name:
+        example: Jane
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+    type: object
   User:
     properties:
       created_at:
@@ -271,6 +290,9 @@ definitions:
         type: string
       first_name:
         example: John
+        type: string
+      hotel_id:
+        example: hotel_123
         type: string
       id:
         example: user_123
@@ -383,21 +405,6 @@ definitions:
       suite_type:
         type: string
     type: object
-  github_com_generate_selfserve_internal_models.UpdateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
 host: localhost:8080
 info:
   contact:
@@ -413,16 +420,18 @@ info:
 paths:
   /api/v1/guests:
     get:
-      description: Retrieves guests ptionally filtered by floor in which they are
+      description: Retrieves guests optionally filtered by floor in which they are
         staying
       parameters:
-      - collectionFormat: csv
-        description: Floor numbers
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Floor
         in: query
-        items:
-          type: integer
-        name: floors[]
-        type: array
+        name: number
+        type: string
       produces:
       - application/json
       responses:
@@ -532,7 +541,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.UpdateGuest'
+          $ref: '#/definitions/UpdateGuest'
       produces:
       - application/json
       responses:
@@ -598,6 +607,40 @@ paths:
       summary: Gets a guest with previous stays
       tags:
       - guests
+  /api/v1/hotels:
+    post:
+      consumes:
+      - application/json
+      description: Create a new hotel with the given data
+      parameters:
+      - description: Hotel data
+        in: body
+        name: hotel
+        required: true
+        schema:
+          $ref: '#/definitions/Hotel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/Hotel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create hotel
+      tags:
+      - hotels
   /api/v1/hotels/{id}:
     get:
       description: Retrieve a hotel's details using its UUID
@@ -730,40 +773,6 @@ paths:
       summary: Get personalized hello message
       tags:
       - hello
-  /hotel:
-    post:
-      consumes:
-      - application/json
-      description: Create a new hotel with the given data
-      parameters:
-      - description: Hotel data
-        in: body
-        name: hotel
-        required: true
-        schema:
-          $ref: '#/definitions/Hotel'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/Hotel'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create hotel
-      tags:
-      - hotels
   /request:
     post:
       consumes:
@@ -834,9 +843,9 @@ paths:
       - requests
   /rooms:
     get:
-      description: Retrieves rooms optionally filtered by room number
+      description: Retrieves rooms optionally filtered by floor
       parameters:
-      - description: Room number
+      - description: floor
         in: query
         name: number
         type: string

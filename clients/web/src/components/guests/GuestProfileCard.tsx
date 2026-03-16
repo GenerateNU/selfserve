@@ -1,9 +1,9 @@
-import { UserRound } from 'lucide-react'
-import type { GuestProfile } from './guest-mocks'
+import { UserRound } from "lucide-react";
+import type { GuestProfile } from "./guest-mocks";
 
 type GuestProfileCardProps = {
-  guest: GuestProfile
-}
+  guest: GuestProfile;
+};
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
@@ -11,7 +11,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <p className="text-[#b6bac3]">{label}</p>
       <p className="text-black">{value}</p>
     </div>
-  )
+  );
 }
 
 export function GuestProfileCard({ guest }: GuestProfileCardProps) {
@@ -47,5 +47,5 @@ export function GuestProfileCard({ guest }: GuestProfileCardProps) {
         />
       </div>
     </section>
-  )
+  );
 }

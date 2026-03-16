@@ -14,7 +14,7 @@ type UpdateGuest struct {
 	LastName       string  `json:"last_name" validate:"notblank" example:"Doe"`
 	ProfilePicture *string `json:"profile_picture,omitempty" validate:"omitempty,url" example:"https://example.com/john.jpg"`
 	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
-}
+} //@name UpdateGuest
 
 type Guest struct {
 	ID        string    `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
@@ -24,7 +24,8 @@ type Guest struct {
 } //@name Guest
 
 type GuestFilter struct {
-    Floors []int `query:"floors"`
+	HotelID string 
+    Floors *[]int `query:"floors"`
 }
 
 type GuestWithBooking struct {
