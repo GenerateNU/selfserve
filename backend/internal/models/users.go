@@ -12,6 +12,8 @@ type CreateUser struct {
 	Role           *string `json:"role,omitempty" validate:"omitempty" example:"Receptionist"`
 	Department     *string `json:"department,omitempty" validate:"omitempty" example:"Housekeeping"`
 	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
+	ClerkID        string  `json:"clerk_id" example:"user_123"`
+
 } //@name CreateUser
 
 type CreateUserWebhook struct {
