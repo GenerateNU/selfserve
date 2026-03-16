@@ -1,16 +1,15 @@
 package models
 
 type Room struct {
-    RoomNumber int    `json:"room_number"`
-    Floor      int    `json:"floor"`
-    SuiteType  string `json:"suite_type"`
-    RoomStatus string `json:"room_status"`
+	RoomNumber int    `json:"room_number"`
+	Floor      int    `json:"floor"`
+	SuiteType  string `json:"suite_type"`
+	RoomStatus string `json:"room_status"`
 }
 
 type RoomFilter struct {
-    Floors *[]int `query:"floors"`
+	Floors *[]int `query:"floors"`
 }
-
 
 type RoomWithBooking struct {
 	Room

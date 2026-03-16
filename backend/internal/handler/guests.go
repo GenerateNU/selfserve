@@ -79,9 +79,8 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 	return c.JSON(guest)
 }
 
-
 // GetGuest godoc
-// @Summary      Gets a guest with previous stays 
+// @Summary      Gets a guest with previous stays
 // @Description  Retrieves a single guest with previous stays given an id
 // @Tags         guests
 // @Accept       json
@@ -110,7 +109,6 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 
 	return c.JSON(guest)
 }
-
 
 // UpdateGuest godoc
 // @Summary      Updates a guest
@@ -154,7 +152,6 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 
 	return c.JSON(guest)
 }
-
 
 // GetGuests godoc
 // @Summary      Get Guests

@@ -145,7 +145,6 @@ func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*
 	return guest, nil
 }
 
-
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
 	var guest models.Guest
 
@@ -187,8 +186,6 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 
 	return &guest, nil
 }
-
-
 
 func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.GuestFilter) ([]*models.GuestWithBooking, error) {
 	floors := []int{}

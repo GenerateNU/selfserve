@@ -8,11 +8,11 @@ import (
 )
 
 type RoomsRepository struct {
-    db *pgxpool.Pool
+	db *pgxpool.Pool
 }
 
 func NewRoomsRepository(pool *pgxpool.Pool) *RoomsRepository {
-    return &RoomsRepository{db: pool}
+	return &RoomsRepository{db: pool}
 }
 
 func (r *RoomsRepository) FindRooms(ctx context.Context, filters *models.RoomFilter) ([]*models.RoomWithBooking, error) {
@@ -48,4 +48,3 @@ func (r *RoomsRepository) FindRooms(ctx context.Context, filters *models.RoomFil
 
 	return rooms, nil
 }
-
