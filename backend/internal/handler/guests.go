@@ -162,7 +162,7 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Tags         guests
 // @Produce      json
 // @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
-// @Param        number      query     string  false  "Floor"
+// @Param        floors      query     []int   false  "Floors"
 // @Success      200         {object}  []models.GuestWithBooking
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string

@@ -45,7 +45,7 @@ export default function GuestsList() {
   ];
 
   const { data, isLoading, isError, error } = useGetApiV1Guests({
-    "floors[]": floors ?? undefined
+    "floors": floors ?? undefined
   })
 
   console.log("data", data)
