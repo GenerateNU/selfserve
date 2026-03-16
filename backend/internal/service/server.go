@@ -14,6 +14,7 @@ import (
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/generate/selfserve/internal/service/clerk"
+	s3storage "github.com/generate/selfserve/internal/service/s3"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/validation"
 	"github.com/goccy/go-json"
@@ -27,16 +28,26 @@ import (
 )
 
 type App struct {
-	Server *fiber.App
-	Repo   *storage.Repository
+	Server    *fiber.App
+	Repo      *storage.Repository
+	S3Storage *s3storage.Storage
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
 	validation.Init()
 
 	// Init DB/repository(ies)
+
 	repo, err := storage.NewRepository(cfg.DB)
 	if err != nil {
+		return nil, err
+	}
+
+	s3Store, err := s3storage.NewS3Storage(cfg.S3)
+	if err != nil {
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
 		return nil, err
 	}
 
@@ -45,7 +56,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, cfg); err != nil {
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store); err != nil {
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -53,15 +64,15 @@ func InitApp(cfg *config.Config) (*App, error) {
 	}
 
 	return &App{
-		Server: app,
-		Repo:   repo,
+		Server:    app,
+		Repo:      repo,
+		S3Storage: s3Store,
 	}, nil
 
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	cfg *config.Config) error {
-
+	cfg *config.Config, s3Store *s3storage.Storage) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -85,13 +96,13 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
+	s3Handler := handler.NewS3Handler(s3Store)
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
 		return err
 	}
 	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
-
 	// API v1 routes
 	api := app.Group("/api/v1")
 
@@ -139,6 +150,12 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/hotels", func(r fiber.Router) {
 		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
+	})
+
+	// s3 routes
+
+	api.Route("/s3", func(r fiber.Router) {
+		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
 	})
 
 	return nil
