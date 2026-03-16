@@ -13,6 +13,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+const defaultPageSize = 20
+
 type RequestsHandler struct {
 	RequestRepository      storage.RequestsRepository
 	GenerateRequestService aiflows.GenerateRequestService
@@ -144,6 +146,50 @@ func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
 	}
 
 	return nil
+}
+
+// GetRequestByCursor godoc
+// @Summary      Get requests by cursor
+// @Description  Gets 20 requests starting after the cursor ID, filtered by status
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        cursor    path      string  true  "Cursor UUID"
+// @Param        status    query     string  true  "Status filter: pending, assigned, in progress, completed"
+// @Param        hotel_id  query     string  true  "Hotel UUID"
+// @Success      200     {object}  map[string]interface{}  "Returns requests array and next_cursor"
+// @Failure      400     {object}  map[string]string
+// @Failure      500     {object}  map[string]string
+// @Router       /request/cursor/{cursor} [get]
+func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
+	cursor := c.Params("cursor")
+	status := c.Query("status")
+	hotelID := c.Query("hotel_id")
+
+	if !validUUID(cursor) {
+		return errs.BadRequest("cursor is not a valid request UUID")
+	}
+
+	if !models.RequestStatus(status).IsValid() {
+		return errs.BadRequest("Status must be one of: pending, assigned, in progress, completed")
+	}
+
+	if !validUUID(hotelID) {
+		return errs.BadRequest("hotel_id is not a valid UUID")
+	}
+
+	requests, nextCursor, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursor, status, hotelID, defaultPageSize)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request cursor id", "cursor", cursor)
+		}
+		return c.SendStatus(fiber.ErrInternalServerError.Code)
+	}
+
+	return c.JSON(fiber.Map{
+		"requests":    requests,
+		"next_cursor": nextCursor,
+	})
 }
 
 // GenerateRequest godoc
