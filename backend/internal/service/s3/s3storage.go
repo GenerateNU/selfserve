@@ -55,7 +55,7 @@ func (s *Storage) GeneratePresignedURL(ctx context.Context, key string, expirati
 	}, func(opts *s3.PresignOptions) {
 		opts.Expires = expiration
 	},
-)
+	)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to generate presigned URL with key %s: %w", key, err)
@@ -78,5 +78,3 @@ func (s *Storage) DeleteFile(ctx context.Context, key string) error {
 
 	return nil
 }
-
-

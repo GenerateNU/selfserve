@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"time"
-    "github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/errs"
 	s3storage "github.com/generate/selfserve/internal/service/s3"
 	"github.com/gofiber/fiber/v2"
-
+	"time"
 )
 
 const expirationTime = 5 * time.Minute // Moved to a package level constant for reusability
