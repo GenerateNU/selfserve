@@ -3,11 +3,11 @@ import { Pressable, Text, View } from "react-native";
 
 import { TaskBadge } from "@/components/tasks/task-badge";
 import type { Task } from "@/data/mockTasks";
-import {VARIANT} from "@/constants/tasks";
+import { TASK_ASSIGNMENT_STATE } from "@/constants/tasks";
 
 interface TaskCardProps {
   task: Task;
-  variant: (typeof VARIANT)[keyof typeof VARIANT];
+  variant: (typeof TASK_ASSIGNMENT_STATE)[keyof typeof TASK_ASSIGNMENT_STATE];
   isExpanded: boolean;
 }
 
@@ -18,7 +18,7 @@ function DotSeparator() {
 }
 
 export function TaskCard({ task, variant, isExpanded }: TaskCardProps) {
-  const isAssigned = variant === VARIANT.ASSIGNED;
+  const isAssigned = variant === TASK_ASSIGNMENT_STATE.ASSIGNED;
 
   if (isAssigned && isExpanded) {
     return (

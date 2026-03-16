@@ -6,12 +6,27 @@ import { ActiveFilterChips } from "@/components/tasks/active-filter-chips";
 import { TabBar } from "@/components/tasks/tab-bar";
 import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
-import { TAB, TabName, VARIANT } from "@/constants/tasks";
+import { TAB, TabName, TASK_ASSIGNMENT_STATE } from "@/constants/tasks";
 import { myTasks, unassignedTasks } from "@/data/mockTasks";
 
-const tabConfigs: Record<TabName, { tasks: typeof myTasks; variant: (typeof VARIANT)[keyof typeof VARIANT]; showFilters: boolean }> = {
-  [TAB.MY_TASKS]: { tasks: myTasks, variant: VARIANT.ASSIGNED, showFilters: false },
-  [TAB.UNASSIGNED]: { tasks: unassignedTasks, variant: VARIANT.UNASSIGNED, showFilters: true },
+const tabConfigs: Record<
+  TabName,
+  {
+    tasks: typeof myTasks;
+    variant: (typeof TASK_ASSIGNMENT_STATE)[keyof typeof TASK_ASSIGNMENT_STATE];
+    showFilters: boolean;
+  }
+> = {
+  [TAB.MY_TASKS]: {
+    tasks: myTasks,
+    variant: TASK_ASSIGNMENT_STATE.ASSIGNED,
+    showFilters: false,
+  },
+  [TAB.UNASSIGNED]: {
+    tasks: unassignedTasks,
+    variant: TASK_ASSIGNMENT_STATE.UNASSIGNED,
+    showFilters: true,
+  },
 };
 
 export default function TasksScreen() {
