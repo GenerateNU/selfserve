@@ -26,6 +26,9 @@ definitions:
       first_name:
         example: John
         type: string
+      hotel_id:
+        example: hotel_123
+        type: string
       id:
         example: user_123
         type: string
@@ -262,6 +265,9 @@ definitions:
         type: string
       first_name:
         example: John
+        type: string
+      hotel_id:
+        example: hotel_123
         type: string
       id:
         example: user_123

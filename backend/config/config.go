@@ -5,4 +5,5 @@ type Config struct {
 	DB          `env:",prefix=DB_"`
 	LLM         `env:",prefix=LLM_"`
 	Clerk       `env:",prefix=CLERK_"`
+	S3          `env:",prefix=AWS_S3_"`
 }
