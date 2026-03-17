@@ -2,6 +2,8 @@ package clerk
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/models"
 	"net/http"

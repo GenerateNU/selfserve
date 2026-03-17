@@ -2,22 +2,39 @@ package models
 
 import "time"
 
+type RequestStatus string
+
+const (
+	StatusPending    RequestStatus = "pending"
+	StatusAssigned   RequestStatus = "assigned"
+	StatusInProgress RequestStatus = "in progress"
+	StatusCompleted  RequestStatus = "completed"
+)
+
+func (s RequestStatus) IsValid() bool {
+	switch s {
+	case StatusPending, StatusAssigned, StatusInProgress, StatusCompleted:
+		return true
+	}
+	return false
+}
+
 // pointer fields are for easy handling of optional fields
 
 // for post because the ID and timestamps should always be generated
 type MakeRequest struct {
-	HotelID                 string     `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
+	HotelID                 string     `json:"hotel_id" validate:"notblank" example:"521e8400-e458-41d4-a716-446655440000"`
 	GuestID                 *string    `json:"guest_id" example:"521e8417-e458-41d4-a716-446655440990"`
 	UserID                  *string    `json:"user_id" example:"521ee400-e458-41d4-a716-446655440000"`
 	ReservationID           *string    `json:"reservation_id" example:"521e8400-e458-41d4-a716-498655440000"`
-	Name                    string     `json:"name" example:"room cleaning"`
+	Name                    string     `json:"name" validate:"notblank" example:"room cleaning"`
 	Description             *string    `json:"description" example:"clean 504"`
 	RoomID                  *string    `json:"room_id" example:"521e8422-e458-41d4-a716-446655440000"`
 	RequestCategory         *string    `json:"request_category" example:"Cleaning"`
-	RequestType             string     `json:"request_type" example:"recurring"`
+	RequestType             string     `json:"request_type" validate:"notblank" example:"recurring"`
 	Department              *string    `json:"department" example:"maintenance"`
-	Status                  string     `json:"status" example:"assigned"`
-	Priority                string     `json:"priority" example:"urgent"`
+	Status                  string     `json:"status"  validate:"notblank" example:"assigned"`
+	Priority                string     `json:"priority" validate:"notblank" example:"urgent"`
 	EstimatedCompletionTime *int       `json:"estimated_completion_time" example:"30"`
 	ScheduledTime           *time.Time `json:"scheduled_time" example:"2024-01-01T00:00:00Z"`
 	CompletedAt             *time.Time `json:"completed_at" example:"2024-01-01T00:30:00Z"`

@@ -76,17 +76,49 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
+func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT DISTINCT ON (id) *
-		FROM requests
-		ORDER BY id, request_version DESC
-	`)
+			SELECT *
+			FROM requests
+			WHERE id > $1 AND status = $2 AND hotel_id = $3
+			ORDER BY id
+			LIMIT $4
+		`, cursor, status, hotelID, pageSize+1)
 
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errs.ErrNotFoundInDB
+		return nil, "", err
+	}
+
+	defer rows.Close()
+
+	var requests []*models.Request
+	for rows.Next() {
+		var request models.Request
+		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
+			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
+			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
+			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
+			&request.CreatedAt, &request.UpdatedAt)
+		if err != nil {
+			return nil, "", err
 		}
+		requests = append(requests, &request)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, "", errs.ErrNotFoundInDB
+	}
+
+	if len(requests) == pageSize+1 {
+		return requests[:pageSize], requests[pageSize-1].ID, nil
+	}
+
+	return requests, "", nil
+}
+
+func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
+	rows, err := r.db.Query(ctx, `SELECT * FROM requests ORDER BY created_at DESC`)
+	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
@@ -95,10 +127,10 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 	for rows.Next() {
 		var request models.Request
 		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
-			&request.ReservationID, &request.Name, &request.Description,
+			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
 			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-			&request.CreatedAt, &request.UserID, &request.RequestVersion)
+			&request.CreatedAt, &request.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -110,5 +142,4 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 	}
 
 	return requests, nil
-
 }

@@ -1,15 +1,65 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #15502c;
+  --color-stroke-subtle: #d8d8d8;
+  --font-playfair: "Playfair Display", ui-serif, serif;
+  --color-primary-hover: #0a2916;
+  --color-success-accent: #e8fff0;
+  --color-success-container: #bdffdd;
+  --color-success-stroke: #00a575;
+  --color-success: #006c4c;
+  --color-success-on: #ffffff;
+  --color-success-on-container: #003826;
+  --color-success-strong: #003826;
+  --color-success-hover: #005138;
+  --color-success-hover-on: #ffffff;
+  --color-warning-accent: #fff9ea;
+  --color-warning-container: #fff2ab;
+  --color-warning-stroke: #a39100;
+  --color-warning: #6a5f00;
+  --color-warning-on: #ffffff;
+  --color-warning-on-container: #373100;
+  --color-warning-status: #c0ac00;
+  --color-warning-hover: #504700;
+  --color-warning-hover-on: #ffffff;
+  --color-danger-accent: #ffd5d5;
+  --color-danger-container: #ffbfbf;
+  --color-danger-stroke: #f93333;
+  --color-danger: #e71b1b;
+  --color-danger-on: #ffffff;
+  --color-danger-on-container: #990000;
+  --color-danger-strong: #f93333;
+  --color-danger-hover: #c90505;
+  --color-danger-hover-on: #ffffff;
+  --color-info-accent: #e9f2ff;
+  --color-info-container: #dfecff;
+  --color-info-stroke: #aac7ff;
+  --color-info: #a1bfff;
+  --color-info-on: #ffffff;
+  --color-info-on-container: #556f99;
+  --color-info-strong: #aac7ff;
+  --color-info-hover: #7996cc;
+  --color-info-hover-on: #ffffff;
+  --color-shadow-weak: #e5e5e5;
+  --color-shadow: #e7e7e7;
+  --color-shadow-strong: #dcdcdc;
+}
+
+button {
+  cursor: pointer;
+}
 
 body {
   @apply m-0;
   font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
   font-family:
-    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }

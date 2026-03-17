@@ -23,12 +23,11 @@ type RequestsRepository interface {
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
 
 	FindRequests(ctx context.Context) ([]models.Request, error)
-}
 
-type HotelRepository interface {
-	FindByID(ctx context.Context, id string) (*models.Hotel, error)
+	FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
 }
 
 type HotelsRepository interface {
+	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
 }

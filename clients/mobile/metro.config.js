@@ -19,6 +19,8 @@ config.resolver = {
       __dirname,
       "node_modules/@tanstack/react-query",
     ),
+    clsx: path.resolve(__dirname, "node_modules/clsx"),
+    "tailwind-merge": path.resolve(__dirname, "node_modules/tailwind-merge"),
   },
   // Explicitly block shared's node_modules and test files from being resolved
   blockList: [

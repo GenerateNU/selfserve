@@ -7,7 +7,7 @@ LOAD_ENV := set -a; [ -f $(ENV_FILE) ] && . $(ENV_FILE); set +a;
 LLM_URL := http://127.0.0.1:11434
 
 .PHONY: all build run dev test format tidy download clean docker-build docker-run \
-        migrate-new migrate-up migrate-down migrate-status migrate-reset db-start db-stop db-reset db-setup-env swagger swagger-fmt docker-build docker-run llm-start genkit-run
+        migrate-new migrate-up migrate-down migrate-status migrate-reset db-start db-stop db-reset db-setup-env swagger swagger-fmt docker-build docker-run llm-start genkit-run seed
 
 all: build
 
@@ -27,6 +27,10 @@ run: llm-start db-start
 	@$(LOAD_ENV) \
 	go run $(CMD_PATH)
 
+air: llm-start db-start
+	@$(LOAD_ENV) \
+	air
+
 ngrok: 
 	@$(LOAD_ENV) ngrok http --domain=$$NGROK_DOMAIN $(PORT)
 
@@ -41,12 +45,16 @@ genkit-run: llm-start db-start
 sync-users:
 	@$(LOAD_ENV) go run ./cmd/clerk/sync.go
 
+rooms-list-seed:
+	@$(LOAD_ENV) bash scripts/rooms-list-seed.sh
+
 test:
 	@$(LOAD_ENV) \
 	go test ./...
 
 format:
-	go fmt ./...
+	@go fmt ./...
+	@goimports -w $$(find . -name "*.go" -not -path "*/vendor/*")
 
 tidy:
 	go mod tidy
