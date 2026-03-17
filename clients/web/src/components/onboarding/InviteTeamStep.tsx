@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import LeftPanel from './LeftPanel'
-import { OnboardingFormData } from './types'
+import type { OnboardingFormData } from './types'
 
 interface InviteTeamStepProps {
   formData: OnboardingFormData

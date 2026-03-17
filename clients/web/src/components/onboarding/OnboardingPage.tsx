@@ -4,7 +4,7 @@ import RoleSelectionStep from './RoleSelectionStep'
 import EmployeeRoleStep from './EmployeeRoleStep'
 import PropertyDetailsStep from './PropertyDetailsStep'
 import InviteTeamStep from './InviteTeamStep'
-import { OnboardingFormData } from './types'
+import type { OnboardingFormData } from './types'
 
 const INITIAL_FORM_DATA: OnboardingFormData = {
   role: null,
