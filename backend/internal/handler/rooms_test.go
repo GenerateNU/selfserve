@@ -15,11 +15,11 @@ import (
 )
 
 type mockRoomsRepository struct {
-	findRoomsFunc func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error)
+	findRoomsFunc func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
 }
 
-func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
-	return m.findRoomsFunc(ctx, filter, hotelID, cursor)
+func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+	return m.findRoomsFunc(ctx, filter, hotelID, cursorRoomNumber)
 }
 
 var _ RoomsRepository = (*mockRoomsRepository)(nil)
@@ -33,7 +33,7 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return []*models.RoomWithOptionalGuestBooking{
 					{
 						Room:   models.Room{RoomNumber: 101, Floor: 1, SuiteType: "standard", RoomStatus: "available"},
@@ -68,7 +68,7 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		doe := "Doe"
 		pic := "https://example.com/jane.jpg"
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return []*models.RoomWithOptionalGuestBooking{
 					{
 						Room: models.Room{RoomNumber: 202, Floor: 2, SuiteType: "deluxe", RoomStatus: "occupied"},
@@ -110,7 +110,7 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return []*models.RoomWithOptionalGuestBooking{}, nil
 			},
 		}
@@ -142,7 +142,7 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		}
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return rooms, nil
 			},
 		}
@@ -170,12 +170,12 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 
 		var capturedFilter *models.RoomFilter
 		var capturedHotelID string
-		var capturedCursor string
+		var capturedCursor int
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				capturedFilter = filter
 				capturedHotelID = hotelID
-				capturedCursor = cursor
+				capturedCursor = cursorRoomNumber
 				return []*models.RoomWithOptionalGuestBooking{}, nil
 			},
 		}
@@ -193,14 +193,14 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		require.NotNil(t, capturedFilter)
 		assert.Equal(t, 10, capturedFilter.Limit)
 		assert.Equal(t, testHotelID, capturedHotelID)
-		assert.Equal(t, cursor, capturedCursor)
+		assert.Equal(t, 200, capturedCursor)
 	})
 
 	t.Run("returns 400 when hotel_id header is missing", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return nil, nil
 			},
 		}
@@ -220,7 +220,7 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return nil, nil
 			},
 		}
@@ -243,7 +243,7 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return nil, errors.New("db error")
 			},
 		}
