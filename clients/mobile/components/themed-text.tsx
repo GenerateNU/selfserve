@@ -1,5 +1,4 @@
 import { Text, type TextProps } from "react-native";
-import { twMerge } from "tailwind-merge";
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
@@ -27,7 +26,8 @@ export function ThemedText({
   const colorClass =
     lightColor || darkColor ? "" : "text-gray-900 dark:text-gray-100";
 
-  const combinedClassName = twMerge(typeClasses[type], colorClass, className);
+  const combinedClassName =
+    `${typeClasses[type]} ${colorClass} ${className}`.trim();
 
   return (
     <Text
