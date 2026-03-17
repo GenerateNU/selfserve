@@ -15,14 +15,20 @@ const INITIAL_FORM_DATA: OnboardingFormData = {
   inviteEmail: '',
 }
 
-type Step = 'welcome' | 'role' | 'employeeRole' | 'propertyDetails' | 'inviteTeam'
+type Step =
+  | 'welcome'
+  | 'role'
+  | 'employeeRole'
+  | 'propertyDetails'
+  | 'inviteTeam'
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState<Step>('welcome')
-  const [formData, setFormData] = useState<OnboardingFormData>(INITIAL_FORM_DATA)
+  const [formData, setFormData] =
+    useState<OnboardingFormData>(INITIAL_FORM_DATA)
 
   const updateForm = (updates: Partial<OnboardingFormData>) => {
-    setFormData(prev => ({ ...prev, ...updates }))
+    setFormData((prev) => ({ ...prev, ...updates }))
   }
 
   const handleRoleSelected = (role: string) => {
@@ -61,16 +67,15 @@ export default function OnboardingPage() {
             formData={formData}
             updateForm={updateForm}
             onNext={() => setCurrentStep('inviteTeam')}
-            onBack={() => setCurrentStep(formData.role === 'employee' ? 'employeeRole' : 'role')}
+            onBack={() =>
+              setCurrentStep(
+                formData.role === 'employee' ? 'employeeRole' : 'role',
+              )
+            }
           />
         )
       case 'inviteTeam':
-        return (
-          <InviteTeamStep
-            formData={formData}
-            updateForm={updateForm}
-          />
-        )
+        return <InviteTeamStep formData={formData} updateForm={updateForm} />
     }
   }
 

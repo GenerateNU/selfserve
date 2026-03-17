@@ -22,13 +22,24 @@ export default function WelcomeStep({ onNext }: WelcomeStepProps) {
           {/* Logo placeholder */}
           <div
             className="absolute border border-[#000000] bg-[#FFFFFF]"
-            style={{ width: '80px', height: '80px', top: '214px', left: '268px', borderRadius: '8px' }}
+            style={{
+              width: '80px',
+              height: '80px',
+              top: '214px',
+              left: '268px',
+              borderRadius: '8px',
+            }}
           />
 
           {/* Inner container: Welcome + Start */}
           <div
             className="absolute"
-            style={{ width: '446.6px', height: '193px', top: '294px', left: '85px' }}
+            style={{
+              width: '446.6px',
+              height: '193px',
+              top: '294px',
+              left: '85px',
+            }}
           >
             {/* Welcome text */}
             <h1
@@ -52,7 +63,13 @@ export default function WelcomeStep({ onNext }: WelcomeStepProps) {
             <button
               onClick={onNext}
               className="absolute bg-green-900 hover:bg-green-800 text-white flex items-center justify-center transition-colors"
-              style={{ width: '446.6px', height: '56px', top: '121px', left: '0px', borderRadius: '14px' }}
+              style={{
+                width: '446.6px',
+                height: '56px',
+                top: '121px',
+                left: '0px',
+                borderRadius: '14px',
+              }}
             >
               Start ›
             </button>

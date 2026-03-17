@@ -8,23 +8,38 @@ interface RoleSelectionStepProps {
 }
 
 const ROLES = [
-  { id: 'manager', label: 'Manager', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
-  { id: 'employee', label: 'Employee', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
+  {
+    id: 'manager',
+    label: 'Manager',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+  },
+  {
+    id: 'employee',
+    label: 'Employee',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+  },
 ]
 
-export default function RoleSelectionStep({ formData, onNext }: RoleSelectionStepProps) {
+export default function RoleSelectionStep({
+  formData,
+  onNext,
+}: RoleSelectionStepProps) {
   return (
     <div className="flex flex-row w-[1371px] h-[982px]">
       <LeftPanel />
 
       {/* Right panel */}
-      <div
-        className="w-[881px] border border-[#000000] bg-white flex items-center justify-center"
-      >
+      <div className="w-[881px] border border-[#000000] bg-white flex items-center justify-center">
         {/* Outer card */}
         <div
           className="bg-[#FFFFFF] border border-[#000000] flex flex-col items-center"
-          style={{ width: '642.6px', height: '492px', borderRadius: '24px', padding: '48px 38px', gap: '24px' }}
+          style={{
+            width: '642.6px',
+            height: '492px',
+            borderRadius: '24px',
+            padding: '48px 38px',
+            gap: '24px',
+          }}
         >
           {/* Logo placeholder */}
           <div
@@ -33,28 +48,32 @@ export default function RoleSelectionStep({ formData, onNext }: RoleSelectionSte
           />
 
           {/* Role title */}
-          <span style={{
-            fontFamily: 'Satoshi Variable',
-            fontWeight: 400,
-            fontSize: '24px',
-            lineHeight: '32px',
-            letterSpacing: '0.07px',
-            color: '#0F172B',
-            textAlign: 'center',
-          }}>
+          <span
+            style={{
+              fontFamily: 'Satoshi Variable',
+              fontWeight: 400,
+              fontSize: '24px',
+              lineHeight: '32px',
+              letterSpacing: '0.07px',
+              color: '#0F172B',
+              textAlign: 'center',
+            }}
+          >
             Role
           </span>
 
           {/* Subtitle */}
-          <span style={{
-            fontFamily: 'Satoshi Variable',
-            fontWeight: 400,
-            fontSize: '16px',
-            lineHeight: '24px',
-            color: '#62748E',
-            textAlign: 'center',
-            marginTop: '-16px',
-          }}>
+          <span
+            style={{
+              fontFamily: 'Satoshi Variable',
+              fontWeight: 400,
+              fontSize: '16px',
+              lineHeight: '24px',
+              color: '#62748E',
+              textAlign: 'center',
+              marginTop: '-16px',
+            }}
+          >
             Lorem ipsum dolor sit amet, consectetur adipiscing elit.
           </span>
 
@@ -66,7 +85,7 @@ export default function RoleSelectionStep({ formData, onNext }: RoleSelectionSte
               gap: '16px',
             }}
           >
-            {ROLES.map(role => (
+            {ROLES.map((role) => (
               <button
                 key={role.id}
                 onClick={() => onNext(role.id)}
@@ -78,25 +97,29 @@ export default function RoleSelectionStep({ formData, onNext }: RoleSelectionSte
                   padding: '16px',
                 }}
               >
-                <div style={{
-                  fontFamily: 'Satoshi Variable',
-                  fontWeight: 400,
-                  fontSize: '16px',
-                  lineHeight: '24px',
-                  letterSpacing: '-0.31px',
-                  color: '#0F172B',
-                }}>
+                <div
+                  style={{
+                    fontFamily: 'Satoshi Variable',
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    lineHeight: '24px',
+                    letterSpacing: '-0.31px',
+                    color: '#0F172B',
+                  }}
+                >
                   {role.label}
                 </div>
-                <div style={{
-                  fontFamily: 'Satoshi Variable',
-                  fontWeight: 400,
-                  fontSize: '16px',
-                  lineHeight: '24px',
-                  letterSpacing: '-0.31px',
-                  color: '#62748E',
-                  marginTop: '0.5px',
-                }}>
+                <div
+                  style={{
+                    fontFamily: 'Satoshi Variable',
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    lineHeight: '24px',
+                    letterSpacing: '-0.31px',
+                    color: '#62748E',
+                    marginTop: '0.5px',
+                  }}
+                >
                   {role.description}
                 </div>
               </button>
