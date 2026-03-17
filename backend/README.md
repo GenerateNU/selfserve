@@ -5,7 +5,6 @@
 ### Prerequisites
 
 - **Go 1.24.0 or later** - [Install Go](https://go.dev/doc/install)
-- **Doppler CLI** - [Install Doppler](https://docs.doppler.com/docs/install-cli) or `brew install dopplerhq/cli/doppler`
 
 ### Installation Steps
 
@@ -25,45 +24,52 @@
    make download
    ```
 
-4. **Set up Doppler secrets management**:
+4. **Set up environment variables**:
 
-   a. Authenticate with Doppler (first time only):
+   (Slack us for these)
+   Create a `config/.env` file with the following variables:
 
-   ```bash
-   doppler login
+   ```env
+   # Application Configuration
+   APP_PORT=8080
+   APP_LOG_LEVEL=info
+
+   # Database Configuration (required)
+   DB_HOST=your-database-host
+   DB_PORT=5432
+   DB_USER=your-database-user
+   DB_PASSWORD=your-database-password
+   DB_NAME=your-database-name
+   DB_MAX_CONNS=8
+   DB_MAX_CONN_LIFETIME=30s
    ```
 
-   b. Set up the backend project:
+   > **Note**: All database variables (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME) are required. The application will fail to start if they are missing.
 
-   ```bash
-   cd backend
-   doppler setup
+   **LLM Configuration** – used for parsing request text (e.g. `/request/parse`). Add this to your existing .env:
+
+   ```env
+   LLM_SERVER_ADDRESS=http://127.0.0.1:11434
+   LLM_MODEL=qwen2.5:3b
+   LLM_TIMEOUT=60
    ```
 
-   This will configure your local environment to use the `selfserve-backend` project with the `dev` config
-
-5. **Start local Supabase**:
+5. **Run with hot reload** (development):
 
    ```bash
-   make db-start
+   air
    ```
 
-6. **Run with hot reload** (development):
-
-   ```bash
-   make air
-   ```
-
-   Or run directly without hot reload:
-
-   ```bash
-   make run
-   ```
-
-   Or build and run:
+   Or run directly:
 
    ```bash
    make dev
+   ```
+
+   Or run with GenKit UI:
+
+   ```bash
+   make genkit-run
    ```
 
 ## Directory Structure
@@ -155,13 +161,13 @@ Logic traversal:
 make build
 
 # Run
-make air    # Hot reload
-
-# Or run directly
 make run
 
-# Or build and run
+# Build and run
 make dev
+
+# OR air to build and run if you installed air above
+air
 
 # Run tests
 make test
@@ -175,6 +181,16 @@ make clean
 
 ## Configuration
 
-The application reads configuration from environment variables injected by Doppler:
+The application reads configuration from environment variables (loaded from `config/.env`):
 
-See config/.env.sample
+- `APP_PORT`: Server port (default: 8080)
+- `APP_LOG_LEVEL`: Log level (default: info)
+- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`: Database connection details
+- `DB_MAX_CONNS`: Maximum database connections (default: 8)
+- `DB_MAX_CONN_LIFETIME`: Connection lifetime (default: 30s)
+
+- `LLM_SERVER_ADDRESS`: LLM server URL (default: http://127.0.0.1:11434)
+- `LLM_MODEL`: Model name, e.g. qwen2.5:7b-instruct, llama3.2, gemma2
+- `LLM_TIMEOUT`: Response timeout in seconds (default: 60)
+- `LLM_MAX_OUTPUT_TOKENS`: Max tokens for generation; lower values reduce latency (default: 1024)
+- `LLM_TEMPERATURE`: Sampling temperature 0–1; lower is more deterministic and often faster for extraction
