@@ -3,11 +3,13 @@ package handler
 import (
 	"errors"
 	"log/slog"
+	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -77,6 +79,55 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(guest)
+}
+
+// SearchGuests godoc
+// @Summary      Search guests
+// @Description  Searches active guests with optional floors, group size range, and text search filters
+// @Tags         guests
+// @Accept       json
+// @Produce      json
+// @Param        X-Hotel-ID  header    string                    true   "Hotel ID (UUID)"
+// @Param        request     body      models.GuestSearchFilter  false  "Search filters"
+// @Success      200         {object}  utils.CursorPage[models.GuestListItem]
+// @Failure      400         {object}  map[string]string
+// @Failure      500         {object}  map[string]string
+// @Router       /api/v1/guests/search [post]
+func (h *GuestsHandler) SearchGuests(c *fiber.Ctx) error {
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
+	filter := new(models.GuestSearchFilter)
+	if err := c.BodyParser(filter); err != nil {
+		return errs.InvalidJSON()
+	}
+
+	if filter.GroupSizeMin != nil && filter.GroupSizeMax != nil && *filter.GroupSizeMin > *filter.GroupSizeMax {
+		return errs.BadRequest("group_size_min must be less than or equal to group_size_max")
+	}
+
+	if filter.Cursor != nil {
+		cursor := strings.TrimSpace(*filter.Cursor)
+		if cursor != "" {
+			if _, err := uuid.Parse(cursor); err != nil {
+				return errs.BadRequest("cursor must be a valid UUID")
+			}
+		}
+	}
+
+	guests, err := h.GuestsRepository.FindGuestWithActiveBooking(c.Context(), hotelID, filter)
+	if err != nil {
+		slog.Error("failed to search guests", "hotel_id", hotelID, "error", err)
+		return errs.InternalServerError()
+	}
+
+	page := utils.BuildCursorPage(guests, filter.Limit, func(g *models.GuestListItem) string {
+		return g.GuestID
+	})
+
+	return c.JSON(page)
 }
 
 // UpdateGuest godoc

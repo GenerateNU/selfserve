@@ -137,6 +137,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// Guest Routes
 	api.Route("/guests", func(r fiber.Router) {
 		r.Post("/", guestsHandler.CreateGuest)
+		r.Post("/search", guestsHandler.SearchGuests)
 		r.Get("/:id", guestsHandler.GetGuest)
 		r.Put("/:id", guestsHandler.UpdateGuest)
 	})
