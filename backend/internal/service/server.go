@@ -13,6 +13,7 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
+
 	"github.com/generate/selfserve/internal/service/clerk"
 	s3storage "github.com/generate/selfserve/internal/service/s3"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
@@ -97,13 +98,13 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
+	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
 		return err
 	}
 	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
-	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
 
 	// API v1 routes
 	api := app.Group("/api/v1")
@@ -147,7 +148,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
-		r.Get("/", reqsHandler.GetRequests)
+		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
 	})
 
 	// Hotel routes
@@ -156,13 +157,12 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
 
-	// guest booking routes
+	// rooms routes
 	api.Route("/rooms", func(r fiber.Router) {
-		r.Get("/", roomsHandler.GetRooms)
+		r.Get("/", roomsHandler.GetRoomsByFloor)
 	})
 
 	// s3 routes
-
 	api.Route("/s3", func(r fiber.Router) {
 		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
 	})
@@ -190,7 +190,7 @@ func setupApp() *fiber.App {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
 		AllowMethods:     "GET,POST,PUT,DELETE",
-		AllowHeaders:     "Origin, Content-Type, Authorization",
+		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID",
 		AllowCredentials: true,
 	}))
 
