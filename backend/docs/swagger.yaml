@@ -2,9 +2,6 @@ basePath: /api/v1
 definitions:
   CreateUser:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       department:
         example: Housekeeping
         type: string
@@ -77,6 +74,25 @@ definitions:
       updated_at:
         example: "2024-01-02T00:00:00Z"
         type: string
+    type: object
+  GuestBooking:
+    properties:
+      arrival_date:
+        type: string
+      departure_date:
+        type: string
+      guest:
+        $ref: '#/definitions/Guest'
+      hotel_id:
+        example: 521e8400-e458-41d4-a716-446655440000
+        type: string
+      id:
+        example: f353ca91-4fc5-49f2-9b9e-304f83d11914
+        type: string
+      room:
+        $ref: '#/definitions/Room'
+      status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
     type: object
   GuestPage:
     properties:
@@ -255,6 +271,17 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
+  Room:
+    properties:
+      floor:
+        type: integer
+      room_number:
+        type: integer
+      room_status:
+        type: string
+      suite_type:
+        type: string
+    type: object
   RoomWithOptionalGuestBooking:
     properties:
       booking_status:
@@ -271,6 +298,25 @@ definitions:
         type: string
       suite_type:
         type: string
+    type: object
+  Stay:
+    properties:
+      arrival_date:
+        example: "2024-01-02"
+        type: string
+      departure_date:
+        example: "2024-01-05"
+        type: string
+      room_number:
+        example: 101
+        type: integer
+      status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+    required:
+    - arrival_date
+    - departure_date
+    - room_number
+    - status
     type: object
   UpdateGuest:
     properties:
@@ -289,9 +335,6 @@ definitions:
     type: object
   User:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
@@ -340,6 +383,57 @@ definitions:
     x-enum-varnames:
     - BookingStatusActive
     - BookingStatusInactive
+  github_com_generate_selfserve_internal_models.CreateGuest:
+    properties:
+      first_name:
+        example: Jane
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+    type: object
+  github_com_generate_selfserve_internal_models.GuestFilter:
+    properties:
+      cursor:
+        type: string
+      floors:
+        items:
+          type: integer
+        type: array
+      hotel_id:
+        type: string
+      limit:
+        maximum: 100
+        minimum: 1
+        type: integer
+    required:
+    - hotel_id
+    type: object
+  github_com_generate_selfserve_internal_models.GuestWithBooking:
+    properties:
+      first_name:
+        type: string
+      floor:
+        type: integer
+      id:
+        type: string
+      last_name:
+        type: string
+      room_number:
+        type: integer
+    required:
+    - first_name
+    - floor
+    - id
+    - last_name
+    - room_number
+    type: object
   github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
     properties:
       has_more:
@@ -635,7 +729,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestBooking'
+              $ref: '#/definitions/GuestBooking'
             type: array
         "400":
           description: Bad Request
@@ -738,6 +832,11 @@ paths:
         name: status
         required: true
         type: string
+      - description: Hotel UUID
+        in: query
+        name: hotel_id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -800,6 +899,11 @@ paths:
       description: Retrieves rooms optionally filtered by floor, with any active guest
         bookings
       parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
       - collectionFormat: csv
         description: floors
         in: query
