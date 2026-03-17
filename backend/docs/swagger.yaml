@@ -223,6 +223,23 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
+  RoomWithOptionalGuestBooking:
+    properties:
+      booking_status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+      floor:
+        type: integer
+      guests:
+        items:
+          $ref: '#/definitions/Guest'
+        type: array
+      room_number:
+        type: integer
+      room_status:
+        type: string
+      suite_type:
+        type: string
+    type: object
   UpdateGuest:
     properties:
       first_name:
@@ -282,6 +299,26 @@ definitions:
       code:
         type: integer
       message: {}
+    type: object
+  github_com_generate_selfserve_internal_models.BookingStatus:
+    enum:
+    - active
+    - inactive
+    type: string
+    x-enum-varnames:
+    - BookingStatusActive
+    - BookingStatusInactive
+  github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
+    properties:
+      has_more:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/RoomWithOptionalGuestBooking'
+        type: array
+      next_cursor:
+        description: nil when no more pages
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -650,6 +687,48 @@ paths:
       summary: generates a request
       tags:
       - requests
+  /rooms:
+    get:
+      description: Retrieves rooms optionally filtered by floor, with any active guest
+        bookings
+      parameters:
+      - collectionFormat: csv
+        description: floors
+        in: query
+        items:
+          type: integer
+        name: floors
+        type: array
+      - description: Opaque cursor for the next page
+        in: query
+        name: cursor
+        type: string
+      - description: Number of items per page (1-100, default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Rooms By Floor
+      tags:
+      - rooms
   /users:
     post:
       consumes:
