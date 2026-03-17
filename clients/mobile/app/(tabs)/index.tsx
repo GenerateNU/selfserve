@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { TextInput, Pressable, ActivityIndicator } from "react-native";
+import { Text, TextInput, Pressable, ActivityIndicator } from "react-native";
 import { useState } from "react";
 
 import { HelloWave } from "@/components/hello-wave";
@@ -35,7 +35,7 @@ export default function HomeScreen() {
       }
     >
       <ThemedView className="flex-row items-center gap-2">
-        <ThemedText type="title">Welcome!</ThemedText>
+        <Text className="text-primary text-[32px] font-bold">Welcome!</Text>
         <HelloWave />
       </ThemedView>
 
