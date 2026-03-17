@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState, useMemo } from "react";
 import {
   View,
@@ -14,9 +15,16 @@ import { GuestHeader, Tab } from "@/components/ui/guest-header";
 import { GuestProfileTab } from "@/components/ui/guest-profile";
 import { GuestRequestsTab } from "@/components/ui/guest-activity";
 import { Colors } from "@/constants/theme";
+=======
+import { useLocalSearchParams } from "expo-router";
+import { Text } from "react-native";
+import GuestProfile from "@/components/ui/guest-profile";
+import { guestData } from "@/test-data/guests";
+>>>>>>> 9282a6e (fix: prettier formatting)
 
 export default function GuestProfileScreen() {
   const { id } = useLocalSearchParams();
+<<<<<<< HEAD
   const guestId = id as string;
 
   const { data, isLoading } = useGetGuestsStaysId(guestId);
@@ -102,4 +110,14 @@ export default function GuestProfileScreen() {
       )}
     </View>
   );
+=======
+
+  const guest = guestData.find((g) => g.id === Number(id));
+
+  if (!guest) {
+    return <Text>Guest not found</Text>;
+  }
+
+  return <GuestProfile {...guest} />;
+>>>>>>> 9282a6e (fix: prettier formatting)
 }

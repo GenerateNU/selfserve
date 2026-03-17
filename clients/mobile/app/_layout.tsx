@@ -9,18 +9,18 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import { ClerkProvider } from "@clerk/clerk-expo";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { StartupProvider, StartupStatus, useStartup } from "@/context/startup";
-import NoUserInfo from "@/components/ui/NoUserInfo";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { usePushNotifications } from "@/hooks/use-push-notifications";
 
+import { tokenCache } from "@clerk/clerk-expo/token-cache";
+import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { setConfig } from "@shared";
+import { useEffect } from "react";
+
+// Client explicity created outside component to avoid recreation
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000,
+      staleTime: 60 * 1000, // 1 min
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -31,61 +31,46 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-function AppLayout() {
-  const colorScheme = useColorScheme();
-  const status = useStartup();
+// Component to configure auth provider and the api base url
+function AppConfigurator() {
+  const { getToken } = useAuth();
+  useEffect(() => {
+    setConfig({
+      API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
+      getToken,
+    });
+  }, [getToken]);
 
-  if (status === StartupStatus.NoUserInfo) return <NoUserInfo />;
-
-  return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="create-task-ai" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="create-task-manual"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="(auth)/sign-in" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="modal"
-          options={{ presentation: "modal", title: "Modal" }}
-        />
-      </Stack>
-      {status === StartupStatus.Loading && (
-        <View
-          style={StyleSheet.absoluteFill}
-          className="justify-center items-center bg-bg-primary"
-        >
-          <ActivityIndicator size="large" />
-        </View>
-      )}
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
-}
-
-// Registers the Expo push token with the backend and wires up tap-to-navigate.
-// Must render inside QueryClientProvider so useMutation is available.
-function PushNotificationRegistrar() {
-  usePushNotifications();
   return null;
 }
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
+
   return (
     <ClerkProvider
       publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       tokenCache={tokenCache}
     >
-      <QueryClientProvider client={queryClient}>
-        <PushNotificationRegistrar />
-        <StartupProvider>
+      <ClerkLoaded>
+        <AppConfigurator />
+        <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
-            <AppLayout />
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="modal"
+                  options={{ presentation: "modal", title: "Modal" }}
+                />
+              </Stack>
+              <StatusBar style="auto" />
+            </ThemeProvider>
           </SafeAreaProvider>
-        </StartupProvider>
-      </QueryClientProvider>
+        </QueryClientProvider>
+      </ClerkLoaded>
     </ClerkProvider>
   );
 }

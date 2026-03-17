@@ -1,20 +1,12 @@
-import { StartupStatus, useStartup } from "@/context/startup";
-import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-export default function Index() {
-  const status = useStartup();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === StartupStatus.Loading) return;
-    if (status === StartupStatus.Unauthenticated) {
-      router.replace("/sign-in");
-      return;
-    }
-
-    router.replace("/(tabs)");
-  }, [status, router]);
-
-  return null;
+export default function Page() {
+  return (
+    <View className="flex-1 items-center p-6">
+      <View className="flex-1 justify-center max-w-4xl mx-auto">
+        <Text className="text-6xl font-bold">Hello</Text>
+        <Text className="text-4xl text-gray-700">World</Text>
+      </View>
+    </View>
+  );
 }

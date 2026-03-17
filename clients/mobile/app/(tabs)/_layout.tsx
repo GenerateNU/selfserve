@@ -98,6 +98,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="guests"
         options={{
+<<<<<<< HEAD
           title: "Guest",
           tabBarIcon: ({ focused }) => (
             <TabBarIcon
@@ -122,6 +123,11 @@ export default function TabLayout() {
               highlightColor={c.tabBarHighlight}
               label="Profile"
             />
+=======
+          title: "Guests",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="person.3.fill" color={color} />
+>>>>>>> 9282a6e (fix: prettier formatting)
           ),
         }}
       />
