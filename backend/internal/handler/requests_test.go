@@ -850,9 +850,9 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
 				return []*models.Request{
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440001",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440001",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "room cleaning",
@@ -862,9 +862,9 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440002",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440002",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "towel request",

@@ -114,8 +114,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/user", clerkWebhookHandler.CreateUser)
 	})
 
-	// verifier := clerk.NewClerkJWTVerifier()
-	// app.Use(clerk.NewAuthMiddleware(verifier))
+	verifier := clerk.NewClerkJWTVerifier()
+	app.Use(clerk.NewAuthMiddleware(verifier))
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {

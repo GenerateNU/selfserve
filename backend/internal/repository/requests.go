@@ -95,10 +95,10 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 	for rows.Next() {
 		var request models.Request
 		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
-			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
+			&request.ReservationID, &request.Name, &request.Description,
 			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-			&request.CreatedAt, &request.UpdatedAt)
+			&request.CreatedAt, &request.UserID, &request.RequestVersion)
 		if err != nil {
 			return nil, "", err
 		}
@@ -127,10 +127,10 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 	for rows.Next() {
 		var request models.Request
 		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
-			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
+			&request.ReservationID, &request.Name, &request.Description,
 			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-			&request.CreatedAt, &request.UpdatedAt)
+			&request.CreatedAt, &request.UserID, &request.RequestVersion)
 		if err != nil {
 			return nil, err
 		}
