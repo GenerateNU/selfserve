@@ -33,12 +33,15 @@ export const unstable_settings = {
 
 // Component to configure auth provider and the api base url
 function AppConfigurator() {
-  const { getToken } = useAuth()
+  const { getToken } = useAuth();
   useEffect(() => {
-    setConfig({ API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? '', getToken })
-  }, [getToken])
-  
-  return null
+    setConfig({
+      API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
+      getToken,
+    });
+  }, [getToken]);
+
+  return null;
 }
 
 export default function RootLayout() {
