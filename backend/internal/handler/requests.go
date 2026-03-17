@@ -91,6 +91,30 @@ func validateCreateRequest(req *models.Request) error {
 	return nil
 }
 
+func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if !validUUID(id) {
+		return errs.BadRequest("request id is not a valid UUID")
+	}
+
+	var incoming models.MakeRequest
+	if err := c.BodyParser(&incoming); err != nil {
+		return errs.InvalidJSON()
+	}
+	req := models.Request{ID: id, MakeRequest: incoming}
+
+	if err := validateCreateRequest(&req); err != nil {
+		return err
+	}
+
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(res)
+}
+
 func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if !validUUID(id) {
