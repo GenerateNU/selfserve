@@ -27,46 +27,47 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
+	goredis "github.com/redis/go-redis/v9"
+
 )
 
 type App struct {
 	Server *fiber.App
 	Repo   *storage.Repository
-	RedisClient *redisClient
+	RedisClient *goredis.Client
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
-	// Init DB/repository(ies)
-	repo, err := storage.NewRepository(cfg.DB)
-	if err != nil {
-		return nil, err
-	}
+    repo, err := storage.NewRepository(cfg.DB)
+    if err != nil {
+        return nil, err
+    }
 
-// Init Redis (graceful degradation if unavailable)
-	redisClient, err := redis.InitRedis()
-	if err != nil {
-		log.Printf("Warning: Redis not available: %v", err)
-	} else {
-		defer redis.Close(redisClient)
-	}
+    // Init Redis (graceful degradation if unavailable)
+    var redisClient *goredis.Client
+    rc, redisErr := redis.InitRedis()
+    if redisErr != nil {
+        log.Printf("Warning: Redis not available: %v", redisErr)
+    } else {
+        redisClient = rc
+    }
 
-	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
+    genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
+    app := setupApp()
+    setupClerk(cfg)
 
-	app := setupApp()
-	setupClerk(cfg)
+    if err = setupRoutes(app, repo, genkitInstance, cfg); err != nil {
+        if e := repo.Close(); e != nil {
+            return nil, errors.Join(err, e)
+        }
+        return nil, err
+    }
 
-	if err = setupRoutes(app, repo, genkitInstance, cfg); err != nil {
-		if e := repo.Close(); e != nil {
-			return nil, errors.Join(err, e)
-		}
-		return nil, err
-	}
-
-	return &App{
-		Server: app,
-		Repo:   repo,
-	}, nil
-
+    return &App{
+        Server:      app,
+        Repo:        repo,
+        RedisClient: redisClient,
+    }, nil
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
