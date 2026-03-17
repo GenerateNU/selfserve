@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"log"
 
 	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
@@ -14,6 +15,8 @@ import (
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/generate/selfserve/internal/service/clerk"
+	"github.com/generate/selfserve/internal/storage/redis"
+
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -23,11 +26,13 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+
 )
 
 type App struct {
 	Server *fiber.App
 	Repo   *storage.Repository
+	RedisClient *redisClient
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
@@ -35,6 +40,14 @@ func InitApp(cfg *config.Config) (*App, error) {
 	repo, err := storage.NewRepository(cfg.DB)
 	if err != nil {
 		return nil, err
+	}
+
+// Init Redis (graceful degradation if unavailable)
+	redisClient, err := redis.InitRedis()
+	if err != nil {
+		log.Printf("Warning: Redis not available: %v", err)
+	} else {
+		defer redis.Close(redisClient)
 	}
 
 	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)

@@ -11,7 +11,6 @@ import (
 
 	"github.com/generate/selfserve/config"
 	_ "github.com/generate/selfserve/docs"
-	"github.com/generate/selfserve/internal/redis"
 	"github.com/generate/selfserve/internal/service"
 	"github.com/sethvargo/go-envconfig"
 )
@@ -39,11 +38,6 @@ func main() {
 		log.Fatal("failed to process config:", err)
 	}
 
-	// Initialize Redis
-	if err := redis.InitRedis(); err != nil {
-		log.Printf("Warning: Redis not available: %v", err)
-	}
-	defer redis.Close()
 
 	app, err := service.InitApp(&cfg)
 	if err != nil {
