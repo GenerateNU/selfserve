@@ -75,6 +75,15 @@ definitions:
         example: "2024-01-02T00:00:00Z"
         type: string
     type: object
+  GuestPage:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestWithBooking'
+        type: array
+      next_cursor:
+        type: string
+    type: object
   GuestWithStays:
     properties:
       current_stays:
@@ -358,14 +367,22 @@ definitions:
       status:
         $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
     type: object
-  github_com_generate_selfserve_internal_models.GuestPage:
+  github_com_generate_selfserve_internal_models.GuestFilter:
     properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestWithBooking'
-        type: array
-      next_cursor:
+      cursor:
         type: string
+      floors:
+        items:
+          type: integer
+        type: array
+      hotel_id:
+        type: string
+      limit:
+        maximum: 100
+        minimum: 1
+        type: integer
+    required:
+    - hotel_id
     type: object
   github_com_generate_selfserve_internal_models.GuestWithBooking:
     properties:
@@ -428,37 +445,29 @@ info:
   version: "1.0"
 paths:
   /api/v1/guests:
-    get:
-      description: Retrieves guests optionally filtered by floor in which they are
-        staying
+    post:
+      consumes:
+      - application/json
+      description: Retrieves guests optionally filtered by floor
       parameters:
       - description: Hotel ID (UUID)
         in: header
         name: X-Hotel-ID
         required: true
         type: string
-      - collectionFormat: csv
-        description: Floors
-        in: query
-        items:
-          type: integer
-        name: floors
-        type: array
-      - description: Cursor for pagination
-        in: query
-        name: cursor
-        type: string
-      - description: Number of results to return
-        in: query
-        name: limit
-        type: integer
+      - description: Guest filters
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestFilter'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestPage'
+            $ref: '#/definitions/GuestPage'
         "400":
           description: Bad Request
           schema:
@@ -472,39 +481,6 @@ paths:
               type: string
             type: object
       summary: Get Guests
-      tags:
-      - guests
-    post:
-      consumes:
-      - application/json
-      description: Creates a guest with the given data
-      parameters:
-      - description: Guest data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.CreateGuest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Guest'
-        "400":
-          description: Invalid guest body format
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Creates a guest
       tags:
       - guests
   /api/v1/guests/{id}:

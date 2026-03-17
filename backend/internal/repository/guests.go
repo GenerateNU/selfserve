@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
@@ -101,8 +102,8 @@ func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*
 	var guest *models.GuestWithStays
 	for rows.Next() {
 		var stay models.Stay
-		var arrivalDate *string
-		var departureDate *string
+		var arrivalDate *time.Time
+		var departureDate *time.Time
 		var roomNumber *int
 		var status *models.BookingStatus
 
@@ -191,9 +192,9 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 
 
 func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.GuestFilter) (*models.GuestPage, error) {
-	floors := []int{}
-	if filters.Floors != nil {
-		floors = *filters.Floors
+	floors := filters.Floors
+	if floors == nil {
+		floors = []int{}
 	}
 	rows, err := r.db.Query(ctx, `
 	SELECT 

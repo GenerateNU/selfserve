@@ -24,16 +24,17 @@ type Guest struct {
 } //@name Guest
 
 type GuestFilter struct {
-    HotelID string
-    Floors  *[]int `query:"floors"`
-    Cursor  string `query:"cursor"`
-    Limit   int    `query:"limit"`
+    HotelID string `json:"hotel_id" validate:"required,uuid"`
+    Floors  []int  `json:"floors"`
+    Cursor  string `json:"cursor" validate:"omitempty,uuid"`
+    Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
 }
+
 
 type GuestPage struct {
     Data       []*GuestWithBooking `json:"data"`
     NextCursor *string             `json:"next_cursor"`
-}
+} // @name GuestPage
 
 type GuestWithBooking struct {
 	ID   string `json:"id" validate:"required"` 
@@ -57,8 +58,8 @@ type GuestWithStays struct {
 
 
 type Stay struct {
-    ArrivalDate   string        `json:"arrival_date" validate:"required" example:"2024-01-02"`
-    DepartureDate string        `json:"departure_date" validate:"required" example:"2024-01-05"`
+    ArrivalDate   time.Time        `json:"arrival_date" validate:"required" example:"2024-01-02"`
+    DepartureDate time.Time        `json:"departure_date" validate:"required" example:"2024-01-05"`
     RoomNumber    int           `json:"room_number" validate:"required" example:"101"`
     Status        BookingStatus `json:"status" validate:"required"`
 } //@name Stay

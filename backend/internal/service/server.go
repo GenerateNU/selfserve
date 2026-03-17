@@ -138,7 +138,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", guestsHandler.CreateGuest)
 		r.Get("/:id", guestsHandler.GetGuest)
 		r.Put("/:id", guestsHandler.UpdateGuest)
-		r.Get("/", guestsHandler.GetGuests)
+		r.Post("/search", guestsHandler.GetGuests)
 		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
 	})
 
@@ -190,7 +190,7 @@ func setupApp() *fiber.App {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
 		AllowMethods:     "GET,POST,PUT,DELETE",
-		AllowHeaders:     "Origin, Content-Type, Authorization",
+		AllowHeaders: "Origin, Content-Type, Authorization, X-Hotel-ID",
 		AllowCredentials: true,
 	}))
 
