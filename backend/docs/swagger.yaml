@@ -2,6 +2,9 @@ basePath: /api/v1
 definitions:
   CreateUser:
     properties:
+      clerk_id:
+        example: user_123
+        type: string
       department:
         example: Housekeeping
         type: string
@@ -252,24 +255,22 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
-  Stay:
+  RoomWithOptionalGuestBooking:
     properties:
-      arrival_date:
-        example: "2024-01-02"
-        type: string
-      departure_date:
-        example: "2024-01-05"
-        type: string
-      room_number:
-        example: 101
-        type: integer
-      status:
+      booking_status:
         $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
-    required:
-    - arrival_date
-    - departure_date
-    - room_number
-    - status
+      floor:
+        type: integer
+      guests:
+        items:
+          $ref: '#/definitions/Guest'
+        type: array
+      room_number:
+        type: integer
+      room_status:
+        type: string
+      suite_type:
+        type: string
     type: object
   UpdateGuest:
     properties:
@@ -288,6 +289,9 @@ definitions:
     type: object
   User:
     properties:
+      clerk_id:
+        example: user_123
+        type: string
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
@@ -336,99 +340,16 @@ definitions:
     x-enum-varnames:
     - BookingStatusActive
     - BookingStatusInactive
-  github_com_generate_selfserve_internal_models.CreateGuest:
+  github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
     properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
-  github_com_generate_selfserve_internal_models.GuestBooking:
-    properties:
-      arrival_date:
-        type: string
-      departure_date:
-        type: string
-      guest:
-        $ref: '#/definitions/Guest'
-      id:
-        example: f353ca91-4fc5-49f2-9b9e-304f83d11914
-        type: string
-      room:
-        $ref: '#/definitions/github_com_generate_selfserve_internal_models.Room'
-      status:
-        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
-    type: object
-  github_com_generate_selfserve_internal_models.GuestFilter:
-    properties:
-      cursor:
-        type: string
-      floors:
+      has_more:
+        type: boolean
+      items:
         items:
-          type: integer
+          $ref: '#/definitions/RoomWithOptionalGuestBooking'
         type: array
-      hotel_id:
-        type: string
-      limit:
-        maximum: 100
-        minimum: 1
-        type: integer
-    required:
-    - hotel_id
-    type: object
-  github_com_generate_selfserve_internal_models.GuestWithBooking:
-    properties:
-      first_name:
-        type: string
-      floor:
-        type: integer
-      id:
-        type: string
-      last_name:
-        type: string
-      room_number:
-        type: integer
-    required:
-    - first_name
-    - floor
-    - id
-    - last_name
-    - room_number
-    type: object
-  github_com_generate_selfserve_internal_models.Room:
-    properties:
-      floor:
-        type: integer
-      room_number:
-        type: integer
-      room_status:
-        type: string
-      suite_type:
-        type: string
-    type: object
-  github_com_generate_selfserve_internal_models.RoomWithBooking:
-    properties:
-      booking_status:
-        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
-      first_name:
-        type: string
-      floor:
-        type: integer
-      last_name:
-        type: string
-      room_number:
-        type: integer
-      room_status:
-        type: string
-      suite_type:
+      next_cursor:
+        description: nil when no more pages
         type: string
     type: object
 host: localhost:8080
@@ -801,6 +722,45 @@ paths:
       summary: creates a request
       tags:
       - requests
+  /request/cursor/{cursor}:
+    get:
+      consumes:
+      - application/json
+      description: Gets 20 requests starting after the cursor ID, filtered by status
+      parameters:
+      - description: Cursor UUID
+        in: path
+        name: cursor
+        required: true
+        type: string
+      - description: 'Status filter: pending, assigned, in progress, completed'
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns requests array and next_cursor
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get requests by cursor
+      tags:
+      - requests
   /request/generate:
     post:
       consumes:
@@ -837,21 +797,31 @@ paths:
       - requests
   /rooms:
     get:
-      description: Retrieves rooms optionally filtered by floor
+      description: Retrieves rooms optionally filtered by floor, with any active guest
+        bookings
       parameters:
-      - description: floor
+      - collectionFormat: csv
+        description: floors
         in: query
-        name: number
+        items:
+          type: integer
+        name: floors
+        type: array
+      - description: Opaque cursor for the next page
+        in: query
+        name: cursor
         type: string
+      - description: Number of items per page (1-100, default 20)
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/github_com_generate_selfserve_internal_models.RoomWithBooking'
-            type: array
+            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking'
         "400":
           description: Bad Request
           schema:
@@ -864,7 +834,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Get Rooms
+      summary: Get Rooms By Floor
       tags:
       - rooms
   /users:
