@@ -19,14 +19,16 @@
    ollama pull qwen2.5:7b-instruct
    ```
 3. **Download dependencies**:
+
    ```bash
    make download
    ```
 
 4. **Set up environment variables**:
-   
+
    (Slack us for these)
    Create a `config/.env` file with the following variables:
+
    ```env
    # Application Configuration
    APP_PORT=8080
@@ -45,6 +47,7 @@
    > **Note**: All database variables (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME) are required. The application will fail to start if they are missing.
 
    **LLM Configuration** – used for parsing request text (e.g. `/request/parse`). Add this to your existing .env:
+
    ```env
    LLM_SERVER_ADDRESS=http://127.0.0.1:11434
    LLM_MODEL=qwen2.5:3b
@@ -52,20 +55,22 @@
    ```
 
 5. **Run with hot reload** (development):
+
    ```bash
    air
    ```
 
    Or run directly:
+
    ```bash
    make dev
    ```
 
    Or run with GenKit UI:
+
    ```bash
    make genkit-run
    ```
-
 
 ## Directory Structure
 
@@ -129,7 +134,7 @@ Logic traversal:
 ┌──────────────▼──────────────────────────┐
 │       Storage Layer                     │
 │  (internal/service/storage/postgres/)   │
-│  The Database itself                    │    
+│  The Database itself                    │
 └─────────────────────────────────────────┘
 ```
 
@@ -150,7 +155,6 @@ Logic traversal:
 - **Hot Reload**: [Air](https://github.com/cosmtrek/air) - Live hot reload of server
 
 ## Development
-
 
 ```bash
 # Build
@@ -190,4 +194,3 @@ The application reads configuration from environment variables (loaded from `con
 - `LLM_TIMEOUT`: Response timeout in seconds (default: 60)
 - `LLM_MAX_OUTPUT_TOKENS`: Max tokens for generation; lower values reduce latency (default: 1024)
 - `LLM_TEMPERATURE`: Sampling temperature 0–1; lower is more deterministic and often faster for extraction
-

@@ -27,9 +27,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: './backend/go.mod'
+          go-version-file: "./backend/go.mod"
           cache: true
-          cache-dependency-path: './backend/go.sum'
+          cache-dependency-path: "./backend/go.sum"
       - name: Install swag
         run: go install github.com/swaggo/swag/cmd/swag@latest
       - name: Generate swagger docs
@@ -50,9 +50,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: './backend/go.mod'
+          go-version-file: "./backend/go.mod"
           cache: true
-          cache-dependency-path: './backend/go.sum'
+          cache-dependency-path: "./backend/go.sum"
       - name: Install swag
         run: go install github.com/swaggo/swag/cmd/swag@latest
       - name: Generate swagger docs
@@ -69,9 +69,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: './backend/go.mod'
+          go-version-file: "./backend/go.mod"
           cache: true
-          cache-dependency-path: './backend/go.sum'
+          cache-dependency-path: "./backend/go.sum"
       - name: Install swag
         run: go install github.com/swaggo/swag/cmd/swag@latest
       - name: Generate swagger docs

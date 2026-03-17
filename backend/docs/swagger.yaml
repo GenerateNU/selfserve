@@ -289,22 +289,22 @@ paths:
   /api/v1/guests:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a guest with the given data
       parameters:
-      - description: Guest data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/CreateGuest'
+        - description: Guest data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/CreateGuest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Guest'
+            $ref: "#/definitions/Guest"
         "400":
           description: Invalid guest body format
           schema:
@@ -319,25 +319,25 @@ paths:
             type: object
       summary: Creates a guest
       tags:
-      - guests
+        - guests
   /api/v1/guests/{id}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Retrieves a single guest given an id
       parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: Guest ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Guest'
+            $ref: "#/definitions/Guest"
         "400":
           description: Invalid guest ID format
           schema:
@@ -347,7 +347,7 @@ paths:
         "404":
           description: Guest not found
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+            $ref: "#/definitions/github_com_generate_selfserve_internal_errs.HTTPError"
         "500":
           description: Internal server error
           schema:
@@ -356,30 +356,30 @@ paths:
             type: object
       summary: Gets a guest
       tags:
-      - guests
+        - guests
     put:
       consumes:
-      - application/json
+        - application/json
       description: Updates fields on a guest
       parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Guest update data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/UpdateGuest'
+        - description: Guest ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Guest update data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateGuest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Guest'
+            $ref: "#/definitions/Guest"
         "400":
           description: Bad Request
           schema:
@@ -400,54 +400,54 @@ paths:
             type: object
       summary: Updates a guest
       tags:
-      - guests
+        - guests
   /api/v1/hotels/{id}:
     get:
       description: Retrieve a hotel's details using its UUID
       parameters:
-      - description: Hotel ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: Hotel ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Hotel'
+            $ref: "#/definitions/Hotel"
         "400":
           description: Invalid hotel ID format
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+            $ref: "#/definitions/github_com_generate_selfserve_internal_errs.HTTPError"
         "404":
           description: Hotel not found
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+            $ref: "#/definitions/github_com_generate_selfserve_internal_errs.HTTPError"
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+            $ref: "#/definitions/github_com_generate_selfserve_internal_errs.HTTPError"
       summary: Get hotel by ID
       tags:
-      - hotels
+        - hotels
   /devs/{name}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Retrieves a developer member by name
       parameters:
-      - description: Developer name
-        in: path
-        name: name
-        required: true
-        type: string
+        - description: Developer name
+          in: path
+          name: name
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Dev'
+            $ref: "#/definitions/Dev"
         "400":
           description: Bad Request
           schema:
@@ -462,35 +462,35 @@ paths:
             type: object
       summary: Get developer member
       tags:
-      - devs
+        - devs
   /hello:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Returns a simple hello message
       produces:
-      - text/plain
+        - text/plain
       responses:
         "200":
-          description: 'Yogurt. Gurt: Yo!'
+          description: "Yogurt. Gurt: Yo!"
           schema:
             type: string
       summary: Get hello message
       tags:
-      - hello
+        - hello
   /hello/{name}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Returns a hello message with the provided name
       parameters:
-      - description: Name to greet
-        in: path
-        name: name
-        required: true
-        type: string
+        - description: Name to greet
+          in: path
+          name: name
+          required: true
+          type: string
       produces:
-      - text/plain
+        - text/plain
       responses:
         "200":
           description: Yo, {name}!
@@ -498,26 +498,26 @@ paths:
             type: string
       summary: Get personalized hello message
       tags:
-      - hello
+        - hello
   /hotel:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new hotel with the given data
       parameters:
-      - description: Hotel data
-        in: body
-        name: hotel
-        required: true
-        schema:
-          $ref: '#/definitions/Hotel'
+        - description: Hotel data
+          in: body
+          name: hotel
+          required: true
+          schema:
+            $ref: "#/definitions/Hotel"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/Hotel'
+            $ref: "#/definitions/Hotel"
         "400":
           description: Bad Request
           schema:
@@ -532,26 +532,26 @@ paths:
             type: object
       summary: Create hotel
       tags:
-      - hotels
+        - hotels
   /request:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a request with the given data
       parameters:
-      - description: Request data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/MakeRequest'
+        - description: Request data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/MakeRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Request'
+            $ref: "#/definitions/Request"
         "400":
           description: Bad Request
           schema:
@@ -566,26 +566,26 @@ paths:
             type: object
       summary: creates a request
       tags:
-      - requests
+        - requests
   /request/generate:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Generates a request using AI
       parameters:
-      - description: Request data with raw text
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/GenerateRequestInput'
+        - description: Request data with raw text
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/GenerateRequestInput"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Request'
+            $ref: "#/definitions/Request"
         "400":
           description: Bad Request
           schema:
@@ -600,26 +600,26 @@ paths:
             type: object
       summary: generates a request
       tags:
-      - requests
+        - requests
   /users:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a user with the given data
       parameters:
-      - description: User data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/CreateUser'
+        - description: User data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/CreateUser"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/User'
+            $ref: "#/definitions/User"
         "400":
           description: Bad Request
           schema:
@@ -634,25 +634,25 @@ paths:
             type: object
       summary: Creates a user
       tags:
-      - users
+        - users
   /users/{id}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Retrieves a user by their unique app ID
       parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/User'
+            $ref: "#/definitions/User"
         "400":
           description: Bad Request
           schema:
@@ -667,8 +667,8 @@ paths:
             type: object
       summary: Get user by ID
       tags:
-      - users
+        - users
 schemes:
-- http
-- https
+  - http
+  - https
 swagger: "2.0"
