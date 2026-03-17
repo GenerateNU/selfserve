@@ -9,7 +9,7 @@ import (
 )
 
 type RoomsRepository interface {
-	FindRooms(ctx context.Context, filter *models.RoomFilter) ([]*models.RoomWithBooking, error)
+	FindRoomsWithActiveBooking(ctx context.Context, filter *models.RoomFilters) ([]*models.RoomWithBooking, error)
 }
 
 type RoomsHandler struct {
@@ -31,12 +31,12 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 // @Failure      500     {object}  map[string]string
 // @Router       /rooms [get]
 func (h *RoomsHandler) GetRooms(c *fiber.Ctx) error {
-	filter := new(models.RoomFilter)
+	filter := new(models.RoomFilters)
 	if err := c.QueryParser(filter); err != nil {
 		return errs.BadRequest("invalid filters")
 	}
 
-	rooms, err := h.repo.FindRooms(c.Context(), filter)
+	rooms, err := h.repo.FindRoomsWithActiveBooking(c.Context(), filter)
 	if err != nil {
 		return errs.InternalServerError()
 	}

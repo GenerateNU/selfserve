@@ -15,7 +15,7 @@ func NewRoomsRepository(pool *pgxpool.Pool) *RoomsRepository {
 	return &RoomsRepository{db: pool}
 }
 
-func (r *RoomsRepository) FindRooms(ctx context.Context, filters *models.RoomFilter) ([]*models.RoomWithBooking, error) {
+func (r *RoomsRepository) FindRoomsWithActiveBooking(ctx context.Context, filters *models.RoomFilters) ([]*models.RoomWithBooking, error) {
 
 	rows, err := r.db.Query(ctx, `
 	SELECT 

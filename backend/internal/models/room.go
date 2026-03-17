@@ -7,7 +7,7 @@ type Room struct {
 	RoomStatus string `json:"room_status"`
 }
 
-type RoomFilter struct {
+type RoomFilters struct {
 	Floors *[]int `query:"floors"`
 }
 

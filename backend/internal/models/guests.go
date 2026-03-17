@@ -27,10 +27,10 @@ type Guest struct {
 	CreateGuest
 } //@name Guest
 
-type GuestFilter struct {
+type GuestFilters struct {
 	HotelID string
 	Floors  *[]int `query:"floors"`
-}
+} //@name GuestFilters
 
 type GuestWithBooking struct {
 	ID         string `json:"id"`
@@ -38,7 +38,7 @@ type GuestWithBooking struct {
 	LastName   string `json:"last_name"`
 	Floor      int    `json:"floor"`
 	RoomNumber int    `json:"room_number"`
-}
+} //@name GuestWithBooking
 
 type GuestWithStays struct {
 	ID           string  `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`
