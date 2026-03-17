@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RequestsListRouteImport } from './routes/requests.list'
 import { Route as ProtectedTestApiRouteImport } from './routes/_protected/test-api'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedRoomsRouteImport } from './routes/_protected/rooms'
@@ -31,6 +33,11 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtectedRoute = ProtectedRouteImport.update({
   id: '/_protected',
   getParentRoute: () => rootRouteImport,
@@ -38,6 +45,11 @@ const ProtectedRoute = ProtectedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestsListRoute = RequestsListRouteImport.update({
+  id: '/requests/list',
+  path: '/requests/list',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedTestApiRoute = ProtectedTestApiRouteImport.update({
@@ -78,23 +90,27 @@ const ProtectedGuestsGuestIdRoute = ProtectedGuestsGuestIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/home': typeof ProtectedHomeRoute
   '/rooms': typeof ProtectedRoomsRouteWithChildren
   '/settings': typeof ProtectedSettingsRoute
   '/test-api': typeof ProtectedTestApiRoute
+  '/requests/list': typeof RequestsListRoute
   '/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
   '/guests/': typeof ProtectedGuestsIndexRoute
   '/rooms/': typeof ProtectedRoomsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/home': typeof ProtectedHomeRoute
   '/settings': typeof ProtectedSettingsRoute
   '/test-api': typeof ProtectedTestApiRoute
+  '/requests/list': typeof RequestsListRoute
   '/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
   '/guests': typeof ProtectedGuestsIndexRoute
   '/rooms': typeof ProtectedRoomsIndexRoute
@@ -103,12 +119,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/_protected/home': typeof ProtectedHomeRoute
   '/_protected/rooms': typeof ProtectedRoomsRouteWithChildren
   '/_protected/settings': typeof ProtectedSettingsRoute
   '/_protected/test-api': typeof ProtectedTestApiRoute
+  '/requests/list': typeof RequestsListRoute
   '/_protected/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
   '/_protected/guests/': typeof ProtectedGuestsIndexRoute
   '/_protected/rooms/': typeof ProtectedRoomsIndexRoute
@@ -117,23 +135,27 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/onboarding'
     | '/sign-in'
     | '/sign-up'
     | '/home'
     | '/rooms'
     | '/settings'
     | '/test-api'
+    | '/requests/list'
     | '/guests/$guestId'
     | '/guests/'
     | '/rooms/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/onboarding'
     | '/sign-in'
     | '/sign-up'
     | '/home'
     | '/settings'
     | '/test-api'
+    | '/requests/list'
     | '/guests/$guestId'
     | '/guests'
     | '/rooms'
@@ -141,12 +163,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_protected'
+    | '/onboarding'
     | '/sign-in'
     | '/sign-up'
     | '/_protected/home'
     | '/_protected/rooms'
     | '/_protected/settings'
     | '/_protected/test-api'
+    | '/requests/list'
     | '/_protected/guests/$guestId'
     | '/_protected/guests/'
     | '/_protected/rooms/'
@@ -155,8 +179,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRoute: typeof ProtectedRouteWithChildren
+  OnboardingRoute: typeof OnboardingRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  RequestsListRoute: typeof RequestsListRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -175,6 +201,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_protected': {
       id: '/_protected'
       path: ''
@@ -187,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/requests/list': {
+      id: '/requests/list'
+      path: '/requests/list'
+      fullPath: '/requests/list'
+      preLoaderRoute: typeof RequestsListRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/test-api': {
@@ -278,8 +318,10 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
+  OnboardingRoute: OnboardingRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  RequestsListRoute: RequestsListRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
