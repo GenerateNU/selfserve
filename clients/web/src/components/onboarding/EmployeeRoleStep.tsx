@@ -1,5 +1,5 @@
 import LeftPanel from './LeftPanel'
-import { OnboardingFormData } from './types'
+import type { OnboardingFormData } from './types'
 
 interface EmployeeRoleStepProps {
   formData: OnboardingFormData
