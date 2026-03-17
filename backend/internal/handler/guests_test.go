@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http/httptest"
 	"testing"
 	"time"
-	"fmt"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
@@ -19,11 +19,11 @@ import (
 )
 
 type mockGuestsRepository struct {
-	insertGuestFunc func(ctx context.Context, req *models.CreateGuest) (*models.Guest, error)
-	findGuestFunc   func(ctx context.Context, id string) (*models.Guest, error)
-	updateGuestFunc func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error)
-	findGuestsFunc func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error)
-	findGuestStaysFunc func (ctx context.Context, id string) (*models.GuestWithStays, error)
+	insertGuestFunc    func(ctx context.Context, req *models.CreateGuest) (*models.Guest, error)
+	findGuestFunc      func(ctx context.Context, id string) (*models.Guest, error)
+	updateGuestFunc    func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error)
+	findGuestsFunc     func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error)
+	findGuestStaysFunc func(ctx context.Context, id string) (*models.GuestWithStays, error)
 }
 
 func (m *mockGuestsRepository) InsertGuest(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error) {
@@ -578,7 +578,6 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		assert.Equal(t, 500, resp.StatusCode)
 	})
 }
-
 
 func TestGuestsHandler_GetGuests(t *testing.T) {
 	t.Parallel()

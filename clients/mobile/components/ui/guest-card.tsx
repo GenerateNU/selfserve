@@ -11,11 +11,17 @@ interface GuestCardProps {
   onPress: () => void;
 }
 
-export function GuestCard({ firstName, lastName,  floor, room, onPress}: GuestCardProps) {
+export function GuestCard({
+  firstName,
+  lastName,
+  floor,
+  room,
+  onPress,
+}: GuestCardProps) {
   return (
     <Pressable
       onPress={onPress}
-      className='flex-row items-center p-[3vw] border border-gray-300 rounded-md active:bg-gray-100'
+      className="flex-row items-center p-[3vw] border border-gray-300 rounded-md active:bg-gray-100"
     >
       <View className="w-[10vw] h-[10vw] rounded-full border-2 border-gray-400 items-center justify-center mr-[3vw]">
         <User className="w-[6vw] h-[6vw]" color="#374151" />
@@ -26,7 +32,7 @@ export function GuestCard({ firstName, lastName,  floor, room, onPress}: GuestCa
           {firstName + " " + lastName}
         </Text>
         <Text className="text-[3.5vw] text-gray-600">
-          Floor: {floor}  Room: {room}
+          Floor: {floor} Room: {room}
         </Text>
       </View>
     </Pressable>

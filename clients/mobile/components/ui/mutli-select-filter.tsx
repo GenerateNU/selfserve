@@ -31,7 +31,9 @@ export function MultiSelectFilter({
           isOpen ? "rounded-t-xl border-b-0" : "rounded-xl"
         }`}
       >
-        <Text className="text-[5vw] font-semibold text-gray-900">{placeholder}</Text>
+        <Text className="text-[5vw] font-semibold text-gray-900">
+          {placeholder}
+        </Text>
         <ChevronDown className="w-[5vw] h-[5vw]" color="#111827" />
       </Pressable>
 
@@ -48,7 +50,9 @@ export function MultiSelectFilter({
                     idx < options.length - 1 ? "border-b border-gray-100" : ""
                   } ${isSelected ? "bg-gray-50" : "bg-white"}`}
                 >
-                  <Text className={`text-[4.5vw] ${isSelected ? "font-medium text-gray-900" : "text-gray-700"}`}>
+                  <Text
+                    className={`text-[4.5vw] ${isSelected ? "font-medium text-gray-900" : "text-gray-700"}`}
+                  >
                     {option.label}
                   </Text>
                   {isSelected && (

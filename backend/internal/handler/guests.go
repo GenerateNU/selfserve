@@ -79,9 +79,8 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 	return c.JSON(guest)
 }
 
-
 // GetGuest godoc
-// @Summary      Gets a guest with previous stays 
+// @Summary      Gets a guest with previous stays
 // @Description  Retrieves a single guest with previous stays given an id
 // @Tags         guests
 // @Accept       json
@@ -102,13 +101,12 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("guest", "id", id)
-			
+
 		}
 		return errs.InternalServerError()
 	}
 	return c.JSON(guest)
 }
-
 
 // UpdateGuest godoc
 // @Summary      Updates a guest
@@ -153,7 +151,6 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 	return c.JSON(guest)
 }
 
-
 // GetGuests godoc
 // @Summary      Get Guests
 // @Description  Retrieves guests optionally filtered by floor
@@ -167,17 +164,17 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Failure      500         {object}  map[string]string
 // @Router       /api/v1/guests [post]
 func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
-    hotelID := c.Get("X-Hotel-ID")
-    var filters models.GuestFilter
+	hotelID := c.Get("X-Hotel-ID")
+	var filters models.GuestFilter
 	filters.HotelID = hotelID
 	if err := httpx.BindAndValidate(c, &filters); err != nil {
-   		return err
+		return err
 	}
 
-    guests, err := h.GuestsRepository.FindGuests(c.Context(), &filters)
-    if err != nil {
-        return errs.InternalServerError()
-    }
+	guests, err := h.GuestsRepository.FindGuests(c.Context(), &filters)
+	if err != nil {
+		return errs.InternalServerError()
+	}
 
-    return c.JSON(guests)
+	return c.JSON(guests)
 }

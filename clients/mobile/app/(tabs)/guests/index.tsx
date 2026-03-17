@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { View, FlatList, ActivityIndicator } from 'react-native';
-import { Header } from '@/components/ui/header';
-import { SearchBar } from '@/components/ui/search-bar';
-import { Filters } from '@/components/ui/filters';
-import { GuestCard } from '@/components/ui/guest-card';
-import { router } from 'expo-router';
-import { useAPIClient } from '@shared/api/client';
-import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
-import { GuestPage } from '@shared/api/generated/models/guestPage';
+import React, { useState } from "react";
+import { View, FlatList, ActivityIndicator } from "react-native";
+import { Header } from "@/components/ui/header";
+import { SearchBar } from "@/components/ui/search-bar";
+import { Filters } from "@/components/ui/filters";
+import { GuestCard } from "@/components/ui/guest-card";
+import { router } from "expo-router";
+import { useAPIClient } from "@shared/api/client";
+import { useInfiniteQuery, InfiniteData } from "@tanstack/react-query";
+import { GuestPage } from "@shared/api/generated/models/guestPage";
 
 export default function GuestsList() {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [floors, setFloor] = useState<number[] | null>(null);
 
   const onFloorChange = (floor: number) => {
     if (floors?.includes(floor)) {
-      setFloor(floors.filter(elem => elem !== floor));
+      setFloor(floors.filter((elem) => elem !== floor));
     } else {
       setFloor([...(floors ?? []), floor]);
     }
@@ -29,17 +29,17 @@ export default function GuestsList() {
     {
       value: floors,
       onChange: onFloorChange,
-      placeholder: 'Floor',
+      placeholder: "Floor",
       options: [
-        { label: 'Floor 1', value: 1 },
-        { label: 'Floor 2', value: 2 },
-        { label: 'Floor 3', value: 3 },
-        { label: 'Floor 4', value: 4 },
-        { label: 'Floor 5', value: 5 },
-        { label: 'Floor 6', value: 6 },
-        { label: 'Floor 7', value: 7 },
-        { label: 'Floor 8', value: 8 },
-        { label: 'Floor 9', value: 9 },
+        { label: "Floor 1", value: 1 },
+        { label: "Floor 2", value: 2 },
+        { label: "Floor 3", value: 3 },
+        { label: "Floor 4", value: 4 },
+        { label: "Floor 5", value: 5 },
+        { label: "Floor 6", value: 6 },
+        { label: "Floor 7", value: 7 },
+        { label: "Floor 8", value: 8 },
+        { label: "Floor 9", value: 9 },
       ],
     },
   ];
@@ -53,9 +53,9 @@ export default function GuestsList() {
       (string | number[] | null)[],
       string | undefined
     >({
-      queryKey: ['guests', floors],
+      queryKey: ["guests", floors],
       queryFn: ({ pageParam }) =>
-        api.post<GuestPage>('/api/v1/guests/search', {
+        api.post<GuestPage>("/api/v1/guests/search", {
           floors: floors ?? undefined,
           cursor: pageParam,
           limit: 20,
@@ -64,7 +64,7 @@ export default function GuestsList() {
       getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
     });
 
-  const allGuests = data?.pages.flatMap(page => page.data ?? []) ?? [];
+  const allGuests = data?.pages.flatMap((page) => page.data ?? []) ?? [];
 
   return (
     <View className="flex-1 bg-white">
@@ -94,9 +94,7 @@ export default function GuestsList() {
           </View>
         }
         ListFooterComponent={
-          isFetchingNextPage ? (
-            <ActivityIndicator className="py-[2vh]" />
-          ) : null
+          isFetchingNextPage ? <ActivityIndicator className="py-[2vh]" /> : null
         }
         contentContainerStyle={{ gap: 8 }}
         className="flex-1"

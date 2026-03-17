@@ -146,7 +146,6 @@ func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*
 	return guest, nil
 }
 
-
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
 	var guest models.Guest
 
@@ -189,8 +188,6 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	return &guest, nil
 }
 
-
-
 func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.GuestFilter) (*models.GuestPage, error) {
 	floors := filters.Floors
 	if floors == nil {
@@ -207,7 +204,7 @@ func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.Guest
 	AND ($2::int[] = '{}' OR rooms.floor = ANY($2))
 	AND ($3 = '' OR guests.id > $3::uuid)
 	ORDER BY guests.id
-	LIMIT $4`, filters.HotelID, floors, filters.Cursor, filters.Limit + 1)
+	LIMIT $4`, filters.HotelID, floors, filters.Cursor, filters.Limit+1)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +225,7 @@ func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.Guest
 	}
 
 	var nextCursor *string
-	if len(guests) == filters.Limit + 1 {
+	if len(guests) == filters.Limit+1 {
 		guests = guests[:filters.Limit]
 		nextCursor = &guests[filters.Limit-1].ID
 	}
