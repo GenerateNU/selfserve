@@ -11,7 +11,7 @@ import (
 )
 
 type RoomsRepository interface {
-	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter, hotelID string, cursor string) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
 }
 
 type RoomsHandler struct {
@@ -47,8 +47,15 @@ func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
 	}
 
 	cursor := c.Query("cursor", "")
+	cursorRoomNumber := 0
+	if cursor != "" {
+		cursorRoomNumber, err = strconv.Atoi(cursor)
+		if err != nil {
+			return errs.BadRequest("invalid cursor")
+		}
+	}
 
-	rooms, err := h.repo.FindRoomsWithOptionalGuestBookingsByFloor(c.Context(), filter, hotelID, cursor)
+	rooms, err := h.repo.FindRoomsWithOptionalGuestBookingsByFloor(c.Context(), filter, hotelID, cursorRoomNumber)
 	if err != nil {
 		return errs.InternalServerError()
 	}
