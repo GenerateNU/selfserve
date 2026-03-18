@@ -44,6 +44,9 @@
   --color-shadow-weak: #e5e5e5;
   --color-shadow: #e7e7e7;
   --color-shadow-strong: #dcdcdc;
+  --color-bg-container: #f8f8f8;
+  --color-text-default: #000;
+  --color-bg-selected: #edf5f1;
 }
 
 button {

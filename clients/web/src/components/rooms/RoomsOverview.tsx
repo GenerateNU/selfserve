@@ -20,7 +20,7 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const vacantRooms = totalRooms - occupiedRooms;
 
   return (
-    <aside className="w-1/4 shrink-0 min-h-0 overflow-y-auto bg-white dark:bg-zinc-950 p-[2vw]">
+    <aside className="w-1/4 shrink-0 min-h-0 overflow-y-auto bg-white p-[2vw]">
       <div className="flex flex-col gap-[2.2vh]">
         <OverviewCard
           title="Tasks"
