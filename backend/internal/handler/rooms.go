@@ -11,7 +11,7 @@ import (
 )
 
 type RoomsRepository interface {
-	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
 }
 
 type RoomsHandler struct {
@@ -41,7 +41,7 @@ func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
 		return err
 	}
 
-	filter := new(models.RoomFilter)
+	filter := new(models.RoomFilters)
 	if err := c.QueryParser(filter); err != nil {
 		return errs.BadRequest("invalid filters")
 	}

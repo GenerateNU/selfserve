@@ -81,6 +81,73 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 	return &guest, nil
 }
 
+func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
+
+	rows, err := r.db.Query(ctx, `
+		SELECT guests.id, guests.first_name, guests.last_name, guests.phone, guests.email,
+			guests.preferences, guests.notes, guest_bookings.arrival_date, guest_bookings.departure_date, 
+			rooms.room_number, guest_bookings.status
+		FROM public.guests
+		LEFT JOIN guest_bookings ON guests.id = guest_bookings.guest_id
+		LEFT JOIN rooms ON rooms.id = guest_bookings.room_id
+		WHERE guests.id = $1
+	`, id)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var guest *models.GuestWithStays
+	for rows.Next() {
+		var stay models.Stay
+		var arrivalDate *string
+		var departureDate *string
+		var roomNumber *int
+		var status *models.BookingStatus
+
+		if guest == nil {
+			guest = &models.GuestWithStays{}
+		}
+
+		err := rows.Scan(
+			&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email, &guest.Preferences, &guest.Notes,
+			&arrivalDate, &departureDate, &roomNumber, &status,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if arrivalDate == nil {
+			continue
+		}
+
+		stay.ArrivalDate = *arrivalDate
+		stay.DepartureDate = *departureDate
+		stay.RoomNumber = *roomNumber
+		stay.Status = *status
+
+		switch *status {
+		case models.BookingStatusActive:
+			guest.CurrentStays = append(guest.CurrentStays, stay)
+		case models.BookingStatusInactive:
+			guest.PastStays = append(guest.PastStays, stay)
+		default:
+			return nil, errs.InternalServerError()
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if guest == nil {
+		return nil, errs.ErrNotFoundInDB
+	}
+
+	return guest, nil
+}
+
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
 	var guest models.Guest
 
@@ -121,5 +188,40 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	}
 
 	return &guest, nil
+}
 
+func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) ([]*models.GuestWithBooking, error) {
+	floors := []int{}
+	if filters.Floors != nil {
+		floors = *filters.Floors
+	}
+	rows, err := r.db.Query(ctx, `
+	SELECT 
+		guests.id, guests.first_name, guests.last_name, rooms.room_number, rooms.floor
+	FROM guests
+	JOIN guest_bookings ON guests.id = guest_bookings.guest_id
+		AND guest_bookings.status = 'active'
+	JOIN rooms ON rooms.id = guest_bookings.room_id
+	WHERE guest_bookings.hotel_id = $1 
+	AND ($2::int[] = '{}' OR rooms.floor = ANY($2))`, filters.HotelID, floors)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var guests []*models.GuestWithBooking
+	for rows.Next() {
+		var g models.GuestWithBooking
+		err := rows.Scan(&g.ID, &g.FirstName, &g.LastName, &g.RoomNumber, &g.Floor)
+		if err != nil {
+			return nil, err
+		}
+		guests = append(guests, &g)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return guests, nil
 }
