@@ -75,3 +75,30 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 	}
 	return rooms, nil
 }
+
+func (r *RoomsRepository) FindFloors(ctx context.Context, hotelID string) ([]int, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT floor
+		FROM rooms
+		WHERE hotel_id = $1
+		ORDER BY floor ASC`, hotelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var floors []int
+	for rows.Next() {
+		var floor int
+		if err := rows.Scan(&floor); err != nil {
+			return nil, err
+		}
+		floors = append(floors, floor)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return floors, nil
+}

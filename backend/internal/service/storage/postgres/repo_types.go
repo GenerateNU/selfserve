@@ -21,15 +21,17 @@ type GuestsRepository interface {
 
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
-
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
-
 	FindRequests(ctx context.Context) ([]models.Request, error)
-
 	FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
 }
 
 type HotelsRepository interface {
 	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
+}
+
+type RoomsRepository interface {
+	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindFloors(ctx context.Context, hotelID string) ([]int, error)
 }
