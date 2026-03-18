@@ -1,5 +1,5 @@
-# SelfServe [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/GenerateNU/selfserve)
+# SelfServe Prod
 
-# Backend: https://selfserve-production.up.railway.app/
+## Backend: https://selfserve-production.up.railway.app/
 
-# Web: https://selfserve-web.vercel.app/
+## Web: https://selfserve-web.vercel.app/
