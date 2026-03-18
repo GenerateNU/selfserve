@@ -1,9 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 
-// Hardcoded user ID for testing - replace with actual user ID from your database
-const TEST_USER_ID = 'd2cdfc34-f4e7-4e1b-bbd0-234fbd8feeaa'
-
 // @ts-ignore - Environment variable injected by bundler
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080'
 
