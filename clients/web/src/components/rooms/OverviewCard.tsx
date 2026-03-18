@@ -19,12 +19,8 @@ export function OverviewCard({
   className = "",
 }: OverviewCardProps) {
   return (
-    <section
-      className={cn("bg-white px-[1vw] py-[1.5vh]", className)}
-    >
-      <h2 className="text-md font-medium text-text-default">
-        {title}
-      </h2>
+    <section className={cn("bg-white px-[1vw] py-[1.5vh]", className)}>
+      <h2 className="text-md font-medium text-text-default">{title}</h2>
 
       <div className="mt-[1vh] h-[0.125vh] w-full bg-stroke-subtle" />
 
@@ -39,9 +35,7 @@ export function OverviewCard({
               {col.value}
             </div>
 
-            <div className="text-sm text-text-default">
-              {col.description}
-            </div>
+            <div className="text-sm text-text-default">{col.description}</div>
           </div>
         ))}
       </div>
