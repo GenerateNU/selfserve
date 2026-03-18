@@ -7,122 +7,132 @@ interface InviteTeamStepProps {
   updateForm: (updates: Partial<OnboardingFormData>) => void;
 }
 
-export default function InviteTeamStep({
-  formData,
-  updateForm,
-}: InviteTeamStepProps) {
+export default function InviteTeamStep({ formData, updateForm }: InviteTeamStepProps) {
   const [invited, setInvited] = useState(false);
 
   return (
-    <div className="flex flex-row w-[1371px] h-[982px]">
+    <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
       <LeftPanel />
+      <div style={{
+        flex: 1,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        paddingTop: "19.45vh",
+      }}>
+        {/* Card: 662.6/1371 = 48.33vw, 625/982 = 63.64vh */}
+        <div style={{
+          width: "48.33vw",
+          height: "63.64vh",
+          border: "1px solid #000000",
+          borderRadius: "24px",
+          backgroundColor: "#FFFFFF",
+          boxSizing: "border-box",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          {/* Inner content block: 566.6px wide, everything stacked */}
+          <div style={{
+            width: "566.6px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "24px",
+          }}>
+            {/* Logo */}
+            <div style={{
+              width: "80px",
+              height: "80px",
+              border: "1px solid #000000",
+              borderRadius: "8px",
+              backgroundColor: "#FFFFFF",
+              flexShrink: 0,
+            }} />
 
-      {/* Right panel */}
-      <div
-        className="w-[881px] border border-[#000000] bg-white flex items-start justify-center"
-        style={{ padding: "220px 109px 178px 200px" }}
-      >
-        {/* Card */}
-        <div
-          className="bg-[#FFFFFF] border border-[#000000] flex flex-col items-center"
-          style={{
-            width: "662.6px",
-            height: "625px",
-            borderRadius: "24px",
-            padding: "48px",
-            gap: "50px",
-          }}
-        >
-          {/* Header */}
-          <div className="flex flex-col items-center gap-6">
-            {/* Logo placeholder */}
-            <div
-              className="border border-[#000000] bg-[#FFFFFF]"
-              style={{ width: "80px", height: "80px", borderRadius: "8px" }}
-            />
-            <div className="flex flex-col items-center gap-2">
-              <h1
-                style={{
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "24px",
-                  lineHeight: "32px",
-                  color: "#0F172B",
-                  textAlign: "center",
-                }}
-              >
+            {/* Header */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", textAlign: "center" }}>
+              <h1 style={{
+                fontFamily: "Satoshi Variable, sans-serif",
+                fontWeight: 400,
+                fontSize: "24px",
+                lineHeight: "32px",
+                color: "#0F172B",
+                margin: 0,
+              }}>
                 Invite your team
               </h1>
-              <p
-                style={{
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "16px",
-                  lineHeight: "24px",
-                  color: "#62748E",
-                  textAlign: "center",
-                }}
-              >
+              <p style={{
+                fontFamily: "Satoshi Variable, sans-serif",
+                fontWeight: 400,
+                fontSize: "16px",
+                lineHeight: "24px",
+                color: "#62748E",
+                margin: 0,
+              }}>
                 SelfServe is better when the whole staff is connected.
               </p>
             </div>
-          </div>
 
-          {/* Email invite */}
-          <div
-            className="flex flex-col gap-2 items-center"
-            style={{ width: "390px" }}
-          >
-            <div className="w-full flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
-              <div className="w-6 h-6 rounded-full bg-gray-300 shrink-0" />
-              <input
-                type="email"
-                value={formData.inviteEmail}
-                onChange={(e) => updateForm({ inviteEmail: e.target.value })}
-                placeholder="Enter email address..."
-                className="flex-1 bg-transparent text-sm outline-none"
-              />
+            {/* Email input */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "390px" }}>
+              <div style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                backgroundColor: "#F1F5F9",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                boxSizing: "border-box",
+              }}>
+                <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "#CBD5E1", flexShrink: 0 }} />
+                <input
+                  type="email"
+                  value={formData.inviteEmail}
+                  onChange={(e) => updateForm({ inviteEmail: e.target.value })}
+                  placeholder="Enter email address..."
+                  style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontSize: "14px" }}
+                />
+                <button
+                  onClick={() => setInvited(true)}
+                  style={{ fontSize: "14px", fontWeight: 600, color: "#0F172B", background: "none", border: "none", cursor: "pointer" }}
+                >
+                  Invite
+                </button>
+              </div>
+              {invited && (
+                <p style={{ fontSize: "12px", color: "#15803D", textAlign: "center", margin: 0 }}>Invite sent!</p>
+              )}
+              <p style={{ fontSize: "12px", color: "#62748E", textAlign: "center", margin: 0 }}>
+                You can also do this later from your settings.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", width: "390px" }}>
               <button
-                onClick={() => setInvited(true)}
-                className="text-sm font-semibold text-gray-900 hover:text-green-900 transition-colors"
+                onClick={() => console.log("Go to dashboard")}
+                style={{
+                  width: "100%",
+                  height: "56px",
+                  borderRadius: "14px",
+                  backgroundColor: "#15502C",
+                  color: "white",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                }}
               >
-                Invite
+                Go to Dashboard
+              </button>
+              <button
+                onClick={() => console.log("Skip for now")}
+                style={{ fontSize: "14px", color: "#62748E", background: "none", border: "none", cursor: "pointer" }}
+              >
+                Skip for now
               </button>
             </div>
-            {invited && (
-              <p className="text-xs text-green-700 text-center">Invite sent!</p>
-            )}
-            <p
-              style={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "12px",
-                color: "#62748E",
-                textAlign: "center",
-              }}
-            >
-              You can also do this later from your settings.
-            </p>
-          </div>
-
-          {/* Actions */}
-          <div
-            className="flex flex-col gap-3 items-center"
-            style={{ width: "390.02px" }}
-          >
-            <button
-              className="w-full bg-green-900 hover:bg-green-800 text-white flex items-center justify-center transition-colors"
-              style={{ height: "56px", borderRadius: "14px" }}
-              onClick={() => console.log("Go to dashboard")}
-            >
-              Go to Dashboard
-            </button>
-            <button
-              className="text-sm text-center"
-              style={{ color: "#62748E" }}
-              onClick={() => console.log("Skip for now")}
-            >
-              Skip for now
-            </button>
           </div>
         </div>
       </div>
