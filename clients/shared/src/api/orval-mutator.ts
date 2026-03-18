@@ -20,3 +20,4 @@ export const useCustomInstance = <T>(): ((
 };
 
 export default useCustomInstance;
+export const customInstance = useCustomInstance;

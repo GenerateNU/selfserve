@@ -13,7 +13,7 @@ export const createRequest = (
     let fullUrl = `${baseUrl}${config.url}`;
     if (config.params && Object.keys(config.params).length > 0) {
       const searchParams = new URLSearchParams(config.params);
-      fullUrl += '?' + searchParams.toString();
+      fullUrl += "?" + searchParams.toString();
     }
 
     try {
