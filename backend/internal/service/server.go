@@ -185,8 +185,12 @@ func setupApp() *fiber.App {
 		Level: compress.LevelBestSpeed,
 	}))
 
+	allowedOrigins := os.Getenv("APP_CORS_ORIGINS")
+	if allowedOrigins == "" {
+		allowedOrigins = "http://localhost:3000,http://localhost:8081"
+	}
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     "GET,POST,PUT,DELETE",
 		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID",
 		AllowCredentials: true,
