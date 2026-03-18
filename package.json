@@ -1,0 +1,11 @@
+{
+  "name": "selfserve-web",
+  "private": true,
+  "scripts": {
+    "build": "cd clients/shared && npm install && npm run generate:api && cd ../web && npm install && npm run build",
+    "start": "node clients/web/.output/server/index.mjs"
+  },
+  "engines": {
+    "node": "22"
+  }
+}
