@@ -8,163 +8,133 @@ interface PropertyDetailsStepProps {
   onBack: () => void;
 }
 
-const PROPERTY_TYPES = [
-  "Hotel",
-  "Motel",
-  "Resort",
-  "Bed & Breakfast",
-  "Hostel",
-];
+const PROPERTY_TYPES = ["Hotel", "Motel", "Resort", "Bed & Breakfast", "Hostel"];
 
-export default function PropertyDetailsStep({
-  formData,
-  updateForm,
-  onNext,
-  onBack,
-}: PropertyDetailsStepProps) {
-  const isValid =
-    formData.hotelName && formData.numberOfRooms && formData.propertyType;
+export default function PropertyDetailsStep({ formData, updateForm, onNext, onBack }: PropertyDetailsStepProps) {
+  const isValid = formData.hotelName && formData.numberOfRooms && formData.propertyType;
 
   return (
-    <div className="flex flex-row w-[1371px] h-[982px]">
+    <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
       <LeftPanel />
-
-      {/* Right panel */}
-      <div className="w-[881px] border border-[#000000] bg-white flex items-center justify-center">
-        {/* Card */}
-        <div
-          className="bg-[#FFFFFF] border border-[#000000] flex flex-col"
-          style={{
-            width: "662.6px",
-            height: "705px",
-            borderRadius: "24px",
-            padding: "48px",
-            gap: "24px",
-            paddingTop: "150px",
-          }}
-        >
-          {/* Header */}
-          <div className="flex flex-col gap-1">
-            <h1
-              style={{
-                fontFamily: "Satoshi Variable",
+      <div style={{
+        flex: 1,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        paddingTop: "19.45vh",
+      }}>
+        {/* Outer card: 662.6/1371 wide, 705/982 tall */}
+        <div style={{
+          width: "48.33vw",
+          height: "71.79vh",
+          border: "1px solid #000000",
+          borderRadius: "24px",
+          backgroundColor: "#FFFFFF",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "48px",
+          boxSizing: "border-box",
+        }}>
+          {/* Inner container: 256.68px wide, gap 32px */}
+          <div style={{
+            width: "256.68px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "32px",
+          }}>
+            {/* Header */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px", textAlign: "center" }}>
+              <h1 style={{
+                fontFamily: "Satoshi Variable, sans-serif",
                 fontWeight: 400,
                 fontSize: "24px",
                 lineHeight: "32px",
                 color: "#0F172B",
-                textAlign: "center",
-              }}
-            >
-              Property Details
-            </h1>
-            <p
-              style={{
-                fontFamily: "Satoshi Variable",
+                margin: 0,
+              }}>
+                Property Details
+              </h1>
+              <p style={{
+                fontFamily: "Satoshi Variable, sans-serif",
                 fontWeight: 400,
                 fontSize: "16px",
                 lineHeight: "24px",
                 color: "#62748E",
-                textAlign: "center",
-              }}
-            >
-              Lorem ipsum dolor sit amet.
-            </p>
-          </div>
+                margin: 0,
+              }}>
+                Lorem ipsum dolor sit amet.
+              </p>
+            </div>
 
-          {/* Form fields */}
-          <div
-            className="flex flex-col gap-4"
-            style={{
-              width: "256.6796875px",
-              height: "254px",
-              gap: "16px",
-              padding: "12px 16px 12px 16px",
-              alignSelf: "center",
-            }}
-          >
-            <div className="flex flex-col gap-1">
-              <label
-                style={{
-                  fontFamily: "Satoshi Variable",
-                  fontSize: "14px",
-                  color: "#0F172B",
-                }}
-              >
-                Hotel Name
-              </label>
-              <input
-                type="text"
-                value={formData.hotelName}
-                onChange={(e) => updateForm({ hotelName: e.target.value })}
-                placeholder="Lorem ipsum dolor sit amet"
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-900"
-              />
+            {/* Form fields */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <label style={{ fontFamily: "Satoshi Variable, sans-serif", fontSize: "14px", color: "#0F172B" }}>
+                  Hotel Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.hotelName}
+                  onChange={(e) => updateForm({ hotelName: e.target.value })}
+                  placeholder="Lorem ipsum dolor sit amet"
+                  style={{ border: "1px solid #E2E8F0", borderRadius: "8px", padding: "8px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <label style={{ fontFamily: "Satoshi Variable, sans-serif", fontSize: "14px", color: "#0F172B" }}>
+                  Number of Rooms
+                </label>
+                <input
+                  type="number"
+                  value={formData.numberOfRooms}
+                  onChange={(e) => updateForm({ numberOfRooms: e.target.value })}
+                  placeholder="e.g. 150"
+                  style={{ border: "1px solid #E2E8F0", borderRadius: "8px", padding: "8px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <label style={{ fontFamily: "Satoshi Variable, sans-serif", fontSize: "14px", color: "#0F172B" }}>
+                  Property Type
+                </label>
+                <select
+                  value={formData.propertyType}
+                  onChange={(e) => updateForm({ propertyType: e.target.value })}
+                  style={{ border: "1px solid #E2E8F0", borderRadius: "8px", padding: "8px 12px", fontSize: "14px", outline: "none", backgroundColor: "white", width: "100%", boxSizing: "border-box" }}
+                >
+                  <option value="">Select a type</option>
+                  {PROPERTY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <label
-                style={{
-                  fontFamily: "Satoshi Variable",
-                  fontSize: "14px",
-                  color: "#0F172B",
-                }}
-              >
-                Number of Rooms
-              </label>
-              <input
-                type="number"
-                value={formData.numberOfRooms}
-                onChange={(e) => updateForm({ numberOfRooms: e.target.value })}
-                placeholder="e.g. 150"
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-900"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label
-                style={{
-                  fontFamily: "Satoshi Variable",
-                  fontSize: "14px",
-                  color: "#0F172B",
-                }}
-              >
-                Property Type
-              </label>
-              <select
-                value={formData.propertyType}
-                onChange={(e) => updateForm({ propertyType: e.target.value })}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-900 bg-white"
-              >
-                <option value="">Select a type</option>
-                {PROPERTY_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={onNext}
-              disabled={!isValid}
-              className="w-full bg-green-900 hover:bg-green-800 disabled:opacity-50 text-white flex items-center justify-center transition-colors"
-              style={{
-                height: "56px",
-                width: "256.6796875px",
-                borderRadius: "14px",
-                alignSelf: "center",
-              }}
-            >
-              Continue
-            </button>
-            <button
-              onClick={onBack}
-              className="text-sm text-center"
-              style={{ color: "#62748E" }}
-            >
-              ‹ Back
-            </button>
+            {/* Actions */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", width: "100%" }}>
+              <button
+                onClick={onNext}
+                disabled={!isValid}
+                style={{
+                  width: "100%",
+                  height: "56px",
+                  borderRadius: "14px",
+                  backgroundColor: isValid ? "#15502C" : "#15502C80",
+                  color: "white",
+                  border: "none",
+                  cursor: isValid ? "pointer" : "not-allowed",
+                  fontSize: "16px",
+                }}
+              >
+                Continue
+              </button>
+              <button
+                onClick={onBack}
+                style={{ fontSize: "14px", color: "#62748E", background: "none", border: "none", cursor: "pointer" }}
+              >
+                ‹ Back
+              </button>
+            </div>
           </div>
         </div>
       </div>

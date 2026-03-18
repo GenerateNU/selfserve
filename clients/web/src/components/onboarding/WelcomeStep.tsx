@@ -6,69 +6,75 @@ interface WelcomeStepProps {
 
 export default function WelcomeStep({ onNext }: WelcomeStepProps) {
   return (
-    <div className="flex flex-row w-[1371px] h-[982px]">
+    <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
       <LeftPanel />
 
-      {/* Right panel */}
-      <div
-        className="w-[881px] border border-[#000000] bg-white flex items-start justify-center gap-[10px]"
-        style={{ padding: "191px 132px" }}
-      >
-        {/* Welcome card */}
-        <div
-          className="relative border border-[#000000] bg-white"
-          style={{ width: "616.6px", height: "691px", borderRadius: "24px" }}
-        >
-          {/* Logo placeholder */}
-          <div
-            className="absolute border border-[#000000] bg-[#FFFFFF]"
-            style={{
-              width: "80px",
-              height: "80px",
-              top: "214px",
-              left: "268px",
-              borderRadius: "8px",
-            }}
-          />
+      {/* Right panel — flex centered, padded from top */}
+      <div style={{
+        flex: 1,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        paddingTop: "19.45vh",  // 191/982
+      }}>
+        {/* Card: 616.6/1371 wide, 691/982 tall */}
+        <div style={{
+          width: "44.97vw",     // 616.6/1371
+          height: "70.37vh",    // 691/982
+          border: "1px solid #000000",
+          borderRadius: "24px",
+          backgroundColor: "#FFFFFF",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          paddingTop: "21.79vh", // 214/982 — pushes logo to Figma position
+          boxSizing: "border-box",
+        }}>
 
-          {/* Inner container: Welcome + Start */}
-          <div
-            className="absolute"
-            style={{
-              width: "446.6px",
-              height: "193px",
-              top: "294px",
-              left: "85px",
-            }}
-          >
-            {/* Welcome text */}
-            <h1
-              className="absolute"
-              style={{
-                width: "384px",
-                height: "36px",
-                top: "61px",
-                left: "31px",
-                fontFamily: "Satoshi Variable",
-                fontWeight: 400,
-                fontSize: "30px",
-                lineHeight: "36px",
-                letterSpacing: "-0.35px",
-                textAlign: "center",
-              }}
-            >
+          {/* Logo box: 80×80px */}
+          <div style={{
+            width: "80px",
+            height: "80px",
+            border: "1px solid #000000",
+            borderRadius: "8px",
+            backgroundColor: "#FFFFFF",
+            flexShrink: 0,
+          }} />
+
+          {/* Welcome + Start: 61px gap above text matches Figma inner container */}
+          <div style={{
+            width: "72.45%",      // 446.6/616.6
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            paddingTop: "6.21vh", // 61/982
+            gap: "16px",
+          }}>
+            <h1 style={{
+              fontFamily: "Satoshi Variable, sans-serif",
+              fontWeight: 400,
+              fontSize: "30px",
+              lineHeight: "36px",
+              letterSpacing: "-0.35px",
+              textAlign: "center",
+              margin: 0,
+            }}>
               Welcome
             </h1>
-            {/* Start button */}
             <button
-              onClick={onNext}
-              className="absolute bg-green-900 hover:bg-green-800 text-white flex items-center justify-center transition-colors"
+              onClick={() => {
+                console.log("Start clicked");
+                onNext();
+              }}
               style={{
-                width: "446.6px",
+                width: "100%",
                 height: "56px",
-                top: "121px",
-                left: "0px",
                 borderRadius: "14px",
+                backgroundColor: "#15502C",
+                color: "white",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "16px",
               }}
             >
               Start ›
