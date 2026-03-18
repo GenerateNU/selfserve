@@ -1,8 +1,8 @@
-import type { PreviousStay } from './guest-mocks'
+import type { PreviousStay } from "./guest-mocks";
 
 type PreviousStaysCardProps = {
-  stays: Array<PreviousStay>
-}
+  stays: Array<PreviousStay>;
+};
 
 export function PreviousStaysCard({ stays }: PreviousStaysCardProps) {
   return (
@@ -26,5 +26,5 @@ export function PreviousStaysCard({ stays }: PreviousStaysCardProps) {
         ))}
       </div>
     </section>
-  )
+  );
 }

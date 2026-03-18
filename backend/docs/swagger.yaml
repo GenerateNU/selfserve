@@ -3,7 +3,7 @@ definitions:
   CreateGuest:
     properties:
       first_name:
-        example: John
+        example: Jane
         type: string
       last_name:
         example: Doe
@@ -28,6 +28,12 @@ definitions:
         type: string
       first_name:
         example: John
+        type: string
+      hotel_id:
+        example: hotel_123
+        type: string
+      id:
+        example: user_123
         type: string
       last_name:
         example: Doe
@@ -69,7 +75,7 @@ definitions:
         example: "2024-01-02T00:00:00Z"
         type: string
       first_name:
-        example: John
+        example: Jane
         type: string
       id:
         example: 530e8400-e458-41d4-a716-446655440000
@@ -94,6 +100,7 @@ definitions:
         type: string
       floors:
         example: 10
+        minimum: 1
         type: integer
       id:
         example: "550e8400-e29b-41d4-a\t716-446655440000"
@@ -216,10 +223,27 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
+  RoomWithOptionalGuestBooking:
+    properties:
+      booking_status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+      floor:
+        type: integer
+      guests:
+        items:
+          $ref: '#/definitions/Guest'
+        type: array
+      room_number:
+        type: integer
+      room_status:
+        type: string
+      suite_type:
+        type: string
+    type: object
   UpdateGuest:
     properties:
       first_name:
-        example: John
+        example: Jane
         type: string
       last_name:
         example: Doe
@@ -248,8 +272,11 @@ definitions:
       first_name:
         example: John
         type: string
+      hotel_id:
+        example: hotel_123
+        type: string
       id:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: user_123
         type: string
       last_name:
         example: Doe
@@ -272,6 +299,26 @@ definitions:
       code:
         type: integer
       message: {}
+    type: object
+  github_com_generate_selfserve_internal_models.BookingStatus:
+    enum:
+    - active
+    - inactive
+    type: string
+    x-enum-varnames:
+    - BookingStatusActive
+    - BookingStatusInactive
+  github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
+    properties:
+      has_more:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/RoomWithOptionalGuestBooking'
+        type: array
+      next_cursor:
+        description: nil when no more pages
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -400,7 +447,41 @@ paths:
             type: object
       summary: Updates a guest
       tags:
-        - guests
+      - guests
+  /api/v1/hotels:
+    post:
+      consumes:
+      - application/json
+      description: Create a new hotel with the given data
+      parameters:
+      - description: Hotel data
+        in: body
+        name: hotel
+        required: true
+        schema:
+          $ref: '#/definitions/Hotel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/Hotel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create hotel
+      tags:
+      - hotels
   /api/v1/hotels/{id}:
     get:
       description: Retrieve a hotel's details using its UUID
@@ -498,60 +579,26 @@ paths:
             type: string
       summary: Get personalized hello message
       tags:
-        - hello
-  /hotel:
-    post:
-      consumes:
-        - application/json
-      description: Create a new hotel with the given data
-      parameters:
-        - description: Hotel data
-          in: body
-          name: hotel
-          required: true
-          schema:
-            $ref: "#/definitions/Hotel"
-      produces:
-        - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: "#/definitions/Hotel"
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create hotel
-      tags:
-        - hotels
+      - hello
   /request:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Creates a request with the given data
       parameters:
-        - description: Request data
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/MakeRequest"
+      - description: Request data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/MakeRequest'
       produces:
         - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/Request"
+            $ref: '#/definitions/Request'
         "400":
           description: Bad Request
           schema:
@@ -565,6 +612,45 @@ paths:
               type: string
             type: object
       summary: creates a request
+      tags:
+      - requests
+  /request/cursor/{cursor}:
+    get:
+      consumes:
+      - application/json
+      description: Gets 20 requests starting after the cursor ID, filtered by status
+      parameters:
+      - description: Cursor UUID
+        in: path
+        name: cursor
+        required: true
+        type: string
+      - description: 'Status filter: pending, assigned, in progress, completed'
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Returns requests array and next_cursor
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get requests by cursor
       tags:
         - requests
   /request/generate:
@@ -600,7 +686,49 @@ paths:
             type: object
       summary: generates a request
       tags:
-        - requests
+      - requests
+  /rooms:
+    get:
+      description: Retrieves rooms optionally filtered by floor, with any active guest
+        bookings
+      parameters:
+      - collectionFormat: csv
+        description: floors
+        in: query
+        items:
+          type: integer
+        name: floors
+        type: array
+      - description: Opaque cursor for the next page
+        in: query
+        name: cursor
+        type: string
+      - description: Number of items per page (1-100, default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Rooms By Floor
+      tags:
+      - rooms
   /users:
     post:
       consumes:

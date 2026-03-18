@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
 type GuestPageShellProps = {
-  title: string
-  children: ReactNode
-}
+  title: string;
+  children: ReactNode;
+};
 
 export function GuestPageShell({ title, children }: GuestPageShellProps) {
   return (
@@ -13,5 +13,5 @@ export function GuestPageShell({ title, children }: GuestPageShellProps) {
         {children}
       </section>
     </main>
-  )
+  );
 }

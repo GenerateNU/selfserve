@@ -1,9 +1,9 @@
-import { DiamondIcon } from 'lucide-react'
+import { DiamondIcon } from "lucide-react";
 
 type TaskCardProps = {
-  task: string
-  onAssign: () => void
-}
+  task: string;
+  onAssign: () => void;
+};
 export function TaskCard({ task, onAssign }: TaskCardProps) {
   return (
     <div className="flex flex-col gap-[1.5vh] rounded-md border border-zinc-200 p-[1vw]">
@@ -19,5 +19,5 @@ export function TaskCard({ task, onAssign }: TaskCardProps) {
         Assign to self
       </button>
     </div>
-  )
+  );
 }
