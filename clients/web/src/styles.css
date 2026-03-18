@@ -44,6 +44,9 @@
   --color-shadow-weak: #e5e5e5;
   --color-shadow: #e7e7e7;
   --color-shadow-strong: #dcdcdc;
+  --color-bg-container: #F8F8F8;
+  --color-text-default: #000;
+
 }
 
 button {
