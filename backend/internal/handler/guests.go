@@ -97,7 +97,7 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 		return errs.BadRequest("guest id is not a valid UUID")
 	}
 
-	guest, err := h.GuestsRepository.FindGuestWithStays(c.Context(), id)
+	guest, err := h.GuestsRepository.FindGuestWithStayHistory(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("guest", "id", id)
@@ -165,13 +165,13 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Router       /api/v1/guests [post]
 func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	hotelID := c.Get("X-Hotel-ID")
-	var filters models.GuestFilter
+	var filters models.GuestFilters
 	filters.HotelID = hotelID
 	if err := httpx.BindAndValidate(c, &filters); err != nil {
 		return err
 	}
 
-	guests, err := h.GuestsRepository.FindGuests(c.Context(), &filters)
+	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
 	if err != nil {
 		return errs.InternalServerError()
 	}

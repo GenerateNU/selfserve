@@ -7,7 +7,7 @@ type CreateGuest struct {
 	LastName       string  `json:"last_name" validate:"notblank" example:"Doe"`
 	ProfilePicture *string `json:"profile_picture,omitempty" validate:"omitempty,url" example:"https://example.com/john.jpg"`
 	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
-}
+} // @name CreateGuest
 
 type UpdateGuest struct {
 	FirstName      string  `json:"first_name" validate:"notblank" example:"Jane"`
@@ -23,12 +23,12 @@ type Guest struct {
 	CreateGuest
 } //@name Guest
 
-type GuestFilter struct {
+type GuestFilters struct {
 	HotelID string `json:"hotel_id" validate:"required,uuid"`
 	Floors  []int  `json:"floors"`
 	Cursor  string `json:"cursor" validate:"omitempty,uuid"`
 	Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
-}
+} // @name GuestFilter
 
 type GuestPage struct {
 	Data       []*GuestWithBooking `json:"data"`
@@ -41,7 +41,7 @@ type GuestWithBooking struct {
 	LastName   string `json:"last_name" validate:"required"`
 	Floor      int    `json:"floor" validate:"required"`
 	RoomNumber int    `json:"room_number" validate:"required"`
-}
+} // @name GuestWithBooking
 
 type GuestWithStays struct {
 	ID           string  `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`

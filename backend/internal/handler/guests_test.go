@@ -22,7 +22,7 @@ type mockGuestsRepository struct {
 	insertGuestFunc    func(ctx context.Context, req *models.CreateGuest) (*models.Guest, error)
 	findGuestFunc      func(ctx context.Context, id string) (*models.Guest, error)
 	updateGuestFunc    func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error)
-	findGuestsFunc     func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error)
+	findGuestsFunc     func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error)
 	findGuestStaysFunc func(ctx context.Context, id string) (*models.GuestWithStays, error)
 }
 
@@ -38,11 +38,11 @@ func (m *mockGuestsRepository) UpdateGuest(ctx context.Context, id string, updat
 	return m.updateGuestFunc(ctx, id, update)
 }
 
-func (m *mockGuestsRepository) FindGuests(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error) {
+func (m *mockGuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
 	return m.findGuestsFunc(ctx, f)
 }
 
-func (m *mockGuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*models.GuestWithStays, error) {
+func (m *mockGuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
 	return m.findGuestStaysFunc(ctx, id)
 }
 
@@ -588,7 +588,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockGuestsRepository{
-			findGuestsFunc: func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error) {
+			findGuestsFunc: func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
 				return &models.GuestPage{
 					Data: []*models.GuestWithBooking{
 						{ID: "530e8400-e458-41d4-a716-446655440000", FirstName: "John", LastName: "Doe"},
@@ -618,7 +618,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockGuestsRepository{
-			findGuestsFunc: func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error) {
+			findGuestsFunc: func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
 				assert.Equal(t, []int{3}, f.Floors)
 				return &models.GuestPage{
 					Data:       []*models.GuestWithBooking{},
@@ -647,7 +647,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		nextCursor := "530e8400-e458-41d4-a716-446655440001"
 
 		mock := &mockGuestsRepository{
-			findGuestsFunc: func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error) {
+			findGuestsFunc: func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
 				assert.Equal(t, cursor, f.Cursor)
 				assert.Equal(t, 10, f.Limit)
 				return &models.GuestPage{
@@ -779,7 +779,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockGuestsRepository{
-			findGuestsFunc: func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error) {
+			findGuestsFunc: func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
 				return &models.GuestPage{
 					Data:       []*models.GuestWithBooking{},
 					NextCursor: nil,
@@ -807,7 +807,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockGuestsRepository{
-			findGuestsFunc: func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error) {
+			findGuestsFunc: func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
 				assert.Equal(t, validHotelID, f.HotelID)
 				return &models.GuestPage{Data: []*models.GuestWithBooking{}, NextCursor: nil}, nil
 			},
@@ -830,7 +830,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockGuestsRepository{
-			findGuestsFunc: func(ctx context.Context, f *models.GuestFilter) (*models.GuestPage, error) {
+			findGuestsFunc: func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
 				return nil, errors.New("db error")
 			},
 		}

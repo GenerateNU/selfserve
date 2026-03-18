@@ -82,7 +82,7 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 	return &guest, nil
 }
 
-func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*models.GuestWithStays, error) {
+func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
 
 	rows, err := r.db.Query(ctx, `
 		SELECT guests.id, guests.first_name, guests.last_name, guests.phone, guests.email,
@@ -128,10 +128,13 @@ func (r *GuestsRepository) FindGuestWithStays(ctx context.Context, id string) (*
 		stay.RoomNumber = *roomNumber
 		stay.Status = *status
 
-		if *status == models.BookingStatusActive {
+		switch *status {
+		case models.BookingStatusActive:
 			guest.CurrentStays = append(guest.CurrentStays, stay)
-		} else {
+		case models.BookingStatusInactive:
 			guest.PastStays = append(guest.PastStays, stay)
+		default:
+			return nil, errs.InternalServerError()
 		}
 	}
 
@@ -188,7 +191,7 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	return &guest, nil
 }
 
-func (r *GuestsRepository) FindGuests(ctx context.Context, filters *models.GuestFilter) (*models.GuestPage, error) {
+func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
 	floors := filters.Floors
 	if floors == nil {
 		floors = []int{}
