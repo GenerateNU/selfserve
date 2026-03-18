@@ -1,14 +1,20 @@
-import LeftPanel from './LeftPanel'
-import type { OnboardingFormData } from './types'
+import LeftPanel from "./LeftPanel";
+import type { OnboardingFormData } from "./types";
 
 interface PropertyDetailsStepProps {
-  formData: OnboardingFormData
-  updateForm: (updates: Partial<OnboardingFormData>) => void
-  onNext: () => void
-  onBack: () => void
+  formData: OnboardingFormData;
+  updateForm: (updates: Partial<OnboardingFormData>) => void;
+  onNext: () => void;
+  onBack: () => void;
 }
 
-const PROPERTY_TYPES = ['Hotel', 'Motel', 'Resort', 'Bed & Breakfast', 'Hostel']
+const PROPERTY_TYPES = [
+  "Hotel",
+  "Motel",
+  "Resort",
+  "Bed & Breakfast",
+  "Hostel",
+];
 
 export default function PropertyDetailsStep({
   formData,
@@ -17,7 +23,7 @@ export default function PropertyDetailsStep({
   onBack,
 }: PropertyDetailsStepProps) {
   const isValid =
-    formData.hotelName && formData.numberOfRooms && formData.propertyType
+    formData.hotelName && formData.numberOfRooms && formData.propertyType;
 
   return (
     <div className="flex flex-row w-[1371px] h-[982px]">
@@ -29,36 +35,36 @@ export default function PropertyDetailsStep({
         <div
           className="bg-[#FFFFFF] border border-[#000000] flex flex-col"
           style={{
-            width: '662.6px',
-            height: '705px',
-            borderRadius: '24px',
-            padding: '48px',
-            gap: '24px',
-            paddingTop: '150px',
+            width: "662.6px",
+            height: "705px",
+            borderRadius: "24px",
+            padding: "48px",
+            gap: "24px",
+            paddingTop: "150px",
           }}
         >
           {/* Header */}
           <div className="flex flex-col gap-1">
             <h1
               style={{
-                fontFamily: 'Satoshi Variable',
+                fontFamily: "Satoshi Variable",
                 fontWeight: 400,
-                fontSize: '24px',
-                lineHeight: '32px',
-                color: '#0F172B',
-                textAlign: 'center',
+                fontSize: "24px",
+                lineHeight: "32px",
+                color: "#0F172B",
+                textAlign: "center",
               }}
             >
               Property Details
             </h1>
             <p
               style={{
-                fontFamily: 'Satoshi Variable',
+                fontFamily: "Satoshi Variable",
                 fontWeight: 400,
-                fontSize: '16px',
-                lineHeight: '24px',
-                color: '#62748E',
-                textAlign: 'center',
+                fontSize: "16px",
+                lineHeight: "24px",
+                color: "#62748E",
+                textAlign: "center",
               }}
             >
               Lorem ipsum dolor sit amet.
@@ -69,19 +75,19 @@ export default function PropertyDetailsStep({
           <div
             className="flex flex-col gap-4"
             style={{
-              width: '256.6796875px',
-              height: '254px',
-              gap: '16px',
-              padding: '12px 16px 12px 16px',
-              alignSelf: 'center',
+              width: "256.6796875px",
+              height: "254px",
+              gap: "16px",
+              padding: "12px 16px 12px 16px",
+              alignSelf: "center",
             }}
           >
             <div className="flex flex-col gap-1">
               <label
                 style={{
-                  fontFamily: 'Satoshi Variable',
-                  fontSize: '14px',
-                  color: '#0F172B',
+                  fontFamily: "Satoshi Variable",
+                  fontSize: "14px",
+                  color: "#0F172B",
                 }}
               >
                 Hotel Name
@@ -97,9 +103,9 @@ export default function PropertyDetailsStep({
             <div className="flex flex-col gap-1">
               <label
                 style={{
-                  fontFamily: 'Satoshi Variable',
-                  fontSize: '14px',
-                  color: '#0F172B',
+                  fontFamily: "Satoshi Variable",
+                  fontSize: "14px",
+                  color: "#0F172B",
                 }}
               >
                 Number of Rooms
@@ -115,9 +121,9 @@ export default function PropertyDetailsStep({
             <div className="flex flex-col gap-1">
               <label
                 style={{
-                  fontFamily: 'Satoshi Variable',
-                  fontSize: '14px',
-                  color: '#0F172B',
+                  fontFamily: "Satoshi Variable",
+                  fontSize: "14px",
+                  color: "#0F172B",
                 }}
               >
                 Property Type
@@ -144,10 +150,10 @@ export default function PropertyDetailsStep({
               disabled={!isValid}
               className="w-full bg-green-900 hover:bg-green-800 disabled:opacity-50 text-white flex items-center justify-center transition-colors"
               style={{
-                height: '56px',
-                width: '256.6796875px',
-                borderRadius: '14px',
-                alignSelf: 'center',
+                height: "56px",
+                width: "256.6796875px",
+                borderRadius: "14px",
+                alignSelf: "center",
               }}
             >
               Continue
@@ -155,7 +161,7 @@ export default function PropertyDetailsStep({
             <button
               onClick={onBack}
               className="text-sm text-center"
-              style={{ color: '#62748E' }}
+              style={{ color: "#62748E" }}
             >
               ‹ Back
             </button>
@@ -163,5 +169,5 @@ export default function PropertyDetailsStep({
         </div>
       </div>
     </div>
-  )
+  );
 }
