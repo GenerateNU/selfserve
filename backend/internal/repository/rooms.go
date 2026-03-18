@@ -100,5 +100,9 @@ func (r *RoomsRepository) FindFloors(ctx context.Context, hotelID string) ([]int
 		return nil, err
 	}
 
+	if len(floors) == 0 {
+		floors = []int{}
+	}
+
 	return floors, nil
 }

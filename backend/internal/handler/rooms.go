@@ -88,9 +88,5 @@ func (h *RoomsHandler) GetFloors(c *fiber.Ctx) error {
 		return errs.InternalServerError()
 	}
 
-	if floors == nil {
-		floors = []int{}
-	}
-
 	return c.JSON(floors)
 }
