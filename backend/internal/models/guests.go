@@ -28,7 +28,7 @@ type GuestFilters struct {
 	Floors  []int  `json:"floors"`
 	Cursor  string `json:"cursor" validate:"omitempty,uuid"`
 	Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
-} // @name GuestFilter
+} // @name GuestFilters
 
 type GuestPage struct {
 	Data       []*GuestWithBooking `json:"data"`

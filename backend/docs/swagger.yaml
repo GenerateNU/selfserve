@@ -1,5 +1,20 @@
 basePath: /api/v1
 definitions:
+  CreateGuest:
+    properties:
+      first_name:
+        example: Jane
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      profile_picture:
+        example: https://example.com/john.jpg
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+    type: object
   CreateUser:
     properties:
       department:
@@ -94,14 +109,50 @@ definitions:
       status:
         $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
     type: object
+  GuestFilters:
+    properties:
+      cursor:
+        type: string
+      floors:
+        items:
+          type: integer
+        type: array
+      hotel_id:
+        type: string
+      limit:
+        maximum: 100
+        minimum: 1
+        type: integer
+    required:
+    - hotel_id
+    type: object
   GuestPage:
     properties:
       data:
         items:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestWithBooking'
+          $ref: '#/definitions/GuestWithBooking'
         type: array
       next_cursor:
         type: string
+    type: object
+  GuestWithBooking:
+    properties:
+      first_name:
+        type: string
+      floor:
+        type: integer
+      id:
+        type: string
+      last_name:
+        type: string
+      room_number:
+        type: integer
+    required:
+    - first_name
+    - floor
+    - id
+    - last_name
+    - room_number
     type: object
   GuestWithStays:
     properties:
@@ -383,57 +434,6 @@ definitions:
     x-enum-varnames:
     - BookingStatusActive
     - BookingStatusInactive
-  github_com_generate_selfserve_internal_models.CreateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
-  github_com_generate_selfserve_internal_models.GuestFilter:
-    properties:
-      cursor:
-        type: string
-      floors:
-        items:
-          type: integer
-        type: array
-      hotel_id:
-        type: string
-      limit:
-        maximum: 100
-        minimum: 1
-        type: integer
-    required:
-    - hotel_id
-    type: object
-  github_com_generate_selfserve_internal_models.GuestWithBooking:
-    properties:
-      first_name:
-        type: string
-      floor:
-        type: integer
-      id:
-        type: string
-      last_name:
-        type: string
-      room_number:
-        type: integer
-    required:
-    - first_name
-    - floor
-    - id
-    - last_name
-    - room_number
-    type: object
   github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
     properties:
       has_more:
@@ -475,7 +475,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestFilter'
+          $ref: '#/definitions/GuestFilters'
       produces:
       - application/json
       responses:

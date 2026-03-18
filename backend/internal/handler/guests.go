@@ -158,7 +158,7 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Param        X-Hotel-ID  header    string             true   "Hotel ID (UUID)"
-// @Param        body        body      models.GuestFilter true   "Guest filters"
+// @Param        body        body      models.GuestFilters true   "Guest filters"
 // @Success      200         {object}  models.GuestPage
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
