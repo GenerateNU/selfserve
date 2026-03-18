@@ -1,5 +1,5 @@
 # SelfServe [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/GenerateNU/selfserve)
 
-**Streamline hospitality staff operations**
+# Backend: https://selfserve-production.up.railway.app/
 
-![Repobeats analytics](https://repobeats.axiom.co/api/embed/a87cdebacff1d8354221554cbf2baca35800352c.svg "Repobeats analytics image")
+# Web: https://selfserve-web.vercel.app/
