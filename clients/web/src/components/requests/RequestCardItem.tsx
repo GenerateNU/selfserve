@@ -21,26 +21,26 @@ export function RequestCardItem({
   department,
 }: RequestCardItemProps) {
   return (
-    <RequestCard status={status}>
+    <RequestCard status={status} className="w-81.25">
       <RequestCardTimestamp status={status} time={time} />
-      <span className="text-xl font-bold text-text-default">{title}</span>
-      <div className="flex gap-2">
+      <span className="text-base font-medium text-text-default pt-3">{title}</span>
+      <div className="flex gap-1 pt-1">
         {assignees.map((name) => (
           <span
             key={name}
-            className="rounded-md bg-stroke-disabled px-3 py-1 text-sm text-text-secondary"
+            className="rounded-md bg-stroke-disabled px-2 py-1 text-[11px] text-text-secondary"
           >
             {name}
           </span>
         ))}
       </div>
-      <div className="flex items-center gap-4 text-sm text-text-secondary">
+      <div className="flex items-center gap-3 text-xs text-text-secondary pt-2">
         <span className="flex items-center gap-1">
-          <MapPin className="size-4" />
+          <MapPin className="size-4 color-text-secondary" />
           {location}
         </span>
         <span className="flex items-center gap-1">
-          <Home className="size-4" />
+          <Home className="size-4 color-text-secondary" />
           {department}
         </span>
       </div>

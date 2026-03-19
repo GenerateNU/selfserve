@@ -18,11 +18,11 @@ export function RequestCard({ status, children, className }: RequestCardProps) {
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white px-5 py-4 pl-7 shadow-sm overflow-hidden",
+        "relative flex flex-col rounded-xl border border-stroke-disabled bg-white pt-3 pb-4 pl-4 shadow-sm overflow-hidden",
         className
       )}
     >
-      <div className={cn("absolute left-0 top-0 bottom-0 w-[5px] rounded-l-xl", accentClass[status])} />
+      <div className={cn("absolute left-0 top-0 bottom-0 w-2 rounded-l-xl", accentClass[status])} />
       {children}
     </div>
   );
