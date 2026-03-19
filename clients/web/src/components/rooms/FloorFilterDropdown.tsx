@@ -40,7 +40,7 @@ export function FloorFilterDropdown({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-[8.5vw] items-center justify-between rounded-md border border-gray-300 bg-white px-[0.6vw] py-[0.55vh] text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+        className="flex w-[8.5vw] items-center justify-between rounded-md border border-stroke-subtle bg-white px-[0.6vw] py-[0.55vh] text-sm font-medium text-text-default transition-colors hover:bg-gray-50"
       >
         <span>{getLabel(selected)}</span>
         <ChevronDown
@@ -56,7 +56,7 @@ export function FloorFilterDropdown({
           {FLOOR_OPTIONS.map((floor) => (
             <label
               key={floor}
-              className="flex cursor-pointer items-center gap-[0.4vw] px-[0.6vw] py-[0.55vh] text-sm text-gray-700 hover:bg-gray-100"
+              className="flex cursor-pointer items-center gap-[0.4vw] px-[0.6vw] py-[0.55vh] text-sm text-text-default hover:bg-gray-100"
             >
               <input
                 type="checkbox"

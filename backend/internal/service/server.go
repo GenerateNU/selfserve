@@ -13,7 +13,9 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
+
 	"github.com/generate/selfserve/internal/service/clerk"
+	s3storage "github.com/generate/selfserve/internal/service/s3"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/validation"
 	"github.com/goccy/go-json"
@@ -27,16 +29,26 @@ import (
 )
 
 type App struct {
-	Server *fiber.App
-	Repo   *storage.Repository
+	Server    *fiber.App
+	Repo      *storage.Repository
+	S3Storage *s3storage.Storage
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
 	validation.Init()
 
 	// Init DB/repository(ies)
+
 	repo, err := storage.NewRepository(cfg.DB)
 	if err != nil {
+		return nil, err
+	}
+
+	s3Store, err := s3storage.NewS3Storage(cfg.S3)
+	if err != nil {
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
 		return nil, err
 	}
 
@@ -45,7 +57,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, cfg); err != nil {
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store); err != nil {
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -53,15 +65,15 @@ func InitApp(cfg *config.Config) (*App, error) {
 	}
 
 	return &App{
-		Server: app,
-		Repo:   repo,
+		Server:    app,
+		Repo:      repo,
+		S3Storage: s3Store,
 	}, nil
 
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	cfg *config.Config) error {
-
+	cfg *config.Config, s3Store *s3storage.Storage) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -85,6 +97,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
+	s3Handler := handler.NewS3Handler(s3Store)
+	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
@@ -125,6 +139,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", guestsHandler.CreateGuest)
 		r.Get("/:id", guestsHandler.GetGuest)
 		r.Put("/:id", guestsHandler.UpdateGuest)
+		r.Get("/", guestsHandler.GetGuests)
+		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
 	})
 
 	// Request routes
@@ -132,7 +148,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
-		r.Get("/", reqsHandler.GetRequests)
+		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
 	})
 
 	// Hotel routes
@@ -141,15 +157,27 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
 
+	// rooms routes
+	api.Route("/rooms", func(r fiber.Router) {
+		r.Get("/", roomsHandler.GetRoomsByFloor)
+		r.Get("/floors", roomsHandler.GetFloors)
+	})
+
+	// s3 routes
+	api.Route("/s3", func(r fiber.Router) {
+		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
+	})
+
 	return nil
 }
 
 // Initialize Fiber app with middlewares / configs
 func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		JSONEncoder:  json.Marshal,
-		JSONDecoder:  json.Unmarshal,
-		ErrorHandler: errs.ErrorHandler,
+		JSONEncoder:    json.Marshal,
+		JSONDecoder:    json.Unmarshal,
+		ErrorHandler:   errs.ErrorHandler,
+		ReadBufferSize: 16 * 1024, // 16KB to accommodate Clerk JWTs
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())
@@ -161,10 +189,11 @@ func setupApp() *fiber.App {
 		Level: compress.LevelBestSpeed,
 	}))
 
+	allowedOrigins := os.Getenv("APP_CORS_ORIGINS")
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     "GET,POST,PUT,DELETE",
-		AllowHeaders:     "Origin, Content-Type, Authorization",
+		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID",
 		AllowCredentials: true,
 	}))
 
