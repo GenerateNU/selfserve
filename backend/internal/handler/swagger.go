@@ -10,11 +10,8 @@ import (
 func ServeSwagger(c *fiber.Ctx) error {
 	handler := httpSwagger.Handler(
 		httpSwagger.URL("/swagger/doc.json"),
-		// saves token to localStorage for convenience
-		httpSwagger.UIConfig(map[string]string{
-			"persistAuthorization": "true",
-		}),
 	)
 
+	// fiber adaptor to convert the http.Handler to fiber handler
 	return adaptor.HTTPHandler(handler)(c)
 }

@@ -1,4 +1,4 @@
-.PHONY: install install-shared install-mobile install-web dev-web dev-mobile format format-mobile format-web lint lint-web lint-mobile lint-fix lint-fix-web lint-fix-mobile
+.PHONY: install install-shared install-mobile install-web dev-web dev-mobile format format-mobile format-web
 
 # Install dependencies in shared, mobile, and web
 install: install-shared install-mobile install-web
@@ -26,28 +26,6 @@ format-mobile:
 format-web:
 	@echo "Formatting web..."
 	@cd web && npm run format
-
-# Lint code
-lint: lint-mobile lint-web
-
-lint-mobile:
-	@echo "Linting mobile..."
-	@cd mobile && npm run lint
-
-lint-web:
-	@echo "Linting web..."
-	@cd web && npm run lint
-
-# Lint fix
-lint-fix: lint-fix-mobile lint-fix-web
-
-lint-fix-mobile:
-	@echo "Fixing mobile lint..."
-	@cd mobile && npm run lint -- --fix
-
-lint-fix-web:
-	@echo "Fixing web lint..."
-	@cd web && npm run lint -- --fix
 
 # Start development servers
 dev-web:

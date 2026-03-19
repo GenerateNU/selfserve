@@ -35,7 +35,6 @@ func NewHotelsHandler(repo HotelsRepository) *HotelsHandler {
 // @Failure      400  {object}  errs.HTTPError  "Invalid hotel ID format"
 // @Failure      404  {object}  errs.HTTPError  "Hotel not found"
 // @Failure      500  {object}  errs.HTTPError  "Internal server error"
-// @Security     BearerAuth
 // @Router       /api/v1/hotels/{id} [get]
 func (h *HotelsHandler) GetHotelByID(c *fiber.Ctx) error {
 	idParam := c.Params("id")
@@ -68,7 +67,6 @@ func (h *HotelsHandler) GetHotelByID(c *fiber.Ctx) error {
 // @Success      201    {object}  models.Hotel
 // @Failure      400    {object}  map[string]string
 // @Failure      500    {object}  map[string]string
-// @Security     BearerAuth
 // @Router       /api/v1/hotels [post]
 func (h *HotelsHandler) CreateHotel(c *fiber.Ctx) error {
 	var hotelRequest models.CreateHotelRequest

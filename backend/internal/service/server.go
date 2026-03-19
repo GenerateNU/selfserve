@@ -141,8 +141,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Put("/:id", guestsHandler.UpdateGuest)
 		r.Get("/", guestsHandler.GetGuests)
 		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
-		r.Get("/", guestsHandler.GetGuests)
-		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
 	})
 
 	// Request routes
@@ -175,10 +173,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 // Initialize Fiber app with middlewares / configs
 func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		JSONEncoder:    json.Marshal,
-		JSONDecoder:    json.Unmarshal,
-		ErrorHandler:   errs.ErrorHandler,
-		ReadBufferSize: 16 * 1024, // 16KB to accommodate Clerk JWTs
+		JSONEncoder:  json.Marshal,
+		JSONDecoder:  json.Unmarshal,
+		ErrorHandler: errs.ErrorHandler,
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())
@@ -191,6 +188,9 @@ func setupApp() *fiber.App {
 	}))
 
 	allowedOrigins := os.Getenv("APP_CORS_ORIGINS")
+	if allowedOrigins == "" {
+		allowedOrigins = "http://localhost:3000,http://localhost:8081"
+	}
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     "GET,POST,PUT,DELETE",

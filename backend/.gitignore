@@ -1,8 +1,6 @@
 /config/.env
 .env
 .env.*
-!config/.env.sample
-!.env.sample
 *.log
 *.out
 coverage.*

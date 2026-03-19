@@ -1,7 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { UserButton, useUser } from "@clerk/clerk-react";
-import { Home, LayoutGrid, Octagon, Settings, UserRound } from "lucide-react";
-import { LogoutButton } from "./LogoutButton";
+import { SignOutButton, UserButton, useUser } from "@clerk/clerk-react";
+import {
+  Home,
+  LayoutGrid,
+  LogOut,
+  Octagon,
+  Settings,
+  UserRound,
+} from "lucide-react";
 
 function NavLink({
   to,
@@ -68,7 +74,15 @@ export function Sidebar() {
         <NavLink to="/settings" icon={Settings}>
           Settings
         </NavLink>
-        <LogoutButton />
+        <SignOutButton>
+          <button
+            type="button"
+            className="flex w-full hover:cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+          >
+            <LogOut className="size-5 shrink-0" />
+            Logout
+          </button>
+        </SignOutButton>
         <div className="flex items-center gap-3 pt-4">
           <UserButton
             appearance={{

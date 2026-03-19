@@ -37,7 +37,6 @@ func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService 
 // @Success      200   {object}  models.Request
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
-// @Security     BearerAuth
 // @Router       /request [post]
 func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	var incoming models.MakeRequest
@@ -161,7 +160,6 @@ func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
 // @Success      200     {object}  map[string]interface{}  "Returns requests array and next_cursor"
 // @Failure      400     {object}  map[string]string
 // @Failure      500     {object}  map[string]string
-// @Security     BearerAuth
 // @Router       /request/cursor/{cursor} [get]
 func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 	cursor := c.Params("cursor")
@@ -204,7 +202,6 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 // @Success      200   {object}  models.Request
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
-// @Security     BearerAuth
 // @Router       /request/generate [post]
 func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 	var incoming models.GenerateRequestInput
