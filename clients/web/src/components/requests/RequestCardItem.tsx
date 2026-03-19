@@ -1,6 +1,7 @@
 import { RequestCard } from "@/components/requests/RequestCard";
 import type { RequestStatus } from "@/components/requests/RequestCard";
-import { Clock, MapPin, Home } from "lucide-react";
+import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
+import { MapPin, Home } from "lucide-react";
 
 type RequestCardItemProps = {
   status: RequestStatus;
@@ -21,22 +22,19 @@ export function RequestCardItem({
 }: RequestCardItemProps) {
   return (
     <RequestCard status={status}>
-      <div className="flex items-center gap-2 self-start rounded-full bg-request-pending-secondary px-3 py-1 text-sm font-medium text-request-pending">
-        <Clock className="size-4" />
-        {time}
-      </div>
-      <span className="text-xl font-bold text-zinc-900">{title}</span>
+      <RequestCardTimestamp status={status} time={time} />
+      <span className="text-xl font-bold text-text-default">{title}</span>
       <div className="flex gap-2">
         {assignees.map((name) => (
           <span
             key={name}
-            className="rounded-md bg-zinc-100 px-3 py-1 text-sm text-zinc-600"
+            className="rounded-md bg-stroke-disabled px-3 py-1 text-sm text-text-secondary"
           >
             {name}
           </span>
         ))}
       </div>
-      <div className="flex items-center gap-4 text-sm text-zinc-500">
+      <div className="flex items-center gap-4 text-sm text-text-secondary">
         <span className="flex items-center gap-1">
           <MapPin className="size-4" />
           {location}

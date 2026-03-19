@@ -3,6 +3,7 @@
 @theme {
   --color-primary: #15502c;
   --color-stroke-subtle: #d8d8d8;
+  --color-stroke-disabled: #e9e9e9;
   --font-playfair: "Playfair Display", ui-serif, serif;
   --color-primary-hover: #0a2916;
   --color-success-accent: #e8fff0;
@@ -52,6 +53,7 @@
   --color-request-pending: #f25118;
   --color-request-completed-secondary: #cde4ce;
   --color-request-completed: #047a0d;
+
 }
 
 button {
