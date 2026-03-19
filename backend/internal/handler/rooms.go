@@ -11,7 +11,8 @@ import (
 )
 
 type RoomsRepository interface {
-	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
 }
 
 type RoomsHandler struct {
@@ -34,6 +35,7 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 // @Success      200         {object}  utils.CursorPage[models.RoomWithOptionalGuestBooking]
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /rooms [get]
 func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
 	hotelID, err := hotelIDFromHeader(c)
@@ -41,7 +43,7 @@ func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
 		return err
 	}
 
-	filter := new(models.RoomFilter)
+	filter := new(models.RoomFilters)
 	if err := c.QueryParser(filter); err != nil {
 		return errs.BadRequest("invalid filters")
 	}
@@ -65,4 +67,27 @@ func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(page)
+}
+
+// GetFloors godoc
+// @Summary      Get Floors
+// @Description  Retrieves all distinct floor numbers
+// @Tags         rooms
+// @Produce      json
+// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
+// @Success      200  {array}   int
+// @Failure      500  {object}  map[string]string
+// @Router       /rooms/floors [get]
+func (h *RoomsHandler) GetFloors(c *fiber.Ctx) error {
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
+	floors, err := h.repo.FindAllFloors(c.Context(), hotelID)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(floors)
 }

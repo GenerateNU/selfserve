@@ -2,11 +2,23 @@ basePath: /api/v1
 definitions:
   CreateGuest:
     properties:
+      email:
+        example: jane.doe@example.com
+        type: string
       first_name:
         example: Jane
         type: string
       last_name:
         example: Doe
+        type: string
+      notes:
+        example: VIP
+        type: string
+      phone:
+        example: +1 (617) 012-3456
+        type: string
+      preferences:
+        example: extra pillows
         type: string
       profile_picture:
         example: https://example.com/john.jpg
@@ -17,9 +29,6 @@ definitions:
     type: object
   CreateUser:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       department:
         example: Housekeeping
         type: string
@@ -74,6 +83,9 @@ definitions:
       created_at:
         example: "2024-01-02T00:00:00Z"
         type: string
+      email:
+        example: jane.doe@example.com
+        type: string
       first_name:
         example: Jane
         type: string
@@ -82,6 +94,15 @@ definitions:
         type: string
       last_name:
         example: Doe
+        type: string
+      notes:
+        example: VIP
+        type: string
+      phone:
+        example: +1 (617) 012-3456
+        type: string
+      preferences:
+        example: extra pillows
         type: string
       profile_picture:
         example: https://example.com/john.jpg
@@ -92,6 +113,55 @@ definitions:
       updated_at:
         example: "2024-01-02T00:00:00Z"
         type: string
+    type: object
+  GuestWithBooking:
+    properties:
+      first_name:
+        type: string
+      floor:
+        type: integer
+      id:
+        type: string
+      last_name:
+        type: string
+      room_number:
+        type: integer
+    type: object
+  GuestWithStays:
+    properties:
+      current_stays:
+        items:
+          $ref: '#/definitions/Stay'
+        type: array
+      email:
+        example: jane.doe@example.com
+        type: string
+      first_name:
+        example: Jane
+        type: string
+      id:
+        example: 530e8400-e458-41d4-a716-446655440000
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      notes:
+        example: VIP
+        type: string
+      past_stays:
+        items:
+          $ref: '#/definitions/Stay'
+        type: array
+      phone:
+        example: +1 (617) 012-3456
+        type: string
+      preferences:
+        example: extra pillows
+        type: string
+    required:
+    - first_name
+    - id
+    - last_name
     type: object
   Hotel:
     properties:
@@ -240,6 +310,25 @@ definitions:
       suite_type:
         type: string
     type: object
+  Stay:
+    properties:
+      arrival_date:
+        example: "2024-01-02"
+        type: string
+      departure_date:
+        example: "2024-01-05"
+        type: string
+      room_number:
+        example: 101
+        type: integer
+      status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+    required:
+    - arrival_date
+    - departure_date
+    - room_number
+    - status
+    type: object
   UpdateGuest:
     properties:
       first_name:
@@ -257,9 +346,6 @@ definitions:
     type: object
   User:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
@@ -334,6 +420,45 @@ info:
   version: "1.0"
 paths:
   /api/v1/guests:
+    get:
+      description: Retrieves guests optionally filtered by floor in which they are
+        staying
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Floor
+        in: query
+        name: number
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/GuestWithBooking'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Guests
+      tags:
+      - guests
     post:
       consumes:
       - application/json
@@ -364,6 +489,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Creates a guest
       tags:
       - guests
@@ -401,6 +528,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Gets a guest
       tags:
       - guests
@@ -445,7 +574,48 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Updates a guest
+      tags:
+      - guests
+  /api/v1/guests/stays/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single guest with previous stays given an id
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GuestWithStays'
+        "400":
+          description: Invalid guest ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Guest not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Gets a guest with previous stays
       tags:
       - guests
   /api/v1/hotels:
@@ -479,6 +649,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create hotel
       tags:
       - hotels
@@ -508,6 +680,8 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
       summary: Get hotel by ID
       tags:
       - hotels
@@ -541,6 +715,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get developer member
       tags:
       - devs
@@ -556,6 +732,8 @@ paths:
           description: 'Yogurt. Gurt: Yo!'
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get hello message
       tags:
       - hello
@@ -577,6 +755,8 @@ paths:
           description: Yo, {name}!
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get personalized hello message
       tags:
       - hello
@@ -611,6 +791,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: creates a request
       tags:
       - requests
@@ -628,6 +810,11 @@ paths:
       - description: 'Status filter: pending, assigned, in progress, completed'
         in: query
         name: status
+        required: true
+        type: string
+      - description: Hotel UUID
+        in: query
+        name: hotel_id
         required: true
         type: string
       produces:
@@ -650,6 +837,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get requests by cursor
       tags:
       - requests
@@ -684,6 +873,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: generates a request
       tags:
       - requests
@@ -692,6 +883,11 @@ paths:
       description: Retrieves rooms optionally filtered by floor, with any active guest
         bookings
       parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
       - collectionFormat: csv
         description: floors
         in: query
@@ -726,7 +922,36 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get Rooms By Floor
+      tags:
+      - rooms
+  /rooms/floors:
+    get:
+      description: Retrieves all distinct floor numbers
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Floors
       tags:
       - rooms
   /users:
@@ -760,6 +985,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Creates a user
       tags:
       - users
@@ -793,10 +1020,18 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get user by ID
       tags:
       - users
 schemes:
 - http
 - https
+securityDefinitions:
+  BearerAuth:
+    description: Your Clerk JWT token (prefixed with "Bearer ")
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
