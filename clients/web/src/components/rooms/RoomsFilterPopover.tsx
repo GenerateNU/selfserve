@@ -18,15 +18,15 @@ export function RoomsFilterPopover() {
       <PopoverTrigger>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
+          className="flex items-center gap-2 rounded-lg border border-stroke-subtle px-4 py-2 text-sm font-medium text-text-default hover:bg-primary/5 transition-colors h-11 w-22.75"
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="h-4 w-4 color-text-default" />
           Filter
         </button>
       </PopoverTrigger>
       <PopoverContent sideOffset={8} align="start">
         <div className="flex items-center justify-between px-6 pt-6 pb-4">
-          <span className="text-lg font-bold text-gray-900">All Filters</span>
+          <span className="text-lg font-bold text-text-default">All Filters</span>
           <button
             type="button"
             className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
