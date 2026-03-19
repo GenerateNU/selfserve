@@ -48,6 +48,10 @@
   --color-text-default: #000;
   --color-text-secondary: #5d5d5d;
   --color-bg-selected: #edf5f1;
+  --color-request-pending-secondary: #fcdcd1;
+  --color-request-pending: #f25118;
+  --color-request-completed-secondary: #cde4ce;
+  --color-request-completed: #047a0d;
 }
 
 button {
