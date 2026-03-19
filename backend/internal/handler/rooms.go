@@ -35,6 +35,7 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 // @Success      200         {object}  utils.CursorPage[models.RoomWithOptionalGuestBooking]
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /rooms [get]
 func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
 	hotelID, err := hotelIDFromHeader(c)

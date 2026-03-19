@@ -454,6 +454,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get Guests
       tags:
       - guests
@@ -487,6 +489,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Creates a guest
       tags:
       - guests
@@ -524,6 +528,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Gets a guest
       tags:
       - guests
@@ -568,6 +574,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Updates a guest
       tags:
       - guests
@@ -605,6 +613,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Gets a guest with previous stays
       tags:
       - guests
@@ -639,6 +649,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create hotel
       tags:
       - hotels
@@ -668,6 +680,8 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
       summary: Get hotel by ID
       tags:
       - hotels
@@ -701,6 +715,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get developer member
       tags:
       - devs
@@ -716,6 +732,8 @@ paths:
           description: 'Yogurt. Gurt: Yo!'
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get hello message
       tags:
       - hello
@@ -737,6 +755,8 @@ paths:
           description: Yo, {name}!
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get personalized hello message
       tags:
       - hello
@@ -771,6 +791,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: creates a request
       tags:
       - requests
@@ -815,6 +837,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get requests by cursor
       tags:
       - requests
@@ -849,6 +873,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: generates a request
       tags:
       - requests
@@ -896,6 +922,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get Rooms By Floor
       tags:
       - rooms
@@ -957,6 +985,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Creates a user
       tags:
       - users
@@ -990,10 +1020,18 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get user by ID
       tags:
       - users
 schemes:
 - http
 - https
+securityDefinitions:
+  BearerAuth:
+    description: Your Clerk JWT token (prefixed with "Bearer ")
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

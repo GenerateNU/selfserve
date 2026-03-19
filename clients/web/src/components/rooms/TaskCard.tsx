@@ -13,7 +13,7 @@ export function TaskCard({ task, onAssign }: TaskCardProps) {
       </div>
       <button
         type="button"
-        className="w-full rounded-md border border-zinc-200 bg-blue-600 py-[1vh] text-sm font-medium text-white active:bg-blue-400"
+        className="w-full rounded-md border border-zinc-200 bg-primary py-[1vh] text-sm font-medium text-white active:bg-primary-hover"
         onClick={onAssign}
       >
         Assign to self
