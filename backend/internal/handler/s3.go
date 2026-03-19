@@ -28,6 +28,7 @@ func NewS3Handler(s3Storage *s3storage.Storage) *S3Handler {
 // @Success      200  {object}  map[string]string  "Presigned URL response"
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /s3/presigned-url/{key} [get]
 
 func (h *S3Handler) GeneratePresignedURL(c *fiber.Ctx) error {
