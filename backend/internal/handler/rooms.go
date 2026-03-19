@@ -12,7 +12,7 @@ import (
 
 type RoomsRepository interface {
 	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
-	FindFloors(ctx context.Context, hotelID string) ([]int, error)
+	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
 }
 
 type RoomsHandler struct {
@@ -83,7 +83,7 @@ func (h *RoomsHandler) GetFloors(c *fiber.Ctx) error {
 		return err
 	}
 
-	floors, err := h.repo.FindFloors(c.Context(), hotelID)
+	floors, err := h.repo.FindAllFloors(c.Context(), hotelID)
 	if err != nil {
 		return errs.InternalServerError()
 	}

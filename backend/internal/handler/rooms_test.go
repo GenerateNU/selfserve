@@ -23,7 +23,7 @@ func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx cont
 	return m.findRoomsFunc(ctx, filter, hotelID, cursorRoomNumber)
 }
 
-func (m *mockRoomsRepository) FindFloors(ctx context.Context, hotelID string) ([]int, error) {
+func (m *mockRoomsRepository) FindAllFloors(ctx context.Context, hotelID string) ([]int, error) {
 	return m.findFloorsFunc(ctx, hotelID)
 }
 

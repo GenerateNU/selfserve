@@ -33,5 +33,5 @@ type HotelsRepository interface {
 
 type RoomsRepository interface {
 	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
-	FindFloors(ctx context.Context, hotelID string) ([]int, error)
+	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
 }

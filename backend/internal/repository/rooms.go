@@ -76,7 +76,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 	return rooms, nil
 }
 
-func (r *RoomsRepository) FindFloors(ctx context.Context, hotelID string) ([]int, error) {
+func (r *RoomsRepository) FindAllFloors(ctx context.Context, hotelID string) ([]int, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT DISTINCT floor
 		FROM rooms
