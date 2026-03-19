@@ -9,9 +9,9 @@ type RequestCardProps = {
   className?: string;
 };
 
-const accentColor: Record<RequestStatus, string> = {
-  pending: "#F25118",
-  completed: "#067A0C",
+const accentClass: Record<RequestStatus, string> = {
+  pending: "bg-request-pending",
+  completed: "bg-request-completed",
 };
 
 export function RequestCard({ status, children, className }: RequestCardProps) {
@@ -22,10 +22,7 @@ export function RequestCard({ status, children, className }: RequestCardProps) {
         className
       )}
     >
-      <div
-        className="absolute left-0 top-0 bottom-0 w-[5px] rounded-l-xl"
-        style={{ backgroundColor: accentColor[status] }}
-      />
+      <div className={cn("absolute left-0 top-0 bottom-0 w-[5px] rounded-l-xl", accentClass[status])} />
       {children}
     </div>
   );
