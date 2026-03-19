@@ -4,41 +4,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { FilterSection } from "@/components/rooms/FilterSection";
 
 const STATUS_CHIPS = ["Occupied", "Vacant", "Reserved", "Out of Order", "Needs Cleaning", "Open Tasks"];
 const ATTRIBUTE_CHIPS = ["Standard", "Deluxe", "Suite", "Accessible"];
 const ADVANCED_CHIPS = ["Arrivals Today", "Departures Today", "Late Checkouts", "Early Check-ins"];
 
 const SELECTED_CHIPS = new Set(["Occupied", "Open Tasks"]);
-
-function FilterChip({ label }: { label: string }) {
-  const isSelected = SELECTED_CHIPS.has(label);
-  return (
-    <button
-      type="button"
-      className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
-        isSelected
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function FilterSection({ title, chips }: { title: string; chips: string[] }) {
-  return (
-    <div className="flex flex-col gap-3">
-      <span className="text-sm font-medium text-gray-500">{title}</span>
-      <div className="flex flex-wrap gap-2">
-        {chips.map((chip) => (
-          <FilterChip key={chip} label={chip} />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export function RoomsFilterPopover() {
   return (
@@ -53,7 +25,6 @@ export function RoomsFilterPopover() {
         </button>
       </PopoverTrigger>
       <PopoverContent sideOffset={8} align="start">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4">
           <span className="text-lg font-bold text-gray-900">All Filters</span>
           <button
@@ -64,14 +35,12 @@ export function RoomsFilterPopover() {
           </button>
         </div>
 
-        {/* Filter sections */}
         <div className="flex flex-col gap-6 px-6 pb-6">
-          <FilterSection title="Status" chips={STATUS_CHIPS} />
-          <FilterSection title="Room Attributes" chips={ATTRIBUTE_CHIPS} />
-          <FilterSection title="Advanced" chips={ADVANCED_CHIPS} />
+          <FilterSection title="Status" chips={STATUS_CHIPS} selectedChips={SELECTED_CHIPS} />
+          <FilterSection title="Room Attributes" chips={ATTRIBUTE_CHIPS} selectedChips={SELECTED_CHIPS} />
+          <FilterSection title="Advanced" chips={ADVANCED_CHIPS} selectedChips={SELECTED_CHIPS} />
         </div>
 
-        {/* Footer */}
         <div className="border-t border-gray-200 flex">
           <button
             type="button"

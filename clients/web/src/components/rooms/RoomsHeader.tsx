@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import type { RoomFilters } from "@/routes/_protected/rooms.index";
 import { FloorFilterDropdown } from "@/components/rooms/FloorFilterDropdown";
 import { RoomsFilterPopover } from "@/components/rooms/RoomsFilterPopover";
