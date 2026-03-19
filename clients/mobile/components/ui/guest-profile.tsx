@@ -3,26 +3,18 @@ import { Box } from "./box";
 import { ChevronLeft, User } from "lucide-react-native";
 import { Collapsible } from "./collapsible";
 import { router } from "expo-router";
+import type { Stay } from "@shared/api/generated/models";
 
 interface GuestProfileProps {
-  name: string;
-  pronouns: string;
-  dateOfBirth: Date;
-  room: number;
-  groupSize: number;
-  arrival: Date;
-  departure: Date;
-  notes: string;
-  preferences: string;
-  needs: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  preferences?: string;
+  currentStays: Stay[];
   previousStays: Stay[];
 }
-
-type Stay = {
-  notes: string;
-  arrival: Date;
-  departure: Date;
-};
 
 export default function GuestProfile(props: GuestProfileProps) {
   return (
@@ -45,7 +37,6 @@ function HeaderWithBackArrow() {
       <Text className="flex-1 text-center text-[5vw] font-semibold text-gray-900">
         Guest Profile
       </Text>
-
       <View className="w-[6vw]" />
     </Box>
   );
@@ -55,17 +46,13 @@ function GuestDescription(props: GuestProfileProps) {
   return (
     <Box className="p-[4vw] border-b border-gray-200">
       <View className="flex-row items-center mb-[3vh]">
-        <View
-          className="w-[15vw] h-[15vw] rounded-full border-2 border-gray-400
-                items-center justify-center mr-[3vw]"
-        >
+        <View className="w-[15vw] h-[15vw] rounded-full border-2 border-gray-400 items-center justify-center mr-[3vw]">
           <User className="w-[10vw] h-[10vw]" color="#374151" />
         </View>
         <View>
           <Text className="text-[5vw] font-semibold text-gray-900">
-            {props.name}
+            {props.firstName + " " + props.lastName}
           </Text>
-          <Text className="text-[3.5vw] text-gray-600">{props.pronouns}</Text>
         </View>
       </View>
 
@@ -91,6 +78,38 @@ function InfoRow({ label, value }: { label: string; value: unknown }) {
   );
 }
 
+function StaysCollapsible({
+  title,
+  stays,
+  emptyMessage,
+}: {
+  title: string;
+  stays: Stay[];
+  emptyMessage: string;
+}) {
+  return (
+    <Collapsible title={title}>
+      {stays.length === 0 ? (
+        <Text className="text-[3.5vw] text-gray-400">{emptyMessage}</Text>
+      ) : (
+        <View className="gap-[1vh]">
+          {stays.map((stay, index) => (
+            <View key={index} className="border-b border-gray-200 pb-[1vh]">
+              <Text className="text-[3.5vw] text-gray-900">
+                {stay.room_number}
+              </Text>
+              <Text className="text-[3vw] text-gray-600">
+                {new Date(stay.arrival_date).toLocaleDateString()} -{" "}
+                {new Date(stay.departure_date).toLocaleDateString()}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </Collapsible>
+  );
+}
+
 function GuestInfoCollapsibles(props: GuestProfileProps) {
   return (
     <Box className="p-[4vw] gap-[2vh]">
@@ -101,63 +120,37 @@ function GuestInfoCollapsibles(props: GuestProfileProps) {
           </Text>
         </Collapsible>
       ))}
-
-      <Collapsible title="Previous Stays">
-        {props.previousStays.length === 0 ? (
-          <Text className="text-[3.5vw] text-gray-400">No previous stays</Text>
-        ) : (
-          <View className="gap-[1vh]">
-            {props.previousStays.map((stay, index) => (
-              <View key={index} className="border-b border-gray-200 pb-[1vh]">
-                <Text className="text-[3.5vw] text-gray-900">{stay.notes}</Text>
-                <Text className="text-[3vw] text-gray-600">
-                  {stay.arrival.toLocaleDateString()}-{" "}
-                  {stay.departure.toLocaleDateString()}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </Collapsible>
+      <StaysCollapsible
+        title="Current Stays"
+        stays={props.currentStays}
+        emptyMessage="No current stays"
+      />
+      <StaysCollapsible
+        title="Previous Stays"
+        stays={props.previousStays}
+        emptyMessage="No previous stays"
+      />
     </Box>
   );
 }
 
-// to provide a label and formatting of the data for each piece of data concerning the guest
 const GUEST_PROFILE_CONFIG = {
   infoFields: [
     {
       key: "governmentName",
       label: "Government Name",
-      format: (props: GuestProfileProps) => props.name,
-    },
-    {
-      key: "dateOfBirth",
-      label: "Date of Birth",
       format: (props: GuestProfileProps) =>
-        props.dateOfBirth.toLocaleDateString(),
+        props.firstName + " " + props.lastName,
     },
     {
-      key: "room",
-      label: "Room",
-      format: (props: GuestProfileProps) => props.room,
+      key: "phone",
+      label: "Phone",
+      format: (props: GuestProfileProps) => props.phone,
     },
     {
-      key: "groupSize",
-      label: "Group Size",
-      format: (props: GuestProfileProps) => props.groupSize.toString(),
-    },
-    {
-      key: "arrival",
-      label: "Arrival",
-      format: (props: GuestProfileProps) =>
-        `${props.arrival.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} ${props.arrival.toLocaleDateString()}`,
-    },
-    {
-      key: "departure",
-      label: "Departure",
-      format: (props: GuestProfileProps) =>
-        `${props.departure.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} ${props.departure.toLocaleDateString()}`,
+      key: "email",
+      label: "Email",
+      format: (props: GuestProfileProps) => props.email,
     },
   ],
   collapsibles: [
@@ -170,11 +163,6 @@ const GUEST_PROFILE_CONFIG = {
       key: "preferences",
       title: "Housekeeping Preferences",
       format: (props: GuestProfileProps) => props.preferences,
-    },
-    {
-      key: "needs",
-      title: "Special Needs",
-      format: (props: GuestProfileProps) => props.needs,
     },
   ],
 };

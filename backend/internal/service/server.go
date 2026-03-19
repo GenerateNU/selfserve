@@ -139,7 +139,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", guestsHandler.CreateGuest)
 		r.Get("/:id", guestsHandler.GetGuest)
 		r.Put("/:id", guestsHandler.UpdateGuest)
-		r.Get("/", guestsHandler.GetGuests)
+		r.Post("/search", guestsHandler.GetGuests)
 		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
 	})
 
