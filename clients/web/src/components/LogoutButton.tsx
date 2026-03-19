@@ -23,28 +23,28 @@ export function LogoutButton() {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="absolute right-5 top-5 text-gray-400 hover:text-gray-600"
+              className="absolute right-5 top-5 text-text-secondary hover:text-text-default"
             >
               <X className="size-5" />
             </button>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-[20px] font-bold text-text-default">
               Are you sure you want to log out?
             </h2>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-[16px] text-text-secondary">
               You'll be signed out and can log back in anytime.
             </p>
             <div className="mt-8 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
+                className="px-4 py-2 text-[14px] font-medium text-text-secondary hover:text-text-default"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => signOut()}
-                className="rounded-lg bg-[#2d4a2d] px-5 py-2 text-sm font-semibold text-white hover:bg-[#243d24]"
+                className="rounded-lg bg-primary px-5 py-2 text-[14px] font-semibold text-white hover:bg-primary-hover"
               >
                 Log out
               </button>
