@@ -12,6 +12,7 @@ import (
 
 type RoomsRepository interface {
 	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
 }
 
 type RoomsHandler struct {
@@ -66,4 +67,27 @@ func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(page)
+}
+
+// GetFloors godoc
+// @Summary      Get Floors
+// @Description  Retrieves all distinct floor numbers
+// @Tags         rooms
+// @Produce      json
+// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
+// @Success      200  {array}   int
+// @Failure      500  {object}  map[string]string
+// @Router       /rooms/floors [get]
+func (h *RoomsHandler) GetFloors(c *fiber.Ctx) error {
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
+	floors, err := h.repo.FindAllFloors(c.Context(), hotelID)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(floors)
 }
