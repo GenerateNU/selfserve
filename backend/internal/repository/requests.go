@@ -6,6 +6,7 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -19,16 +20,26 @@ func NewRequestsRepo(db *pgxpool.Pool) *RequestsRepository {
 }
 
 func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
-	err := r.db.QueryRow(ctx, `INSERT INTO requests (
-	hotel_id, guest_id, user_id, reservation_id, name, description,
-	room_id, request_category, request_type, department, status,
-	priority, estimated_completion_time, scheduled_time, notes
-	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-		RETURNING id, created_at, updated_at
-	`, req.HotelID, req.GuestID, req.UserID, req.ReservationID, req.Name,
+	if req.ID == "" {
+		req.ID = uuid.New().String()
+	}
+
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO requests (
+			id, hotel_id, guest_id, user_id, reservation_id, name, description,
+			room_id, request_category, request_type, department, status,
+			priority, estimated_completion_time, scheduled_time, notes,
+			request_version, created_at
+		) VALUES (
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+			NOW(),
+			COALESCE((SELECT MIN(created_at) FROM requests WHERE id = $1), NOW())
+		)
+		RETURNING id, created_at, request_version
+	`, req.ID, req.HotelID, req.GuestID, req.UserID, req.ReservationID, req.Name,
 		req.Description, req.RoomID, req.RequestCategory, req.RequestType, req.Department,
 		req.Status, req.Priority, req.EstimatedCompletionTime,
-		req.ScheduledTime, req.Notes).Scan(&req.ID, &req.CreatedAt, &req.UpdatedAt)
+		req.ScheduledTime, req.Notes).Scan(&req.ID, &req.CreatedAt, &req.RequestVersion)
 
 	if err != nil {
 		return nil, err
@@ -43,15 +54,17 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
         SELECT *
         FROM requests
         WHERE id = $1
+        ORDER BY request_version DESC
+        LIMIT 1
     `, id)
 
 	var request models.Request
 
 	err := row.Scan(&request.ID, &request.HotelID, &request.GuestID,
-		&request.UserID, &request.ReservationID, &request.Name, &request.Description,
+		&request.ReservationID, &request.Name, &request.Description,
 		&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 		&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-		&request.CreatedAt, &request.UpdatedAt)
+		&request.CreatedAt, &request.UserID, &request.RequestVersion)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -82,10 +95,10 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 	for rows.Next() {
 		var request models.Request
 		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
-			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
+			&request.ReservationID, &request.Name, &request.Description,
 			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-			&request.CreatedAt, &request.UpdatedAt)
+			&request.CreatedAt, &request.UserID, &request.RequestVersion)
 		if err != nil {
 			return nil, "", err
 		}
@@ -114,10 +127,10 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 	for rows.Next() {
 		var request models.Request
 		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
-			&request.UserID, &request.ReservationID, &request.Name, &request.Description,
+			&request.ReservationID, &request.Name, &request.Description,
 			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-			&request.CreatedAt, &request.UpdatedAt)
+			&request.CreatedAt, &request.UserID, &request.RequestVersion)
 		if err != nil {
 			return nil, err
 		}

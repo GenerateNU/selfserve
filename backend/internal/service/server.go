@@ -147,6 +147,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
+		r.Put("/:id", reqsHandler.UpdateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
 		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
 	})
