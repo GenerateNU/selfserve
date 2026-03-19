@@ -1,7 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { RequestStatus } from "@/components/requests/RequestCard";
-import { GuestPageShell } from "@/components/guests/GuestPageShell";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
+
+function HomeHeader() {
+  return (
+    <header className="px-6 py-5 flex-row gap-1.5 justify-between border-b border-stroke-subtle">
+      <h1 className="text-2xl font-semibold text-text-default">Home</h1>
+      <h2 className="text-sm font-medium text-text-subtle">Overview of all tasks currently at play</h2>
+    </header>
+  );
+}
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
@@ -35,12 +43,13 @@ const PLACEHOLDER_TASK_CONTENT: Array<{
 
 function HomePage() {
   return (
-    <GuestPageShell title="Home">
-      <div className="flex flex-col gap-4 max-w-md">
+    <main className="flex flex-col h-screen overflow-hidden">
+      <HomeHeader />
+      <div className="flex flex-col gap-4 max-w-md p-8">
         {PLACEHOLDER_TASK_CONTENT.map((task) => (
           <RequestCardItem key={task.title} {...task} />
         ))}
       </div>
-    </GuestPageShell>
+    </main>
   );
 }
