@@ -1,4 +1,4 @@
-import { Plus, MoreHorizontal, ChefHat } from "lucide-react";
+import { ChefHat, MoreHorizontal, Plus } from "lucide-react";
 import type { ReactNode } from "react";
 
 type KanbanColumnProps = {
