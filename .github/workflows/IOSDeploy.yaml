@@ -3,7 +3,7 @@ name: Deploy EAS Build
 on:
   push:
     branches:
-      - prod
+      - mobile-prod
 
 jobs:
   build:
