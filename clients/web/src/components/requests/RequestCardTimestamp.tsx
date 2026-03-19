@@ -10,7 +10,7 @@ type RequestCardTimestampProps = {
 };
 
 const timestampVariants = cva(
-  "flex items-center gap-2 self-start rounded-full px-3 py-1 text-sm font-medium",
+  "flex items-center gap-2 self-start rounded-sm px-2 py-1 text-xs font-medium",
   {
     variants: {
       status: {
@@ -27,7 +27,7 @@ const timestampVariants = cva(
 export function RequestCardTimestamp({ status, time, className }: RequestCardTimestampProps) {
   return (
     <div className={cn(timestampVariants({ status }), className)}>
-      <Clock className="size-4" />
+      <Clock className="size-3 stroke-[2.5px]" />
       {time}
     </div>
   );
