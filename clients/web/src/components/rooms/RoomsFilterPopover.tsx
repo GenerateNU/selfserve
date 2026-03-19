@@ -13,6 +13,51 @@ const ADVANCED_CHIPS = ["Arrivals Today", "Departures Today", "Late Checkouts", 
 
 const INITIAL_SELECTED = new Set<string>(["Occupied", "Open Tasks"]);
 
+function FilterPopoverHeader({ onReset }: { onReset: () => void }) {
+  return (
+    <div className="flex items-center justify-between pt-5">
+      <span className="text-base font-medium text-text-default">All Filters</span>
+      <button
+        type="button"
+        onClick={onReset}
+        className="text-sm text-text-subtle hover:text-text-default transition-colors"
+      >
+        Reset
+      </button>
+    </div>
+  );
+}
+
+function FilterPopoverFooter({
+  onCancel,
+  onSelect,
+}: {
+  onCancel: () => void;
+  onSelect: () => void;
+}) {
+  return (
+    <>
+      <div className="border-t border-stroke-subtle" />
+      <div className="flex gap-3 py-5 justify-center">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-sm font-base rounded-sm text-text-default bg-bg-container hover:bg-primary/5 transition-colors h-10 w-47 text-center"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onSelect}
+          className="text-sm font-base rounded-sm text-white bg-primary hover:bg-primary/90 transition-colors h-10 w-47 text-center"
+        >
+          Select
+        </button>
+      </div>
+    </>
+  );
+}
+
 export function RoomsFilterPopover() {
   const [open, setOpen] = useState(false);
   const [selectedChips, setSelectedChips] = useState<Set<string>>(INITIAL_SELECTED);
@@ -57,16 +102,7 @@ export function RoomsFilterPopover() {
         </button>
       </PopoverTrigger>
       <PopoverContent sideOffset={8} align="start" className="px-6 w-115.75">
-        <div className="flex items-center justify-between pt-5">
-          <span className="text-base font-medium text-text-default">All Filters</span>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="text-sm text-text-subtle hover:text-text-default transition-colors"
-          >
-            Reset
-          </button>
-        </div>
+        <FilterPopoverHeader onReset={handleReset} />
 
         <div className="flex flex-col gap-5 pt-3 pb-5">
           <FilterSection title="Status" chips={STATUS_CHIPS} selectedChips={pendingChips} onToggle={toggle} />
@@ -74,24 +110,7 @@ export function RoomsFilterPopover() {
           <FilterSection title="Advanced" chips={ADVANCED_CHIPS} selectedChips={pendingChips} onToggle={toggle} />
         </div>
 
-        <div className="border-t border-stroke-subtle" />
-
-        <div className="flex gap-3 py-5 justify-center">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="text-sm font-base rounded-sm text-text-default bg-bg-container hover:bg-primary/5 transition-colors h-10 w-47 text-center"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSelect}
-            className="text-sm font-base rounded-sm text-white bg-primary hover:bg-primary/90 transition-colors h-10 w-47 text-center"
-          >
-            Select
-          </button>
-        </div>
+        <FilterPopoverFooter onCancel={handleCancel} onSelect={handleSelect} />
       </PopoverContent>
     </Popover>
   );
