@@ -21,10 +21,14 @@ const timestampVariants = cva(
     defaultVariants: {
       status: "pending",
     },
-  }
+  },
 );
 
-export function RequestCardTimestamp({ status, time, className }: RequestCardTimestampProps) {
+export function RequestCardTimestamp({
+  status,
+  time,
+  className,
+}: RequestCardTimestampProps) {
   return (
     <div className={cn(timestampVariants({ status }), className)}>
       <Clock className="size-3 stroke-[2.5px]" />

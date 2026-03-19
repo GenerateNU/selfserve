@@ -23,7 +23,9 @@ export function RequestCardItem({
   return (
     <RequestCard status={status} className="w-81.25">
       <RequestCardTimestamp status={status} time={time} />
-      <span className="text-base font-medium text-text-default pt-3">{title}</span>
+      <span className="text-base font-medium text-text-default pt-3">
+        {title}
+      </span>
       <div className="flex gap-1 pt-1">
         {assignees.map((name) => (
           <span
