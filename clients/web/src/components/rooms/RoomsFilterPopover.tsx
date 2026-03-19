@@ -24,33 +24,35 @@ export function RoomsFilterPopover() {
           Filter
         </button>
       </PopoverTrigger>
-      <PopoverContent sideOffset={8} align="start">
-        <div className="flex items-center justify-between px-6 pt-6 pb-4">
-          <span className="text-lg font-bold text-text-default">All Filters</span>
+      <PopoverContent sideOffset={8} align="start" className="px-6 w-115.75">
+        <div className="flex items-center justify-between pt-5">
+          <span className="text-base font-medium text-text-default">All Filters</span>
           <button
             type="button"
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-sm text-text-subtle hover:text-text-default transition-colors"
           >
             Reset
           </button>
         </div>
 
-        <div className="flex flex-col gap-6 px-6 pb-6">
+        <div className="flex flex-col gap-5 pt-3 pb-5">
           <FilterSection title="Status" chips={STATUS_CHIPS} selectedChips={SELECTED_CHIPS} />
           <FilterSection title="Room Attributes" chips={ATTRIBUTE_CHIPS} selectedChips={SELECTED_CHIPS} />
           <FilterSection title="Advanced" chips={ADVANCED_CHIPS} selectedChips={SELECTED_CHIPS} />
         </div>
 
-        <div className="border-t border-gray-200 flex">
+        <div className="border-t border-stroke-subtle" />
+
+        <div className="flex gap-3 py-5 justify-center">
           <button
             type="button"
-            className="flex-1 py-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="text-sm font-base rounded-sm text-text-default bg-bg-container hover:bg-primary/5 transition-colors h-10 w-47 text-center"
           >
             Cancel
           </button>
           <button
             type="button"
-            className="flex-1 py-4 text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors"
+            className="text-sm font-base rounded-sm text-white bg-primary hover:bg-primary/90 transition-colors h-10 w-47 text-center"
           >
             Select
           </button>

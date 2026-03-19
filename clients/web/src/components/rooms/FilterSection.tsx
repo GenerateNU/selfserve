@@ -9,10 +9,10 @@ type FilterSectionProps = {
 export function FilterSection({ title, chips, selectedChips }: FilterSectionProps) {
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm font-medium text-gray-500">{title}</span>
+      <span className="text-sm font-medium text-text-subtle">{title}</span>
       <div className="flex flex-wrap gap-2">
         {chips.map((chip) => (
-          <FilterChip key={chip} label={chip} isSelected={selectedChips.has(chip)} />
+          <FilterChip key={chip} label={chip} isSelected={selectedChips.has(chip)} className="h-8" />
         ))}
       </div>
     </div>
