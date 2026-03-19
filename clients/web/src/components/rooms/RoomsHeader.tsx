@@ -15,7 +15,7 @@ export function RoomsHeader({
   onRoomFilterChange,
 }: RoomsHeaderProps) {
   return (
-    <header className="z-30 bg-bg-container px-[2vw] py-[1vw] flex items-center gap-3">
+    <header className="z-30 bg-bg-container px-16 py-6 flex items-center gap-3">
       <FloorFilterDropdown
         selected={roomFilters.floor}
         onChange={(values) => onRoomFilterChange("floor", values)}

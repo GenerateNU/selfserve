@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
 
@@ -74,7 +72,7 @@ function PopoverDescription({
   return (
     <PopoverPrimitive.Description
       data-slot="popover-description"
-      className={cn("text-muted-foreground", className)}
+      className={cn("text-text-subtle", className)}
       {...props}
     />
   )
