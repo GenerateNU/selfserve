@@ -7,16 +7,30 @@ import {
 } from "@/components/ui/popover";
 import { FilterSection } from "@/components/rooms/FilterSection";
 
-const STATUS_CHIPS = ["Occupied", "Vacant", "Reserved", "Out of Order", "Needs Cleaning", "Open Tasks"];
+const STATUS_CHIPS = [
+  "Occupied",
+  "Vacant",
+  "Reserved",
+  "Out of Order",
+  "Needs Cleaning",
+  "Open Tasks",
+];
 const ATTRIBUTE_CHIPS = ["Standard", "Deluxe", "Suite", "Accessible"];
-const ADVANCED_CHIPS = ["Arrivals Today", "Departures Today", "Late Checkouts", "Early Check-ins"];
+const ADVANCED_CHIPS = [
+  "Arrivals Today",
+  "Departures Today",
+  "Late Checkouts",
+  "Early Check-ins",
+];
 
 const INITIAL_SELECTED = new Set<string>(["Occupied", "Open Tasks"]);
 
 function FilterPopoverHeader({ onReset }: { onReset: () => void }) {
   return (
     <div className="flex items-center justify-between pt-5">
-      <span className="text-base font-medium text-text-default">All Filters</span>
+      <span className="text-base font-medium text-text-default">
+        All Filters
+      </span>
       <button
         type="button"
         onClick={onReset}
@@ -60,8 +74,10 @@ function FilterPopoverFooter({
 
 export function RoomsFilterPopover() {
   const [open, setOpen] = useState(false);
-  const [selectedChips, setSelectedChips] = useState<Set<string>>(INITIAL_SELECTED);
-  const [pendingChips, setPendingChips] = useState<Set<string>>(INITIAL_SELECTED);
+  const [selectedChips, setSelectedChips] =
+    useState<Set<string>>(INITIAL_SELECTED);
+  const [pendingChips, setPendingChips] =
+    useState<Set<string>>(INITIAL_SELECTED);
 
   const toggle = (chip: string) => {
     setPendingChips((prev) => {
@@ -105,9 +121,24 @@ export function RoomsFilterPopover() {
         <FilterPopoverHeader onReset={handleReset} />
 
         <div className="flex flex-col gap-5 pt-3 pb-5">
-          <FilterSection title="Status" chips={STATUS_CHIPS} selectedChips={pendingChips} onToggle={toggle} />
-          <FilterSection title="Room Attributes" chips={ATTRIBUTE_CHIPS} selectedChips={pendingChips} onToggle={toggle} />
-          <FilterSection title="Advanced" chips={ADVANCED_CHIPS} selectedChips={pendingChips} onToggle={toggle} />
+          <FilterSection
+            title="Status"
+            chips={STATUS_CHIPS}
+            selectedChips={pendingChips}
+            onToggle={toggle}
+          />
+          <FilterSection
+            title="Room Attributes"
+            chips={ATTRIBUTE_CHIPS}
+            selectedChips={pendingChips}
+            onToggle={toggle}
+          />
+          <FilterSection
+            title="Advanced"
+            chips={ADVANCED_CHIPS}
+            selectedChips={pendingChips}
+            onToggle={toggle}
+          />
         </div>
 
         <FilterPopoverFooter onCancel={handleCancel} onSelect={handleSelect} />

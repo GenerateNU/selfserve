@@ -7,7 +7,12 @@ type FilterChipProps = {
   className?: string;
 };
 
-export function FilterChip({ label, isSelected, onToggle, className }: FilterChipProps) {
+export function FilterChip({
+  label,
+  isSelected,
+  onToggle,
+  className,
+}: FilterChipProps) {
   return (
     <button
       type="button"
@@ -17,7 +22,7 @@ export function FilterChip({ label, isSelected, onToggle, className }: FilterChi
         "rounded-lg border px-4 py-1.5 text-sm font-medium transition-colors",
         isSelected
           ? "border-primary bg-primary/10 text-primary"
-          : "border-stroke-subtle bg-white text-text-default hover:border-primary"
+          : "border-stroke-subtle bg-white text-text-default hover:border-primary",
       )}
     >
       {label}
