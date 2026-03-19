@@ -12,20 +12,26 @@ export function KanbanColumn({ title, children }: KanbanColumnProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ChefHat className="size-5 text-text-default" />
-          <span className="text-base font-semibold text-text-default">{title}</span>
+          <span className="text-base font-semibold text-text-default">
+            {title}
+          </span>
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" className="text-text-subtle hover:text-text-default transition-colors">
+          <button
+            type="button"
+            className="text-text-subtle hover:text-text-default transition-colors"
+          >
             <Plus className="size-4" />
           </button>
-          <button type="button" className="text-text-subtle hover:text-text-default transition-colors">
+          <button
+            type="button"
+            className="text-text-subtle hover:text-text-default transition-colors"
+          >
             <MoreHorizontal className="size-4" />
           </button>
         </div>
       </div>
-      <div className="flex flex-col gap-3">
-        {children}
-      </div>
+      <div className="flex flex-col gap-3">{children}</div>
     </div>
   );
 }

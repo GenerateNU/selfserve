@@ -127,7 +127,6 @@ function HomeFilterBar() {
   );
 }
 
-
 type TaskContent = {
   status: RequestStatus;
   time: string;
@@ -248,7 +247,6 @@ function HomePage() {
             </KanbanColumn>
           ))}
         </div>
-
       </div>
     </main>
   );
