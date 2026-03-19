@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority";
-import { cn } from "@/lib/utils";
-import type { RequestStatus } from "@/components/requests/RequestCard";
 import { Clock } from "lucide-react";
+import type { RequestStatus } from "@/components/requests/RequestCard";
+import { cn } from "@/lib/utils";
 
 type RequestCardTimestampProps = {
   status: RequestStatus;

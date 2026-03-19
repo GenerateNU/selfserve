@@ -1,20 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GuestPageShell } from "@/components/guests/GuestPageShell";
 import type { RequestStatus } from "@/components/requests/RequestCard";
+import { GuestPageShell } from "@/components/guests/GuestPageShell";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
 });
 
-const PLACEHOLDER_TASK_CONTENT: {
+const PLACEHOLDER_TASK_CONTENT: Array<{
   status: RequestStatus;
   time: string;
   title: string;
-  assignees: string[];
+  assignees: Array<string>;
   location: string;
   department: string;
-}[] = [
+}> = [
   {
     status: "pending",
     time: "Today, 3pm",

@@ -1,13 +1,13 @@
-import { RequestCard } from "@/components/requests/RequestCard";
+import { Home, MapPin } from "lucide-react";
 import type { RequestStatus } from "@/components/requests/RequestCard";
+import { RequestCard } from "@/components/requests/RequestCard";
 import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
-import { MapPin, Home } from "lucide-react";
 
 type RequestCardItemProps = {
   status: RequestStatus;
   time: string;
   title: string;
-  assignees: string[];
+  assignees: Array<string>;
   location: string;
   department: string;
 };
