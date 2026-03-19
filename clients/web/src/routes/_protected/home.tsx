@@ -47,7 +47,8 @@ function HomeToolbar({ className }: { className?: string }) {
   const tabs = ["Departments", "View 2", "View 3"];
 
   return (
-    <div className={cn("flex items-center justify-between px-6 border-b border-stroke-subtle", className)}>
+    <div className={cn("px-6", className)}>
+    <div className="flex items-center justify-between border-b border-stroke-subtle">
       <div className="flex items-center">
         {tabs.map((tab, i) => (
           <button
@@ -82,6 +83,7 @@ function HomeToolbar({ className }: { className?: string }) {
           Create Task
         </button>
       </div>
+    </div>
     </div>
   );
 }
