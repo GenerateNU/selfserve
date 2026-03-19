@@ -225,6 +225,117 @@ const PLACEHOLDER_COLUMNS: Array<{ title: string; tasks: Array<TaskContent> }> =
         },
       ],
     },
+    {
+      title: "Front Desk",
+      tasks: [
+        {
+          status: "pending",
+          time: "Today, 1pm",
+          title: "Guest Check-in",
+          assignees: ["Alice M"],
+          location: "Floor 1, Lobby",
+          department: "Front Desk",
+        },
+        {
+          status: "completed",
+          time: "Today, 2pm",
+          title: "Luggage Storage",
+          assignees: ["Alice M", "Ben T"],
+          location: "Floor 1, Lobby",
+          department: "Front Desk",
+        },
+        {
+          status: "pending",
+          time: "Today, 4pm",
+          title: "Late Check-out Request",
+          assignees: ["Ben T"],
+          location: "Floor 2, Room 12",
+          department: "Front Desk",
+        },
+        {
+          status: "completed",
+          time: "Today, 5pm",
+          title: "Key Replacement",
+          assignees: ["Alice M"],
+          location: "Floor 3, Room 7",
+          department: "Front Desk",
+        },
+        {
+          status: "pending",
+          time: "Today, 6pm",
+          title: "Wake-up Call",
+          assignees: ["Ben T"],
+          location: "Floor 4, Room 21",
+          department: "Front Desk",
+        },
+      ],
+    },
+    {
+      title: "Housekeeping",
+      tasks: [
+        {
+          status: "pending",
+          time: "Today, 9am",
+          title: "Turn Down Service",
+          assignees: ["Sara L"],
+          location: "Floor 2, Room 8",
+          department: "Housekeeping",
+        },
+        {
+          status: "completed",
+          time: "Today, 10am",
+          title: "Towel Restock",
+          assignees: ["Sara L", "Mike P"],
+          location: "Floor 3, Room 14",
+          department: "Housekeeping",
+        },
+        {
+          status: "pending",
+          time: "Today, 11am",
+          title: "Deep Clean",
+          assignees: ["Mike P"],
+          location: "Floor 4, Room 3",
+          department: "Housekeeping",
+        },
+        {
+          status: "pending",
+          time: "Today, 1pm",
+          title: "Minibar Restock",
+          assignees: ["Sara L"],
+          location: "Floor 2, Room 9",
+          department: "Housekeeping",
+        },
+      ],
+    },
+    {
+      title: "Concierge",
+      tasks: [
+        {
+          status: "pending",
+          time: "Today, 2pm",
+          title: "Restaurant Booking",
+          assignees: ["Dana K"],
+          location: "Floor 1, Lobby",
+          department: "Concierge",
+        },
+        {
+          status: "completed",
+          time: "Today, 3pm",
+          title: "Taxi Arrangement",
+          assignees: ["Dana K"],
+          location: "Floor 1, Entrance",
+          department: "Concierge",
+        },
+        {
+          status: "pending",
+          time: "Today, 5pm",
+          title: "Tour Booking",
+          assignees: ["Dana K", "Rohan K"],
+          location: "Floor 1, Lobby",
+          department: "Concierge",
+        },
+      ],
+    },
   ];
 
 export const Route = createFileRoute("/_protected/home")({
@@ -233,12 +344,12 @@ export const Route = createFileRoute("/_protected/home")({
 
 function HomePage() {
   return (
-    <main className="flex flex-col h-screen overflow-hidden">
+    <main className="flex flex-col h-screen w-[calc(100vw-16rem)] overflow-hidden">
       <HomeHeader />
       <HomeToolbar className="mt-2" />
       <HomeFilterBar />
       <div className="relative flex-1 overflow-hidden">
-        <div className="flex items-stretch gap-6 h-full overflow-x-auto overflow-y-auto p-6 pb-0">
+        <div className="flex items-stretch gap-6 h-full overflow-x-auto overflow-y-hidden p-6 pb-0">
           {PLACEHOLDER_COLUMNS.map((col) => (
             <KanbanColumn key={col.title} title={col.title}>
               {col.tasks.map((task, i) => (

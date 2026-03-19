@@ -31,7 +31,7 @@ export function KanbanColumn({ title, children }: KanbanColumnProps) {
           </button>
         </div>
       </div>
-      <div className="flex flex-col gap-3">{children}</div>
+      <div className="flex flex-col gap-3 overflow-y-auto flex-1">{children}</div>
     </div>
   );
 }
