@@ -26,7 +26,7 @@ import (
 // @license.name  MIT
 // @license.url   https://opensource.org/licenses/MIT
 
-// @host      localhost:8080
+// @host      selfserve-production.up.railway.app
 // @BasePath  /api/v1
 
 // @schemes http https
