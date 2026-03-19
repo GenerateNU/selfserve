@@ -1,6 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { UserButton, useUser } from "@clerk/clerk-react";
-import { LogoutButton } from "./LogoutButton";
 import {
   Home,
   LayoutGrid,
@@ -8,6 +7,7 @@ import {
   Settings,
   UserRound,
 } from "lucide-react";
+import { LogoutButton } from "./LogoutButton";
 
 function NavLink({
   to,
