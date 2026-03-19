@@ -1,12 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { UserButton, useUser } from "@clerk/clerk-react";
-import {
-  Home,
-  LayoutGrid,
-  Octagon,
-  Settings,
-  UserRound,
-} from "lucide-react";
+import { Home, LayoutGrid, Octagon, Settings, UserRound } from "lucide-react";
 import { LogoutButton } from "./LogoutButton";
 
 function NavLink({
