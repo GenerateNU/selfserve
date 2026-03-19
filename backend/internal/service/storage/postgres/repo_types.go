@@ -21,11 +21,8 @@ type GuestsRepository interface {
 
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
-
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
-
 	FindRequests(ctx context.Context) ([]models.Request, error)
-
 	FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
 
 	FindTasks(ctx context.Context, hotelID string, userID string, filter *models.TaskFilter, cursor *models.TaskCursor) ([]*models.Task, error)
@@ -37,4 +34,9 @@ type RequestsRepository interface {
 type HotelsRepository interface {
 	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
+}
+
+type RoomsRepository interface {
+	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
 }
