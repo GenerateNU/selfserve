@@ -128,7 +128,12 @@ jobs:
         run: |
           npm install --package-lock-only
           git diff --exit-code package-lock.json
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
       - name: Build application
+        # Not needed currenlty, no secrets used in build
+        # env:
+        #   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_WEB }}
         run: npm run build
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
