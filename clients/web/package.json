@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 3000",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "vitest run",
+    "dev": "doppler run -- vite dev --port 3000",
+    "build": "doppler run -- vite build",
+    "preview": "doppler run -- vite preview",
+    "test": "doppler run -- vitest run",
     "lint": "eslint",
     "format": "prettier --write .",
     "check": "prettier --write . && eslint --fix"
