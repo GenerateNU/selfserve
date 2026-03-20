@@ -3,16 +3,16 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "doppler run -- expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "android": "doppler run -- expo run:android",
+    "ios": "doppler run -- expo run:ios",
     "lint": "expo lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "doppler run -- jest",
+    "test:watch": "doppler run -- jest --watch",
+    "test:coverage": "doppler run -- jest --coverage"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.23",
