@@ -1,0 +1,3 @@
+setup:
+  project: selfserve-mobile
+  config: dev
