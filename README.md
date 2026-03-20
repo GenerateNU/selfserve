@@ -57,9 +57,10 @@ Each project has 3 configs: `dev`, `tst`, `prd`
 ```bash
 # Backend
 cd backend
-make dev          # Start server
-air          # Hot reload development
-make test         # Run tests
+make air          # Hot reload
+make test
+# Or: make run    # Direct run
+# Or: make dev    # Build then run
 
 # Web
 cd clients/web

@@ -42,7 +42,6 @@
 
    This will configure your local environment to use the `selfserve-backend` project with the `dev` config
 
-
 5. **Start local Supabase**:
 
    ```bash
@@ -52,19 +51,19 @@
 6. **Run with hot reload** (development):
 
    ```bash
-   air
+   make air
    ```
 
-   Or run directly:
+   Or run directly without hot reload:
+
+   ```bash
+   make run
+   ```
+
+   Or build and run:
 
    ```bash
    make dev
-   ```
-
-   Or run with GenKit UI:
-
-   ```bash
-   make genkit-run
    ```
 
 ## Directory Structure
@@ -156,13 +155,13 @@ Logic traversal:
 make build
 
 # Run
+make air    # Hot reload
+
+# Or run directly
 make run
 
-# Build and run
+# Or build and run
 make dev
-
-# OR air to build and run if you installed air above
-air
 
 # Run tests
 make test
