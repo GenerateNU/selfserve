@@ -12,7 +12,16 @@ export const createRequest = (
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
     if (config.params && Object.keys(config.params).length > 0) {
-      const searchParams = new URLSearchParams(config.params);
+      const searchParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(config.params)) {
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            searchParams.append(key, String(item));
+          }
+        } else if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      }
       fullUrl += '?' + searchParams.toString();
     }
 
