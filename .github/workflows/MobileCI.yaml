@@ -100,9 +100,9 @@ jobs:
       - name: Install Doppler CLI
         uses: dopplerhq/cli-action@v3
       - name: Run tests with coverage
-        # Not needed currently, no secrets used in tests
-        # env:
-        #   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_MOBILE }}
+        # Not needed currently, just for builds and deployment using doppler run command
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_MOBILE }}
         run: npm run test:coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
