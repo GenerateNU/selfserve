@@ -2,6 +2,51 @@
 
 This package contains shared code (API clients, hooks, types, utilities) used by both the web and mobile clients.
 
+## Environment Setup with Doppler
+
+Both web and mobile clients use Doppler for secrets management:
+
+- **selfserve-web** - Web app secrets (Vite env vars)
+- **selfserve-mobile** - Mobile app secrets (Expo env vars)
+
+### First-time Setup
+
+1. Install Doppler CLI (if not already installed):
+
+   ```bash
+   brew install dopplerhq/cli/doppler
+   ```
+
+2. Authenticate:
+
+   ```bash
+   doppler login
+   ```
+
+3. Set up each client project:
+
+   ```bash
+   # For web
+   cd clients/web
+   doppler setup
+
+   # For mobile
+   cd clients/mobile
+   doppler setup
+   ```
+
+### Running Apps
+
+```bash
+# Web
+cd clients/web
+npm run dev
+
+# Mobile
+cd clients/mobile
+npm run start
+```
+
 ## Architecture
 
 - **Source-only package**: This is not a compiled npm package. Web and mobile import the raw TypeScript source and bundle it with their own dependencies.
