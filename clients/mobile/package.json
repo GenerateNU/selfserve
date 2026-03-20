@@ -10,9 +10,9 @@
     "lint": "expo lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "doppler run -- jest",
-    "test:watch": "doppler run -- jest --watch",
-    "test:coverage": "doppler run -- jest --coverage"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.23",
