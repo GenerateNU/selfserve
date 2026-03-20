@@ -40,9 +40,16 @@
    doppler setup
    ```
 
-   This will configure your local environment to use the `selfserve-backend` project with the `dev` config.
+   This will configure your local environment to use the `selfserve-backend` project with the `dev` config
 
-5. **Run with hot reload** (development):
+
+5. **Start local Supabase**:
+
+   ```bash
+   make db-start
+   ```
+
+6. **Run with hot reload** (development):
 
    ```bash
    air
