@@ -3,7 +3,7 @@ CMD_PATH := ./cmd/server
 DOCKER_IMAGE_NAME := selfserve-backend
 PORT := 8080
 ENV_FILE := config/.env
-LOAD_ENV := set -a; [ -f $(ENV_FILE) ] && . $(ENV_FILE); set +a;
+LOAD_ENV := doppler run --
 LLM_URL := http://127.0.0.1:11434
 
 .PHONY: all build run dev test format tidy download clean docker-build docker-run \
