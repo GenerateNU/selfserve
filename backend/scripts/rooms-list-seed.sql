@@ -80,52 +80,46 @@ ON CONFLICT (id) DO NOTHING;
 --   active   → guest appears on the room in GET /api/v1/rooms
 --   inactive → filtered out (verifies the LEFT JOIN WHERE status = 'active')
 --
--- Note: `guest_bookings.hotel_id` was added later; this seed remains compatible
--- with databases that haven't applied that migration yet.
 -- -----------------------------------------------------------------------------
-INSERT INTO public.guest_bookings (id, guest_id, room_id, arrival_date, departure_date, notes, status)
+INSERT INTO public.guest_bookings (
+  id,
+  guest_id,
+  room_id,
+  arrival_date,
+  departure_date,
+  notes,
+  status,
+  hotel_id
+)
 VALUES
   -- Alice in room 102 (floor 1) — active
   ('b0000000-0000-0000-0000-000000000001',
    'a0000000-0000-0000-0000-000000000001',
    '10000000-0000-0000-0000-000000000102',
-   '2026-03-10', '2026-03-17', 'Early check-in requested', 'active'),
+   '2026-03-10', '2026-03-17', 'Early check-in requested', 'active',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
 
   -- Bob in room 202 (floor 2) — active
   ('b0000000-0000-0000-0000-000000000002',
    'a0000000-0000-0000-0000-000000000002',
    '10000000-0000-0000-0000-000000000202',
-   '2026-03-12', '2026-03-15', NULL, 'active'),
+   '2026-03-12', '2026-03-15', NULL, 'active',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
 
   -- Carol in room 303 (floor 3) — active
   ('b0000000-0000-0000-0000-000000000003',
    'a0000000-0000-0000-0000-000000000003',
    '10000000-0000-0000-0000-000000000303',
-   '2026-03-13', '2026-03-20', 'No feather pillows please', 'active'),
+   '2026-03-13', '2026-03-20', 'No feather pillows please', 'active',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
 
   -- David in room 101 (floor 1) — inactive; must NOT appear in the rooms response
   ('b0000000-0000-0000-0000-000000000004',
    'a0000000-0000-0000-0000-000000000004',
    '10000000-0000-0000-0000-000000000101',
-   '2026-03-01', '2026-03-07', NULL, 'inactive')
+   '2026-03-01', '2026-03-07', NULL, 'inactive',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
 ON CONFLICT (id) DO NOTHING;
-
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM information_schema.columns
-    WHERE table_schema = 'public'
-      AND table_name = 'guest_bookings'
-      AND column_name = 'hotel_id'
-  ) THEN
-    UPDATE public.guest_bookings gb
-    SET hotel_id = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-    WHERE gb.id::text LIKE 'b0000000%'
-      AND gb.hotel_id IS NULL;
-  END IF;
-END
-$$;
 
 COMMIT;
 
