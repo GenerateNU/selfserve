@@ -19,7 +19,10 @@ interface FiltersProps<T extends string | number> {
   className?: string;
 }
 
-export function Filters<T extends string | number>({ filters, className }: FiltersProps<T>) {
+export function Filters<T extends string | number>({
+  filters,
+  className,
+}: FiltersProps<T>) {
   return (
     <View className={`gap-[2vw] ${className || ""}`}>
       {filters.map((filter, index) => (

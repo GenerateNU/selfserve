@@ -32,8 +32,6 @@ export function GuestCard({
           Floor: {floor} Room: {room}
         </Text>
       </View>
-
     </Pressable>
-
   );
 }

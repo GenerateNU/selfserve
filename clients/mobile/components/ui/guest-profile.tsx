@@ -102,8 +102,6 @@ function StaysCollapsible({
   stays: Stay[];
   emptyMessage: string;
 }) {
-  
-
   return (
     <Collapsible title={title}>
       {stays.length === 0 ? (
@@ -119,26 +117,23 @@ function EmptyStaysMessage({ message }: { message: string }) {
   return <Text className="text-[3.5vw] text-black">{message}</Text>;
 }
 
-
 function StayList({ stays }: { stays: Stay[] }) {
   const displayDate = (arr: string, dep: string) =>
     new Date(arr).toLocaleDateString() +
     " - " +
     new Date(dep).toLocaleDateString();
-    return (
-      <View className="gap-[1vh]">
-          {stays.map((stay, index) => (
-            <View key={index} className="border-b border-stroke-subtle pb-[1vh]">
-              <Text className="text-[3.5vw] text-black">
-                {stay.room_number}
-              </Text>
-              <Text className="text-[3vw] text-black">
-                {displayDate(stay.arrival_date, stay.departure_date)}
-              </Text>
-            </View>
-          ))}
+  return (
+    <View className="gap-[1vh]">
+      {stays.map((stay, index) => (
+        <View key={index} className="border-b border-stroke-subtle pb-[1vh]">
+          <Text className="text-[3.5vw] text-black">{stay.room_number}</Text>
+          <Text className="text-[3vw] text-black">
+            {displayDate(stay.arrival_date, stay.departure_date)}
+          </Text>
         </View>
-    );
+      ))}
+    </View>
+  );
 }
 
 function GuestInfoCollapsibles(props: GuestProfileProps) {
@@ -146,9 +141,7 @@ function GuestInfoCollapsibles(props: GuestProfileProps) {
     <Box className="p-[4vw] gap-[2vh]">
       {GUEST_PROFILE_CONFIG.collapsibles.map((item, index) => (
         <Collapsible key={index} title={item.title}>
-          <Text className="text-[3.5vw] text-black">
-            {item.format(props)}
-          </Text>
+          <Text className="text-[3.5vw] text-black">{item.format(props)}</Text>
         </Collapsible>
       ))}
       <StaysCollapsible

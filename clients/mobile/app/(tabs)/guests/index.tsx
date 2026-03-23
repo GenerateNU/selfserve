@@ -27,30 +27,38 @@ export default function GuestsList() {
   };
 
   const filterConfig = getFloorConfig(floors ?? [], onFloorChange);
-  
+
   const api = useAPIClient();
-  const { data: guestData, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteQuery<
-      GuestPage,
-      Error,
-      InfiniteData<GuestPage>,
-      (string | number[] | null)[],
-      string | undefined
-    >({
-      queryKey: ["guests", floors],
-      queryFn: ({ pageParam }) =>
-        api.post<GuestPage>("/api/v1/guests/search", {
-          floors: floors ?? undefined,
-          cursor: pageParam,
-          limit: 20,
-        }),
-      initialPageParam: undefined,
-      getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
-    });
+  const {
+    data: guestData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<
+    GuestPage,
+    Error,
+    InfiniteData<GuestPage>,
+    (string | number[] | null)[],
+    string | undefined
+  >({
+    queryKey: ["guests", floors],
+    queryFn: ({ pageParam }) =>
+      api.post<GuestPage>("/api/v1/guests/search", {
+        floors: floors ?? undefined,
+        cursor: pageParam,
+        limit: 20,
+      }),
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
+  });
 
   const allGuests = guestData?.pages.flatMap((page) => page.data ?? []) ?? [];
-  const onEndReached = () => { if (hasNextPage && !isFetchingNextPage) fetchNextPage()};
-  const listFooter = isFetchingNextPage ? <ActivityIndicator className="py-[2vh]" /> : null
+  const onEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  };
+  const listFooter = isFetchingNextPage ? (
+    <ActivityIndicator className="py-[2vh]" />
+  ) : null;
 
   return (
     <View className="flex-1 bg-white">
@@ -70,7 +78,12 @@ export default function GuestsList() {
         onEndReached={onEndReached}
         onEndReachedThreshold={0.3}
         ListHeaderComponent={
-        <GuestListHeader search={search} setSearch={setSearch} filterConfig={filterConfig} />}
+          <GuestListHeader
+            search={search}
+            setSearch={setSearch}
+            filterConfig={filterConfig}
+          />
+        }
         ListFooterComponent={listFooter}
         contentContainerStyle={{ gap: 8 }}
         className="flex-1"
@@ -79,21 +92,21 @@ export default function GuestsList() {
   );
 }
 
-
 interface GuestListHeaderProps<T extends number | string> {
-  search: string 
-  setSearch: (s: string) => void, 
-  filterConfig: Filter<T>[]
+  search: string;
+  setSearch: (s: string) => void;
+  filterConfig: Filter<T>[];
 }
 
-function GuestListHeader<T extends number | string>({ search, setSearch, filterConfig}: GuestListHeaderProps<T>) { 
+function GuestListHeader<T extends number | string>({
+  search,
+  setSearch,
+  filterConfig,
+}: GuestListHeaderProps<T>) {
   return (
     <View className="px-[4vw] pt-[2vh]">
-            <SearchBar value={search} onChangeText={setSearch} />
-            <Filters filters={filterConfig} className="mt-[2vh]" />
-          </View>
+      <SearchBar value={search} onChangeText={setSearch} />
+      <Filters filters={filterConfig} className="mt-[2vh]" />
+    </View>
   );
 }
-
-
-

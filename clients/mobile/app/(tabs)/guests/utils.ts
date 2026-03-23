@@ -1,8 +1,10 @@
 import { Filter } from "@/components/ui/filters";
 
-
 // this will get modified once the getFloors endpoint is completed:: PENDING
-export const getFloorConfig = (floors: number[], changeFloor: (f: number) => void): Filter<number>[] => {
+export const getFloorConfig = (
+  floors: number[],
+  changeFloor: (f: number) => void,
+): Filter<number>[] => {
   const filterConfig = [
     {
       value: floors,
@@ -21,5 +23,5 @@ export const getFloorConfig = (floors: number[], changeFloor: (f: number) => voi
       ],
     },
   ];
-  return filterConfig
-}
+  return filterConfig;
+};
