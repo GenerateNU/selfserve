@@ -32,7 +32,7 @@ function HeaderWithBackArrow() {
   return (
     <Box className="flex-row items-center px-[4vw] py-[3vh] border-b border-stroke-subtle">
       <Pressable onPress={() => router.back()}>
-        <ChevronLeft className="w-[6vw] h-[6vw]" color="#000" />
+        <ChevronLeft className="w-[6vw] h-[6vw]" color={"#000"} />
       </Pressable>
       <Text className="flex-1 text-center text-[5vw] font-semibold text-black">
         Guest Profile
