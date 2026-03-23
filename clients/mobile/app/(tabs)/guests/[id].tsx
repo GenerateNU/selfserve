@@ -20,8 +20,8 @@ export default function ProfileScreen() {
       email={query.data.email}
       notes={query.data.notes}
       preferences={query.data.preferences}
-      currentStays={query.data.current_stays ?? []}
-      previousStays={query.data?.past_stays ?? []}
+      currentStays={query.data.current_stays}
+      previousStays={query.data.past_stays}
     />
   );
 }

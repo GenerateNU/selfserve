@@ -1,25 +1,17 @@
 import { useState } from "react";
-import { View, Text, Pressable, Modal, ScrollView } from "react-native";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { ChevronDown, X, Check } from "lucide-react-native";
+import { Filter } from "./filters";
+import { Colors } from "@/constants/theme";
 
-interface FilterOption {
-  label: string;
-  value: number;
-}
 
-interface MultiSelectFilterProps {
-  value: number[] | null;
-  onChange: (value: number) => void;
-  options: FilterOption[];
-  placeholder: string;
-}
 
-export function MultiSelectFilter({
+export function MultiSelectFilter<T extends string | number>({
   value,
   onChange,
   options,
   placeholder,
-}: MultiSelectFilterProps) {
+}: Filter<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const selectedOptions = options.filter((opt) => value?.includes(opt.value));
 
@@ -27,18 +19,18 @@ export function MultiSelectFilter({
     <View>
       <Pressable
         onPress={() => setIsOpen(!isOpen)}
-        className={`flex-row items-center justify-between px-[4vw] h-[7vh] bg-white border border-gray-200 ${
+        className={`flex-row items-center justify-between px-[4vw] h-[7vh] bg-white border border-stroke-subtle ${
           isOpen ? "rounded-t-xl border-b-0" : "rounded-xl"
         }`}
       >
-        <Text className="text-[5vw] font-semibold text-gray-900">
+        <Text className="text-[5vw] font-semibold text-black">
           {placeholder}
         </Text>
-        <ChevronDown className="w-[5vw] h-[5vw]" color="#111827" />
+        <ChevronDown className="w-[5vw] h-[5vw]" color="#000000" />
       </Pressable>
 
       {isOpen && (
-        <View className="bg-white border border-gray-200 rounded-b-xl overflow-hidden">
+        <View className="bg-white border border-stroke-subtle rounded-b-xl overflow-hidden">
           <ScrollView className="max-h-[40vh]">
             {options.map((option, idx) => {
               const isSelected = value?.includes(option.value);
@@ -47,16 +39,18 @@ export function MultiSelectFilter({
                   key={option.value}
                   onPress={() => onChange(option.value)}
                   className={`flex-row items-center justify-between px-[4vw] py-[2.5vh] ${
-                    idx < options.length - 1 ? "border-b border-gray-100" : ""
-                  } ${isSelected ? "bg-gray-50" : "bg-white"}`}
+                    idx < options.length - 1 ? "border-b border-shadow-weak" : ""
+                  } ${isSelected ? "bg-card" : "bg-white"}`}
                 >
                   <Text
-                    className={`text-[4.5vw] ${isSelected ? "font-medium text-gray-900" : "text-gray-700"}`}
+                    className={`text-[4.5vw] ${
+                      isSelected ? "font-medium text-black" : "text-black"
+                    }`}
                   >
                     {option.label}
                   </Text>
                   {isSelected && (
-                    <Check className="w-[4vw] h-[4vw]" color="#166534" />
+                    <Check className="w-[4vw] h-[4vw]" color={Colors.dark.greenBorder} />
                   )}
                 </Pressable>
               );
@@ -70,10 +64,10 @@ export function MultiSelectFilter({
             <Pressable
               key={opt.value}
               onPress={() => onChange(opt.value)}
-              className="flex-row items-center gap-[1vw] bg-green-800 rounded-md px-[3vw] py-[1vh]"
+              className="flex-row items-center gap-[1vw] bg-card border border-primary-border rounded-md px-[3vw] py-[1vh]"
             >
-              <Text className="text-[3.5vw] text-white">{opt.label}</Text>
-              <X className="w-[3vw] h-[3vw]" color="#fff" />
+              <Text className="text-[3.5vw] text-black">{opt.label}</Text>
+              <X className="w-[3vw] h-[3vw]" color={Colors.dark.greenBorder} />
             </Pressable>
           ))}
         </View>

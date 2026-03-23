@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { View, FlatList, ActivityIndicator } from "react-native";
 import { Header } from "@/components/ui/header";
 import { SearchBar } from "@/components/ui/search-bar";
-import { Filters } from "@/components/ui/filters";
+import { Filter, Filters } from "@/components/ui/filters";
 import { GuestCard } from "@/components/ui/guest-card";
 import { router } from "expo-router";
 import { useAPIClient } from "@shared/api/client";
 import { useInfiniteQuery, InfiniteData } from "@tanstack/react-query";
 import { GuestPage } from "@shared/api/generated/models/guestPage";
+import { getFloorConfig } from "./utils";
 
 export default function GuestsList() {
   const [search, setSearch] = useState("");
@@ -25,27 +26,10 @@ export default function GuestsList() {
     router.push(`/guests/${guestId}`);
   };
 
-  const filterConfig = [
-    {
-      value: floors,
-      onChange: onFloorChange,
-      placeholder: "Floor",
-      options: [
-        { label: "Floor 1", value: 1 },
-        { label: "Floor 2", value: 2 },
-        { label: "Floor 3", value: 3 },
-        { label: "Floor 4", value: 4 },
-        { label: "Floor 5", value: 5 },
-        { label: "Floor 6", value: 6 },
-        { label: "Floor 7", value: 7 },
-        { label: "Floor 8", value: 8 },
-        { label: "Floor 9", value: 9 },
-      ],
-    },
-  ];
-
+  const filterConfig = getFloorConfig(floors ?? [], onFloorChange);
+  
   const api = useAPIClient();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+  const { data: guestData, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<
       GuestPage,
       Error,
@@ -64,7 +48,9 @@ export default function GuestsList() {
       getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
     });
 
-  const allGuests = data?.pages.flatMap((page) => page.data ?? []) ?? [];
+  const allGuests = guestData?.pages.flatMap((page) => page.data ?? []) ?? [];
+  const onEndReached = () => { if (hasNextPage && !isFetchingNextPage) fetchNextPage()};
+  const listFooter = isFetchingNextPage ? <ActivityIndicator className="py-[2vh]" /> : null
 
   return (
     <View className="flex-1 bg-white">
@@ -81,24 +67,33 @@ export default function GuestsList() {
             onPress={() => handleGuestPress(item.id)}
           />
         )}
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
+        onEndReached={onEndReached}
         onEndReachedThreshold={0.3}
         ListHeaderComponent={
-          <View className="px-[4vw] pt-[2vh]">
-            <SearchBar value={search} onChangeText={setSearch} />
-            <Filters filters={filterConfig} className="mt-[2vh]" />
-          </View>
-        }
-        ListFooterComponent={
-          isFetchingNextPage ? <ActivityIndicator className="py-[2vh]" /> : null
-        }
+        <GuestListHeader search={search} setSearch={setSearch} filterConfig={filterConfig} />}
+        ListFooterComponent={listFooter}
         contentContainerStyle={{ gap: 8 }}
         className="flex-1"
       />
     </View>
   );
 }
+
+
+interface GuestListHeaderProps<T extends number | string> {
+  search: string 
+  setSearch: (s: string) => void, 
+  filterConfig: Filter<T>[]
+}
+
+function GuestListHeader<T extends number | string>({ search, setSearch, filterConfig}: GuestListHeaderProps<T>) { 
+  return (
+    <View className="px-[4vw] pt-[2vh]">
+            <SearchBar value={search} onChangeText={setSearch} />
+            <Filters filters={filterConfig} className="mt-[2vh]" />
+          </View>
+  );
+}
+
+
+
