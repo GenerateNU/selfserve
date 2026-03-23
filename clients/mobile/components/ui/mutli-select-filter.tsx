@@ -35,6 +35,7 @@ export function MultiSelectFilter<T extends string | number>({
               const onPress = () => onChange(option.value)
               return (
                 <FilterOptionRow 
+                key={option.value}
                 option={option}
                 isSelected={isSelected}
                 showBottomBorder={idx < options.length - 1}
