@@ -43,14 +43,9 @@ func InitApp(cfg *config.Config) (*App, error) {
         return nil, err
     }
 
-    // Init Redis (graceful degradation if unavailable)
-    var redisClient *goredis.Client
-    rc, redisErr := redis.InitRedis()
-    if redisErr != nil {
-        log.Printf("Warning: Redis not available: %v", redisErr)
-    } else {
-        redisClient = rc
-    }
+	redisClient := tryInitRedis()
+
+
 
     genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
     app := setupApp()
@@ -68,6 +63,16 @@ func InitApp(cfg *config.Config) (*App, error) {
         Repo:        repo,
         RedisClient: redisClient,
     }, nil
+}
+
+
+func tryInitRedis() *goredis.Client {
+    redisClient, err := redis.InitRedis()
+    if err != nil {
+        log.Printf("Warning: Redis not available: %v", err)
+        return nil
+    }
+    return redisClient
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
