@@ -13,7 +13,7 @@ export function RoomsList({
   selectedRoomNumber = null,
 }: RoomsListProps) {
   return (
-    <section className="flex-1 min-h-0 flex flex-col overflow-hidden">
+    <section className="flex-1 min-h-0 flex flex-col overflow-hidden py-4">
       <nav className="flex-1 min-h-0">
         <ul className="flex flex-col gap-[0.55vh] h-full overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden">
           {rooms.map((room) => (

@@ -2,8 +2,8 @@ import { ChevronDown } from "lucide-react";
 import { useGetRoomsFloors } from "@shared";
 import { Button } from "../ui/Button";
 import { useDropdown } from "../../hooks/use-dropdown";
-import { FloorList } from "./FloorsList";
-import { FloorSearchInput } from "./FloorSearchInput";
+import { FloorDropdownOptions } from "./FloorDropdownOptions";
+import { FloorDropdownSearch } from "./FloorDropdownSearch";
 
 type FloorDropdownProps = {
   selected?: Array<number>;
@@ -13,7 +13,7 @@ type FloorDropdownProps = {
 function getFloorLabel(selected: Array<number>) {
   switch (selected.length) {
     case 0:
-      return "Select a Floor";
+      return "All Floors";
     case 1:
       return `Floor ${selected[0]}`;
     default:
@@ -46,30 +46,31 @@ export function FloorDropdown({
   );
 
   return (
-    <div className="relative min-w-0 w-full max-w-[18vw]">
+    <div className="relative min-w-0 w-full max-w-75 bg-bg-primary rounded-md">
       <button
         type="button"
         {...triggerProps}
-        className={`flex w-full min-w-0 items-center justify-between border border-gray-300 bg-white px-[1vw] py-[1vh] text-md ${open ? "rounded-t-md" : "rounded-md"}`}
+        className={`flex w-full min-w-0 items-center justify-between text-sm text-text-default px-4 py-3 ${open ? "rounded-t-md" : "rounded-md"}`}
       >
-        <span className="truncate text-sm">{getFloorLabel(selected)}</span>
+        <span className="truncate">{getFloorLabel(selected)}</span>
         <ChevronDown
-          className={`h-[2.25vh] w-[2.25vh] shrink-0 transition-transform duration-200 text-black ${open ? "rotate-180" : ""}`}
+          className={`h-5 w-5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          strokeWidth={2.5}
         />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-10 w-full rounded-b-md border border-t-0 border-gray-300 bg-white shadow-md">
-          <FloorSearchInput {...searchProps} />
+        <div className="absolute left-0 top-full z-10 w-full bg-bg-primary rounded-b-md shadow-md">
+          <FloorDropdownSearch {...searchProps} />
 
-          <FloorList
+          <FloorDropdownOptions
             floors={filtered}
             pending={pending}
             search={search}
             onToggle={toggle}
           />
 
-          <div className="flex justify-end gap-[0.5vw] border-t border-gray-300 px-[0.5vw] py-[0.75vh]">
+          <div className="flex justify-end gap-3 border-t border-stroke-subtle p-3">
             <Button variant="secondary" {...cancelProps}>
               Cancel
             </Button>
