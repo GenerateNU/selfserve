@@ -160,6 +160,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// rooms routes
 	api.Route("/rooms", func(r fiber.Router) {
 		r.Get("/", roomsHandler.GetRoomsByFloor)
+		r.Get("/floors", roomsHandler.GetFloors)
 	})
 
 	// s3 routes
@@ -173,9 +174,10 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 // Initialize Fiber app with middlewares / configs
 func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		JSONEncoder:  json.Marshal,
-		JSONDecoder:  json.Unmarshal,
-		ErrorHandler: errs.ErrorHandler,
+		JSONEncoder:    json.Marshal,
+		JSONDecoder:    json.Unmarshal,
+		ErrorHandler:   errs.ErrorHandler,
+		ReadBufferSize: 16 * 1024, // 16KB to accommodate Clerk JWTs
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())
@@ -187,8 +189,9 @@ func setupApp() *fiber.App {
 		Level: compress.LevelBestSpeed,
 	}))
 
+	allowedOrigins := os.Getenv("APP_CORS_ORIGINS")
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     "GET,POST,PUT,DELETE",
 		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID",
 		AllowCredentials: true,

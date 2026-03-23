@@ -18,6 +18,7 @@ func NewHelloHandler() *Handler {
 // @Accept       json
 // @Produce      plain
 // @Success      200  {string}  string  "Yogurt. Gurt: Yo!"
+// @Security     BearerAuth
 // @Router       /hello [get]
 func (h *Handler) GetHello(c *fiber.Ctx) error {
 	return c.SendString("Yogurt. Gurt: Yo!")
@@ -31,6 +32,7 @@ func (h *Handler) GetHello(c *fiber.Ctx) error {
 // @Produce      plain
 // @Param        name  path  string  true  "Name to greet"
 // @Success      200  {string}  string  "Yo, {name}!"
+// @Security     BearerAuth
 // @Router       /hello/{name} [get]
 func (h *Handler) GetHelloName(c *fiber.Ctx) error {
 	name := c.Params("name")
