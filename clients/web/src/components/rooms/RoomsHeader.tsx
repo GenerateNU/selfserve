@@ -1,5 +1,5 @@
-import { RoomsFilterPopover } from "@/components/rooms/RoomsFilterPopover";
 import { FloorDropdown } from "./FloorDropdown";
+import { RoomsFilterPopover } from "@/components/rooms/RoomsFilterPopover";
 
 type RoomsHeaderProps = {
   selectedFloors: Array<number>;

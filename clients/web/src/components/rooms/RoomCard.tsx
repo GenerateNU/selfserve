@@ -1,7 +1,7 @@
-import { cn } from "@/lib/utils";
-import type { RoomWithOptionalGuestBooking } from "@shared";
 import { Ban, Circle, CircleAlert, Info } from "lucide-react";
 import { Tag } from "../ui/Tag";
+import type { RoomWithOptionalGuestBooking } from "@shared";
+import { cn } from "@/lib/utils";
 
 type RoomCardProps = {
   room: RoomWithOptionalGuestBooking;
