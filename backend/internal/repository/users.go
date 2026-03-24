@@ -119,6 +119,9 @@ func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.C
             INSERT INTO users (id, first_name, last_name, profile_picture)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (id) DO UPDATE
+            SET first_name = EXCLUDED.first_name,
+                last_name = EXCLUDED.last_name,
+                profile_picture = EXCLUDED.profile_picture
         `, u.ID, u.FirstName, u.LastName, u.ProfilePicture)
 	}
 
