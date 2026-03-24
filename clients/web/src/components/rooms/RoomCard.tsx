@@ -1,5 +1,4 @@
 import {
-  Ban,
   BrushCleaning,
   CircleAlert,
   CircleUserRound,
