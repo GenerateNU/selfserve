@@ -13,8 +13,8 @@ import (
 )
 
 type syncConfig struct {
-	DB    config.DB    `env:",prefix=DB_"`
-	Clerk syncClerk    `env:",prefix=CLERK_"`
+	DB    config.DB `env:",prefix=DB_"`
+	Clerk syncClerk `env:",prefix=CLERK_"`
 }
 
 type syncClerk struct {
