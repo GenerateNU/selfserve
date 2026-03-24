@@ -4,6 +4,7 @@ import { Button } from "../ui/Button";
 import { useDropdown } from "../../hooks/use-dropdown";
 import { FloorDropdownOptions } from "./FloorDropdownOptions";
 import { FloorDropdownSearch } from "./FloorDropdownSearch";
+import { cn } from "@/lib/utils";
 
 type FloorDropdownProps = {
   selected?: Array<number>;
@@ -74,7 +75,7 @@ export function FloorDropdown({
             <Button variant="secondary" {...cancelProps}>
               Cancel
             </Button>
-            <Button variant="primary" {...selectProps}>
+            <Button className={cn(pending.length > 0 ? "bg-primary" : "bg-bg-disabled hover:bg-bg-disabled")} variant="primary" {...selectProps}>
               Select
             </Button>
           </div>
