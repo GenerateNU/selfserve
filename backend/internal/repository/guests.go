@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
@@ -101,8 +102,8 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 	var guest *models.GuestWithStays
 	for rows.Next() {
 		var stay models.Stay
-		var arrivalDate *string
-		var departureDate *string
+		var arrivalDate *time.Time
+		var departureDate *time.Time
 		var roomNumber *int
 		var status *models.BookingStatus
 
@@ -190,10 +191,10 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	return &guest, nil
 }
 
-func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) ([]*models.GuestWithBooking, error) {
-	floors := []int{}
-	if filters.Floors != nil {
-		floors = *filters.Floors
+func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
+	floors := filters.Floors
+	if floors == nil {
+		floors = []int{}
 	}
 	rows, err := r.db.Query(ctx, `
 	SELECT 
@@ -203,7 +204,10 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 		AND guest_bookings.status = 'active'
 	JOIN rooms ON rooms.id = guest_bookings.room_id
 	WHERE guest_bookings.hotel_id = $1 
-	AND ($2::int[] = '{}' OR rooms.floor = ANY($2))`, filters.HotelID, floors)
+	AND ($2::int[] = '{}' OR rooms.floor = ANY($2))
+	AND ($3 = '' OR guests.id > $3::uuid)
+	ORDER BY guests.id
+	LIMIT $4`, filters.HotelID, floors, filters.Cursor, filters.Limit+1)
 	if err != nil {
 		return nil, err
 	}
@@ -223,5 +227,14 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 		return nil, err
 	}
 
-	return guests, nil
+	var nextCursor *string
+	if len(guests) == filters.Limit+1 {
+		guests = guests[:filters.Limit]
+		nextCursor = &guests[filters.Limit-1].ID
+	}
+	return &models.GuestPage{
+		Data:       guests,
+		NextCursor: nextCursor,
+	}, nil
+
 }
