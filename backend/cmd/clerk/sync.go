@@ -12,19 +12,9 @@ import (
 	"github.com/sethvargo/go-envconfig"
 )
 
-type syncConfig struct {
-	DB    config.DB `env:",prefix=DB_"`
-	Clerk syncClerk `env:",prefix=CLERK_"`
-}
-
-type syncClerk struct {
-	BaseURL   string `env:"BASE_URL" envDefault:"https://api.clerk.com/v1"`
-	SecretKey string `env:"SECRET_KEY,required"`
-}
-
 func main() {
 	ctx := context.Background()
-	var cfg syncConfig
+	var cfg config.Config
 	if err := envconfig.Process(ctx, &cfg); err != nil {
 		log.Fatal("failed to process config:", err)
 	}
@@ -36,7 +26,8 @@ func main() {
 	defer repo.Close()
 	usersRepo := repository.NewUsersRepository(repo.DB)
 
-	err = syncUsers(ctx, cfg.Clerk.BaseURL+"/users", cfg.Clerk.SecretKey, usersRepo)
+	path := "/users"
+	err = syncUsers(ctx, cfg.BaseURL+path, cfg.SecretKey, usersRepo)
 	if err != nil {
 		log.Fatal(err)
 	}
