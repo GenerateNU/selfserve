@@ -49,8 +49,8 @@ func InitApp(cfg *config.Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-  
-  redisClient := tryInitRedis()
+
+	redisClient := tryInitRedis()
 
 	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
@@ -183,7 +183,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Get("/upload-url/:userId", s3Handler.GetUploadURL)
 		r.Get("/presigned-get-url/*", s3Handler.GeneratePresignedGetURL)
 	})
-  
+
 	// rooms routes
 	api.Route("/rooms", func(r fiber.Router) {
 		r.Get("/", roomsHandler.GetRoomsByFloor)
