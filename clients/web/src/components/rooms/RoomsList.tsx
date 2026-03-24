@@ -15,7 +15,7 @@ export function RoomsList({
   return (
     <section className="flex-1 min-h-0 flex flex-col overflow-hidden py-4">
       <nav className="flex-1 min-h-0">
-        <ul className="flex flex-col gap-[0.55vh] h-full overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden">
+        <ul className="flex flex-col gap-4 h-full overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden">
           {rooms.map((room) => (
             <li key={room.room_number} className="min-w-0">
               <RoomCard

@@ -19,7 +19,7 @@ export function PageShell({
   return (
     <main className="flex h-screen w-full min-w-0 overflow-hidden">
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-        <header className="shrink-0 bg-gray-100">{header}</header>
+        <header className="shrink-0 bg-bg-container">{header}</header>
 
         <section className="flex-1 min-h-0 overflow-auto bg-bg-primary">
           <div className="flex flex-col mx-auto w-full px-16">{children}</div>

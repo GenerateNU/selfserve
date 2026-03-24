@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
 
 type ButtonVariant = "primary" | "secondary";
 
@@ -7,8 +8,8 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: "bg-green-900 text-white hover:bg-green-950",
-  secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300",
+  primary: "bg-primary text-white hover:bg-primary-hover",
+  secondary: "bg-bg-container text-text-default hover:bg-bg-selected",
 };
 
 export function Button({
@@ -19,7 +20,11 @@ export function Button({
   return (
     <button
       type="button"
-      className={`px-[0.75vw] py-[0.4vh] w-[10vw] h-[4vh] text-sm rounded-sm ${variantStyles[variant]} ${className}`}
+      className={cn(
+        "px-6 py-2.5 w-33 h-10 text-sm rounded-sm",
+        variantStyles[variant],
+        className,
+      )}
       {...props}
     />
   );
