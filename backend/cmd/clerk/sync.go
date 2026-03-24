@@ -18,6 +18,7 @@ func main() {
 	if err := envconfig.Process(ctx, &cfg); err != nil {
 		log.Fatal("failed to process config:", err)
 	}
+	f
 
 	repo, err := storage.NewRepository(cfg.DB)
 	if err != nil {
