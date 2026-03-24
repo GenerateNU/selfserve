@@ -72,7 +72,7 @@ export default function Login() {
           href="/sign-up"
           className="text-center text-sm text-shadow-strong"
         >
-          Don't have an account?{" "}
+          Do not have an account?{" "}
           <Text className="text-primary font-medium">Sign up</Text>
         </Link>
       </View>

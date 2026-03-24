@@ -13,7 +13,7 @@ export default function Index() {
     } else {
       router.replace("/sign-in");
     }
-  }, [isLoaded, isSignedIn]);
+  }, [router, isLoaded, isSignedIn]);
 
   return null;
 }
