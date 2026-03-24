@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useGetRooms } from "@shared";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
+import { SortByContainer } from "@/components/rooms/SortByContainer";
 import { RoomsHeader } from "@/components/rooms/RoomsHeader";
 import { RoomsList } from "@/components/rooms/RoomsList";
 import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
@@ -15,8 +16,9 @@ function RoomsPage() {
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
+  const [ascending, setAscending] = useState(true);
 
-  const { data } = useGetRooms({
+  const { data: rooms } = useGetRooms({
     floors: selectedFloors.length > 0 ? selectedFloors : undefined,
   });
 
@@ -36,8 +38,11 @@ function RoomsPage() {
         />
       }
     >
+      <SortByContainer ascending={ascending} setAscending={setAscending} />
+
       <RoomsList
-        rooms={data?.items ?? []}
+        rooms={rooms?.items ?? []}
+        ascending={ascending}
         onRoomSelect={setSelectedRoom}
         selectedRoomNumber={selectedRoom?.room_number ?? null}
       />
