@@ -11,7 +11,7 @@ export default function Page() {
           onPress={() => router.push("/(tabs)/explore")}
           className="bg-primary rounded-xl py-4 items-center mt-8 active:opacity-80"
         >
-          <Text >Go to tabs</Text>
+          <Text>Go to tabs</Text>
         </Pressable>
       </View>
     </View>
