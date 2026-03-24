@@ -6,12 +6,26 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
+
+const hotelIDHeader = "X-Hotel-ID"
 
 func validUUID(s string) bool {
 	_, err := uuid.Parse(s)
 	return err == nil
+}
+
+func hotelIDFromHeader(c *fiber.Ctx) (string, error) {
+	hotelID := strings.TrimSpace(c.Get(hotelIDHeader))
+	if hotelID == "" {
+		return "", errs.BadRequest("hotel_id header is required")
+	}
+	if !validUUID(hotelID) {
+		return "", errs.BadRequest("hotel_id header must be a valid uuid")
+	}
+	return hotelID, nil
 }
 
 func AggregateErrors(errors map[string]string) error {
@@ -54,7 +68,7 @@ func ReformatUserData(CreateUserRequest *models.ClerkUser) *models.CreateUser {
 	result := &models.CreateUser{
 		FirstName: CreateUserRequest.FirstName,
 		LastName:  CreateUserRequest.LastName,
-		ClerkID:   CreateUserRequest.ID,
+		ID:        CreateUserRequest.ID,
 	}
 	if CreateUserRequest.HasImage {
 		result.ProfilePicture = CreateUserRequest.ImageUrl

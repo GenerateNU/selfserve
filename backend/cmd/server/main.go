@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/generate/selfserve/config"
-	_ "github.com/generate/selfserve/docs"
+	"github.com/generate/selfserve/docs"
 	"github.com/generate/selfserve/internal/service"
 	"github.com/sethvargo/go-envconfig"
 )
@@ -30,6 +30,10 @@ import (
 // @BasePath  /api/v1
 
 // @schemes http https
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Your Clerk JWT token (prefixed with "Bearer ")
 func main() {
 	// Load environment variables
 	ctx := context.Background()
@@ -38,6 +42,7 @@ func main() {
 		log.Fatal("failed to process config:", err)
 	}
 
+	docs.SwaggerInfo.Host = cfg.Application.Host
 
 	app, err := service.InitApp(&cfg)
 	if err != nil {

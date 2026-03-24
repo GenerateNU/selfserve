@@ -1,12 +1,12 @@
 import { Image } from "expo-image";
-import { TextInput, Pressable, ActivityIndicator } from "react-native";
+import { Text, TextInput, Pressable, ActivityIndicator } from "react-native";
 import { useState } from "react";
 
 import { HelloWave } from "@/components/hello-wave";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { useGetHelloName } from "@shared/hooks/use-hello";
+import { useGetHelloName } from "@/hooks/use-hello";
 
 export default function HomeScreen() {
   const [name, setName] = useState("");
@@ -35,7 +35,7 @@ export default function HomeScreen() {
       }
     >
       <ThemedView className="flex-row items-center gap-2">
-        <ThemedText type="title">Welcome!</ThemedText>
+        <Text className="text-primary text-[32px] font-bold">Welcome!</Text>
         <HelloWave />
       </ThemedView>
 

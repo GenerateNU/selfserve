@@ -6,8 +6,8 @@ import (
 	"log"
 
 	"github.com/generate/selfserve/config"
-	"github.com/generate/selfserve/internal/service/clerk"
 	"github.com/generate/selfserve/internal/repository"
+	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/sethvargo/go-envconfig"
 )
@@ -27,7 +27,7 @@ func main() {
 	usersRepo := repository.NewUsersRepository(repo.DB)
 
 	path := "/users"
-	err = syncUsers(ctx, cfg.BaseURL + path, cfg.SecretKey, usersRepo)
+	err = syncUsers(ctx, cfg.BaseURL+path, cfg.SecretKey, usersRepo)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,4 +53,3 @@ func syncUsers(ctx context.Context, clerkBaseURL string, clerkSecret string,
 
 	return nil
 }
-

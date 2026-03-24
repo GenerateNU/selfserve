@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"log"
 
 	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
@@ -14,10 +14,13 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
+
 	"github.com/generate/selfserve/internal/service/clerk"
 	"github.com/generate/selfserve/internal/storage/redis"
 
+	s3storage "github.com/generate/selfserve/internal/service/s3"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/validation"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -28,56 +31,65 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
 	goredis "github.com/redis/go-redis/v9"
-
 )
 
 type App struct {
-	Server *fiber.App
-	Repo   *storage.Repository
+	Server      *fiber.App
+	Repo        *storage.Repository
+	S3Storage   *s3storage.Storage
 	RedisClient *goredis.Client
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
-    repo, err := storage.NewRepository(cfg.DB)
-    if err != nil {
-        return nil, err
-    }
+	validation.Init()
+
+	// Init DB/repository(ies)
+
+	repo, err := storage.NewRepository(cfg.DB)
+	if err != nil {
+		return nil, err
+	}
 
 	redisClient := tryInitRedis()
 
+	s3Store, err := s3storage.NewS3Storage(cfg.S3)
+	if err != nil {
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
+		return nil, err
+	}
 
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
+	app := setupApp()
+	setupClerk(cfg)
 
-    genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
-    app := setupApp()
-    setupClerk(cfg)
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store); err != nil {
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
+		return nil, err
+	}
 
-    if err = setupRoutes(app, repo, genkitInstance, cfg); err != nil {
-        if e := repo.Close(); e != nil {
-            return nil, errors.Join(err, e)
-        }
-        return nil, err
-    }
-
-    return &App{
-        Server:      app,
-        Repo:        repo,
-        RedisClient: redisClient,
-    }, nil
+	return &App{
+		Server:      app,
+		Repo:        repo,
+		RedisClient: redisClient,
+		S3Storage:   s3Store,
+	}, nil
 }
 
-
 func tryInitRedis() *goredis.Client {
-    redisClient, err := redis.InitRedis()
-    if err != nil {
-        log.Printf("Warning: Redis not available: %v", err)
-        return nil
-    }
-    return redisClient
+	redisClient, err := redis.InitRedis()
+	if err != nil {
+		log.Printf("Warning: Redis not available: %v", err)
+		return nil
+	}
+	return redisClient
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	 cfg *config.Config) error {
-
+	cfg *config.Config, s3Store *s3storage.Storage) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -100,8 +112,10 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
-	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
-	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
+	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
+	s3Handler := handler.NewS3Handler(s3Store)
+	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
+
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
 		return err
@@ -141,6 +155,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", guestsHandler.CreateGuest)
 		r.Get("/:id", guestsHandler.GetGuest)
 		r.Put("/:id", guestsHandler.UpdateGuest)
+		r.Post("/search", guestsHandler.GetGuests)
+		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
 	})
 
 	// Request routes
@@ -148,15 +164,24 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
+		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
 	})
 
 	// Hotel routes
 	api.Route("/hotels", func(r fiber.Router) {
-		r.Get("/:id", hotelHandler.GetHotelByID)
+		r.Get("/:id", hotelsHandler.GetHotelByID)
+		r.Post("/", hotelsHandler.CreateHotel)
 	})
 
-	api.Route("/hotel", func(r fiber.Router) {
-		r.Post("/", hotelsHandler.CreateHotel)
+	// rooms routes
+	api.Route("/rooms", func(r fiber.Router) {
+		r.Get("/", roomsHandler.GetRoomsByFloor)
+		r.Get("/floors", roomsHandler.GetFloors)
+	})
+
+	// s3 routes
+	api.Route("/s3", func(r fiber.Router) {
+		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
 	})
 
 	return nil
@@ -165,9 +190,10 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 // Initialize Fiber app with middlewares / configs
 func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		JSONEncoder:  json.Marshal,
-		JSONDecoder:  json.Unmarshal,
-		ErrorHandler: errs.ErrorHandler,
+		JSONEncoder:    json.Marshal,
+		JSONDecoder:    json.Unmarshal,
+		ErrorHandler:   errs.ErrorHandler,
+		ReadBufferSize: 16 * 1024, // 16KB to accommodate Clerk JWTs
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())
@@ -179,9 +205,12 @@ func setupApp() *fiber.App {
 		Level: compress.LevelBestSpeed,
 	}))
 
+	allowedOrigins := os.Getenv("APP_CORS_ORIGINS")
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,PUT,DELETE",
+		AllowOrigins:     allowedOrigins,
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID",
+		AllowCredentials: true,
 	}))
 
 	return app

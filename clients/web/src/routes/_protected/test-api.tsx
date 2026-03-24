@@ -1,23 +1,28 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useGetHelloName } from '@shared/hooks/use-hello'
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { useGetHelloName } from "@shared/api/generated/endpoints/hello/hello.ts";
+import type { ApiError } from "@shared";
 
-export const Route = createFileRoute('/test-api')({ component: TestApi })
+export const Route = createFileRoute("/_protected/test-api")({
+  component: TestApi,
+});
 
 function TestApi() {
-  const [name, setName] = useState('')
-  const [submittedName, setSubmittedName] = useState('')
+  const [name, setName] = useState("");
+  const [submittedName, setSubmittedName] = useState("");
 
-  const { data, isLoading, error, refetch } = useGetHelloName(submittedName)
+  const { data, isLoading, error, refetch } = useGetHelloName<string, ApiError>(
+    submittedName,
+  );
 
   const handleSubmitName = (name: string) => {
-    setSubmittedName(name)
-  }
+    setSubmittedName(name);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    handleSubmitName(name)
-  }
+    e.preventDefault();
+    handleSubmitName(name);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-20 px-6">
@@ -55,7 +60,7 @@ function TestApi() {
               disabled={!name.trim() || isLoading}
               className="w-full px-6 py-3 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
             >
-              {isLoading ? 'Loading...' : 'Call API'}
+              {isLoading ? "Loading..." : "Call API"}
             </button>
           </form>
 
@@ -106,5 +111,5 @@ function TestApi() {
         </div>
       </div>
     </div>
-  )
+  );
 }

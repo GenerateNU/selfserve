@@ -32,6 +32,7 @@ func NewDevsHandler(repo DevsRepository) *DevsHandler {
 // @Success      200   {object}  models.Dev
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /devs/{name} [get]
 func (h *DevsHandler) GetMember(c *fiber.Ctx) error {
 	name := c.Params("name")

@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"strings"
-	"time"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
 )
@@ -35,6 +34,7 @@ func NewUsersHandler(repo UsersRepository) *UsersHandler {
 // @Success      200   {object}  models.User
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users/{id} [get]
 func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -62,6 +62,7 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 // @Success      200   {object}  models.User
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users [post]
 func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 	var CreateUserRequest models.CreateUser
@@ -69,7 +70,7 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
-	if err := validateCreateUser(&CreateUserRequest); err != nil {
+	if err := httpx.BindAndValidate(c, &CreateUserRequest); err != nil {
 		return err
 	}
 
@@ -79,30 +80,4 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(res)
-}
-
-func validateCreateUser(user *models.CreateUser) error {
-	errors := make(map[string]string)
-
-	if strings.TrimSpace(user.FirstName) == "" {
-		errors["first_name"] = "must not be an empty string"
-	}
-
-	if strings.TrimSpace(user.LastName) == "" {
-		errors["last_name"] = "must not be an empty string"
-	}
-
-	if user.Timezone != nil {
-		_, err := time.LoadLocation(*user.Timezone)
-		if err != nil || !strings.Contains(*user.Timezone, "/") {
-			errors["timezone"] = "invalid IANA timezone"
-		}
-	}
-
-	if strings.TrimSpace(user.ClerkID) == "" {
-		errors["clerk_id"] = "must not be an empty string"
-	}
-
-	// Aggregates errors deterministically
-	return AggregateErrors(errors)
 }
