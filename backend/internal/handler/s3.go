@@ -8,10 +8,12 @@ import (
 	s3storage "github.com/generate/selfserve/internal/service/s3"
 	"github.com/gofiber/fiber/v2"
 )
+
+const expirationTime = 5 * time.Minute
+
 type S3Handler struct {
 	S3Storage *s3storage.Storage
 }
-
 
 func NewS3Handler(s3Storage *s3storage.Storage) *S3Handler {
 	return &S3Handler{S3Storage: s3Storage}
@@ -28,14 +30,13 @@ func NewS3Handler(s3Storage *s3storage.Storage) *S3Handler {
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Router       /s3/presigned-url/{key} [get]
-
 func (h *S3Handler) GeneratePresignedUploadURL(c *fiber.Ctx) error {
 	key := c.Params("*")
 	if key == "" {
 		return errs.BadRequest("key is required")
 	}
 
-	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), key, 5*time.Minute)
+	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), key, expirationTime)
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -58,24 +59,21 @@ func (h *S3Handler) GeneratePresignedUploadURL(c *fiber.Ctx) error {
 // @Router       /s3/upload-url/{userId} [get]
 func (h *S3Handler) GetUploadURL(c *fiber.Ctx) error {
 	userId := c.Params("userId")
-	// Used for the upload's extension type. Defaults to jpg
-	// when client doesn't provide anything.
-	// Supported formats: jpg, jpeg, png, webp
 	ext := c.Query("ext", "jpg")
-	allowedExts := map[string]bool{"jpg": true, "jpeg": true, "png": true,  "webp": true}
+	allowedExts := map[string]bool{"jpg": true, "jpeg": true, "png": true, "webp": true}
 	if !allowedExts[ext] {
 		return errs.BadRequest("invalid extension")
 	}
 
 	key := fmt.Sprintf("profile-pictures/%s/%d.%s", userId, time.Now().Unix(), ext)
-	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), key, 5*time.Minute)
+	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), key, expirationTime)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
 	return c.JSON(fiber.Map{
 		"presigned_url": presignedURL,
-		"key": key,
+		"key":           key,
 	})
 }
 
@@ -96,7 +94,7 @@ func (h *S3Handler) GeneratePresignedGetURL(c *fiber.Ctx) error {
 		return errs.BadRequest("key is required")
 	}
 
-	presignedURL, err := h.S3Storage.GeneratePresignedGetURL(c.Context(), key, 5*time.Minute)
+	presignedURL, err := h.S3Storage.GeneratePresignedGetURL(c.Context(), key, expirationTime)
 	if err != nil {
 		return errs.InternalServerError()
 	}

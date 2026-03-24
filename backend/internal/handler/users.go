@@ -37,6 +37,7 @@ func NewUsersHandler(repo storage.UsersRepository, s3 storage.S3Storage) *UsersH
 // @Success      200   {object}  models.User
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users/{id} [get]
 func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -64,6 +65,7 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 // @Success      200   {object}  models.User
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users [post]
 func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 	var CreateUserRequest models.CreateUser

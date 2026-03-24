@@ -30,6 +30,7 @@ func NewGuestsHandler(repo storage.GuestsRepository) *GuestsHandler {
 // @Success      200   {object}  models.Guest
 // @Failure      400   {object}  map[string]string "Invalid guest body format"
 // @Failure      500   {object}  map[string]string  "Internal server error"
+// @Security     BearerAuth
 // @Router       /api/v1/guests [post]
 func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 	var CreateGuestRequest models.CreateGuest
@@ -59,6 +60,7 @@ func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 // @Failure      400   {object}  map[string]string "Invalid guest ID format"
 // @Failure      404  {object}  errs.HTTPError  "Guest not found"
 // @Failure      500   {object}  map[string]string "Internal server error"
+// @Security     BearerAuth
 // @Router       /api/v1/guests/{id} [get]
 func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -79,6 +81,36 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 	return c.JSON(guest)
 }
 
+// GetGuest godoc
+// @Summary      Gets a guest with previous stays
+// @Description  Retrieves a single guest with previous stays given an id
+// @Tags         guests
+// @Accept       json
+// @Produce      json
+// @Param        id  path   string  true  "Guest ID (UUID)"
+// @Success      200   {object}  models.GuestWithStays
+// @Failure      400   {object}  map[string]string "Invalid guest ID format"
+// @Failure      404  {object}  errs.HTTPError  "Guest not found"
+// @Failure      500   {object}  map[string]string "Internal server error"
+// @Security     BearerAuth
+// @Router       /api/v1/guests/stays/{id} [get]
+func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if !validUUID(id) {
+		return errs.BadRequest("guest id is not a valid UUID")
+	}
+
+	guest, err := h.GuestsRepository.FindGuestWithStayHistory(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("guest", "id", id)
+
+		}
+		return errs.InternalServerError()
+	}
+	return c.JSON(guest)
+}
+
 // UpdateGuest godoc
 // @Summary      Updates a guest
 // @Description  Updates fields on a guest
@@ -91,6 +123,7 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 // @Failure      400   {object}  map[string]string
 // @Failure      404   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /api/v1/guests/{id} [put]
 func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -120,4 +153,33 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(guest)
+}
+
+// GetGuests godoc
+// @Summary      Get Guests
+// @Description  Retrieves guests optionally filtered by floor
+// @Tags         guests
+// @Accept       json
+// @Produce      json
+// @Param        X-Hotel-ID  header    string             true   "Hotel ID (UUID)"
+// @Param        body        body      models.GuestFilters true   "Guest filters"
+// @Success      200         {object}  models.GuestPage
+// @Failure      400         {object}  map[string]string
+// @Failure      500         {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /api/v1/guests [post]
+func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
+	hotelID := c.Get("X-Hotel-ID")
+	var filters models.GuestFilters
+	filters.HotelID = hotelID
+	if err := httpx.BindAndValidate(c, &filters); err != nil {
+		return err
+	}
+
+	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(guests)
 }

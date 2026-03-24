@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -18,7 +19,6 @@ type Storage struct {
 }
 
 func NewS3Storage(cfg config.S3) (*Storage, error) {
-	// Create AWS config with your credentials
 	awsCfg, err := awsConfig.LoadDefaultConfig(context.Background(),
 		awsConfig.WithRegion(cfg.Region),
 		awsConfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
@@ -28,12 +28,10 @@ func NewS3Storage(cfg config.S3) (*Storage, error) {
 		)),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create AWS config: %w", err)
 	}
 
-	// Create S3 client
 	client := s3.NewFromConfig(awsCfg)
-
 	return &Storage{
 		Client:     client,
 		BucketName: cfg.BucketName,
@@ -42,45 +40,56 @@ func NewS3Storage(cfg config.S3) (*Storage, error) {
 }
 
 func (s *Storage) GeneratePresignedUploadURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
+	if key == "" {
+		return "", fmt.Errorf("key is required")
+	}
+	if expiration <= 0 {
+		return "", fmt.Errorf("expiration must be greater than 0")
+	}
 
 	presignedURL, err := s.URL.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	}, func(opts *s3.PresignOptions) {
 		opts.Expires = expiration
-	},
-)
-
+	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate presigned URL with key %s: %w", key, err)
 	}
-
 	return presignedURL.URL, nil
 }
 
 func (s *Storage) GeneratePresignedGetURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
+	if key == "" {
+		return "", fmt.Errorf("key is required")
+	}
+	if expiration <= 0 {
+		return "", fmt.Errorf("expiration must be greater than 0")
+	}
+
 	presignedURL, err := s.URL.PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
-	}, func(opts *s3.PresignOptions) { opts.Expires = expiration },
-)
+	}, func(opts *s3.PresignOptions) {
+		opts.Expires = expiration
+	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate presigned get URL with key %s: %w", key, err)
 	}
 	return presignedURL.URL, nil
 }
 
+func (s *Storage) DeleteFile(ctx context.Context, key string) error {
+	if key == "" {
+		return fmt.Errorf("key is required")
+	}
 
-func (s *Storage) DeleteFile(ctx context.Context, key string) (error) {
 	_, err := s.Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete file with key %s: %w", key, err)
 	}
-
 	return nil
 }
-
-
