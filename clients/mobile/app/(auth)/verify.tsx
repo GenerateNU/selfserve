@@ -2,7 +2,7 @@ import { useClerkErrorHandler } from "@/hooks/useClerkErrorHandler";
 import { useSignUp } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Pressable, TextInput, Text, View } from "react-native";
+import { Pressable, TextInput, Text, View, Keyboard, TouchableWithoutFeedback } from "react-native";
 
 export default function VerifyEmail() {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -15,7 +15,6 @@ export default function VerifyEmail() {
     run(async () => {
       if (!isLoaded) return;
       const result = await signUp.attemptEmailAddressVerification({ code });
-      console.log(result.status)
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.replace("/home");
@@ -29,6 +28,7 @@ export default function VerifyEmail() {
     });
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
   <View className="flex-1 justify-center px-6 bg-white">
     <Text className="text-2xl font-bold text-primary mb-2">Check your email</Text>
     <Text className="text-sm text-shadow-strong mb-8">Verification code sent to {email}</Text>
@@ -61,5 +61,6 @@ export default function VerifyEmail() {
       <Text className="text-primary text-sm font-medium">Resend code</Text>
     </Pressable>
   </View>
+  </TouchableWithoutFeedback>
 );
 }

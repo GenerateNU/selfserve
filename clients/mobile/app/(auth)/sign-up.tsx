@@ -2,29 +2,44 @@ import { useClerkErrorHandler } from "@/hooks/useClerkErrorHandler";
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { Pressable, TextInput, View, Text } from "react-native";
+import { Pressable, TextInput, View, Text, Keyboard, TouchableWithoutFeedback } from "react-native";
 
 export default function SignUp() {
   const { isLoaded, signUp } = useSignUp();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [error, setError] = useState("");
   const run = useClerkErrorHandler(setError);
 
   const onSignUp = () =>
     run(async () => {
       if (!isLoaded) return;
-      await signUp.create({ emailAddress: email, password });
+      await signUp.create({ emailAddress: email, password, firstName, lastName });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       router.push(`/verify?email=${email}`);
     });
 
   return (
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
   <View className="flex-1 justify-center px-6 bg-white">
     <Text className="text-2xl font-bold text-primary mb-2">Create account</Text>
     <Text className="text-sm text-shadow-strong mb-8">Sign up to get started</Text>
 
     <View className="gap-y-3 mb-4">
+      <TextInput
+        value={firstName}
+        onChangeText={setFirstName}
+        placeholder="First name"
+        className="border border-stroke-subtle rounded-xl px-4 py-3 text-base"
+      />
+      <TextInput
+        value={lastName}
+        onChangeText={setLastName}
+        placeholder="Last name"
+        className="border border-stroke-subtle rounded-xl px-4 py-3 text-base"
+      />
       <TextInput
         value={email}
         onChangeText={setEmail}
@@ -58,5 +73,6 @@ export default function SignUp() {
       Already have an account? <Text className="text-primary font-medium">Sign in</Text>
     </Link>
   </View>
+  </TouchableWithoutFeedback>
 );
 }

@@ -2,7 +2,7 @@ import { useClerkErrorHandler } from "@/hooks/useClerkErrorHandler";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { Pressable, TextInput, View, Text } from "react-native";
+import { Pressable, TextInput, View, Text, Keyboard, TouchableWithoutFeedback } from "react-native";
 
 export default function Login() {
   const { isLoaded, signIn, setActive } = useSignIn();
@@ -22,6 +22,7 @@ export default function Login() {
     });
 
   return (
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
   <View className="flex-1 justify-center px-6 bg-white">
     <Text className="text-2xl font-bold text-primary mb-2">Welcome back</Text>
     <Text className="text-sm text-shadow-strong mb-8">Sign in to your account</Text>
@@ -60,5 +61,6 @@ export default function Login() {
       Don't have an account? <Text className="text-primary font-medium">Sign up</Text>
     </Link>
   </View>
+  </TouchableWithoutFeedback>
 );
 }
