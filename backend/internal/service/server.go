@@ -141,7 +141,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", guestsHandler.CreateGuest)
 		r.Get("/:id", guestsHandler.GetGuest)
 		r.Put("/:id", guestsHandler.UpdateGuest)
-		r.Post("/search", guestsHandler.GetGuests)
+		r.Get("/", guestsHandler.GetGuests)
 		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
 	})
 
@@ -162,7 +162,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// rooms routes
 	api.Route("/rooms", func(r fiber.Router) {
 		r.Get("/", roomsHandler.GetRoomsByFloor)
-		r.Get("/floors", roomsHandler.GetFloors)
 	})
 
 	// tasks routes
@@ -202,15 +201,9 @@ func setupApp() *fiber.App {
 
 	allowedOrigins := os.Getenv("APP_CORS_ORIGINS")
 	app.Use(cors.New(cors.Config{
-<<<<<<< HEAD
-		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
 		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID, X-Dev-User-Id",
-=======
-		AllowOrigins:     allowedOrigins,
-		AllowMethods:     "GET,POST,PUT,DELETE",
-		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID",
->>>>>>> 94e828b (Swagger update (#195))
 		AllowCredentials: true,
 	}))
 
