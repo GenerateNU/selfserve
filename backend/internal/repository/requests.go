@@ -6,7 +6,6 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -21,7 +20,7 @@ func NewRequestsRepo(db *pgxpool.Pool) *RequestsRepository {
 
 func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
 	if req.ID == "" {
-		req.ID = uuid.New().String()
+		return nil, errors.New("request ID must be provided by the caller")
 	}
 
 	err := r.db.QueryRow(ctx, `

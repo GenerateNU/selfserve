@@ -33,8 +33,8 @@ type MakeRequest struct {
 	RequestCategory         *string    `json:"request_category" example:"Cleaning"`
 	RequestType             string     `json:"request_type" validate:"notblank" example:"recurring"`
 	Department              *string    `json:"department" example:"maintenance"`
-	Status                  string     `json:"status"  validate:"notblank" example:"assigned"`
-	Priority                string     `json:"priority" validate:"notblank" example:"urgent"`
+	Status                  string     `json:"status" validate:"oneof=pending assigned completed" example:"assigned"`
+	Priority                string     `json:"priority" validate:"oneof=low medium normal high urgent" example:"urgent"`
 	EstimatedCompletionTime *int       `json:"estimated_completion_time" example:"30"`
 	ScheduledTime           *time.Time `json:"scheduled_time" example:"2024-01-01T00:00:00Z"`
 	CompletedAt             *time.Time `json:"completed_at" example:"2024-01-01T00:30:00Z"`

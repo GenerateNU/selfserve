@@ -8,6 +8,7 @@ import (
 
 	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
@@ -39,58 +40,17 @@ func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService 
 // @Failure      500   {object}  map[string]string
 // @Router       /request [post]
 func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
-	var incoming models.MakeRequest
-	if err := c.BodyParser(&incoming); err != nil {
-		return errs.InvalidJSON()
-	}
-	req := models.Request{MakeRequest: incoming}
-
-	if err := validateCreateRequest(&req); err != nil {
+	var requestBody models.MakeRequest
+	if err := httpx.BindAndValidate(c, &requestBody); err != nil {
 		return err
 	}
 
-	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{MakeRequest: requestBody})
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
 	return c.JSON(res)
-}
-
-func validateCreateRequest(req *models.Request) error {
-	errors := make(map[string]string)
-
-	if !validUUID(req.HotelID) {
-		errors["hotel_id"] = "invalid uuid"
-	}
-
-	if req.GuestID != nil && !validUUID(*req.GuestID) {
-		errors["guest_id"] = "invalid uuid"
-	}
-	if req.UserID != nil && !validUUID(*req.UserID) {
-		errors["user_id"] = "invalid uuid"
-	}
-	if req.Name == "" {
-		errors["name"] = "must not be an empty string"
-	}
-	if req.RequestType == "" {
-		errors["request_type"] = "must not be an empty string"
-	}
-	if req.Status == "" {
-		errors["status"] = "must not be an empty string"
-	}
-	if req.Priority == "" {
-		errors["priority"] = "must not be an empty string"
-	}
-
-	if len(errors) > 0 {
-		var parts []string
-		for field, violation := range errors {
-			parts = append(parts, field+": "+violation)
-		}
-		return errs.BadRequest(strings.Join(parts, ", "))
-	}
-	return nil
 }
 
 func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
@@ -99,17 +59,12 @@ func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
 		return errs.BadRequest("request id is not a valid UUID")
 	}
 
-	var incoming models.MakeRequest
-	if err := c.BodyParser(&incoming); err != nil {
-		return errs.InvalidJSON()
-	}
-	req := models.Request{ID: id, MakeRequest: incoming}
-
-	if err := validateCreateRequest(&req); err != nil {
+	var requestBody models.MakeRequest
+	if err := httpx.BindAndValidate(c, &requestBody); err != nil {
 		return err
 	}
 
-	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: id, MakeRequest: requestBody})
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -144,14 +99,14 @@ func (r *RequestsHandler) GetRequests(c *fiber.Ctx) error {
 	return c.JSON(dev)
 }
 
-func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
+func validateGenerateRequest(input *models.GenerateRequestInput) error {
 	errors := make(map[string]string)
 
-	if !validUUID(incoming.HotelID) {
+	if !validUUID(input.HotelID) {
 		errors["hotel_id"] = "invalid uuid"
 	}
 
-	if incoming.RawText == "" {
+	if input.RawText == "" {
 		errors["raw_text"] = "must not be an empty string"
 	}
 
@@ -228,17 +183,17 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 // @Failure      500   {object}  map[string]string
 // @Router       /request/generate [post]
 func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
-	var incoming models.GenerateRequestInput
-	if err := c.BodyParser(&incoming); err != nil {
+	var input models.GenerateRequestInput
+	if err := c.BodyParser(&input); err != nil {
 		return errs.InvalidJSON()
 	}
 
-	if err := validateGenerateRequest(&incoming); err != nil {
+	if err := validateGenerateRequest(&input); err != nil {
 		return err
 	}
 
 	parsed, err := r.GenerateRequestService.RunGenerateRequest(c.Context(), aiflows.GenerateRequestInput{
-		RawText: incoming.RawText,
+		RawText: input.RawText,
 	})
 	if err != nil {
 		slog.Error("genkit failed to generate a request", "error", err)
@@ -246,7 +201,7 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 	}
 
 	req := models.Request{MakeRequest: models.MakeRequest{
-		HotelID:                 incoming.HotelID,
+		HotelID:                 input.HotelID,
 		GuestID:                 parsed.GuestID,
 		UserID:                  parsed.UserID,
 		ReservationID:           parsed.ReservationID,
@@ -263,10 +218,6 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		CompletedAt:             nil,
 		Notes:                   parsed.Notes,
 	}}
-
-	if err := validateCreateRequest(&req); err != nil {
-		return err
-	}
 
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
 	if err != nil {
