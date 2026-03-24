@@ -2,23 +2,11 @@ basePath: /api/v1
 definitions:
   CreateGuest:
     properties:
-      email:
-        example: jane.doe@example.com
-        type: string
       first_name:
         example: Jane
         type: string
       last_name:
         example: Doe
-        type: string
-      notes:
-        example: VIP
-        type: string
-      phone:
-        example: +1 (617) 012-3456
-        type: string
-      preferences:
-        example: extra pillows
         type: string
       profile_picture:
         example: https://example.com/john.jpg
@@ -83,9 +71,6 @@ definitions:
       created_at:
         example: "2024-01-02T00:00:00Z"
         type: string
-      email:
-        example: jane.doe@example.com
-        type: string
       first_name:
         example: Jane
         type: string
@@ -95,15 +80,6 @@ definitions:
       last_name:
         example: Doe
         type: string
-      notes:
-        example: VIP
-        type: string
-      phone:
-        example: +1 (617) 012-3456
-        type: string
-      preferences:
-        example: extra pillows
-        type: string
       profile_picture:
         example: https://example.com/john.jpg
         type: string
@@ -112,6 +88,51 @@ definitions:
         type: string
       updated_at:
         example: "2024-01-02T00:00:00Z"
+        type: string
+    type: object
+  GuestBooking:
+    properties:
+      arrival_date:
+        type: string
+      departure_date:
+        type: string
+      guest:
+        $ref: '#/definitions/Guest'
+      hotel_id:
+        example: 521e8400-e458-41d4-a716-446655440000
+        type: string
+      id:
+        example: f353ca91-4fc5-49f2-9b9e-304f83d11914
+        type: string
+      room:
+        $ref: '#/definitions/Room'
+      status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+    type: object
+  GuestFilters:
+    properties:
+      cursor:
+        type: string
+      floors:
+        items:
+          type: integer
+        type: array
+      hotel_id:
+        type: string
+      limit:
+        maximum: 100
+        minimum: 1
+        type: integer
+    required:
+    - hotel_id
+    type: object
+  GuestPage:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/GuestWithBooking'
+        type: array
+      next_cursor:
         type: string
     type: object
   GuestWithBooking:
@@ -126,6 +147,12 @@ definitions:
         type: string
       room_number:
         type: integer
+    required:
+    - first_name
+    - floor
+    - id
+    - last_name
+    - room_number
     type: object
   GuestWithStays:
     properties:
@@ -159,9 +186,11 @@ definitions:
         example: extra pillows
         type: string
     required:
+    - current_stays
     - first_name
     - id
     - last_name
+    - past_stays
     type: object
   Hotel:
     properties:
@@ -293,6 +322,17 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
+  Room:
+    properties:
+      floor:
+        type: integer
+      room_number:
+        type: integer
+      room_status:
+        type: string
+      suite_type:
+        type: string
+    type: object
   RoomWithOptionalGuestBooking:
     properties:
       booking_status:
@@ -420,28 +460,29 @@ info:
   version: "1.0"
 paths:
   /api/v1/guests:
-    get:
-      description: Retrieves guests optionally filtered by floor in which they are
-        staying
+    post:
+      consumes:
+      - application/json
+      description: Retrieves guests optionally filtered by floor
       parameters:
       - description: Hotel ID (UUID)
         in: header
         name: X-Hotel-ID
         required: true
         type: string
-      - description: Floor
-        in: query
-        name: number
-        type: string
+      - description: Guest filters
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/GuestFilters'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/GuestWithBooking'
-            type: array
+            $ref: '#/definitions/GuestPage'
         "400":
           description: Bad Request
           schema:
@@ -457,41 +498,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get Guests
-      tags:
-      - guests
-    post:
-      consumes:
-      - application/json
-      description: Creates a guest with the given data
-      parameters:
-      - description: Guest data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/CreateGuest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Guest'
-        "400":
-          description: Invalid guest body format
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Creates a guest
       tags:
       - guests
   /api/v1/guests/{id}:
@@ -720,6 +726,40 @@ paths:
       summary: Get developer member
       tags:
       - devs
+  /guest_bookings/floor:
+    get:
+      description: Retrieves multiple guest bookings whose booked rooms are in the
+        provided floors array
+      parameters:
+      - description: Comma-separated floor numbers
+        in: query
+        name: floors
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/GuestBooking'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get guest Bookings By Floor
+      tags:
+      - guest-bookings
   /hello:
     get:
       consumes:
