@@ -25,7 +25,7 @@ export default function VerifyEmail() {
       const result = await signUp.attemptEmailAddressVerification({ code });
       if (result.status === ClerkStatus.Complete) {
         await setActive({ session: result.createdSessionId });
-        router.replace("/home");
+        router.replace("/(tabs)");
       }
     });
 
