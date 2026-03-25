@@ -1,24 +1,22 @@
-import type { RoomFilters } from "@/routes/_protected/rooms.index";
-import { FloorFilterDropdown } from "@/components/rooms/FloorFilterDropdown";
+import { FloorDropdown } from "./FloorDropdown";
+import { RoomsFilterPopover } from "@/components/rooms/RoomsFilterPopover";
 
 type RoomsHeaderProps = {
-  roomFilters: RoomFilters;
-  onRoomFilterChange: <TKey extends keyof RoomFilters>(
-    key: TKey,
-    value: RoomFilters[TKey],
-  ) => void;
+  selectedFloors: Array<number>;
+  onChangeSelectedFloors: (floors: Array<number>) => void;
 };
 
 export function RoomsHeader({
-  roomFilters,
-  onRoomFilterChange,
+  selectedFloors,
+  onChangeSelectedFloors,
 }: RoomsHeaderProps) {
   return (
-    <header className="z-30 bg-blue-600 text-white px-[2vw] py-[1vw] flex items-center justify-between">
-      <FloorFilterDropdown
-        selected={roomFilters.floor}
-        onChange={(values) => onRoomFilterChange("floor", values)}
+    <header className="z-30 bg-bg-container px-16 py-6 flex items-center gap-3">
+      <FloorDropdown
+        selected={selectedFloors}
+        onChangeSelectedFloors={onChangeSelectedFloors}
       />
+      <RoomsFilterPopover />
     </header>
   );
 }

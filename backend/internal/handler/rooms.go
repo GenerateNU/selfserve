@@ -5,13 +5,15 @@ import (
 	"strconv"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
 type RoomsRepository interface {
-	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilter, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
 }
 
 type RoomsHandler struct {
@@ -22,47 +24,69 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 	return &RoomsHandler{repo: repo}
 }
 
-// GetRoomsByFloor godoc
-// @Summary      Get Rooms By Floor
-// @Description  Retrieves rooms optionally filtered by floor, with any active guest bookings
+// FilterRooms godoc
+// @Summary      List rooms with filters
+// @Description  Retrieves rooms with optional floor filters and cursor pagination, including any active guest bookings
 // @Tags         rooms
+// @Accept       json
 // @Produce      json
-// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
-// @Param        floors      query     []int   false  "floors"
-// @Param        cursor      query     string  false  "Opaque cursor for the next page"
-// @Param        limit       query     int     false  "Number of items per page (1-100, default 20)"
+// @Param        X-Hotel-ID  header    string                      true   "Hotel ID (UUID)"
+// @Param        body        body      models.FilterRoomsRequest   false  "Filters and pagination"
 // @Success      200         {object}  utils.CursorPage[models.RoomWithOptionalGuestBooking]
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
-// @Router       /rooms [get]
-func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
+// @Security     BearerAuth
+// @Router       /rooms [post]
+func (h *RoomsHandler) FilterRooms(c *fiber.Ctx) error {
 	hotelID, err := hotelIDFromHeader(c)
 	if err != nil {
 		return err
 	}
 
-	filter := new(models.RoomFilter)
-	if err := c.QueryParser(filter); err != nil {
-		return errs.BadRequest("invalid filters")
+	var body models.FilterRoomsRequest
+	if err := httpx.BindAndValidate(c, &body); err != nil {
+		return err
 	}
 
-	cursor := c.Query("cursor", "")
 	cursorRoomNumber := 0
-	if cursor != "" {
-		cursorRoomNumber, err = strconv.Atoi(cursor)
+	if body.Cursor != "" {
+		cursorRoomNumber, err = strconv.Atoi(body.Cursor)
 		if err != nil {
 			return errs.BadRequest("invalid cursor")
 		}
 	}
 
-	rooms, err := h.repo.FindRoomsWithOptionalGuestBookingsByFloor(c.Context(), filter, hotelID, cursorRoomNumber)
+	rooms, err := h.repo.FindRoomsWithOptionalGuestBookingsByFloor(c.Context(), &body, hotelID, cursorRoomNumber)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	page := utils.BuildCursorPage(rooms, filter.Limit, func(r *models.RoomWithOptionalGuestBooking) string {
+	page := utils.BuildCursorPage(rooms, body.Limit, func(r *models.RoomWithOptionalGuestBooking) string {
 		return strconv.Itoa(r.RoomNumber)
 	})
 
 	return c.JSON(page)
+}
+
+// GetFloors godoc
+// @Summary      Get Floors
+// @Description  Retrieves all distinct floor numbers
+// @Tags         rooms
+// @Produce      json
+// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
+// @Success      200  {array}   int
+// @Failure      500  {object}  map[string]string
+// @Router       /rooms/floors [get]
+func (h *RoomsHandler) GetFloors(c *fiber.Ctx) error {
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
+	floors, err := h.repo.FindAllFloors(c.Context(), hotelID)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(floors)
 }

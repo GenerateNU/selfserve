@@ -46,6 +46,8 @@ module.exports = {
         "shadow-weak": "#e5e5e5",
         shadow: "#e7e7e7",
         "shadow-strong": "#dcdcdc",
+        card: "#EDF5F1",
+        "primary-border": "#166534",
       },
     },
   },

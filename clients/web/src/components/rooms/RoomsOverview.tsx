@@ -1,26 +1,29 @@
-import type { Room } from "@/components/rooms/RoomsList";
+import type { RoomWithOptionalGuestBooking } from "@shared";
 import { OverviewCard } from "@/components/rooms/OverviewCard";
 
 type RoomsOverviewProps = {
-  rooms: Array<Room>;
+  rooms: Array<RoomWithOptionalGuestBooking>;
 };
-
+// TODO: Replace with hifi (this is just to confirm the data is correct for us to ship rooms list)
 export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const totalRooms = rooms.length;
-  const hasTag = (room: Room, tag: string) => (room.tags ?? []).includes(tag);
 
-  const occupiedRooms = rooms.filter((r) => hasTag(r, "occupied")).length;
-  const cleaningRooms = rooms.filter((r) => hasTag(r, "cleaning")).length;
+  const occupiedRooms = rooms.filter(
+    (r) => r.booking_status === "active",
+  ).length;
+  const cleaningRooms = rooms.filter(
+    (r) => r.room_status === "cleaning",
+  ).length;
   const cleaningOnlyRooms = rooms.filter(
-    (r) => hasTag(r, "cleaning") && !hasTag(r, "occupied"),
+    (r) => r.room_status === "cleaning" && r.booking_status !== "active",
   ).length;
   const occupiedAndCleaningRooms = rooms.filter(
-    (r) => hasTag(r, "occupied") && hasTag(r, "cleaning"),
+    (r) => r.booking_status === "active" && r.room_status === "cleaning",
   ).length;
   const vacantRooms = totalRooms - occupiedRooms;
 
   return (
-    <aside className="w-1/4 shrink-0 min-h-0 overflow-y-auto bg-white dark:bg-zinc-950 p-[2vw]">
+    <aside className="w-1/4 shrink-0 min-h-0 overflow-y-auto bg-white p-[2vw]">
       <div className="flex flex-col gap-[2.2vh]">
         <OverviewCard
           title="Tasks"
