@@ -46,3 +46,10 @@ export {
   useGetApiV1GuestsId,
   usePutApiV1GuestsId,
 } from "./api/generated/endpoints/guests/guests";
+
+export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
+
+export type {
+  RoomWithOptionalGuestBooking,
+  FilterRoomsRequest,
+} from "./api/generated/models";
