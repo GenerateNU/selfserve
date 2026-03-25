@@ -240,7 +240,7 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 		)
 		AND (
 			$5::text = ''
-			OR (CONCAT_WS(' ', g.first_name, g.last_name), g.id) > ($5::text, $6::uuid)
+			OR (CONCAT_WS(' ', g.first_name, g.last_name), g.id::text) > ($5::text, $6::text)
 		)
 	ORDER BY CONCAT_WS(' ', g.first_name, g.last_name) ASC, g.id ASC
 	LIMIT $7`,
