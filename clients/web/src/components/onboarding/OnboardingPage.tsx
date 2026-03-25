@@ -24,7 +24,8 @@ type Step =
 
 export function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState<Step>("welcome");
-  const [formData, setFormData] = useState<OnboardingFormData>(INITIAL_FORM_DATA);
+  const [formData, setFormData] =
+    useState<OnboardingFormData>(INITIAL_FORM_DATA);
 
   const updateForm = (updates: Partial<OnboardingFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -68,7 +69,7 @@ export function OnboardingPage() {
             onNext={() => setCurrentStep("inviteTeam")}
             onBack={() =>
               setCurrentStep(
-                formData.role === "employee" ? "employeeRole" : "role"
+                formData.role === "employee" ? "employeeRole" : "role",
               )
             }
           />
@@ -78,9 +79,5 @@ export function OnboardingPage() {
     }
   };
 
-  return (
-    <div>
-      {renderStep()}
-    </div>
-  );
+  return <div>{renderStep()}</div>;
 }
