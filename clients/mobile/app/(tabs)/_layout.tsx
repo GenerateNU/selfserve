@@ -15,14 +15,10 @@ type TabBarIconProps = {
   label: string;
 };
 
-const TabBarIcon = ({
-  name,
-  focused,
-  activeColor,
-  label,
-}: TabBarIconProps) => (
-  <View 
-  className={`rounded-xl px-3 py-1 items-center gap-1 min-w-20 ${focused ? "bg-card" : "bg-transparent"}`}>
+const TabBarIcon = ({ name, focused, activeColor, label }: TabBarIconProps) => (
+  <View
+    className={`rounded-xl px-3 py-1 items-center gap-1 min-w-20 ${focused ? "bg-card" : "bg-transparent"}`}
+  >
     <IconSymbol size={22} name={name} color={activeColor} />
     <Text numberOfLines={1} className="text-xs font-medium text-primary">
       {label}
