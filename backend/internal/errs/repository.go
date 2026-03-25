@@ -6,4 +6,5 @@ import "errors"
 var (
 	ErrNotFoundInDB      = errors.New("not found in DB")
 	ErrAlreadyExistsInDB = errors.New("already exists in DB")
+	ErrInvalidCursor     = errors.New("invalid cursor")
 )

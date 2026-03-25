@@ -178,6 +178,9 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 
 	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
 	if err != nil {
+		if errors.Is(err, errs.ErrInvalidCursor) {
+			return errs.BadRequest("invalid cursor")
+		}
 		return errs.InternalServerError()
 	}
 
