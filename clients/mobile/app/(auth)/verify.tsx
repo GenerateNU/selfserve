@@ -55,9 +55,7 @@ export default function VerifyEmail() {
           className="border border-stroke-subtle rounded-xl px-4 py-3 text-base mb-4"
         />
 
-        {error && (
-          <Text className="text-danger text-sm mb-4">{error}</Text>
-        )}
+        {error && <Text className="text-danger text-sm mb-4">{error}</Text>}
 
         <Pressable
           onPress={onVerify}

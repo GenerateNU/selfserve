@@ -74,9 +74,7 @@ export default function SignUp() {
           />
         </View>
 
-        {error && (
-          <Text className="text-danger text-sm mb-4">{error}</Text>
-        )}
+        {error && <Text className="text-danger text-sm mb-4">{error}</Text>}
 
         <Pressable
           onPress={onSignUp}
