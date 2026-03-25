@@ -45,8 +45,8 @@ genkit-run: llm-start db-start
 sync-users:
 	@$(LOAD_ENV) go run ./cmd/clerk/sync.go
 
-rooms-list-seed:
-	@$(LOAD_ENV) bash scripts/rooms-list-seed.sh
+seed:
+	@$(LOAD_ENV) bash scripts/seed.sh
 
 test:
 	@$(LOAD_ENV) \

@@ -96,8 +96,7 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 // @Router       /api/v1/guests/stays/{id} [get]
 func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 	id := c.Params("id")
-	_, err := uuid.Parse(id)
-	if err != nil {
+	if !validUUID(id) {
 		return errs.BadRequest("guest id is not a valid UUID")
 	}
 
@@ -105,11 +104,10 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("guest", "id", id)
+
 		}
-		slog.Error("failed to get guest", "id", id, "error", err)
 		return errs.InternalServerError()
 	}
-
 	return c.JSON(guest)
 }
 
@@ -159,29 +157,26 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 
 // GetGuests godoc
 // @Summary      Get Guests
-// @Description  Retrieves guests optionally filtered by floor in which they are staying
+// @Description  Retrieves guests optionally filtered by floor
 // @Tags         guests
+// @Accept       json
 // @Produce      json
-// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
-// @Param        number      query     string  false  "Floor"
-// @Success      200         {object}  []models.GuestWithBooking
+// @Param        X-Hotel-ID  header    string             true   "Hotel ID (UUID)"
+// @Param        body        body      models.GuestFilters true   "Guest filters"
+// @Success      200         {object}  models.GuestPage
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /api/v1/guests [get]
+// @Router       /api/v1/guests [post]
 func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	hotelID := c.Get("X-Hotel-ID")
-	if !validUUID(hotelID) {
-		return errs.BadRequest("invalid hotel id")
+	var filters models.GuestFilters
+	filters.HotelID = hotelID
+	if err := httpx.BindAndValidate(c, &filters); err != nil {
+		return err
 	}
 
-	filter := new(models.GuestFilters)
-	filter.HotelID = hotelID
-	if err := c.QueryParser(filter); err != nil {
-		return errs.BadRequest("invalid filters")
-	}
-
-	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), filter)
+	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
 	if err != nil {
 		return errs.InternalServerError()
 	}
