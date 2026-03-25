@@ -1,7 +1,4 @@
-import React from "react";
 import { Pressable, View, Text } from "react-native";
-import { User } from "lucide-react-native";
-import { cn } from "@shared/utils";
 
 interface GuestCardProps {
   firstName: string;
