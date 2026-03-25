@@ -19,32 +19,19 @@ const TabBarIcon = ({
   name,
   focused,
   activeColor,
-  highlightColor,
   label,
 }: TabBarIconProps) => (
-  <View
-    style={{
-      backgroundColor: focused ? highlightColor : "transparent",
-      minWidth: 64,
-    }}
-    className="rounded-xl px-3 py-1 items-center gap-1"
-  >
+  <View 
+  className={`rounded-xl px-3 py-1 items-center gap-1 min-w-20 ${focused ? "bg-card" : "bg-transparent"}`}>
     <IconSymbol size={22} name={name} color={activeColor} />
-    <Text
-      numberOfLines={1}
-      style={{ color: activeColor }}
-      className="text-xs font-medium"
-    >
+    <Text numberOfLines={1} className="text-xs font-medium text-primary">
       {label}
     </Text>
   </View>
 );
 
-const PlusButton = ({ color }: { color: string }) => (
-  <View
-    style={{ backgroundColor: color }}
-    className="rounded-full w-14 h-14 items-center justify-center -mb-2"
-  >
+const PlusButton = () => (
+  <View className="bg-primary rounded-full w-14 h-14 items-center justify-center -mb-2">
     <IconSymbol size={22} name="plus" color={Colors["light"].background} />
   </View>
 );
@@ -61,10 +48,6 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
         tabBarActiveTintColor: c.tabBarActive,
         tabBarInactiveTintColor: c.tabBarActive,
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "500",
-        },
         tabBarItemStyle: {
           paddingVertical: 10,
         },
@@ -108,7 +91,7 @@ export default function TabLayout() {
         options={{
           title: "",
           tabBarLabel: () => null,
-          tabBarIcon: () => <PlusButton color={c.tabBarActive} />,
+          tabBarIcon: () => <PlusButton />,
         }}
       />
       <Tabs.Screen
