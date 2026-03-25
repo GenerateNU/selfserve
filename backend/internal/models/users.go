@@ -16,6 +16,10 @@ type CreateUser struct {
 	PrimaryEmail   *string `json:"primary_email,omitempty" validate:"omitempty,email" example:"john@example.com"`
 } //@name CreateUser
 
+type UpdateUser struct {
+	PhoneNumber *string `json:"phone_number,omitempty" validate:"omitempty,notblank" example:"+11234567890"`
+} //@name UpdateUser
+
 type CreateUserWebhook struct {
 	ClerkUser `json:"data"`
 }
