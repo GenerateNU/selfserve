@@ -49,8 +49,8 @@ function ProfilePage() {
   const { user } = useUser();
 
   const displayName =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
+    user?.fullName ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
     "User";
 
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
