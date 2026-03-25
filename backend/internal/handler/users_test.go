@@ -20,6 +20,7 @@ import (
 type mockUsersRepository struct {
 	findUserByIdFunc func(ctx context.Context, id string) (*models.User, error)
 	insertUserFunc   func(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	updateUserFunc   func(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
 }
 
 // Implement the interface - calls our controllable function
@@ -33,6 +34,13 @@ func (m *mockUsersRepository) FindUser(ctx context.Context, id string) (*models.
 func (m *mockUsersRepository) InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 	if m.insertUserFunc != nil {
 		return m.insertUserFunc(ctx, user)
+	}
+	return nil, nil
+}
+
+func (m *mockUsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
+	if m.updateUserFunc != nil {
+		return m.updateUserFunc(ctx, id, update)
 	}
 	return nil, nil
 }

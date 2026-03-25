@@ -67,6 +67,29 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 	return createdUser, nil
 }
 
+func (r *UsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
+	var user models.User
+
+	row := r.db.QueryRow(ctx, `
+		UPDATE users
+		SET
+			phone_number = COALESCE($2, phone_number),
+			updated_at = NOW()
+		WHERE id = $1
+		RETURNING id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, created_at, updated_at
+	`, id, update.PhoneNumber)
+
+	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.HotelID, &user.EmployeeID, &user.ProfilePicture, &user.Role, &user.Department, &user.Timezone, &user.PhoneNumber, &user.PrimaryEmail, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
 	batch := &pgx.Batch{}
 
