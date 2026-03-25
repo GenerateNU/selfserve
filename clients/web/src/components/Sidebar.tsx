@@ -36,7 +36,7 @@ function ProfileLink({ displayName }: { displayName: string | undefined }) {
     <Link
       to="/profile"
       className={`flex items-center gap-3 rounded-lg p-3 transition-colors ${
-        isActive ? "bg-bg-selected" : "hover:bg-gray-100"
+        isActive ? "bg-bg-selected" : "hover:bg-bg-selected"
       }`}
     >
       <UserButton
