@@ -1,30 +1,35 @@
 import { LeftPanel } from "./LeftPanel";
-import type { OnboardingFormData } from "./types";
 import { ROLES } from "./onboardingMocks";
 import { RoleCard } from "./RoleCard";
+import type { OnboardingFormData } from "./types";
 
 type EmployeeRoleStepProps = {
   formData: OnboardingFormData;
   updateForm: (updates: Partial<OnboardingFormData>) => void;
   onNext: () => void;
   onBack: () => void;
-}
+};
 
-
-export function EmployeeRoleStep({ formData, updateForm, onNext }: EmployeeRoleStepProps) {
+export function EmployeeRoleStep({
+  formData,
+  updateForm,
+  onNext,
+}: EmployeeRoleStepProps) {
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
       <LeftPanel />
-      <div style={{
-        flex: 1,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
-        paddingTop: "clamp(80px, 19.45vh, 191px)",
-        paddingLeft: "clamp(40px, 9.6vw, 132px)",
-        paddingRight: "clamp(40px, 9.6vw, 132px)",
-        overflow: "hidden",
-      }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          paddingTop: "clamp(80px, 19.45vh, 191px)",
+          paddingLeft: "clamp(40px, 9.6vw, 132px)",
+          paddingRight: "clamp(40px, 9.6vw, 132px)",
+          overflow: "hidden",
+        }}
+      >
         <div
           style={{
             width: "100%",
@@ -54,7 +59,10 @@ export function EmployeeRoleStep({ formData, updateForm, onNext }: EmployeeRoleS
                 label={role.label}
                 description={role.description}
                 selected={formData.employeeRole === role.id}
-                onSelect={() => { updateForm({ employeeRole: role.id }); onNext(); }}
+                onSelect={() => {
+                  updateForm({ employeeRole: role.id });
+                  onNext();
+                }}
               />
             ))}
           </div>
