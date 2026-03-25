@@ -1,7 +1,5 @@
-import { Text } from 'react-native'; 
+import { Text } from "react-native";
 
 export default function Profile() {
-    return (
-        <Text> In progress ... </Text>
-    );
+  return <Text> In progress ... </Text>;
 }
