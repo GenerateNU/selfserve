@@ -1,21 +1,17 @@
-import LeftPanel from "./LeftPanel";
+import { LeftPanel } from "./LeftPanel";
 import type { OnboardingFormData } from "./types";
+import { ROLES } from "./onboardingMocks";
+import { RoleCard } from "./RoleCard";
 
-interface EmployeeRoleStepProps {
+type EmployeeRoleStepProps = {
   formData: OnboardingFormData;
   updateForm: (updates: Partial<OnboardingFormData>) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-const EMPLOYEE_ROLES = [
-  { id: "front_desk", label: "Role", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
-  { id: "housekeeping", label: "Role", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
-  { id: "maintenance", label: "Role", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
-  { id: "concierge", label: "Role", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
-];
 
-export default function EmployeeRoleStep({ formData, updateForm, onNext }: EmployeeRoleStepProps) {
+export function EmployeeRoleStep({ formData, updateForm, onNext }: EmployeeRoleStepProps) {
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
       <LeftPanel />
@@ -24,74 +20,42 @@ export default function EmployeeRoleStep({ formData, updateForm, onNext }: Emplo
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        paddingTop: "19.45vh",  // 191/982
+        paddingTop: "clamp(80px, 19.45vh, 191px)",
+        paddingLeft: "clamp(40px, 9.6vw, 132px)",
+        paddingRight: "clamp(40px, 9.6vw, 132px)",
+        overflow: "hidden",
       }}>
-        {/* Card: 663/1371 wide, 652/982 tall */}
-        <div style={{
-          width: "48.36vw",
-          height: "66.4vh",
-          border: "1px solid #000000",
-          borderRadius: "24px",
-          backgroundColor: "#FFFFFF",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          padding: "48px",
-          gap: "48px",
-          boxSizing: "border-box",
-        }}>
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "663px",
+            height: "clamp(400px, 66.4vh, 652px)",
+            overflow: "hidden",
+            borderRadius: "24px",
+            boxSizing: "border-box",
+          }}
+          className="border border-black bg-white flex flex-col items-center p-12 gap-12"
+        >
           {/* Header */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", textAlign: "center" }}>
-            <h1 style={{
-              fontFamily: "Satoshi Variable, sans-serif",
-              fontWeight: 400,
-              fontSize: "24px",
-              lineHeight: "32px",
-              color: "#0F172B",
-              margin: 0,
-            }}>
+          <div className="flex flex-col gap-2 text-center">
+            <h1 className="text-gray-900 text-2xl font-normal leading-8 m-0">
               Employee Role
             </h1>
-            <p style={{
-              fontFamily: "Satoshi Variable, sans-serif",
-              fontWeight: 400,
-              fontSize: "16px",
-              lineHeight: "24px",
-              color: "#62748E",
-              margin: 0,
-            }}>
+            <p className="text-gray-500 text-base font-normal leading-6 m-0">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             </p>
           </div>
 
           {/* 2x2 grid */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "16px",
-            width: "100%",
-            flex: 1,
-          }}>
-            {EMPLOYEE_ROLES.map((role) => (
-              <button
+          <div className="grid grid-cols-2 gap-4 w-full flex-1">
+            {ROLES.map((role) => (
+              <RoleCard
                 key={role.id}
-                onClick={() => { updateForm({ employeeRole: role.id }); onNext(); }}
-                style={{
-                  textAlign: "left",
-                  borderRadius: "16px",
-                  border: `2px solid ${formData.employeeRole === role.id ? "#0F172B" : "#F1F5F9"}`,
-                  padding: "16px",
-                  backgroundColor: "#FFFFFF",
-                  cursor: "pointer",
-                }}
-              >
-                <div style={{ fontFamily: "Satoshi Variable, sans-serif", fontWeight: 400, fontSize: "16px", color: "#0F172B" }}>
-                  {role.label}
-                </div>
-                <div style={{ fontFamily: "Satoshi Variable, sans-serif", fontWeight: 400, fontSize: "16px", color: "#62748E", marginTop: "4px" }}>
-                  {role.description}
-                </div>
-              </button>
+                label={role.label}
+                description={role.description}
+                selected={formData.employeeRole === role.id}
+                onSelect={() => { updateForm({ employeeRole: role.id }); onNext(); }}
+              />
             ))}
           </div>
         </div>

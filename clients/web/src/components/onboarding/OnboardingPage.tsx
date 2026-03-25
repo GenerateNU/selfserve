@@ -1,9 +1,9 @@
 import { useState } from "react";
-import WelcomeStep from "./WelcomeStep";
-import RoleSelectionStep from "./RoleSelectionStep";
-import EmployeeRoleStep from "./EmployeeRoleStep";
-import PropertyDetailsStep from "./PropertyDetailsStep";
-import InviteTeamStep from "./InviteTeamStep";
+import { WelcomeStep } from "./WelcomeStep";
+import { RoleSelectionStep } from "./RoleSelectionStep";
+import { EmployeeRoleStep } from "./EmployeeRoleStep";
+import { PropertyDetailsStep } from "./PropertyDetailsStep";
+import { InviteTeamStep } from "./InviteTeamStep";
 import type { OnboardingFormData } from "./types";
 
 const INITIAL_FORM_DATA: OnboardingFormData = {
@@ -22,7 +22,7 @@ type Step =
   | "propertyDetails"
   | "inviteTeam";
 
-export default function OnboardingPage() {
+export function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState<Step>("welcome");
   const [formData, setFormData] = useState<OnboardingFormData>(INITIAL_FORM_DATA);
 
@@ -79,7 +79,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", backgroundColor: "white" }}>
+    <div>
       {renderStep()}
     </div>
   );

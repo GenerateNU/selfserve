@@ -1,13 +1,13 @@
 import { useState } from "react";
-import LeftPanel from "./LeftPanel";
+import { LeftPanel } from "./LeftPanel";
 import type { OnboardingFormData } from "./types";
 
-interface InviteTeamStepProps {
+type InviteTeamStepProps = {
   formData: OnboardingFormData;
   updateForm: (updates: Partial<OnboardingFormData>) => void;
 }
 
-export default function InviteTeamStep({ formData, updateForm }: InviteTeamStepProps) {
+export function InviteTeamStep({ formData, updateForm }: InviteTeamStepProps) {
   const [invited, setInvited] = useState(false);
 
   return (
@@ -18,12 +18,16 @@ export default function InviteTeamStep({ formData, updateForm }: InviteTeamStepP
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        paddingTop: "19.45vh",
+        paddingTop: "clamp(80px, 19.45vh, 191px)",
+        paddingLeft: "clamp(40px, 9.6vw, 132px)",
+        paddingRight: "clamp(40px, 9.6vw, 132px)",
+        overflow: "hidden",
       }}>
-        {/* Card: 662.6/1371 = 48.33vw, 625/982 = 63.64vh */}
         <div style={{
-          width: "48.33vw",
-          height: "63.64vh",
+          width: "100%",
+          maxWidth: "663px",
+          height: "clamp(450px, 63.64vh, 625px)",
+          overflow: "hidden",
           border: "1px solid #000000",
           borderRadius: "24px",
           backgroundColor: "#FFFFFF",
@@ -32,9 +36,9 @@ export default function InviteTeamStep({ formData, updateForm }: InviteTeamStepP
           alignItems: "center",
           justifyContent: "center",
         }}>
-          {/* Inner content block: 566.6px wide, everything stacked */}
           <div style={{
-            width: "566.6px",
+            width: "90%",
+            maxWidth: "567px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -55,7 +59,7 @@ export default function InviteTeamStep({ formData, updateForm }: InviteTeamStepP
               <h1 style={{
                 fontFamily: "Satoshi Variable, sans-serif",
                 fontWeight: 400,
-                fontSize: "24px",
+                fontSize: "clamp(20px, 2.5vw, 24px)",
                 lineHeight: "32px",
                 color: "#0F172B",
                 margin: 0,
@@ -65,7 +69,7 @@ export default function InviteTeamStep({ formData, updateForm }: InviteTeamStepP
               <p style={{
                 fontFamily: "Satoshi Variable, sans-serif",
                 fontWeight: 400,
-                fontSize: "16px",
+                fontSize: "clamp(13px, 1.6vw, 16px)",
                 lineHeight: "24px",
                 color: "#62748E",
                 margin: 0,
@@ -75,7 +79,7 @@ export default function InviteTeamStep({ formData, updateForm }: InviteTeamStepP
             </div>
 
             {/* Email input */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "390px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%" }}>
               <div style={{
                 width: "100%",
                 display: "flex",
@@ -102,7 +106,7 @@ export default function InviteTeamStep({ formData, updateForm }: InviteTeamStepP
                 </button>
               </div>
               {invited && (
-                <p style={{ fontSize: "12px", color: "#15803D", textAlign: "center", margin: 0 }}>Invite sent!</p>
+                <p style={{ fontSize: "12px", color: "var(--color-success-stroke)", textAlign: "center", margin: 0 }}>Invite sent!</p>
               )}
               <p style={{ fontSize: "12px", color: "#62748E", textAlign: "center", margin: 0 }}>
                 You can also do this later from your settings.
@@ -110,14 +114,14 @@ export default function InviteTeamStep({ formData, updateForm }: InviteTeamStepP
             </div>
 
             {/* Actions */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", width: "390px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", width: "100%" }}>
               <button
                 onClick={() => console.log("Go to dashboard")}
                 style={{
                   width: "100%",
                   height: "56px",
                   borderRadius: "14px",
-                  backgroundColor: "#15502C",
+                  backgroundColor: "var(--color-primary)",
                   color: "white",
                   border: "none",
                   cursor: "pointer",

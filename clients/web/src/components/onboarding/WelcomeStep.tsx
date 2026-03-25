@@ -1,37 +1,41 @@
-import LeftPanel from "./LeftPanel";
+import { LeftPanel } from "./LeftPanel";
 
-interface WelcomeStepProps {
+type WelcomeStepProps = {
   onNext: () => void;
 }
 
-export default function WelcomeStep({ onNext }: WelcomeStepProps) {
+export function WelcomeStep({ onNext }: WelcomeStepProps) {
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
       <LeftPanel />
-
-      {/* Right panel — flex centered, padded from top */}
       <div style={{
         flex: 1,
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        paddingTop: "19.45vh",  // 191/982
+        paddingTop: "clamp(80px, 19.45vh, 191px)",
+        paddingLeft: "clamp(40px, 9.6vw, 132px)",
+        paddingRight: "clamp(40px, 9.6vw, 132px)",
+        overflow: "hidden",
       }}>
-        {/* Card: 616.6/1371 wide, 691/982 tall */}
         <div style={{
-          width: "44.97vw",     // 616.6/1371
-          height: "70.37vh",    // 691/982
+          width: "100%",
+          maxWidth: "617px",
+          height: "clamp(500px, 70.37vh, 691px)",
           border: "1px solid #000000",
           borderRadius: "24px",
           backgroundColor: "#FFFFFF",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          paddingTop: "21.79vh", // 214/982 — pushes logo to Figma position
+          paddingTop: "clamp(80px, 21.79vh, 214px)",
+          paddingBottom: "48px",
+          paddingLeft: "48px",
+          paddingRight: "48px",
           boxSizing: "border-box",
+          gap: "clamp(16px, 6.21vh, 61px)",
         }}>
-
-          {/* Logo box: 80×80px */}
+          {/* Logo */}
           <div style={{
             width: "80px",
             height: "80px",
@@ -41,20 +45,19 @@ export default function WelcomeStep({ onNext }: WelcomeStepProps) {
             flexShrink: 0,
           }} />
 
-          {/* Welcome + Start: 61px gap above text matches Figma inner container */}
+          {/* Welcome + Button */}
           <div style={{
-            width: "72.45%",      // 446.6/616.6
+            width: "72.45%",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            paddingTop: "6.21vh", // 61/982
             gap: "16px",
           }}>
             <h1 style={{
               fontFamily: "Satoshi Variable, sans-serif",
               fontWeight: 400,
-              fontSize: "30px",
-              lineHeight: "36px",
+              fontSize: "clamp(22px, 2.5vw, 30px)",
+              lineHeight: "1.2",
               letterSpacing: "-0.35px",
               textAlign: "center",
               margin: 0,
@@ -62,15 +65,12 @@ export default function WelcomeStep({ onNext }: WelcomeStepProps) {
               Welcome
             </h1>
             <button
-              onClick={() => {
-                console.log("Start clicked");
-                onNext();
-              }}
+              onClick={() => { console.log("Start clicked"); onNext(); }}
               style={{
                 width: "100%",
                 height: "56px",
                 borderRadius: "14px",
-                backgroundColor: "#15502C",
+                backgroundColor: "var(--color-primary)",
                 color: "white",
                 border: "none",
                 cursor: "pointer",

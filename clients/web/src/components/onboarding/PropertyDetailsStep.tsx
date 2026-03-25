@@ -1,7 +1,7 @@
-import LeftPanel from "./LeftPanel";
+import { LeftPanel } from "./LeftPanel";
 import type { OnboardingFormData } from "./types";
 
-interface PropertyDetailsStepProps {
+type PropertyDetailsStepProps = {
   formData: OnboardingFormData;
   updateForm: (updates: Partial<OnboardingFormData>) => void;
   onNext: () => void;
@@ -10,7 +10,7 @@ interface PropertyDetailsStepProps {
 
 const PROPERTY_TYPES = ["Hotel", "Motel", "Resort", "Bed & Breakfast", "Hostel"];
 
-export default function PropertyDetailsStep({ formData, updateForm, onNext, onBack }: PropertyDetailsStepProps) {
+export function PropertyDetailsStep({ formData, updateForm, onNext, onBack }: PropertyDetailsStepProps) {
   const isValid = formData.hotelName && formData.numberOfRooms && formData.propertyType;
 
   return (
@@ -21,12 +21,16 @@ export default function PropertyDetailsStep({ formData, updateForm, onNext, onBa
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        paddingTop: "19.45vh",
+        paddingTop: "clamp(80px, 19.45vh, 191px)",
+        paddingLeft: "clamp(40px, 9.6vw, 132px)",
+        paddingRight: "clamp(40px, 9.6vw, 132px)",
+        overflow: "hidden",
       }}>
-        {/* Outer card: 662.6/1371 wide, 705/982 tall */}
         <div style={{
-          width: "48.33vw",
-          height: "71.79vh",
+          width: "100%",
+          maxWidth: "663px",
+          height: "clamp(500px, 71.79vh, 705px)",
+          overflow: "hidden",
           border: "1px solid #000000",
           borderRadius: "24px",
           backgroundColor: "#FFFFFF",
@@ -37,7 +41,6 @@ export default function PropertyDetailsStep({ formData, updateForm, onNext, onBa
           padding: "48px",
           boxSizing: "border-box",
         }}>
-          {/* Inner container: 256.68px wide, gap 32px */}
           <div style={{
             width: "256.68px",
             display: "flex",
@@ -50,7 +53,7 @@ export default function PropertyDetailsStep({ formData, updateForm, onNext, onBa
               <h1 style={{
                 fontFamily: "Satoshi Variable, sans-serif",
                 fontWeight: 400,
-                fontSize: "24px",
+                fontSize: "clamp(20px, 2.5vw, 24px)",
                 lineHeight: "32px",
                 color: "#0F172B",
                 margin: 0,
@@ -60,7 +63,7 @@ export default function PropertyDetailsStep({ formData, updateForm, onNext, onBa
               <p style={{
                 fontFamily: "Satoshi Variable, sans-serif",
                 fontWeight: 400,
-                fontSize: "16px",
+                fontSize: "clamp(13px, 1.6vw, 16px)",
                 lineHeight: "24px",
                 color: "#62748E",
                 margin: 0,
@@ -80,7 +83,7 @@ export default function PropertyDetailsStep({ formData, updateForm, onNext, onBa
                   value={formData.hotelName}
                   onChange={(e) => updateForm({ hotelName: e.target.value })}
                   placeholder="Lorem ipsum dolor sit amet"
-                  style={{ border: "1px solid #E2E8F0", borderRadius: "8px", padding: "8px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
+                  style={{ border: "1px solid var(--color-stroke-subtle)", borderRadius: "8px", padding: "8px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
                 />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -92,7 +95,7 @@ export default function PropertyDetailsStep({ formData, updateForm, onNext, onBa
                   value={formData.numberOfRooms}
                   onChange={(e) => updateForm({ numberOfRooms: e.target.value })}
                   placeholder="e.g. 150"
-                  style={{ border: "1px solid #E2E8F0", borderRadius: "8px", padding: "8px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
+                  style={{ border: "1px solid var(--color-stroke-subtle)", borderRadius: "8px", padding: "8px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
                 />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -102,7 +105,7 @@ export default function PropertyDetailsStep({ formData, updateForm, onNext, onBa
                 <select
                   value={formData.propertyType}
                   onChange={(e) => updateForm({ propertyType: e.target.value })}
-                  style={{ border: "1px solid #E2E8F0", borderRadius: "8px", padding: "8px 12px", fontSize: "14px", outline: "none", backgroundColor: "white", width: "100%", boxSizing: "border-box" }}
+                  style={{ border: "1px solid var(--color-stroke-subtle)", borderRadius: "8px", padding: "8px 12px", fontSize: "14px", outline: "none", backgroundColor: "white", width: "100%", boxSizing: "border-box" }}
                 >
                   <option value="">Select a type</option>
                   {PROPERTY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -119,7 +122,7 @@ export default function PropertyDetailsStep({ formData, updateForm, onNext, onBa
                   width: "100%",
                   height: "56px",
                   borderRadius: "14px",
-                  backgroundColor: isValid ? "#15502C" : "#15502C80",
+                  backgroundColor: isValid ? "var(--color-primary)" : "var(--color-primary-hover)",
                   color: "white",
                   border: "none",
                   cursor: isValid ? "pointer" : "not-allowed",
