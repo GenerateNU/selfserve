@@ -5,51 +5,91 @@ import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { View } from "react-native";
+
+type TabBarIconProps = {
+  name: React.ComponentProps<typeof IconSymbol>["name"];
+  focused: boolean;
+  activeColor: string;
+  highlightColor: string;
+};
+
+const TabBarIcon = ({ name, focused, activeColor, highlightColor }: TabBarIconProps) => (
+  <View style={{ backgroundColor: focused ? highlightColor : "transparent" }} className="rounded-xl p-2">
+    <IconSymbol size={24} name={name} color={activeColor} />
+  </View>
+);
+
+const PlusButton = ({ color }: { color: string }) => (
+  <View style={{ backgroundColor: color }} className="rounded-full w-14 h-14 items-center justify-center -mb-2">
+    <IconSymbol size={28} name="plus" color={Colors["light"].background} />
+  </View>
+);
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const c = Colors[colorScheme ?? "light"];
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}
+      headerShown: false,
+      tabBarButton: HapticTab,
+      tabBarActiveTintColor: c.tabBarActive,
+      tabBarInactiveTintColor: c.tabBarActive,
+      tabBarLabelStyle: {
+        fontSize: 12,
+        fontWeight: "500",
+      },
+      tabBarItemStyle: {
+        paddingVertical: 12,
+      },
+      tabBarStyle: {
+        height: 80,
+      },
+  }}
     >
       <Tabs.Screen
-        name="index"
+        name="tasks"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+          title: "Tasks",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon name="checklist" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} />
           ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: "Explore",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
+          title: "Floor",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon name="map" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} />
           ),
         }}
       />
       <Tabs.Screen
-        name="tasks"
+        name="index"
         options={{
-          title: "Tasks",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="checklist" color={color} />
-          ),
+          title: "",
+          tabBarLabel: () => null,
+          tabBarIcon: () => <PlusButton color={c.tabBarActive} />,
         }}
       />
       <Tabs.Screen
         name="guests"
         options={{
-          title: "Guests",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.3.fill" color={color} />
+          title: "Guest",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon name="suitcase.cart" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon name="person.circle" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} />
           ),
         }}
       />
