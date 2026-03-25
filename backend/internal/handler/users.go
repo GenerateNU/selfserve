@@ -69,9 +69,6 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 // @Router       /users/{id} [put]
 func (h *UsersHandler) UpdateUser(c *fiber.Ctx) error {
 	id := c.Params("id")
-	if id == "" {
-		return errs.BadRequest("id is required")
-	}
 
 	var update models.UpdateUser
 	if err := httpx.BindAndValidate(c, &update); err != nil {
