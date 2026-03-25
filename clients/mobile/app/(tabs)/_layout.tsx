@@ -5,24 +5,26 @@ import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { View } from "react-native";
+import { View, Text } from "react-native";
 
 type TabBarIconProps = {
   name: React.ComponentProps<typeof IconSymbol>["name"];
   focused: boolean;
   activeColor: string;
   highlightColor: string;
+  label: string;
 };
 
-const TabBarIcon = ({ name, focused, activeColor, highlightColor }: TabBarIconProps) => (
-  <View style={{ backgroundColor: focused ? highlightColor : "transparent" }} className="rounded-xl p-2">
-    <IconSymbol size={24} name={name} color={activeColor} />
+const TabBarIcon = ({ name, focused, activeColor, highlightColor, label }: TabBarIconProps) => (
+  <View style={{ backgroundColor: focused ? highlightColor : "transparent" , minWidth: 64}} className="rounded-xl px-3 py-1 items-center gap-1">
+    <IconSymbol size={22} name={name} color={activeColor} />
+    <Text numberOfLines={1} style={{ color: activeColor }} className="text-xs font-medium">{label}</Text>
   </View>
 );
 
 const PlusButton = ({ color }: { color: string }) => (
   <View style={{ backgroundColor: color }} className="rounded-full w-14 h-14 items-center justify-center -mb-2">
-    <IconSymbol size={28} name="plus" color={Colors["light"].background} />
+    <IconSymbol size={22} name="plus" color={Colors["light"].background} />
   </View>
 );
 
@@ -33,6 +35,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
+      tabBarShowLabel: false,
       headerShown: false,
       tabBarButton: HapticTab,
       tabBarActiveTintColor: c.tabBarActive,
@@ -42,10 +45,10 @@ export default function TabLayout() {
         fontWeight: "500",
       },
       tabBarItemStyle: {
-        paddingVertical: 12,
+        paddingVertical: 10,
       },
       tabBarStyle: {
-        height: 80,
+        height: 70,
       },
   }}
     >
@@ -54,7 +57,7 @@ export default function TabLayout() {
         options={{
           title: "Tasks",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon name="checklist" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} />
+            <TabBarIcon name="checklist" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} label="Tasks" />
           ),
         }}
       />
@@ -63,7 +66,7 @@ export default function TabLayout() {
         options={{
           title: "Floor",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon name="map" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} />
+            <TabBarIcon name="map" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} label="Floor" />
           ),
         }}
       />
@@ -80,7 +83,7 @@ export default function TabLayout() {
         options={{
           title: "Guest",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon name="suitcase.cart" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} />
+            <TabBarIcon name="suitcase.cart" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} label="Guests" />
           ),
         }}
       />
@@ -89,7 +92,7 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon name="person.circle" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} />
+            <TabBarIcon name="person.circle" focused={focused} activeColor={c.tabBarActive} highlightColor={c.tabBarHighlight} label="Profile" />
           ),
         }}
       />
