@@ -57,6 +57,17 @@ definitions:
         example: Dao Ho
         type: string
     type: object
+  FilterRoomsRequest:
+    properties:
+      cursor:
+        type: string
+      floors:
+        items:
+          type: integer
+        type: array
+      limit:
+        type: integer
+    type: object
   GenerateRequestInput:
     properties:
       hotel_id:
@@ -919,30 +930,22 @@ paths:
       tags:
       - requests
   /rooms:
-    get:
-      description: Retrieves rooms optionally filtered by floor, with any active guest
-        bookings
+    post:
+      consumes:
+      - application/json
+      description: Retrieves rooms with optional floor filters and cursor pagination,
+        including any active guest bookings
       parameters:
       - description: Hotel ID (UUID)
         in: header
         name: X-Hotel-ID
         required: true
         type: string
-      - collectionFormat: csv
-        description: floors
-        in: query
-        items:
-          type: integer
-        name: floors
-        type: array
-      - description: Opaque cursor for the next page
-        in: query
-        name: cursor
-        type: string
-      - description: Number of items per page (1-100, default 20)
-        in: query
-        name: limit
-        type: integer
+      - description: Filters and pagination
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/FilterRoomsRequest'
       produces:
       - application/json
       responses:
@@ -964,7 +967,7 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Get Rooms By Floor
+      summary: List rooms with filters
       tags:
       - rooms
   /rooms/floors:

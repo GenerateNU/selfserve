@@ -161,7 +161,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// rooms routes
 	api.Route("/rooms", func(r fiber.Router) {
-		r.Get("/", roomsHandler.GetRoomsByFloor)
+		r.Post("/", roomsHandler.FilterRooms)
+		r.Get("/floors", roomsHandler.GetFloors)
 	})
 
 	// tasks routes
