@@ -1,14 +1,23 @@
-export default function LeftPanel() {
+export function LeftPanel() {
   return (
     <div
       className="relative bg-white shrink-0"
       style={{
-        width: "36.47vw",  // 500/1371
+        width: "36.47vw",
         height: "100vh",
         borderRight: "1px solid #000000",
+        overflow: "hidden",
       }}
     >
-      <div style={{ position: "absolute", bottom: "21.9vh", left: "9.8%" }}>
+      <div style={{ 
+        position: "absolute",
+        bottom: "11.6vh", 
+        left: "9.8%", 
+        width: "78.8%",
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        }}>
         <span style={{
           fontFamily: "Satoshi Variable, sans-serif",
           fontWeight: 700,
@@ -18,15 +27,15 @@ export default function LeftPanel() {
         }}>
           SelfServe
         </span>
-      </div>
-      <div style={{ position: "absolute", bottom: "11.6vh", left: "9.8%", width: "78.8%" }}>
         <p style={{
           fontFamily: "Satoshi Variable, sans-serif",
           fontWeight: 500,
           fontStyle: "italic",
-          fontSize: "20px",
-          lineHeight: "32.5px",
+          fontSize: "clamp(12px, 1.5vw, 20px)",
+          lineHeight: "1.6",
+          margin: 0,
         }}>
+      
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec risus
           nunc, ullamcorper vitae risus vel, tristique vehicula lectus.
         </p>

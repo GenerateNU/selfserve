@@ -1,7 +1,8 @@
-import LeftPanel from "./LeftPanel";
+import { LeftPanel } from "./LeftPanel";
 import type { OnboardingFormData } from "./types";
+import { RoleCard } from "./RoleCard";
 
-interface RoleSelectionStepProps {
+type RoleSelectionStepProps = {
   formData: OnboardingFormData;
   updateForm: (updates: Partial<OnboardingFormData>) => void;
   onNext: (role: string) => void;
@@ -12,7 +13,7 @@ const ROLES = [
   { id: "employee", label: "Employee", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
 ];
 
-export default function RoleSelectionStep({ formData, onNext }: RoleSelectionStepProps) {
+export function RoleSelectionStep({ formData, onNext }: RoleSelectionStepProps) {
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
       <LeftPanel />
@@ -21,19 +22,23 @@ export default function RoleSelectionStep({ formData, onNext }: RoleSelectionSte
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        paddingTop: "19.45vh",  // 191/982 — same as welcome
+        paddingTop: "clamp(80px, 19.45vh, 191px)",
+        paddingLeft: "clamp(40px, 9.6vw, 132px)",
+        paddingRight: "clamp(40px, 9.6vw, 132px)",
+        overflow: "hidden",
       }}>
-        {/* Card: 642.6/1371 wide, 492/982 tall */}
         <div style={{
-          width: "46.87vw",
-          height: "50.1vh",
+          width: "100%",
+          maxWidth: "643px",
+          height: "clamp(400px, 50.1vh, 492px)",
+          overflow: "hidden",
           border: "1px solid #000000",
           borderRadius: "24px",
           backgroundColor: "#FFFFFF",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          padding: "48px 38px",
+          padding: "clamp(24px, 4.9vh, 48px) 38px",
           gap: "16px",
           boxSizing: "border-box",
         }}>
@@ -51,7 +56,7 @@ export default function RoleSelectionStep({ formData, onNext }: RoleSelectionSte
           <span style={{
             fontFamily: "Satoshi Variable, sans-serif",
             fontWeight: 400,
-            fontSize: "24px",
+            fontSize: "clamp(20px, 2.5vw, 24px)",
             lineHeight: "32px",
             color: "#0F172B",
             textAlign: "center",
@@ -63,7 +68,7 @@ export default function RoleSelectionStep({ formData, onNext }: RoleSelectionSte
           <span style={{
             fontFamily: "Satoshi Variable, sans-serif",
             fontWeight: 400,
-            fontSize: "16px",
+            fontSize: "clamp(13px, 1.6vw, 16px)",
             lineHeight: "24px",
             color: "#62748E",
             textAlign: "center",
@@ -81,25 +86,13 @@ export default function RoleSelectionStep({ formData, onNext }: RoleSelectionSte
             flex: 1,
           }}>
             {ROLES.map((role) => (
-              <button
+              <RoleCard
                 key={role.id}
-                onClick={() => onNext(role.id)}
-                style={{
-                  textAlign: "left",
-                  borderRadius: "16px",
-                  border: `2px solid ${formData.role === role.id ? "#0F172B" : "#F1F5F9"}`,
-                  padding: "16px",
-                  backgroundColor: "#FFFFFF",
-                  cursor: "pointer",
-                }}
-              >
-                <div style={{ fontFamily: "Satoshi Variable, sans-serif", fontWeight: 400, fontSize: "16px", color: "#0F172B" }}>
-                  {role.label}
-                </div>
-                <div style={{ fontFamily: "Satoshi Variable, sans-serif", fontWeight: 400, fontSize: "16px", color: "#62748E", marginTop: "4px" }}>
-                  {role.description}
-                </div>
-              </button>
+                label={role.label}
+                description={role.description}
+                selected={formData.role === role.id}
+                onSelect={() => onNext(role.id)}
+              />
             ))}
           </div>
         </div>
