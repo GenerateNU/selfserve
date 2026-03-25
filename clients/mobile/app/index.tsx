@@ -9,7 +9,7 @@ export default function Index() {
   useEffect(() => {
     if (!isLoaded) return;
     if (isSignedIn) {
-      router.replace("/home");
+      router.replace("/(tabs)");
     } else {
       router.replace("/sign-in");
     }

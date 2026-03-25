@@ -25,7 +25,7 @@ export default function Login() {
       const result = await signIn.create({ identifier: email, password });
       if (result.status === ClerkStatus.Complete) {
         await setActive({ session: result.createdSessionId });
-        router.replace("/home");
+        router.replace("/(tabs)");
       }
     });
 
