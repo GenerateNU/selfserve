@@ -47,9 +47,9 @@ export {
   usePutApiV1GuestsId,
 } from "./api/generated/endpoints/guests/guests";
 
-export { useGetRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
+export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
 
 export type {
   RoomWithOptionalGuestBooking,
-  GetRoomsParams,
+  FilterRoomsRequest,
 } from "./api/generated/models";

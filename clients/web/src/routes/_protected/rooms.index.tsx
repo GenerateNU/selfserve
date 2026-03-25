@@ -1,9 +1,11 @@
+import type { RoomWithOptionalGuestBooking } from "@shared";
+
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useGetRooms } from "@shared";
-import type { RoomWithOptionalGuestBooking } from "@shared";
-import { PageShell } from "@/components/ui/PageShell";
+import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
+import { useQuery } from "@tanstack/react-query";
 import { SortByContainer } from "@/components/rooms/SortByContainer";
+import { PageShell } from "@/components/ui/PageShell";
 import { RoomsHeader } from "@/components/rooms/RoomsHeader";
 import { RoomsList } from "@/components/rooms/RoomsList";
 import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
@@ -18,8 +20,15 @@ function RoomsPage() {
     useState<RoomWithOptionalGuestBooking | null>(null);
   const [ascending, setAscending] = useState(true);
 
-  const { data: rooms } = useGetRooms({
-    floors: selectedFloors.length > 0 ? selectedFloors : undefined,
+  const postRooms = usePostRoomsHook();
+
+  const { data: rooms } = useQuery({
+    queryKey: ["rooms", selectedFloors],
+    queryFn: () =>
+      postRooms({
+        floors: selectedFloors.length > 0 ? selectedFloors : undefined,
+        limit: 10,
+      }),
   });
 
   return (

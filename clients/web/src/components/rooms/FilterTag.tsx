@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type FilterTagProps = {
   label: string;
@@ -16,7 +16,11 @@ export function FilterTag({ label, onRemove, className }: FilterTagProps) {
       )}
     >
       {label}
-      <button type="button" onClick={onRemove} className="text-text-subtle hover:text-text-default">
+      <button
+        type="button"
+        onClick={onRemove}
+        className="text-text-subtle hover:text-text-default"
+      >
         <X className="h-4 w-4" />
       </button>
     </div>
