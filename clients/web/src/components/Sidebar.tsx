@@ -19,7 +19,7 @@ function NavLink({
       to={to}
       className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
         isActive
-          ? "bg-bg-selected font-semibold text-gray-900"
+          ? "bg-bg-selected font-semibold text-subtle0"
           : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
       }`}
     >
@@ -47,7 +47,7 @@ function ProfileLink({ displayName }: { displayName: string | undefined }) {
         }}
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-gray-900">
+        <p className="trunca% text-sm font-semibold text-gray-900">
           {displayName || "User"}
         </p>
         <p className="truncate text-xs text-primary">Hotel Chain</p>
