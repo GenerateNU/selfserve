@@ -70,12 +70,12 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 func (h *UsersHandler) UpdateUser(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	var update models.UpdateUser
-	if err := httpx.BindAndValidate(c, &update); err != nil {
+	var updateUserRequest models.UpdateUser
+	if err := httpx.BindAndValidate(c, &updateUserRequest); err != nil {
 		return err
 	}
 
-	user, err := h.repo.UpdateUser(c.Context(), id, &update)
+	user, err := h.repo.UpdateUser(c.Context(), id, &updateUserRequest)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("user", "id", id)

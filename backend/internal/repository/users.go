@@ -73,7 +73,7 @@ func (r *UsersRepository) UpdateUser(ctx context.Context, id string, update *mod
 	row := r.db.QueryRow(ctx, `
 		UPDATE users
 		SET
-			phone_number = $2,
+			phone_number = COALESCE($2, phone_number),
 			updated_at = NOW()
 		WHERE id = $1
 		RETURNING id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, created_at, updated_at
