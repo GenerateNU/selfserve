@@ -21,7 +21,7 @@ function RoomsPage() {
 
   const { data } = useQuery({
     queryKey: ["rooms", selectedFloors],
-    queryFn: () => 
+    queryFn: () =>
       postRooms({
         floors: selectedFloors.length > 0 ? selectedFloors : undefined,
         limit: 10,
