@@ -19,7 +19,7 @@ function NavLink({
       to={to}
       className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
         isActive
-          ? "bg-bg-selected font-semibold text-subtle0"
+          ? "bg-bg-selected font-semibold text-subtle"
           : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
       }`}
     >
