@@ -23,35 +23,38 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 	return &RoomsHandler{repo: repo}
 }
 
-// GetRoomsByFloor godoc
-// @Summary      Get Rooms By Floor
-// @Description  Retrieves rooms optionally filtered by floor, with any active guest bookings
+// FilterRooms godoc
+// @Summary      List rooms with filters
+// @Description  Retrieves rooms with optional floor filters and cursor pagination, including any active guest bookings
 // @Tags         rooms
+// @Accept       json
 // @Produce      json
-// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
-// @Param        floors      query     []int   false  "floors"
-// @Param        cursor      query     string  false  "Opaque cursor for the next page"
-// @Param        limit       query     int     false  "Number of items per page (1-100, default 20)"
+// @Param        X-Hotel-ID  header    string                      true   "Hotel ID (UUID)"
+// @Param        body        body      models.FilterRoomsRequest   false  "Filters and pagination"
 // @Success      200         {object}  utils.CursorPage[models.RoomWithOptionalGuestBooking]
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /rooms [get]
-func (h *RoomsHandler) GetRoomsByFloor(c *fiber.Ctx) error {
+// @Router       /rooms [post]
+func (h *RoomsHandler) FilterRooms(c *fiber.Ctx) error {
 	hotelID, err := hotelIDFromHeader(c)
 	if err != nil {
 		return err
 	}
 
-	filter := new(models.RoomFilters)
-	if err := c.QueryParser(filter); err != nil {
-		return errs.BadRequest("invalid filters")
+	var body models.FilterRoomsRequest
+	if err := c.BodyParser(&body); err != nil {
+		return errs.InvalidJSON()
 	}
 
-	cursor := c.Query("cursor", "")
+	filter := &models.RoomFilters{
+		Floors: body.Floors,
+		Limit:  body.Limit,
+	}
+
 	cursorRoomNumber := 0
-	if cursor != "" {
-		cursorRoomNumber, err = strconv.Atoi(cursor)
+	if body.Cursor != "" {
+		cursorRoomNumber, err = strconv.Atoi(body.Cursor)
 		if err != nil {
 			return errs.BadRequest("invalid cursor")
 		}
