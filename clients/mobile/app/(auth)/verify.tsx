@@ -1,3 +1,4 @@
+import { ClerkStatus } from "@/constants/clerk";
 import { useClerkErrorHandler } from "@/hooks/useClerkErrorHandler";
 import { useSignUp } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
@@ -16,20 +17,20 @@ export default function VerifyEmail() {
   const { email } = useLocalSearchParams();
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
-  const run = useClerkErrorHandler(setError);
+  const handleClerkAction = useClerkErrorHandler(setError);
 
   const onVerify = () =>
-    run(async () => {
+    handleClerkAction(async () => {
       if (!isLoaded) return;
       const result = await signUp.attemptEmailAddressVerification({ code });
-      if (result.status === "complete") {
+      if (result.status === ClerkStatus.Complete) {
         await setActive({ session: result.createdSessionId });
         router.replace("/home");
       }
     });
 
   const onResend = () =>
-    run(async () => {
+    handleClerkAction(async () => {
       if (!isLoaded) return;
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     });
@@ -54,9 +55,9 @@ export default function VerifyEmail() {
           className="border border-stroke-subtle rounded-xl px-4 py-3 text-base mb-4"
         />
 
-        {error ? (
+        {error && (
           <Text className="text-danger text-sm mb-4">{error}</Text>
-        ) : null}
+        )}
 
         <Pressable
           onPress={onVerify}

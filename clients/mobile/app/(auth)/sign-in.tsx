@@ -1,3 +1,4 @@
+import { ClerkStatus } from "@/constants/clerk";
 import { useClerkErrorHandler } from "@/hooks/useClerkErrorHandler";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
@@ -16,13 +17,13 @@ export default function Login() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState("");
-  const run = useClerkErrorHandler(setError);
+  const handleClerkAction = useClerkErrorHandler(setError);
 
   const onLogin = () =>
-    run(async () => {
+    handleClerkAction(async () => {
       if (!isLoaded || !signIn || !setActive) return;
       const result = await signIn.create({ identifier: email, password });
-      if (result.status === "complete") {
+      if (result.status === ClerkStatus.Complete) {
         await setActive({ session: result.createdSessionId });
         router.replace("/home");
       }
@@ -57,9 +58,9 @@ export default function Login() {
           />
         </View>
 
-        {error ? (
+        {error && (
           <Text className="text-danger text-sm mb-4">{error}</Text>
-        ) : null}
+        )}
 
         <Pressable
           onPress={onLogin}

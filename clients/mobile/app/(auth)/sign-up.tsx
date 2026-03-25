@@ -18,10 +18,10 @@ export default function SignUp() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
-  const run = useClerkErrorHandler(setError);
+  const handleClerkAction = useClerkErrorHandler(setError);
 
   const onSignUp = () =>
-    run(async () => {
+    handleClerkAction(async () => {
       if (!isLoaded) return;
       await signUp.create({
         emailAddress: email,
@@ -74,9 +74,9 @@ export default function SignUp() {
           />
         </View>
 
-        {error ? (
+        {error && (
           <Text className="text-danger text-sm mb-4">{error}</Text>
-        ) : null}
+        )}
 
         <Pressable
           onPress={onSignUp}
