@@ -5,13 +5,14 @@ import (
 	"strconv"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
 type RoomsRepository interface {
-	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
 	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
 }
 
@@ -43,13 +44,8 @@ func (h *RoomsHandler) FilterRooms(c *fiber.Ctx) error {
 	}
 
 	var body models.FilterRoomsRequest
-	if err := c.BodyParser(&body); err != nil {
-		return errs.InvalidJSON()
-	}
-
-	filter := &models.RoomFilters{
-		Floors: body.Floors,
-		Limit:  body.Limit,
+	if err := httpx.BindAndValidate(c, &body); err != nil {
+		return err
 	}
 
 	cursorRoomNumber := 0
@@ -60,12 +56,12 @@ func (h *RoomsHandler) FilterRooms(c *fiber.Ctx) error {
 		}
 	}
 
-	rooms, err := h.repo.FindRoomsWithOptionalGuestBookingsByFloor(c.Context(), filter, hotelID, cursorRoomNumber)
+	rooms, err := h.repo.FindRoomsWithOptionalGuestBookingsByFloor(c.Context(), &body, hotelID, cursorRoomNumber)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	page := utils.BuildCursorPage(rooms, filter.Limit, func(r *models.RoomWithOptionalGuestBooking) string {
+	page := utils.BuildCursorPage(rooms, body.Limit, func(r *models.RoomWithOptionalGuestBooking) string {
 		return strconv.Itoa(r.RoomNumber)
 	})
 
