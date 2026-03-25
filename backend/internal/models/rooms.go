@@ -12,6 +12,12 @@ type RoomFilters struct {
 	Limit  int    `query:"limit"`
 }
 
+type FilterRoomsRequest struct {
+	Floors *[]int `json:"floors,omitempty"`
+	Limit  int    `json:"limit,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
+} //@name FilterRoomsRequest
+
 // Read model for rooms page on the frontend
 type RoomWithOptionalGuestBooking struct {
 	Room
