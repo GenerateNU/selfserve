@@ -68,47 +68,45 @@ function ProfilePage() {
 
       {/* Scrollable content */}
       <div className="flex flex-1 flex-col overflow-y-auto px-6 py-6">
-          {/* User hero */}
-          <div className="flex items-center gap-11 mb-6 pl-4">
-            {user?.imageUrl ? (
-              <img
-                src={user.imageUrl}
-                alt={displayName}
-                className="size-30 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex size-30 items-center justify-center rounded-full border-2 border-text-default bg-gray-100">
-                <span className="text-[40px] font-semibold text-text-default">
-                  {displayName.charAt(0)}
-                </span>
-              </div>
-            )}
-            <div>
-              <h2 className="text-[40px] font-bold text-text-default leading-none">
-                {user?.firstName}
-              </h2>
-              <h2 className="text-[40px] font-bold text-text-default leading-none">
-                {user?.lastName}
-              </h2>
-              <p className="pt-1 text-base font-bold text-primary">
-                Hotel Chain
-              </p>
+        {/* User hero */}
+        <div className="flex items-center gap-11 mb-6 pl-4">
+          {user?.imageUrl ? (
+            <img
+              src={user.imageUrl}
+              alt={displayName}
+              className="size-30 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex size-30 items-center justify-center rounded-full border-2 border-text-default bg-gray-100">
+              <span className="text-[40px] font-semibold text-text-default">
+                {displayName.charAt(0)}
+              </span>
             </div>
+          )}
+          <div>
+            <h2 className="text-[40px] font-bold text-text-default leading-none">
+              {user?.firstName}
+            </h2>
+            <h2 className="text-[40px] font-bold text-text-default leading-none">
+              {user?.lastName}
+            </h2>
+            <p className="pt-1 text-base font-bold text-primary">Hotel Chain</p>
           </div>
+        </div>
 
-          {/* Info + Notes row */}
-          <div className="flex flex-1 gap-4">
-            <div className="flex-1">
-              <ProfileInfoCard
-                displayName={displayName}
-                email={email}
-                phone={phone}
-              />
-            </div>
-            <div className="flex-1">
-              <NotesFromManagerCard />
-            </div>
+        {/* Info + Notes row */}
+        <div className="flex flex-1 gap-4">
+          <div className="flex-1">
+            <ProfileInfoCard
+              displayName={displayName}
+              email={email}
+              phone={phone}
+            />
           </div>
+          <div className="flex-1">
+            <NotesFromManagerCard />
+          </div>
+        </div>
       </div>
     </main>
   );
