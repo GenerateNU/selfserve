@@ -66,6 +66,7 @@ definitions:
           type: integer
         type: array
       limit:
+        minimum: 0
         type: integer
     type: object
   GenerateRequestInput:
