@@ -17,7 +17,7 @@ type CreateUser struct {
 } //@name CreateUser
 
 type UpdateUser struct {
-	PhoneNumber *string `json:"phone_number,omitempty" validate:"omitempty" example:"+11234567890"`
+	PhoneNumber *string `json:"phone_number,omitempty" validate:"omitempty,notblank" example:"+11234567890"`
 } //@name UpdateUser
 
 type CreateUserWebhook struct {
