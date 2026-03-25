@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"log/slog"
+	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
@@ -176,11 +177,28 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 		return err
 	}
 
-	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
-	if err != nil {
-		if errors.Is(err, errs.ErrInvalidCursor) {
+	if len(filters.Floors) == 0 {
+		filters.Floors = nil
+	}
+	if len(filters.GroupSize) == 0 {
+		filters.GroupSize = nil
+	}
+
+	if filters.Cursor != "" {
+		parts := strings.SplitN(filters.Cursor, "|", 2)
+		if len(parts) != 2 {
 			return errs.BadRequest("invalid cursor")
 		}
+		if _, err := uuid.Parse(parts[1]); err != nil {
+			return errs.BadRequest("invalid cursor")
+		}
+		filters.CursorName = parts[0]
+		filters.CursorID = parts[1]
+	}
+
+	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
+	if err != nil {
+		slog.Error("failed to get guests", "error", err)
 		return errs.InternalServerError()
 	}
 

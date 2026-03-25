@@ -3,12 +3,10 @@ package repository
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -194,57 +192,44 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 }
 
 func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
-	var floors []int
-	if len(filters.Floors) > 0 {
-		floors = filters.Floors
-	}
-
-	var groupSizes []int
-	if len(filters.GroupSize) > 0 {
-		groupSizes = filters.GroupSize
-	}
-
-	var cursorName, cursorID string
-	if filters.Cursor != "" {
-		parts := strings.SplitN(filters.Cursor, "|", 2)
-		if len(parts) != 2 {
-			return nil, errs.ErrInvalidCursor
-		}
-		if _, err := uuid.Parse(parts[1]); err != nil {
-			return nil, errs.ErrInvalidCursor
-		}
-		cursorName = parts[0]
-		cursorID = parts[1]
-	}
+	floorsFilter := filters.Floors
+	groupSizesFilter := filters.GroupSize
 
 	rows, err := r.db.Query(ctx, `
-	SELECT
-		g.id,
-		g.first_name,
-		g.last_name,
-		COALESCE(g.preferences, g.first_name) AS preferred_name,
-		r.floor,
-		r.room_number,
-		gb.group_size
-	FROM guest_bookings gb
-	JOIN guests g ON g.id = gb.guest_id
-	JOIN rooms r ON r.id = gb.room_id
-	WHERE gb.hotel_id = $1
-		AND gb.status = 'active'
-		AND ($2::int[] IS NULL OR r.floor = ANY($2))
-		AND ($3::int[] IS NULL OR gb.group_size = ANY($3))
+	WITH guest_data AS (
+		SELECT
+			g.id,
+			g.first_name,
+			g.last_name,
+			CONCAT_WS(' ', g.first_name, g.last_name) AS full_name,
+			COALESCE(g.preferences, g.first_name) AS preferred_name,
+			r.floor,
+			r.room_number,
+			gb.group_size,
+			gb.hotel_id,
+			gb.status
+		FROM guest_bookings gb
+		JOIN guests g ON g.id = gb.guest_id
+		JOIN rooms r ON r.id = gb.room_id
+	)
+	SELECT id, first_name, last_name, preferred_name, floor, room_number, group_size
+	FROM guest_data
+	WHERE hotel_id = $1
+		AND status = 'active'
+		AND ($2::int[] IS NULL OR floor = ANY($2))
+		AND ($3::int[] IS NULL OR group_size = ANY($3))
 		AND (
 			$4::text = ''
-			OR CONCAT_WS(' ', g.first_name, g.last_name) ILIKE '%' || $4 || '%'
-			OR r.room_number::text ILIKE '%' || $4 || '%'
+			OR full_name ILIKE '%' || $4 || '%'
+			OR room_number::text ILIKE '%' || $4 || '%'
 		)
 		AND (
 			$5::text = ''
-			OR (CONCAT_WS(' ', g.first_name, g.last_name), g.id::text) > ($5::text, $6::text)
+			OR (full_name, id::text) > ($5::text, $6::text)
 		)
-	ORDER BY CONCAT_WS(' ', g.first_name, g.last_name) ASC, g.id ASC
+	ORDER BY full_name ASC, id ASC
 	LIMIT $7`,
-		filters.HotelID, floors, groupSizes, filters.Search, cursorName, cursorID, filters.Limit+1,
+		filters.HotelID, floorsFilter, groupSizesFilter, filters.Search, filters.CursorName, filters.CursorID, filters.Limit+1,
 	)
 	if err != nil {
 		return nil, err

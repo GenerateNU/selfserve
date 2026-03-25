@@ -648,7 +648,8 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 
 		mock := &mockGuestsRepository{
 			findGuestsFunc: func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
-				assert.Equal(t, cursor, f.Cursor)
+				assert.Equal(t, "John Doe", f.CursorName)
+				assert.Equal(t, "530e8400-e458-41d4-a716-446655440000", f.CursorID)
 				assert.Equal(t, 10, f.Limit)
 				return &models.GuestPage{
 					Data:       []*models.GuestWithBooking{},
@@ -710,11 +711,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 	t.Run("returns 400 on invalid cursor", func(t *testing.T) {
 		t.Parallel()
 
-		mock := &mockGuestsRepository{
-			findGuestsFunc: func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
-				return nil, errs.ErrInvalidCursor
-			},
-		}
+		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewGuestsHandler(mock)
 		app.Post("/guests/search", h.GetGuests)
@@ -731,11 +728,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 	t.Run("returns 400 on cursor with pipe but invalid UUID", func(t *testing.T) {
 		t.Parallel()
 
-		mock := &mockGuestsRepository{
-			findGuestsFunc: func(ctx context.Context, f *models.GuestFilters) (*models.GuestPage, error) {
-				return nil, errs.ErrInvalidCursor
-			},
-		}
+		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewGuestsHandler(mock)
 		app.Post("/guests/search", h.GetGuests)
