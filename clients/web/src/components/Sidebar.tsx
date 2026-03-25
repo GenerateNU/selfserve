@@ -47,7 +47,7 @@ function ProfileLink({ displayName }: { displayName: string | undefined }) {
         }}
       />
       <div className="min-w-0 flex-1">
-        <p className="trunca% text-sm font-semibold text-gray-900">
+        <p className="truncate text-sm font-semibold text-gray-900">
           {displayName || "User"}
         </p>
         <p className="truncate text-xs text-primary">Hotel Chain</p>
