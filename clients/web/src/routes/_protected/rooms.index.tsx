@@ -3,6 +3,7 @@ import { useState } from "react";
 import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
 import { useQuery } from "@tanstack/react-query";
 import type { RoomWithOptionalGuestBooking } from "@shared";
+import { SortByContainer } from "@/components/rooms/SortByContainer";
 import { PageShell } from "@/components/ui/PageShell";
 import { RoomsHeader } from "@/components/rooms/RoomsHeader";
 import { RoomsList } from "@/components/rooms/RoomsList";
@@ -16,10 +17,11 @@ function RoomsPage() {
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
+  const [ascending, setAscending] = useState(true);
 
   const postRooms = usePostRoomsHook();
 
-  const { data } = useQuery({
+  const { data: rooms } = useQuery({
     queryKey: ["rooms", selectedFloors],
     queryFn: () =>
       postRooms({
@@ -44,8 +46,11 @@ function RoomsPage() {
         />
       }
     >
+      <SortByContainer ascending={ascending} setAscending={setAscending} />
+
       <RoomsList
-        rooms={data?.items ?? []}
+        rooms={rooms?.items ?? []}
+        ascending={ascending}
         onRoomSelect={setSelectedRoom}
         selectedRoomNumber={selectedRoom?.room_number ?? null}
       />
