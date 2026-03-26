@@ -503,11 +503,7 @@ paths:
         name: body
         required: true
         schema:
-<<<<<<< requests-versioning-2
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.CreateGuest'
-=======
           $ref: '#/definitions/GuestFilters'
->>>>>>> main
       produces:
       - application/json
       responses:
