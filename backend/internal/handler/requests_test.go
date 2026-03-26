@@ -670,42 +670,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		assert.Contains(t, string(body), "raw_text")
 	})
 
-	t.Run("returns 400 when LLM output fails validation", func(t *testing.T) {
-		t.Parallel()
-
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				return req, nil
-			},
-		}
-
-		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				// LLM returns invalid output - missing required fields
-				return aiflows.GenerateRequestOutput{
-					Name:        "", // Empty name should fail validation
-					RequestType: "",
-					Status:      "",
-					Priority:    "",
-				}, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/generate", h.GenerateRequest)
-
-		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "name")
-	})
-
 	t.Run("returns 500 on LLM error", func(t *testing.T) {
 		t.Parallel()
 

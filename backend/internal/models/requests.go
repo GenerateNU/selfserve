@@ -23,8 +23,8 @@ func (s RequestStatus) IsValid() bool {
 
 // for post because the ID and timestamps should always be generated
 type MakeRequest struct {
-	HotelID                 string     `json:"hotel_id" validate:"notblank" example:"521e8400-e458-41d4-a716-446655440000"`
-	GuestID                 *string    `json:"guest_id" example:"521e8417-e458-41d4-a716-446655440990"`
+	HotelID                 string     `json:"hotel_id" validate:"notblank,uuid" example:"521e8400-e458-41d4-a716-446655440000"`
+	GuestID                 *string    `json:"guest_id" validate:"omitempty,uuid" example:"521e8417-e458-41d4-a716-446655440990"`
 	UserID                  *string    `json:"user_id" example:"521ee400-e458-41d4-a716-446655440000"`
 	ReservationID           *string    `json:"reservation_id" example:"521e8400-e458-41d4-a716-498655440000"`
 	Name                    string     `json:"name" validate:"notblank" example:"room cleaning"`
