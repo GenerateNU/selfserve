@@ -12,6 +12,7 @@ import (
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 const defaultPageSize = 20
@@ -46,7 +47,7 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 		return err
 	}
 
-	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{MakeRequest: requestBody})
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: uuid.New().String(), MakeRequest: requestBody})
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -203,7 +204,7 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		return errs.InternalServerError()
 	}
 
-	req := models.Request{MakeRequest: models.MakeRequest{
+	req := models.Request{ID: uuid.New().String(), MakeRequest: models.MakeRequest{
 		HotelID:                 input.HotelID,
 		GuestID:                 parsed.GuestID,
 		UserID:                  parsed.UserID,
