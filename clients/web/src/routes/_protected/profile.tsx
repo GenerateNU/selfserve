@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
+import { useGetUsersId } from "@shared/api/generated/endpoints/users/users.ts";
 
 export const Route = createFileRoute("/_protected/profile")({
   component: ProfilePage,
@@ -15,21 +16,23 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 function ProfileInfoCard({
-  displayName,
-  email,
-  phone,
+  governmentName,
+  role,
+  department,
+  employeeId,
 }: {
-  displayName: string;
-  email: string;
-  phone: string;
+  governmentName: string;
+  role: string;
+  department: string;
+  employeeId: string;
 }) {
   return (
     <section className="h-56 rounded-lg border border-stroke-subtle bg-white p-6">
       <div className="divide-y divide-stroke-subtle">
-        <DetailRow label="Government Name" value={displayName} />
-        <DetailRow label="Date of Birth" value="—" />
-        <DetailRow label="Phone" value={phone || "—"} />
-        <DetailRow label="Email" value={email || "—"} />
+        <DetailRow label="Government Name" value={governmentName} />
+        <DetailRow label="Role" value={role} />
+        <DetailRow label="Department" value={department} />
+        <DetailRow label="Employee ID" value={employeeId} />
       </div>
     </section>
   );
@@ -46,15 +49,12 @@ function NotesFromManagerCard() {
 }
 
 function ProfilePage() {
-  const { user } = useUser();
+  const { user: clerkUser } = useUser();
+  const { data: backendUser } = useGetUsersId(clerkUser?.id ?? "");
 
-  const displayName =
-    user?.fullName ||
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
-    "User";
-
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const phone = user?.primaryPhoneNumber?.phoneNumber ?? "";
+  const firstName = backendUser?.first_name || clerkUser?.firstName || "";
+  const lastName = backendUser?.last_name || clerkUser?.lastName || "";
+  const displayName = [firstName, lastName].filter(Boolean).join(" ") || "User";
 
   return (
     <main className="flex h-screen flex-col overflow-hidden">
@@ -70,9 +70,9 @@ function ProfilePage() {
       <div className="flex flex-1 flex-col overflow-y-auto px-6 py-6">
         {/* User hero */}
         <div className="flex items-center gap-11 mb-6 pl-4">
-          {user?.imageUrl ? (
+          {clerkUser?.imageUrl ? (
             <img
-              src={user.imageUrl}
+              src={clerkUser.imageUrl}
               alt={displayName}
               className="size-30 rounded-full object-cover"
             />
@@ -85,10 +85,10 @@ function ProfilePage() {
           )}
           <div>
             <h2 className="text-[40px] font-bold text-text-default leading-none">
-              {user?.firstName}
+              {firstName}
             </h2>
             <h2 className="text-[40px] font-bold text-text-default leading-none">
-              {user?.lastName}
+              {lastName}
             </h2>
             <p className="pt-1 text-base font-bold text-primary">Hotel Chain</p>
           </div>
@@ -98,9 +98,10 @@ function ProfilePage() {
         <div className="flex flex-1 gap-4">
           <div className="flex-1">
             <ProfileInfoCard
-              displayName={displayName}
-              email={email}
-              phone={phone}
+              governmentName={displayName}
+              role={backendUser?.role ?? "—"}
+              department={backendUser?.department ?? "—"}
+              employeeId={backendUser?.employee_id ?? "—"}
             />
           </div>
           <div className="flex-1">
