@@ -175,6 +175,13 @@ definitions:
         type: string
       room_number:
         type: integer
+    required:
+    - first_name
+    - floor
+    - id
+    - last_name
+    - preferred_name
+    - room_number
     type: object
   GuestWithStays:
     properties:
