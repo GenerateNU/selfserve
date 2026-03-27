@@ -1,10 +1,17 @@
+import { Pencil } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[40%_1fr] items-center py-3">
+    <div className="group grid grid-cols-[40%_1fr_auto] items-center py-3">
       <p className="text-sm font-medium text-text-default">{label}</p>
       <p className="text-sm text-text-subtle">{value}</p>
+      <button
+        type="button"
+        className="flex items-center justify-center rounded-md p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-bg-selected cursor-pointer"
+      >
+        <Pencil className="size-4 text-text-subtle" />
+      </button>
     </div>
   );
 }
@@ -23,7 +30,7 @@ export function ProfileInfoCard({
   department,
 }: ProfileInfoCardProps) {
   return (
-    <section className="h-56 rounded-lg border border-stroke-subtle bg-white p-6">
+    <section className="rounded-lg border border-stroke-subtle bg-white p-6">
       <div className="divide-y divide-stroke-subtle">
         <DetailRow label="Government Name" value={governmentName} />
         <DetailRow label="Email" value={email} />

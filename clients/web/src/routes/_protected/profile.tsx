@@ -45,7 +45,7 @@ function ProfilePage() {
         {isLoading ? (
           <>
             <ProfileHeroSkeleton />
-            <div className="flex flex-1 gap-4">
+            <div className="flex items-stretch gap-4">
               <div className="flex-1">
                 <ProfileInfoCardSkeleton />
               </div>
@@ -61,7 +61,7 @@ function ProfilePage() {
               lastName={lastName}
               avatarUrl={avatarUrl}
             />
-            <div className="flex flex-1 gap-4">
+            <div className="flex items-stretch gap-4">
               <div className="flex-1">
                 <ProfileInfoCard
                   governmentName={displayName}
