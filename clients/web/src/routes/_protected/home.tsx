@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
 import { HomeFilterBar } from "@/components/home/HomeFilterBar";
@@ -27,6 +28,7 @@ function HomePage() {
           ))}
         </div>
       </div>
+      <GlobalTaskInput />
     </main>
   );
 }
