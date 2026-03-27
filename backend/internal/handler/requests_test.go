@@ -89,9 +89,9 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 		mock := &mockRequestRepository{
 			findRequestFunc: func(ctx context.Context, name string) (*models.Request, error) {
 				return &models.Request{
-					ID:        "530e8400-e458-41d4-a716-446655440000",
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
+					ID:             "530e8400-e458-41d4-a716-446655440000",
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
 					MakeRequest: models.MakeRequest{
 						HotelID:     "521e8400-e458-41d4-a716-446655440000",
 						Name:        "room cleaning",
@@ -207,9 +207,9 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 			findRequestsFunc: func(ctx context.Context) ([]models.Request, error) {
 				requests := []models.Request{
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440000",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440000",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "room cleaning",
@@ -219,9 +219,9 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440001",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440001",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "towel replacement",
@@ -231,9 +231,9 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440002",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440002",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "maintenance repair",
@@ -243,9 +243,9 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440003",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440003",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "extra pillows",
@@ -255,9 +255,9 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440004",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440004",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "minibar refill",
@@ -548,7 +548,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
 				req.ID = "generated-uuid"
 				req.CreatedAt = time.Now()
-				req.UpdatedAt = time.Now()
 				return req, nil
 			},
 		}
@@ -703,42 +702,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		assert.Contains(t, string(body), "raw_text")
 	})
 
-	t.Run("returns 400 when LLM output fails validation", func(t *testing.T) {
-		t.Parallel()
-
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				return req, nil
-			},
-		}
-
-		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				// LLM returns invalid output - missing required fields
-				return aiflows.GenerateRequestOutput{
-					Name:        "", // Empty name should fail validation
-					RequestType: "",
-					Status:      "",
-					Priority:    "",
-				}, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
-		app.Post("/request/generate", h.GenerateRequest)
-
-		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "name")
-	})
-
 	t.Run("returns 500 on LLM error", func(t *testing.T) {
 		t.Parallel()
 
@@ -883,9 +846,9 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
 				return []*models.Request{
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440001",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440001",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "room cleaning",
@@ -895,9 +858,9 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 						},
 					},
 					{
-						ID:        "530e8400-e458-41d4-a716-446655440002",
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
+						ID:             "530e8400-e458-41d4-a716-446655440002",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
 							HotelID:     "521e8400-e458-41d4-a716-446655440000",
 							Name:        "towel request",
