@@ -9,10 +9,10 @@ type GeneratedRequestDrawerProps = {
 function Field({ label, value }: { label: string; value?: string | number }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs text-zinc-500 uppercase tracking-wide">
+      <span className="text-xs text-text-default uppercase tracking-wide">
         {label}
       </span>
-      <span className="text-sm text-zinc-900">{value ?? "—"}</span>
+      <span className="text-sm text-text-default">{value ?? "—"}</span>
     </div>
   );
 }
