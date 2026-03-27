@@ -11,7 +11,7 @@ export function GlobalTaskInput() {
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[684px] h-[58px] flex items-center gap-3 rounded-2xl bg-white shadow-lg border border-stroke-subtle px-4">
+    <div className="fixed bottom-6 left-[calc(50%+8rem)] -translate-x-1/2 z-50 w-[684px] h-[58px] flex items-center gap-3 rounded-2xl bg-white shadow-lg border border-stroke-subtle px-4">
       <Sparkles className="size-6 shrink-0 text-primary" />
       <input
         type="text"
