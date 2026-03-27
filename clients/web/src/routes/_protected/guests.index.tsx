@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { useMemo, useState } from "react";
 import { GuestPageShell } from "../../components/guests/GuestPageShell";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
@@ -42,6 +43,7 @@ function GuestsQuickListPage() {
 
   return (
     <GuestPageShell title="Guests">
+      <GlobalTaskInput />
       <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
       <GuestQuickListTable
         guests={filteredGuests}

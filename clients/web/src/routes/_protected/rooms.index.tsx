@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { useState } from "react";
 import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
 import { useQuery } from "@tanstack/react-query";
@@ -54,6 +55,7 @@ function RoomsPage() {
         onRoomSelect={setSelectedRoom}
         selectedRoomNumber={selectedRoom?.room_number ?? null}
       />
+      <GlobalTaskInput />
     </PageShell>
   );
 }
