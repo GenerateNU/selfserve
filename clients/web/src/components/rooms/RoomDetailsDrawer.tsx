@@ -1,107 +1,62 @@
-import { DiamondIcon, X } from "lucide-react";
-import { TaskCard } from "./TaskCard";
-import type { Room } from "@/components/rooms/RoomsList";
+import type { RoomWithOptionalGuestBooking } from "@shared";
+import { DrawerShell } from "@/components/ui/DrawerShell";
 
 type RoomDetailsDrawerProps = {
-  room: Room | null;
+  room: RoomWithOptionalGuestBooking | null;
   onClose: () => void;
 };
+
+function Field({ label, value }: { label: string; value?: string | number }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-xs text-zinc-500 uppercase tracking-wide">
+        {label}
+      </span>
+      <span className="text-sm text-zinc-900 dark:text-zinc-100">
+        {value ?? "—"}
+      </span>
+    </div>
+  );
+}
 
 export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
   if (!room) return null;
 
   return (
-    <aside className="fixed top-0 right-0 z-50 flex h-full w-full max-w-[45vw] flex-col border-l border-zinc-200 bg-white">
-      <header className="flex items-center justify-between px-[2.5vw] py-[2.2vh]">
-        <h2 className="text-3xl font-bold">Room {room.room_number}</h2>
-        <button type="button" onClick={onClose} className="p-[0.6vw]">
-          <X />
-        </button>
-      </header>
+    <DrawerShell title={`Room ${room.room_number}`} onClose={onClose}>
+      <Field label="Floor" value={room.floor} />
+      <Field label="Suite Type" value={room.suite_type} />
+      <Field label="Room Status" value={room.room_status} />
+      <Field label="Booking Status" value={room.booking_status} />
 
-      <div className="flex-1 overflow-y-auto px-[2.5vw] py-[2.5vh]">
-        <div className="flex flex-col gap-[2.5vh]">
-          <section>
-            <h3 className="text-lg font-bold">Guests (2)</h3>
-            <hr className="my-[1vh] border-zinc-200" />
-            <div className="flex flex-col gap-[0.5vh] text-sm">
-              <span>Jane Doe</span>
-              <span>John Doe</span>
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-lg font-bold">Details</h3>
-            <hr className="my-[1vh] border-zinc-200" />
-            <div className="flex flex-col gap-[1.5vh]">
-              <div>
-                <h4 className="mb-[0.5vh] text-md font-medium">Room status</h4>
-                <div className="flex flex-col gap-[0.9vh]">
-                  <span className="flex w-full items-center gap-[0.5vh] rounded-md px-[1.2vw] py-[1vh] text-sm bg-zinc-50">
-                    <DiamondIcon className="w-[1.8vh]" /> Needs cleaning
+      <div className="flex flex-col gap-2">
+        <span className="text-xs text-zinc-500 uppercase tracking-wide">
+          Guests
+        </span>
+        {room.guests && room.guests.length > 0 ? (
+          <ul className="flex flex-col gap-4">
+            {room.guests.map((guest) => (
+              <li
+                key={guest.id}
+                className="flex flex-col gap-1 text-sm text-zinc-900 dark:text-zinc-100"
+              >
+                <span className="font-medium">
+                  {[guest.first_name, guest.last_name]
+                    .filter(Boolean)
+                    .join(" ") || "—"}
+                </span>
+                {guest.timezone && (
+                  <span className="text-xs text-zinc-500">
+                    {guest.timezone}
                   </span>
-                  <span className="flex w-full items-center gap-[0.5vh] rounded-md px-[1.2vw] py-[1vh] text-sm bg-zinc-50">
-                    <DiamondIcon className="w-[1.8vh]" /> Late checkout approved
-                  </span>
-                </div>
-              </div>
-              <div>
-                <h4 className="mb-[0.5vh] text-md font-medium">
-                  Room features
-                </h4>
-                <div className="flex flex-wrap gap-[0.9vh]">
-                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
-                    <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" />{" "}
-                    Room Size: 500 sq ft
-                  </span>
-                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
-                    <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" />{" "}
-                    Bed: queen
-                  </span>
-                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
-                    <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" /> Bar
-                    / Lounge
-                  </span>
-                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
-                    <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" /> 1
-                    bathroom
-                  </span>
-                  <span className="flex items-center gap-[0.4vw] rounded-md p-[0.5vh] text-sm bg-zinc-50">
-                    <DiamondIcon className="h-[1.8vh] w-[1.8vh] shrink-0" /> 1
-                    toilet
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-          <section>
-            <h3 className="text-lg font-bold">Issues</h3>
-            <hr className="my-[1vh] border-zinc-200" />
-            <div className="flex flex-col gap-[0.5vh]">
-              <h4 className="mb-[0.5vh] text-md font-medium">
-                Guest Complaints
-              </h4>
-              <span className="text-sm font-light text-zinc-400">
-                No guest complaints
-              </span>
-              <h4 className="mb-[0.5vh] text-md font-medium">
-                Maintenance Issues
-              </h4>
-              <span className="text-sm font-light text-zinc-400">
-                No maintenance issues
-              </span>
-            </div>
-          </section>
-          <section>
-            <h3 className="text-lg font-bold">Tasks</h3>
-            <hr className="my-[1vh] border-zinc-200" />
-            <div className="flex flex-col gap-[0.5vh] py-[0.5vh]">
-              <TaskCard task="Clean room" onAssign={() => {}} />
-              <TaskCard task="Make bed" onAssign={() => {}} />
-            </div>
-          </section>
-        </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <span className="text-sm text-zinc-900 dark:text-zinc-100">—</span>
+        )}
       </div>
-    </aside>
+    </DrawerShell>
   );
 }

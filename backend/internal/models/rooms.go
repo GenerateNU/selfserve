@@ -7,10 +7,11 @@ type Room struct {
 	RoomStatus string `json:"room_status"`
 } //@name Room
 
-type RoomFilters struct {
-	Floors *[]int `query:"floors"`
-	Limit  int    `query:"limit"`
-}
+type FilterRoomsRequest struct {
+	Floors *[]int `json:"floors,omitempty" validate:"omitempty,dive,min=1"`
+	Limit  int    `json:"limit,omitempty"  validate:"min=0"`
+	Cursor string `json:"cursor,omitempty" validate:"omitempty"`
+} //@name FilterRoomsRequest
 
 // Read model for rooms page on the frontend
 type RoomWithOptionalGuestBooking struct {

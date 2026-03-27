@@ -24,10 +24,14 @@ type Guest struct {
 } //@name Guest
 
 type GuestFilters struct {
-	HotelID string `json:"hotel_id" validate:"required,uuid"`
-	Floors  []int  `json:"floors"`
-	Cursor  string `json:"cursor" validate:"omitempty,uuid"`
-	Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
+	HotelID    string `json:"hotel_id" validate:"required,uuid"`
+	Floors     []int  `json:"floors"`
+	GroupSize  []int  `json:"group_size"`
+	Search     string `json:"search"`
+	Cursor     string `json:"cursor"`
+	CursorName string `json:"-"`
+	CursorID   string `json:"-"`
+	Limit      int    `json:"limit" validate:"omitempty,min=1,max=100"`
 } // @name GuestFilters
 
 type GuestPage struct {
@@ -36,11 +40,13 @@ type GuestPage struct {
 } // @name GuestPage
 
 type GuestWithBooking struct {
-	ID         string `json:"id" validate:"required"`
-	FirstName  string `json:"first_name" validate:"required"`
-	LastName   string `json:"last_name" validate:"required"`
-	Floor      int    `json:"floor" validate:"required"`
-	RoomNumber int    `json:"room_number" validate:"required"`
+	ID            string `json:"id"`
+	FirstName     string `json:"first_name"`
+	LastName      string `json:"last_name"`
+	PreferredName string `json:"preferred_name"`
+	Floor         int    `json:"floor"`
+	RoomNumber    int    `json:"room_number"`
+	GroupSize     *int   `json:"group_size"`
 } // @name GuestWithBooking
 
 type GuestWithStays struct {

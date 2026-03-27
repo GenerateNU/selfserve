@@ -1,75 +1,81 @@
-import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
+import { useQuery } from "@tanstack/react-query";
+import type { Request, RoomWithOptionalGuestBooking } from "@shared";
+import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
+import { SortByContainer } from "@/components/rooms/SortByContainer";
+import { PageShell } from "@/components/ui/PageShell";
 import { RoomsHeader } from "@/components/rooms/RoomsHeader";
-import { RoomsOverview } from "@/components/rooms/RoomsOverview";
 import { RoomsList } from "@/components/rooms/RoomsList";
 import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
-import { rooms } from "@/mock-data/rooms";
+import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
 
 export const Route = createFileRoute("/_protected/rooms/")({
   component: RoomsPage,
 });
 
-export type RoomFilters = {
-  floor: Array<number>;
-};
-
-const initialRoomFilters: RoomFilters = {
-  floor: [],
-};
-
 function RoomsPage() {
-  const [roomFilters, setRoomFilters] =
-    useState<RoomFilters>(initialRoomFilters);
+  const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
+  const [selectedRoom, setSelectedRoom] =
+    useState<RoomWithOptionalGuestBooking | null>(null);
+  const [ascending, setAscending] = useState(true);
+  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
+    null,
+  );
 
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const postRooms = usePostRoomsHook();
 
-  const filteredRooms = useMemo(() => {
-    let result = rooms;
+  const { data: rooms } = useQuery({
+    queryKey: ["rooms", selectedFloors],
+    queryFn: () =>
+      postRooms({
+        floors: selectedFloors.length > 0 ? selectedFloors : undefined,
+        limit: 10,
+      }),
+  });
 
-    if (roomFilters.floor.length > 0) {
-      result = result.filter((r) => roomFilters.floor.includes(r.floor));
-    }
-
-    return result;
-  }, [roomFilters]);
-
-  const selectedRoom =
-    selectedRoomId == null
-      ? null
-      : (rooms.find((r) => r.id === selectedRoomId) ?? null);
-
-  const toggleRoom = (roomId: string) => {
-    setSelectedRoomId((prev) => (prev === roomId ? null : roomId));
-  };
-
-  const updateRoomFilter = <TKey extends keyof RoomFilters>(
-    key: TKey,
-    value: RoomFilters[TKey],
-  ) => {
-    setRoomFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleCloseDrawer = () => {
-    setSelectedRoomId(null);
-  };
+  const drawerContent = generatedRequest ? (
+    <GeneratedRequestDrawer
+      request={generatedRequest}
+      onClose={() => setGeneratedRequest(null)}
+    />
+  ) : (
+    <RoomDetailsDrawer
+      room={selectedRoom}
+      onClose={() => setSelectedRoom(null)}
+    />
+  );
 
   return (
-    <main className="flex flex-col h-screen overflow-hidden">
-      <RoomsHeader
-        roomFilters={roomFilters}
-        onRoomFilterChange={updateRoomFilter}
-      />
-
-      <section className="flex flex-1 min-h-0">
-        <RoomsList
-          rooms={filteredRooms}
-          onRoomSelect={toggleRoom}
-          selectedRoomId={selectedRoomId}
+    <PageShell
+      header={
+        <RoomsHeader
+          selectedFloors={selectedFloors}
+          onChangeSelectedFloors={setSelectedFloors}
         />
-        <RoomsOverview rooms={filteredRooms} />
-      </section>
-      <RoomDetailsDrawer room={selectedRoom} onClose={handleCloseDrawer} />
-    </main>
+      }
+      drawerOpen={generatedRequest !== null || selectedRoom !== null}
+      drawer={drawerContent}
+    >
+      <SortByContainer ascending={ascending} setAscending={setAscending} />
+      <RoomsList
+        rooms={rooms?.items ?? []}
+        ascending={ascending}
+        onRoomSelect={(room) => {
+          setGeneratedRequest(null);
+          setSelectedRoom(room);
+        }}
+        selectedRoomNumber={selectedRoom?.room_number ?? null}
+      />
+      {generatedRequest === null && selectedRoom === null && (
+        <GlobalTaskInput
+          onRequestGenerated={(r) => {
+            setSelectedRoom(null);
+            setGeneratedRequest(r);
+          }}
+        />
+      )}
+    </PageShell>
   );
 }

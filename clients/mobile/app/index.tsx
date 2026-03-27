@@ -1,12 +1,19 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useAuth } from "@clerk/clerk-expo";
+import { useRouter } from "expo-router";
+import { useEffect } from "react";
 
-export default function Page() {
-  return (
-    <View className="flex-1 items-center p-6">
-      <View className="flex-1 justify-center max-w-4xl mx-auto">
-        <Text className="text-6xl font-bold">Hello</Text>
-        <Text className="text-4xl text-gray-700">World</Text>
-      </View>
-    </View>
-  );
+export default function Index() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (isSignedIn) {
+      router.replace("/(tabs)");
+    } else {
+      router.replace("/sign-in");
+    }
+  }, [router, isLoaded, isSignedIn]);
+
+  return null;
 }

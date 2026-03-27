@@ -1,9 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { GuestPageShell } from "../../components/guests/GuestPageShell";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { guestListItems } from "../../components/guests/guest-mocks";
+import type { Request } from "@shared";
+import { PageShell } from "@/components/ui/PageShell";
+import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
+import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
 
 export const Route = createFileRoute("/_protected/guests/")({
   component: GuestsQuickListPage,
@@ -14,6 +17,9 @@ function GuestsQuickListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [groupFilter, setGroupFilter] = useState("all");
   const [floorFilter, setFloorFilter] = useState("all");
+  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
+    null,
+  );
 
   const filteredGuests = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -41,7 +47,20 @@ function GuestsQuickListPage() {
   }, [floorFilter, groupFilter, searchTerm]);
 
   return (
-    <GuestPageShell title="Guests">
+    <PageShell
+      header={
+        <div className="px-6 py-5 border-b border-stroke-subtle">
+          <h1 className="text-2xl font-semibold text-text-default">Guests</h1>
+        </div>
+      }
+      drawerOpen={generatedRequest !== null}
+      drawer={
+        <GeneratedRequestDrawer
+          request={generatedRequest}
+          onClose={() => setGeneratedRequest(null)}
+        />
+      }
+    >
       <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
       <GuestQuickListTable
         guests={filteredGuests}
@@ -53,6 +72,9 @@ function GuestsQuickListPage() {
           navigate({ to: "/guests/$guestId", params: { guestId } })
         }
       />
-    </GuestPageShell>
+      {generatedRequest === null && (
+        <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      )}
+    </PageShell>
   );
 }

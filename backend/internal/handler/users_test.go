@@ -18,12 +18,20 @@ import (
 )
 
 type mockUsersRepository struct {
-	findUserByIdFunc     func(ctx context.Context, id string) (*models.User, error)
 	insertUserFunc       func(ctx context.Context, user *models.CreateUser) (*models.User, error)
 	updateProfilePicFunc func(ctx context.Context, userId string, key string) error
 	deleteProfilePicFunc func(ctx context.Context, userId string) error
 	getKeyFunc           func(ctx context.Context, userId string) (string, error)
 	bulkInsertUsersFunc  func(ctx context.Context, users []*models.CreateUser) error
+	findUserByIdFunc func(ctx context.Context, id string) (*models.User, error)
+	updateUserFunc   func(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
+}
+
+func (m *mockUsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
+	if m.updateUserFunc != nil {
+		return m.updateUserFunc(ctx, id, update)
+	}
+	return nil, nil
 }
 
 func (m *mockUsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {

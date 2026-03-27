@@ -152,6 +152,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Get("/:userId/profile-picture", usersHandler.GetProfilePicture)
 		r.Put("/:userId/profile-picture", usersHandler.UpdateProfilePicture)
 		r.Delete("/:userId/profile-picture", usersHandler.DeleteProfilePicture)
+		r.Put("/:id", usersHandler.UpdateUser)
 	})
 
 	// Guest Routes
@@ -167,6 +168,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
+		r.Put("/:id", reqsHandler.UpdateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
 		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
 	})
@@ -186,7 +188,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// rooms routes
 	api.Route("/rooms", func(r fiber.Router) {
-		r.Get("/", roomsHandler.GetRoomsByFloor)
+		r.Post("/", roomsHandler.FilterRooms)
 		r.Get("/floors", roomsHandler.GetFloors)
 	})
 

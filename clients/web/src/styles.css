@@ -3,6 +3,7 @@
 @theme {
   --color-primary: #15502c;
   --color-stroke-subtle: #d8d8d8;
+  --color-stroke-default: #aeaeae;
   --color-stroke-disabled: #e9e9e9;
   --font-playfair: "Playfair Display", ui-serif, serif;
   --color-primary-hover: #0a2916;
@@ -33,6 +34,7 @@
   --color-danger-strong: #f93333;
   --color-danger-hover: #c90505;
   --color-danger-hover-on: #ffffff;
+  --color-high-priority: #a21313;
   --color-info-accent: #e9f2ff;
   --color-info-container: #dfecff;
   --color-info-stroke: #aac7ff;
@@ -46,10 +48,15 @@
   --color-shadow: #e7e7e7;
   --color-shadow-strong: #dcdcdc;
   --color-bg-container: #f8f8f8;
+  --color-bg-disabled: #bababa;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #5d5d5d;
+  --color-bg-high-priority: #ffeded;
   --color-text-default: #000;
   --color-text-subtle: #747474;
   --color-text-secondary: #5d5d5d;
   --color-bg-selected: #edf5f1;
+  --color-muted: #f0f0f0;
   --color-request-pending-secondary: #fcdcd1;
   --color-request-pending: #f25118;
   --color-request-completed-secondary: #cde4ce;
