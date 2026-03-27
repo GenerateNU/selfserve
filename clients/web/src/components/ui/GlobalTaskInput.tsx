@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowUp, Sparkles } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestGenerateHook } from "@shared/api/generated/endpoints/requests/requests.ts";
 
@@ -24,8 +24,7 @@ export function GlobalTaskInput() {
         hotel_id: backendUser?.hotel_id ?? "",
         raw_text: rawText,
       }),
-    onSuccess: (result) => {
-      console.log(result);
+    onSuccess: () => {
       setValue("");
     },
   });
