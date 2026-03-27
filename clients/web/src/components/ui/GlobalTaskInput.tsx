@@ -30,7 +30,6 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
         raw_text: rawText,
       }),
     onSuccess: (result) => {
-      console.log("[GlobalTaskInput] onSuccess", result);
       onRequestGenerated(result);
       setValue("");
     },
