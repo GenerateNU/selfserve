@@ -4,8 +4,13 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestGenerateHook } from "@shared/api/generated/endpoints/requests/requests.ts";
+import type { Request } from "@shared";
 
-export function GlobalTaskInput() {
+type GlobalTaskInputProps = {
+  onRequestGenerated: (request: Request) => void;
+};
+
+export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
   const [value, setValue] = useState("");
 
   const { user: clerkUser } = useUser();
@@ -24,8 +29,13 @@ export function GlobalTaskInput() {
         hotel_id: backendUser?.hotel_id ?? "",
         raw_text: rawText,
       }),
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log("[GlobalTaskInput] onSuccess", result);
+      onRequestGenerated(result);
       setValue("");
+    },
+    onError: (error) => {
+      console.error("[GlobalTaskInput] onError", error);
     },
   });
 
