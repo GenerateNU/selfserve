@@ -15,7 +15,11 @@ function unformatPhoneNumber(formatted: string): string {
   return formatted.replace(/\D/g, "");
 }
 
-export function PhoneNumberInput({ value, onChange, onKeyDown }: PhoneNumberInputProps) {
+export function PhoneNumberInput({
+  value,
+  onChange,
+  onKeyDown,
+}: PhoneNumberInputProps) {
   const formatted = formatPhoneNumber(unformatPhoneNumber(value));
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {

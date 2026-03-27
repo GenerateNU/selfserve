@@ -6,13 +6,7 @@ import type { User } from "@shared";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PhoneNumberInput, formatPhoneNumber } from "./PhoneNumberInput";
 
-function DetailRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="group grid grid-cols-[40%_1fr_auto] items-center py-3">
       <p className="text-sm font-medium text-text-default">{label}</p>
@@ -111,7 +105,11 @@ export function ProfileInfoCard({
 
   const { mutate: updateUser } = useMutation({
     mutationFn: (phone_number: string) =>
-      request({ url: `/users/${userId}`, method: "PUT", data: { phone_number } }),
+      request({
+        url: `/users/${userId}`,
+        method: "PUT",
+        data: { phone_number },
+      }),
     onMutate: async (phone_number) => {
       await queryClient.cancelQueries({ queryKey: ["user", userId] });
       const previous = queryClient.getQueryData<User>(["user", userId]);
