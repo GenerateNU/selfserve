@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUp, Loader2, Sparkles } from "lucide-react";
+import { ArrowUp, Loader, Sparkles } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
@@ -47,7 +47,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
   if (isPending) {
     return (
       <div className="fixed bottom-6 left-[calc(50%+8rem)] -translate-x-1/2 z-50 w-[684px] h-[58px] flex items-center gap-3 rounded-2xl bg-white shadow-lg border border-stroke-subtle px-4">
-        <Loader2 className="size-6 shrink-0 text-text-subtle animate-spin" />
+        <Loader className="size-6 shrink-0 text-text-subtle animate-spin [animation-duration:2s]" />
         <span className="text-sm text-text-subtle">Creating tasks...</span>
       </div>
     );
