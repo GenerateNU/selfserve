@@ -168,7 +168,7 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /api/v1/guests [post]
+// @Router       /api/v1/guests/search [post]
 func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	hotelID := c.Get("X-Hotel-ID")
 	var filters models.GuestFilters

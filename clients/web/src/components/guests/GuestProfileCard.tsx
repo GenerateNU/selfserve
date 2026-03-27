@@ -1,8 +1,9 @@
+import type { GuestWithStays } from "@shared";
 import { UserRound } from "lucide-react";
-import type { GuestProfile } from "./guest-mocks";
+import { formatDate } from "../../utils/dates";
 
 type GuestProfileCardProps = {
-  guest: GuestProfile;
+  guest: GuestWithStays;
 };
 
 function DetailRow({ label, value }: { label: string; value: string }) {
@@ -15,6 +16,8 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 export function GuestProfileCard({ guest }: GuestProfileCardProps) {
+  const currentStay = (guest.current_stays ?? [])[0];
+
   return (
     <section className="border border-black bg-white px-[1vw] py-[2vh]">
       <div className="mb-[2vh] flex items-start gap-[1.1vw]">
@@ -23,28 +26,27 @@ export function GuestProfileCard({ guest }: GuestProfileCardProps) {
         </div>
         <div>
           <p className="text-[2vw] font-medium leading-tight text-black">
-            {guest.preferredName}
+            {guest.first_name} {guest.last_name}
           </p>
-          <p className="text-[1vw] text-black">{guest.pronouns}</p>
         </div>
       </div>
 
-      <div className="border-b border-[#d3d8df] pb-[1vh]">
-        <DetailRow label="Government Name" value={guest.governmentName} />
-        <DetailRow label="Date of Birth" value={guest.dateOfBirth} />
-      </div>
-
       <div className="pt-[1vh]">
-        <DetailRow label="Room" value={guest.room} />
-        <DetailRow label="Group Size" value={String(guest.groupSize)} />
-        <DetailRow
-          label="Arrival"
-          value={`${guest.arrivalTime}  ${guest.arrivalDate}`}
-        />
-        <DetailRow
-          label="Departure"
-          value={`${guest.departureTime}  ${guest.departureDate}`}
-        />
+        {currentStay ? (
+          <>
+            <DetailRow label="Room" value={String(currentStay.room_number)} />
+            <DetailRow
+              label="Arrival"
+              value={formatDate(currentStay.arrival_date)}
+            />
+            <DetailRow
+              label="Departure"
+              value={formatDate(currentStay.departure_date)}
+            />
+          </>
+        ) : (
+          <p className="text-[1vw] text-[#b6bac3]">No active stay.</p>
+        )}
       </div>
     </section>
   );

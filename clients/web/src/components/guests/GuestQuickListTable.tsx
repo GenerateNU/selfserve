@@ -1,8 +1,8 @@
+import type { GuestWithBooking } from "@shared";
 import { UserRound } from "lucide-react";
-import type { GuestListItem } from "./guest-mocks";
 
 type GuestQuickListTableProps = {
-  guests: Array<GuestListItem>;
+  guests: Array<GuestWithBooking>;
   groupFilter: string;
   floorFilter: string;
   onGroupFilterChange: (value: string) => void;
@@ -68,14 +68,14 @@ export function GuestQuickListTable({
           >
             {avatarPill()}
             <p className="truncate text-[1vw] text-black">
-              {guest.governmentName}
+              {guest.first_name} {guest.last_name}
             </p>
             <p className="truncate text-[1vw] text-black">
-              {guest.preferredName}
+              {guest.preferred_name}
             </p>
-            <p className="text-[1vw] text-black">{guest.groupSize}</p>
+            <p className="text-[1vw] text-black">{guest.group_size ?? "—"}</p>
             <p className="text-[1vw] text-black">{guest.floor}</p>
-            <p className="text-[1vw] text-black">{guest.room}</p>
+            <p className="text-[1vw] text-black">{guest.room_number}</p>
           </button>
         ))}
         {guests.length === 0 && (

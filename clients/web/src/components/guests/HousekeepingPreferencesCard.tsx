@@ -1,7 +1,10 @@
-import type { GuestProfile } from "./guest-mocks";
+type HousekeepingPreferences = {
+  frequency: string;
+  doNotDisturb: string;
+};
 
 type HousekeepingPreferencesCardProps = {
-  housekeeping: GuestProfile["housekeeping"];
+  housekeeping: HousekeepingPreferences;
 };
 
 function PreferenceRow({ label, value }: { label: string; value: string }) {

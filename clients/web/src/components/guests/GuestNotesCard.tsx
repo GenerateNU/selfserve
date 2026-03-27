@@ -1,13 +1,13 @@
 import { useState } from "react";
 
 type GuestNotesCardProps = {
-  initialNotes: string;
+  initialNotes?: string;
 };
 
 export function GuestNotesCard({ initialNotes }: GuestNotesCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [notes, setNotes] = useState(initialNotes);
-  const [draft, setDraft] = useState(initialNotes);
+  const [notes, setNotes] = useState(initialNotes ?? "");
+  const [draft, setDraft] = useState(initialNotes ?? "");
 
   const startEditing = () => {
     setDraft(notes);

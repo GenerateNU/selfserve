@@ -108,7 +108,10 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 		var status *models.BookingStatus
 
 		if guest == nil {
-			guest = &models.GuestWithStays{}
+			guest = &models.GuestWithStays{
+				CurrentStays: []models.Stay{},
+				PastStays:    []models.Stay{},
+			}
 		}
 
 		err := rows.Scan(

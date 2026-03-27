@@ -1,7 +1,12 @@
-import type { GuestProfile } from "./guest-mocks";
+type SpecialNeeds = {
+  dietaryRestrictions: string;
+  accessibilityNeeds: string;
+  sensorySensitivities: string;
+  medicalConditions: string;
+};
 
 type GuestSpecialNeedsCardProps = {
-  specialNeeds: GuestProfile["specialNeeds"];
+  specialNeeds: SpecialNeeds;
 };
 
 function SpecialNeedsRow({ label, value }: { label: string; value: string }) {
