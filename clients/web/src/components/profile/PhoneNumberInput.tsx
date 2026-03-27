@@ -1,7 +1,7 @@
 export type PhoneNumberInputProps = {
   value: string;
   onChange: (value: string) => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 };
 
 export function formatPhoneNumber(raw: string): string {
@@ -18,7 +18,7 @@ function unformatPhoneNumber(formatted: string): string {
 export function PhoneNumberInput({ value, onChange, onKeyDown }: PhoneNumberInputProps) {
   const formatted = formatPhoneNumber(unformatPhoneNumber(value));
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const digits = unformatPhoneNumber(e.target.value);
     onChange(digits);
   };
