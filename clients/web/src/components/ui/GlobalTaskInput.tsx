@@ -18,10 +18,12 @@ export function GlobalTaskInput() {
     enabled: !!clerkUser?.id,
   });
 
-
   const { mutate: generateRequest, isPending } = useMutation({
     mutationFn: (rawText: string) =>
-      postRequestGenerate({ hotel_id: backendUser?.hotel_id ?? "", raw_text: rawText }),
+      postRequestGenerate({
+        hotel_id: backendUser?.hotel_id ?? "",
+        raw_text: rawText,
+      }),
     onSuccess: (result) => {
       console.log(result);
       setValue("");
@@ -52,7 +54,9 @@ export function GlobalTaskInput() {
           value.trim() ? "bg-primary" : "bg-bg-selected"
         }`}
       >
-        <ArrowUp className={`size-4 ${value.trim() ? "text-white" : "text-primary"}`} />
+        <ArrowUp
+          className={`size-4 ${value.trim() ? "text-white" : "text-primary"}`}
+        />
       </button>
     </div>
   );
