@@ -64,6 +64,7 @@ function ProfilePage() {
             <div className="flex items-stretch gap-4">
               <div className="flex-1">
                 <ProfileInfoCard
+                  userId={clerkUser!.id}
                   governmentName={displayName}
                   email={user?.primary_email ?? "—"}
                   phoneNumber={user?.phone_number ?? "—"}
