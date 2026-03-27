@@ -11,6 +11,13 @@ import (
 
 const expirationTime = 5 * time.Minute
 
+var allowedProfilePictureExts = map[string]struct{}{
+	"jpg":  {},
+	"jpeg": {},
+	"png":  {},
+	"webp": {},
+}
+
 type S3Handler struct {
 	S3Storage *s3storage.Storage
 }
@@ -60,8 +67,7 @@ func (h *S3Handler) GeneratePresignedUploadURL(c *fiber.Ctx) error {
 func (h *S3Handler) GetUploadURL(c *fiber.Ctx) error {
 	userId := c.Params("userId")
 	ext := c.Query("ext", "jpg")
-	allowedExts := map[string]bool{"jpg": true, "jpeg": true, "png": true, "webp": true}
-	if !allowedExts[ext] {
+	if _, ok := allowedProfilePictureExts[ext]; !ok {
 		return errs.BadRequest("invalid extension")
 	}
 

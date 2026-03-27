@@ -3,10 +3,10 @@ package handler
 import (
 	"errors"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
@@ -15,7 +15,7 @@ import (
 // UpdateProfilePictureRequest represents the request body for updating a profile picture
 // @Description Request body containing the S3 key after uploading
 type UpdateProfilePictureRequest struct {
-	Key string `json:"key" example:"profile-pictures/user123/1706540000.jpg"`
+	Key string `json:"key" validate:"notblank" example:"profile-pictures/user123/1706540000.jpg"`
 }
 
 type UsersHandler struct {
@@ -69,11 +69,7 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 // @Router       /users [post]
 func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 	var CreateUserRequest models.CreateUser
-	if err := c.BodyParser(&CreateUserRequest); err != nil {
-		return errs.InvalidJSON()
-	}
-
-	if err := validateCreateUser(&CreateUserRequest); err != nil {
+	if err := httpx.BindAndValidate(c, &CreateUserRequest); err != nil {
 		return err
 	}
 
@@ -83,32 +79,6 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(res)
-}
-
-func validateCreateUser(user *models.CreateUser) error {
-	errors := make(map[string]string)
-
-	if strings.TrimSpace(user.FirstName) == "" {
-		errors["first_name"] = "must not be an empty string"
-	}
-
-	if strings.TrimSpace(user.LastName) == "" {
-		errors["last_name"] = "must not be an empty string"
-	}
-
-	if user.Timezone != nil {
-		_, err := time.LoadLocation(*user.Timezone)
-		if err != nil || !strings.Contains(*user.Timezone, "/") {
-			errors["timezone"] = "invalid IANA timezone"
-		}
-	}
-
-	if strings.TrimSpace(user.ClerkID) == "" {
-		errors["clerk_id"] = "must not be an empty string"
-	}
-
-	// Aggregates errors deterministically
-	return AggregateErrors(errors)
 }
 
 // GetProfilePicture godoc
@@ -170,11 +140,8 @@ func (h *UsersHandler) UpdateProfilePicture(c *fiber.Ctx) error {
 		return errs.BadRequest("userId is required")
 	}
 	var req UpdateProfilePictureRequest
-	if err := c.BodyParser(&req); err != nil {
-		return errs.InvalidJSON()
-	}
-	if req.Key == "" {
-		return errs.BadRequest("key is required")
+	if err := httpx.BindAndValidate(c, &req); err != nil {
+		return err
 	}
 	if err := h.UsersRepository.UpdateProfilePicture(c.Context(), userId, req.Key); err != nil {
 		return errs.InternalServerError()

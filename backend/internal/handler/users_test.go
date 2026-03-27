@@ -230,6 +230,7 @@ func TestUsersHandler_GetUserByID_InvalidMethods(t *testing.T) {
 func TestUsersHandler_CreateUser(t *testing.T) {
 	t.Parallel()
 	validBody := `{
+		"id": "user_123",
 		"first_name": "John",
 		"last_name": "Doe",
 		"role": "Receptionist",
@@ -285,6 +286,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		app.Post("/users", h.CreateUser)
 
 		bodyWithOptionals := `{
+			"id": "user_456",
 			"first_name": "Jane",
 			"last_name": "Dow",
 			"role": "Manager",
@@ -358,6 +360,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		app.Post("/users", h.CreateUser)
 
 		invalidTimezoneBody := `{
+			"id": "user_789",
 			"first_name": "John",
 			"last_name": "Doe",
 			"role": "Receptionist",
@@ -401,6 +404,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 
 	t.Run("returns_400_when_clerk_id_is_missing", func(t *testing.T) {
 		body := `{
+		"id": "user_123",
 		"first_name": "John",
 		"last_name": "Doe",
 		"role": "Receptionist"
