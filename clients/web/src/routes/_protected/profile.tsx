@@ -85,7 +85,7 @@ function ProfilePage() {
               className="size-30 rounded-full object-cover"
             />
           ) : (
-            <div className="flex size-30 items-center justify-center rounded-full bg-gray-100">
+            <div className="flex size-30 items-center justify-center rounded-full border-2 border-text-default bg-background">
               <span className="text-[40px] font-semibold text-text-default">
                 {displayName.charAt(0)}
               </span>
