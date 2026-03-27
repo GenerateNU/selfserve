@@ -1,13 +1,36 @@
 import { useState } from "react";
 import { ArrowUp, Sparkles } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { usePostRequestGenerateHook } from "@shared/api/generated/endpoints/requests/requests.ts";
 
 export function GlobalTaskInput() {
   const [value, setValue] = useState("");
 
+  const { user: clerkUser } = useUser();
+  const getUsersId = useGetUsersIdHook();
+  const postRequestGenerate = usePostRequestGenerateHook();
+
+  const { data: backendUser } = useQuery({
+    queryKey: ["user", clerkUser?.id],
+    queryFn: () => getUsersId(clerkUser!.id),
+    enabled: !!clerkUser?.id,
+  });
+
+
+  const { mutate: generateRequest, isPending } = useMutation({
+    mutationFn: (rawText: string) =>
+      postRequestGenerate({ hotel_id: backendUser?.hotel_id ?? "", raw_text: rawText }),
+    onSuccess: (result) => {
+      console.log(result);
+      setValue("");
+    },
+  });
+
   const handleSubmit = () => {
-    if (!value.trim()) return;
-    // TODO: wire up to task creation
-    setValue("");
+    if (!value.trim() || isPending) return;
+    generateRequest(value.trim());
   };
 
   return (
@@ -24,13 +47,12 @@ export function GlobalTaskInput() {
       <button
         type="button"
         onClick={handleSubmit}
+        disabled={isPending}
         className={`flex size-8 shrink-0 items-center justify-center rounded-full cursor-pointer transition-colors ${
           value.trim() ? "bg-primary" : "bg-bg-selected"
         }`}
       >
-        <ArrowUp
-          className={`size-4 ${value.trim() ? "text-white" : "text-primary"}`}
-        />
+        <ArrowUp className={`size-4 ${value.trim() ? "text-white" : "text-primary"}`} />
       </button>
     </div>
   );
