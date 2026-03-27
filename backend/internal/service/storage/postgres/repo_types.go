@@ -14,6 +14,7 @@ type UsersRepository interface {
 	DeleteProfilePicture(ctx context.Context, userId string) error
 	GetKey(ctx context.Context, userId string) (string, error)
 	BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error
+	UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
 }
 
 type GuestsRepository interface {
