@@ -6,7 +6,11 @@ type ProfileHeroProps = {
   avatarUrl: string | undefined;
 };
 
-export function ProfileHero({ firstName, lastName, avatarUrl }: ProfileHeroProps) {
+export function ProfileHero({
+  firstName,
+  lastName,
+  avatarUrl,
+}: ProfileHeroProps) {
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || "User";
 
   return (

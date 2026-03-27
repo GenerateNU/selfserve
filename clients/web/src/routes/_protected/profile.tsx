@@ -3,8 +3,14 @@ import { useUser } from "@clerk/clerk-react";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProfileHero, ProfileHeroSkeleton } from "@/components/profile/ProfileHero";
-import { ProfileInfoCard, ProfileInfoCardSkeleton } from "@/components/profile/ProfileInfoCard";
+import {
+  ProfileHero,
+  ProfileHeroSkeleton,
+} from "@/components/profile/ProfileHero";
+import {
+  ProfileInfoCard,
+  ProfileInfoCardSkeleton,
+} from "@/components/profile/ProfileInfoCard";
 import { NotesFromManagerCard } from "@/components/profile/NotesFromManagerCard";
 
 export const Route = createFileRoute("/_protected/profile")({
