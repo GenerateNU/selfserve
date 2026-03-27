@@ -41,6 +41,10 @@ func (m *mockUsersRepositorySync) GetKey(ctx context.Context, userId string) (st
 	return "", nil
 }
 
+func (m *mockUsersRepositorySync) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
+	return nil, nil
+}
+
 // Makes the compiler verify the mock implements the interface
 var _ storage.UsersRepository = (*mockUsersRepositorySync)(nil)
 

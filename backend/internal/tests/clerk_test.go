@@ -54,6 +54,10 @@ func (m *mockUsersRepositoryClerk) GetKey(ctx context.Context, userId string) (s
 	return "", nil
 }
 
+func (m *mockUsersRepositoryClerk) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
+	return nil, nil
+}
+
 // Makes the compiler verify the mock implements the interface
 var _ storage.UsersRepository = (*mockUsersRepositoryClerk)(nil)
 

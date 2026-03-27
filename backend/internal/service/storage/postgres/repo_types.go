@@ -10,11 +10,11 @@ import (
 type UsersRepository interface {
 	FindUser(ctx context.Context, id string) (*models.User, error)
 	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
 	UpdateProfilePicture(ctx context.Context, userId string, key string) error
 	DeleteProfilePicture(ctx context.Context, userId string) error
 	GetKey(ctx context.Context, userId string) (string, error)
 	BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error
-	UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
 }
 
 type GuestsRepository interface {
