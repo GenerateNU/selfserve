@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { useState } from "react";
 import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
 import { useQuery } from "@tanstack/react-query";
 import type { RoomWithOptionalGuestBooking } from "@shared";
+import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { SortByContainer } from "@/components/rooms/SortByContainer";
 import { PageShell } from "@/components/ui/PageShell";
 import { RoomsHeader } from "@/components/rooms/RoomsHeader";

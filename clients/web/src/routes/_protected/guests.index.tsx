@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { useMemo, useState } from "react";
 import { GuestPageShell } from "../../components/guests/GuestPageShell";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { guestListItems } from "../../components/guests/guest-mocks";
+import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 
 export const Route = createFileRoute("/_protected/guests/")({
   component: GuestsQuickListPage,

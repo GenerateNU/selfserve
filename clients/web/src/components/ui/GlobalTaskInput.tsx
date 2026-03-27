@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, ArrowUp } from "lucide-react";
+import { ArrowUp, Sparkles } from "lucide-react";
 
 export function GlobalTaskInput() {
   const [value, setValue] = useState("");
@@ -28,7 +28,9 @@ export function GlobalTaskInput() {
           value.trim() ? "bg-primary" : "bg-bg-selected"
         }`}
       >
-        <ArrowUp className={`size-4 ${value.trim() ? "text-white" : "text-primary"}`} />
+        <ArrowUp
+          className={`size-4 ${value.trim() ? "text-white" : "text-primary"}`}
+        />
       </button>
     </div>
   );
