@@ -70,7 +70,7 @@ function GuestsQuickListPage() {
           navigate({ to: "/guests/$guestId", params: { guestId } })
         }
       />
-      <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      {generatedRequest === null && <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />}
     </PageShell>
   );
 }

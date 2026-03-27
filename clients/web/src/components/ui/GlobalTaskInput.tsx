@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUp, Sparkles } from "lucide-react";
+import { ArrowUp, Loader2, Sparkles } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
@@ -44,6 +44,15 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
     generateRequest(value.trim());
   };
 
+  if (isPending) {
+    return (
+      <div className="fixed bottom-6 left-[calc(50%+8rem)] -translate-x-1/2 z-50 w-[684px] h-[58px] flex items-center gap-3 rounded-2xl bg-white shadow-lg border border-stroke-subtle px-4">
+        <Loader2 className="size-6 shrink-0 text-text-subtle animate-spin" />
+        <span className="text-sm text-text-subtle">Creating tasks...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed bottom-6 left-[calc(50%+8rem)] -translate-x-1/2 z-50 w-[684px] h-[58px] flex items-center gap-3 rounded-2xl bg-white shadow-lg border border-stroke-subtle px-4">
       <Sparkles className="size-6 shrink-0 text-primary" />
@@ -58,7 +67,6 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isPending}
         className={`flex size-8 shrink-0 items-center justify-center rounded-full cursor-pointer transition-colors ${
           value.trim() ? "bg-primary" : "bg-bg-selected"
         }`}

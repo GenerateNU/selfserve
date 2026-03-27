@@ -63,7 +63,7 @@ function RoomsPage() {
         onRoomSelect={(room) => { setGeneratedRequest(null); setSelectedRoom(room); }}
         selectedRoomNumber={selectedRoom?.room_number ?? null}
       />
-      <GlobalTaskInput onRequestGenerated={(r) => { setSelectedRoom(null); setGeneratedRequest(r); }} />
+      {generatedRequest === null && selectedRoom === null && <GlobalTaskInput onRequestGenerated={(r) => { setSelectedRoom(null); setGeneratedRequest(r); }} />}
     </PageShell>
   );
 }

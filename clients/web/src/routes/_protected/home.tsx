@@ -45,7 +45,7 @@ function HomePage() {
           </KanbanColumn>
         ))}
       </div>
-      <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      {generatedRequest === null && <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />}
     </PageShell>
   );
 }
