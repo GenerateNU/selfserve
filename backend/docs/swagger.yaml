@@ -35,6 +35,12 @@ definitions:
       last_name:
         example: Doe
         type: string
+      phone_number:
+        example: "+11234567890"
+        type: string
+      primary_email:
+        example: john@example.com
+        type: string
       profile_picture:
         example: https://example.com/john.jpg
         type: string
@@ -396,6 +402,12 @@ definitions:
         example: America/New_York
         type: string
     type: object
+  UpdateUser:
+    properties:
+      phone_number:
+        example: "+11234567890"
+        type: string
+    type: object
   User:
     properties:
       created_at:
@@ -418,6 +430,12 @@ definitions:
         type: string
       last_name:
         example: Doe
+        type: string
+      phone_number:
+        example: "+11234567890"
+        type: string
+      primary_email:
+        example: john@example.com
         type: string
       profile_picture:
         example: https://example.com/john.jpg
@@ -1067,6 +1085,52 @@ paths:
       security:
       - BearerAuth: []
       summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates fields on a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Updates a user
       tags:
       - users
 schemes:
