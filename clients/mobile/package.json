@@ -3,10 +3,10 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "doppler run -- expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "android": "doppler run -- expo run:android",
+    "ios": "doppler run -- expo run:ios",
     "lint": "expo lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
