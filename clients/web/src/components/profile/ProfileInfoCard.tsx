@@ -16,7 +16,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function EditableDetailRow({
+function PhoneNumberDetailRow({
   label,
   value,
   onSave,
@@ -132,7 +132,7 @@ export function ProfileInfoCard({
       <div className="divide-y divide-stroke-subtle">
         <DetailRow label="Government Name" value={governmentName} />
         <DetailRow label="Email" value={email} />
-        <EditableDetailRow
+        <PhoneNumberDetailRow
           label="Phone Number"
           value={formatPhoneNumber(phoneNumber)}
           onSave={(val) => updateUser(val)}
