@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Pencil, Check, X } from "lucide-react";
+import { Check, Pencil, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCustomInstance } from "@shared/api/orval-mutator";
+import { PhoneNumberInput, formatPhoneNumber } from "./PhoneNumberInput";
 import type { User } from "@shared";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PhoneNumberInput, formatPhoneNumber } from "./PhoneNumberInput";
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
