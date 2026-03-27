@@ -16,7 +16,9 @@ export const Route = createFileRoute("/_protected/home")({
 });
 
 function HomePage() {
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(null);
+  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
+    null,
+  );
 
   return (
     <PageShell
@@ -45,7 +47,9 @@ function HomePage() {
           </KanbanColumn>
         ))}
       </div>
-      {generatedRequest === null && <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />}
+      {generatedRequest === null && (
+        <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      )}
     </PageShell>
   );
 }

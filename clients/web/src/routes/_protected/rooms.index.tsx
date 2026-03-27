@@ -20,7 +20,9 @@ function RoomsPage() {
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
   const [ascending, setAscending] = useState(true);
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(null);
+  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
+    null,
+  );
 
   const postRooms = usePostRoomsHook();
 
@@ -60,10 +62,20 @@ function RoomsPage() {
       <RoomsList
         rooms={rooms?.items ?? []}
         ascending={ascending}
-        onRoomSelect={(room) => { setGeneratedRequest(null); setSelectedRoom(room); }}
+        onRoomSelect={(room) => {
+          setGeneratedRequest(null);
+          setSelectedRoom(room);
+        }}
         selectedRoomNumber={selectedRoom?.room_number ?? null}
       />
-      {generatedRequest === null && selectedRoom === null && <GlobalTaskInput onRequestGenerated={(r) => { setSelectedRoom(null); setGeneratedRequest(r); }} />}
+      {generatedRequest === null && selectedRoom === null && (
+        <GlobalTaskInput
+          onRequestGenerated={(r) => {
+            setSelectedRoom(null);
+            setGeneratedRequest(r);
+          }}
+        />
+      )}
     </PageShell>
   );
 }

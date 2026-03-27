@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import type { Request } from "@shared";
-import { PageShell } from "@/components/ui/PageShell";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { guestListItems } from "../../components/guests/guest-mocks";
+import type { Request } from "@shared";
+import { PageShell } from "@/components/ui/PageShell";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
 
@@ -17,7 +17,9 @@ function GuestsQuickListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [groupFilter, setGroupFilter] = useState("all");
   const [floorFilter, setFloorFilter] = useState("all");
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(null);
+  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
+    null,
+  );
 
   const filteredGuests = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -70,7 +72,9 @@ function GuestsQuickListPage() {
           navigate({ to: "/guests/$guestId", params: { guestId } })
         }
       />
-      {generatedRequest === null && <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />}
+      {generatedRequest === null && (
+        <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      )}
     </PageShell>
   );
 }

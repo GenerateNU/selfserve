@@ -24,7 +24,14 @@ export function PageShell({
         <header className="shrink-0 bg-bg-container">{header}</header>
 
         <section className="flex-1 min-h-0 overflow-auto bg-bg-primary">
-          <div className={cn("flex flex-col mx-auto w-full px-16", contentClassName)}>{children}</div>
+          <div
+            className={cn(
+              "flex flex-col mx-auto w-full px-16",
+              contentClassName,
+            )}
+          >
+            {children}
+          </div>
         </section>
       </div>
 

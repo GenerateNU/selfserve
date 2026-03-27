@@ -46,7 +46,9 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
                     .join(" ") || "—"}
                 </span>
                 {guest.timezone && (
-                  <span className="text-xs text-zinc-500">{guest.timezone}</span>
+                  <span className="text-xs text-zinc-500">
+                    {guest.timezone}
+                  </span>
                 )}
               </li>
             ))}
