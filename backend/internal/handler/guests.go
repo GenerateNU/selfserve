@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"strings"
@@ -15,13 +16,17 @@ import (
 
 type GuestsHandler struct {
 	GuestsRepository storage.GuestsRepository
-	// TODO: enforce OpenSearch as required once setup is complete — silent
-	// Postgres fallback can mask misconfiguration and return stale/missing results.
-	GuestsSearchRepo storage.GuestsSearchRepository // optional: falls back to Postgres when nil
+	searchGuests     func(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error)
 }
 
 func NewGuestsHandler(repo storage.GuestsRepository, searchRepo storage.GuestsSearchRepository) *GuestsHandler {
-	return &GuestsHandler{GuestsRepository: repo, GuestsSearchRepo: searchRepo}
+	// TODO: enforce searchRepo as required once OpenSearch setup is complete —
+	// falling back to Postgres can mask misconfiguration and return stale/missing results.
+	search := repo.FindGuestsWithActiveBooking
+	if searchRepo != nil {
+		search = searchRepo.SearchGuests
+	}
+	return &GuestsHandler{GuestsRepository: repo, searchGuests: search}
 }
 
 // CreateGuest godoc
@@ -199,15 +204,7 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 		filters.CursorID = parts[1]
 	}
 
-	var (
-		guests *models.GuestPage
-		err    error
-	)
-	if h.GuestsSearchRepo != nil {
-		guests, err = h.GuestsSearchRepo.SearchGuests(c.Context(), &filters)
-	} else {
-		guests, err = h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
-	}
+	guests, err := h.searchGuests(c.Context(), &filters)
 	if err != nil {
 		slog.Error("failed to get guests", "error", err)
 		return errs.InternalServerError()
