@@ -15,10 +15,13 @@ import (
 
 type GuestsHandler struct {
 	GuestsRepository storage.GuestsRepository
+	// GuestsSearchRepo routes search queries to OpenSearch when non-nil.
+	// Falls back to Postgres (GuestsRepository) when nil.
+	GuestsSearchRepo storage.GuestsSearchRepository
 }
 
-func NewGuestsHandler(repo storage.GuestsRepository) *GuestsHandler {
-	return &GuestsHandler{GuestsRepository: repo}
+func NewGuestsHandler(repo storage.GuestsRepository, searchRepo storage.GuestsSearchRepository) *GuestsHandler {
+	return &GuestsHandler{GuestsRepository: repo, GuestsSearchRepo: searchRepo}
 }
 
 // CreateGuest godoc
@@ -196,7 +199,15 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 		filters.CursorID = parts[1]
 	}
 
-	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
+	var (
+		guests *models.GuestPage
+		err    error
+	)
+	if h.GuestsSearchRepo != nil {
+		guests, err = h.GuestsSearchRepo.SearchGuests(c.Context(), &filters)
+	} else {
+		guests, err = h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
+	}
 	if err != nil {
 		slog.Error("failed to get guests", "error", err)
 		return errs.InternalServerError()

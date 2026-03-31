@@ -2,6 +2,28 @@ package models
 
 import "time"
 
+// GuestDocument is the denormalized document stored in OpenSearch.
+// It combines guest + active booking + room data so all filtering
+// and search can be satisfied in a single query.
+type GuestDocument struct {
+	ID            string  `json:"id"`
+	HotelID       string  `json:"hotel_id"`
+	FullName      string  `json:"full_name"`
+	FirstName     string  `json:"first_name"`
+	LastName      string  `json:"last_name"`
+	PreferredName string  `json:"preferred_name"`
+	Email         *string `json:"email,omitempty"`
+	Phone         *string `json:"phone,omitempty"`
+	Preferences   *string `json:"preferences,omitempty"`
+	Notes         *string `json:"notes,omitempty"`
+	Floor         int     `json:"floor"`
+	RoomNumber    int     `json:"room_number"`
+	GroupSize     *int    `json:"group_size,omitempty"`
+	BookingStatus string  `json:"booking_status"`
+	ArrivalDate   string  `json:"arrival_date"`   // "2006-01-02"
+	DepartureDate string  `json:"departure_date"` // "2006-01-02"
+} //@name GuestDocument
+
 type CreateGuest struct {
 	FirstName      string  `json:"first_name" validate:"notblank" example:"Jane"`
 	LastName       string  `json:"last_name" validate:"notblank" example:"Doe"`
