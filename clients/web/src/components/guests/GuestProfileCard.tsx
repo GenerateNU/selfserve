@@ -1,6 +1,6 @@
-import type { GuestWithStays } from "@shared";
 import { UserRound } from "lucide-react";
 import { formatDate } from "../../utils/dates";
+import type { GuestWithStays } from "@shared";
 
 type GuestProfileCardProps = {
   guest: GuestWithStays;
@@ -16,7 +16,8 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 export function GuestProfileCard({ guest }: GuestProfileCardProps) {
-  const currentStay = (guest.current_stays ?? [])[0];
+  const hasCurrentStay = guest.current_stays.length > 0;
+  const currentStay = guest.current_stays[0];
 
   return (
     <section className="border border-black bg-white px-[1vw] py-[2vh]">
@@ -32,7 +33,7 @@ export function GuestProfileCard({ guest }: GuestProfileCardProps) {
       </div>
 
       <div className="pt-[1vh]">
-        {currentStay ? (
+        {hasCurrentStay ? (
           <>
             <DetailRow label="Room" value={String(currentStay.room_number)} />
             <DetailRow

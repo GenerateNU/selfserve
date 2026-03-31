@@ -58,11 +58,11 @@ function GuestProfilePage() {
       <div className="grid gap-[2vh] xl:grid-cols-[minmax(0,45vw)_minmax(0,32vw)]">
         <div className="flex flex-col gap-[2vh]">
           <GuestProfileCard guest={guest} />
-          <GuestNotesCard initialNotes={guest.notes ?? undefined} />
+          <GuestNotesCard initialNotes={guest.notes} />
         </div>
         <div className="flex flex-col gap-[2vh]">
           <GuestSpecialNeedsCard specialNeeds={emptySpecialNeeds} />
-          <PreviousStaysCard stays={guest.past_stays ?? []} />
+          <PreviousStaysCard stays={guest.past_stays} />
           <HousekeepingPreferencesCard housekeeping={emptyHousekeeping} />
         </div>
       </div>

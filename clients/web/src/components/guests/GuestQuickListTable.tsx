@@ -1,10 +1,11 @@
-import type { GuestWithBooking } from "@shared";
 import { UserRound } from "lucide-react";
+import type { GuestWithBooking } from "@shared";
 
 type GuestQuickListTableProps = {
   guests: Array<GuestWithBooking>;
   groupFilter: string;
   floorFilter: string;
+  isLoading?: boolean;
   onGroupFilterChange: (value: string) => void;
   onFloorFilterChange: (value: string) => void;
   onGuestClick: (guestId: string) => void;
@@ -22,6 +23,7 @@ export function GuestQuickListTable({
   guests,
   groupFilter,
   floorFilter,
+  isLoading = false,
   onGroupFilterChange,
   onFloorFilterChange,
   onGuestClick,
@@ -40,7 +42,7 @@ export function GuestQuickListTable({
           <option value="all">Group</option>
           <option value="1-2">1-2</option>
           <option value="3-4">3-4</option>
-          <option value="5+">5+</option>
+          <option value="5+">5-20</option>
         </select>
         <select
           value={floorFilter}
@@ -78,7 +80,7 @@ export function GuestQuickListTable({
             <p className="text-[1vw] text-black">{guest.room_number}</p>
           </button>
         ))}
-        {guests.length === 0 && (
+        {!isLoading && guests.length === 0 && (
           <div className="px-[1vw] py-[2vh] text-[1vw] text-neutral-600">
             No guests match your current filters.
           </div>

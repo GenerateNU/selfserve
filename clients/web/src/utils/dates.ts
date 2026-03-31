@@ -1,7 +1,10 @@
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  });
+  const datePart = iso.includes("T") ? iso.split("T")[0] : iso;
+  const [year, month, day] = datePart.split("-");
+
+  if (!year || !month || !day) {
+    return iso;
+  }
+
+  return `${month}/${day}/${year}`;
 }

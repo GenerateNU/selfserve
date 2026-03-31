@@ -11,9 +11,10 @@ export const Route = createFileRoute("/_protected/guests/")({
   component: GuestsQuickListPage,
 });
 
-function groupSizeFilter(filter: string): number[] | undefined {
+function groupSizeFilter(filter: string): Array<number> | undefined {
   if (filter === "1-2") return [1, 2];
   if (filter === "3-4") return [3, 4];
+  // Product decision: the largest group filter bucket is capped at 20.
   if (filter === "5+")
     return [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
   return undefined;
@@ -59,6 +60,7 @@ function GuestsQuickListPage() {
             guests={allGuests}
             groupFilter={groupFilter}
             floorFilter={floorFilter}
+            isLoading={isLoading}
             onGroupFilterChange={setGroupFilter}
             onFloorFilterChange={setFloorFilter}
             onGuestClick={(guestId) =>

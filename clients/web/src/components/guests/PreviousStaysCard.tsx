@@ -1,5 +1,5 @@
-import type { Stay } from "@shared";
 import { formatDate } from "../../utils/dates";
+import type { Stay } from "@shared";
 
 type PreviousStaysCardProps = {
   stays: Array<Stay>;
