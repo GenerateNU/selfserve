@@ -19,9 +19,9 @@ type GuestDocument struct {
 	Floor         int     `json:"floor"`
 	RoomNumber    int     `json:"room_number"`
 	GroupSize     *int    `json:"group_size,omitempty"`
-	BookingStatus string  `json:"booking_status"`
-	ArrivalDate   string  `json:"arrival_date"`   // "2006-01-02"
-	DepartureDate string  `json:"departure_date"` // "2006-01-02"
+	BookingStatus string    `json:"booking_status"`
+	ArrivalDate   time.Time `json:"arrival_date"`
+	DepartureDate time.Time `json:"departure_date"`
 } //@name GuestDocument
 
 type CreateGuest struct {

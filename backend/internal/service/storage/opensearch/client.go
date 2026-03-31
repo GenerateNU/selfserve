@@ -67,8 +67,8 @@ var guestsIndexMapping = map[string]interface{}{
 			"room_number":    map[string]string{"type": "integer"},
 			"group_size":     map[string]string{"type": "integer"},
 			"booking_status": map[string]string{"type": "keyword"},
-			"arrival_date":   map[string]interface{}{"type": "date", "format": "yyyy-MM-dd"},
-			"departure_date": map[string]interface{}{"type": "date", "format": "yyyy-MM-dd"},
+			"arrival_date":   map[string]interface{}{"type": "date", "format": "strict_date_optional_time"},
+			"departure_date": map[string]interface{}{"type": "date", "format": "strict_date_optional_time"},
 		},
 	},
 }
