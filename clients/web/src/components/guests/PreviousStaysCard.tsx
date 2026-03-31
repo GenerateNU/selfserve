@@ -18,7 +18,8 @@ export function PreviousStaysCard({ stays }: PreviousStaysCardProps) {
             className="rounded-[1vh] border border-black px-[1vw] py-[1vh]"
           >
             <p className="text-[1vw] text-black">
-              {formatDate(stay.arrival_date)} - {formatDate(stay.departure_date)}
+              {formatDate(stay.arrival_date)} -{" "}
+              {formatDate(stay.departure_date)}
             </p>
             <p className="text-[1vw] text-black">Room {stay.room_number}</p>
           </article>
