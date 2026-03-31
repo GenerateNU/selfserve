@@ -20,8 +20,9 @@ type GuestsHandler struct {
 }
 
 func NewGuestsHandler(repo storage.GuestsRepository, searchRepo storage.GuestsSearchRepository) *GuestsHandler {
-	// TODO: enforce searchRepo as required once OpenSearch setup is complete —
-	// falling back to Postgres can mask misconfiguration and return stale/missing results.
+	// TODO: once OpenSearch setup is complete —
+	// 1. enforce searchRepo as required (fail startup if nil)
+	// 2. remove the Postgres fallback below
 	search := repo.FindGuestsWithActiveBooking
 	if searchRepo != nil {
 		search = searchRepo.SearchGuests
