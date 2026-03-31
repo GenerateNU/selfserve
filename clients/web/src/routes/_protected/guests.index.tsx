@@ -1,11 +1,14 @@
 import { usePostApiV1GuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { GuestPageShell } from "../../components/guests/GuestPageShell";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { useDebounce } from "../../hooks/use-debounce";
+import type { Request } from "@shared";
+import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
+import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
+import { PageShell } from "@/components/ui/PageShell";
 
 export const Route = createFileRoute("/_protected/guests/")({
   component: GuestsQuickListPage,
@@ -25,6 +28,9 @@ function GuestsQuickListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [groupFilter, setGroupFilter] = useState("all");
   const [floorFilter, setFloorFilter] = useState("all");
+  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
+    null,
+  );
 
   const debouncedSearch = useDebounce(searchTerm, 300);
   const postGuests = usePostApiV1GuestsSearchHook();
@@ -47,7 +53,20 @@ function GuestsQuickListPage() {
   const allGuests = data?.pages.flatMap((page) => page.data ?? []) ?? [];
 
   return (
-    <GuestPageShell title="Guests">
+    <PageShell
+      header={
+        <div className="px-6 py-5 border-b border-stroke-subtle">
+          <h1 className="text-2xl font-semibold text-text-default">Guests</h1>
+        </div>
+      }
+      drawerOpen={generatedRequest !== null}
+      drawer={
+        <GeneratedRequestDrawer
+          request={generatedRequest}
+          onClose={() => setGeneratedRequest(null)}
+        />
+      }
+    >
       <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
 
       {isError ? (
@@ -86,6 +105,10 @@ function GuestsQuickListPage() {
           )}
         </>
       )}
-    </GuestPageShell>
+
+      {generatedRequest === null && (
+        <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      )}
+    </PageShell>
   );
 }

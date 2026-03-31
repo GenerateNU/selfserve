@@ -97,7 +97,12 @@ jobs:
         run: cd ../shared && npm ci
       - name: Generate API types
         run: cd ../shared && npm run generate:api
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
       - name: Run tests with coverage
+        # Not needed currently, just for builds and deployment using doppler run command
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_MOBILE }}
         run: npm run test:coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

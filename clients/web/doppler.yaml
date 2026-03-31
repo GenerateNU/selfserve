@@ -1,0 +1,3 @@
+setup:
+  project: selfserve-web
+  config: dev
