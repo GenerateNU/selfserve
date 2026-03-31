@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowUp, Loader, Sparkles } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestGenerateHook } from "@shared/api/generated/endpoints/requests/requests.ts";
 import type { Request } from "@shared";
@@ -16,6 +16,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
   const postRequestGenerate = usePostRequestGenerateHook();
+  const queryClient = useQueryClient();
 
   const { data: backendUser } = useQuery({
     queryKey: ["user", clerkUser?.id],
@@ -32,6 +33,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
     onSuccess: (result) => {
       onRequestGenerated(result);
       setValue("");
+      queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
     },
     onError: (error) => {
       console.error("[GlobalTaskInput] onError", error);
