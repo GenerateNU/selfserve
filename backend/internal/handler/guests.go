@@ -15,9 +15,9 @@ import (
 
 type GuestsHandler struct {
 	GuestsRepository storage.GuestsRepository
-	// GuestsSearchRepo routes search queries to OpenSearch when non-nil.
-	// Falls back to Postgres (GuestsRepository) when nil.
-	GuestsSearchRepo storage.GuestsSearchRepository
+	// TODO: enforce OpenSearch as required once setup is complete — silent
+	// Postgres fallback can mask misconfiguration and return stale/missing results.
+	GuestsSearchRepo storage.GuestsSearchRepository // optional: falls back to Postgres when nil
 }
 
 func NewGuestsHandler(repo storage.GuestsRepository, searchRepo storage.GuestsSearchRepository) *GuestsHandler {
