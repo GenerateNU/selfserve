@@ -19,10 +19,9 @@ import (
 	"github.com/generate/selfserve/internal/storage/redis"
 
 	s3storage "github.com/generate/selfserve/internal/service/s3"
-	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	opensearchstorage "github.com/generate/selfserve/internal/service/storage/opensearch"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/validation"
-	opensearch "github.com/opensearch-project/opensearch-go/v2"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -31,6 +30,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	opensearch "github.com/opensearch-project/opensearch-go/v2"
 
 	goredis "github.com/redis/go-redis/v9"
 )

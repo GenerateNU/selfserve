@@ -6,19 +6,19 @@ import "time"
 // It combines guest + active booking + room data so all filtering
 // and search can be satisfied in a single query.
 type GuestDocument struct {
-	ID            string  `json:"id"`
-	HotelID       string  `json:"hotel_id"`
-	FullName      string  `json:"full_name"`
-	FirstName     string  `json:"first_name"`
-	LastName      string  `json:"last_name"`
-	PreferredName string  `json:"preferred_name"`
-	Email         *string `json:"email,omitempty"`
-	Phone         *string `json:"phone,omitempty"`
-	Preferences   *string `json:"preferences,omitempty"`
-	Notes         *string `json:"notes,omitempty"`
-	Floor         int     `json:"floor"`
-	RoomNumber    int     `json:"room_number"`
-	GroupSize     *int    `json:"group_size,omitempty"`
+	ID            string    `json:"id"`
+	HotelID       string    `json:"hotel_id"`
+	FullName      string    `json:"full_name"`
+	FirstName     string    `json:"first_name"`
+	LastName      string    `json:"last_name"`
+	PreferredName string    `json:"preferred_name"`
+	Email         *string   `json:"email,omitempty"`
+	Phone         *string   `json:"phone,omitempty"`
+	Preferences   *string   `json:"preferences,omitempty"`
+	Notes         *string   `json:"notes,omitempty"`
+	Floor         int       `json:"floor"`
+	RoomNumber    int       `json:"room_number"`
+	GroupSize     *int      `json:"group_size,omitempty"`
 	BookingStatus string    `json:"booking_status"`
 	ArrivalDate   time.Time `json:"arrival_date"`
 	DepartureDate time.Time `json:"departure_date"`
