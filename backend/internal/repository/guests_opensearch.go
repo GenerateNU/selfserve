@@ -7,11 +7,10 @@ import (
 	"fmt"
 
 	"github.com/generate/selfserve/internal/models"
+	opensearchstorage "github.com/generate/selfserve/internal/service/storage/opensearch"
 	opensearch "github.com/opensearch-project/opensearch-go/v2"
 	"github.com/opensearch-project/opensearch-go/v2/opensearchapi"
 )
-
-const guestsIndex = "guests"
 
 type OpenSearchGuestsRepository struct {
 	client *opensearch.Client
@@ -28,7 +27,7 @@ func (r *OpenSearchGuestsRepository) IndexGuest(ctx context.Context, doc *models
 	}
 
 	indexResponse, err := opensearchapi.IndexRequest{
-		Index:      guestsIndex,
+		Index:      opensearchstorage.GuestsIndex,
 		DocumentID: doc.ID,
 		Body:       bytes.NewReader(serializedDoc),
 	}.Do(ctx, r.client)
@@ -45,7 +44,7 @@ func (r *OpenSearchGuestsRepository) IndexGuest(ctx context.Context, doc *models
 
 func (r *OpenSearchGuestsRepository) DeleteGuest(ctx context.Context, id string) error {
 	deleteResponse, err := opensearchapi.DeleteRequest{
-		Index:      guestsIndex,
+		Index:      opensearchstorage.GuestsIndex,
 		DocumentID: id,
 	}.Do(ctx, r.client)
 	if err != nil {
@@ -67,7 +66,7 @@ func (r *OpenSearchGuestsRepository) SearchGuests(ctx context.Context, filters *
 	}
 
 	searchResponse, err := opensearchapi.SearchRequest{
-		Index: []string{guestsIndex},
+		Index: []string{opensearchstorage.GuestsIndex},
 		Body:  bytes.NewReader(serializedQuery),
 	}.Do(ctx, r.client)
 	if err != nil {

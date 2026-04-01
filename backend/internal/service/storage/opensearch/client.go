@@ -13,8 +13,6 @@ import (
 	"github.com/opensearch-project/opensearch-go/v2/opensearchapi"
 )
 
-const GuestsIndex = "guests"
-
 func NewClient(cfg config.OpenSearch) (*opensearch.Client, error) {
 	transport := &http.Transport{}
 	if cfg.InsecureSkipTLS {
