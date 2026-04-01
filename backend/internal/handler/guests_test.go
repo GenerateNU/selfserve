@@ -72,7 +72,7 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests", h.CreateGuest)
 
 		req := httptest.NewRequest("POST", "/guests", bytes.NewBufferString(validBody))
@@ -104,7 +104,7 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests", h.CreateGuest)
 
 		bodyWithOptionals := `{
@@ -136,7 +136,7 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests", h.CreateGuest)
 
 		req := httptest.NewRequest("POST", "/guests", bytes.NewBufferString(`{invalid json`))
@@ -158,7 +158,7 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests", h.CreateGuest)
 
 		req := httptest.NewRequest("POST", "/guests", bytes.NewBufferString(`{}`))
@@ -184,7 +184,7 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests", h.CreateGuest)
 
 		invalidTimezoneBody := `{
@@ -216,7 +216,7 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests", h.CreateGuest)
 
 		req := httptest.NewRequest("POST", "/guests", bytes.NewBufferString(validBody))
@@ -238,7 +238,7 @@ func TestGuestsHandler_CreateGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests", h.CreateGuest)
 
 		req := httptest.NewRequest("POST", "/guests", bytes.NewBufferString(validBody))
@@ -275,7 +275,7 @@ func TestGuestsHandler_GetGuest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Get("/guests/:id", h.GetGuest)
 
 		req := httptest.NewRequest("GET", "/guests/530e8400-e458-41d4-a716-446655440000", nil)
@@ -298,7 +298,7 @@ func TestGuestsHandler_GetGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Get("/guests/:id", h.GetGuest)
 
 		req := httptest.NewRequest("GET", "/guests/notaUUID", nil)
@@ -318,7 +318,7 @@ func TestGuestsHandler_GetGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Get("/guests/:id", h.GetGuest)
 
 		req := httptest.NewRequest("GET", "/guests/530e8400-e458-41d4-a716-446655440001", nil)
@@ -338,7 +338,7 @@ func TestGuestsHandler_GetGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Get("/guests/:id", h.GetGuest)
 
 		req := httptest.NewRequest("GET", "/guests/530e8400-e458-41d4-a716-446655440001", nil)
@@ -376,7 +376,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Put("/guests/:id", h.UpdateGuest)
 
 		req := httptest.NewRequest(
@@ -400,7 +400,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Put("/guests/:id", h.UpdateGuest)
 
 		req := httptest.NewRequest(
@@ -423,7 +423,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Put("/guests/:id", h.UpdateGuest)
 
 		req := httptest.NewRequest(
@@ -446,7 +446,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Put("/guests/:id", h.UpdateGuest)
 
 		req := httptest.NewRequest(
@@ -470,7 +470,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Put("/guests/:id", h.UpdateGuest)
 
 		req := httptest.NewRequest(
@@ -490,7 +490,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Put("/guests/:id", h.UpdateGuest)
 
 		req := httptest.NewRequest(
@@ -510,7 +510,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Put("/guests/:id", h.UpdateGuest)
 
 		req := httptest.NewRequest(
@@ -538,7 +538,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Put("/guests/:id", h.UpdateGuest)
 
 		req := httptest.NewRequest(
@@ -563,7 +563,7 @@ func TestGuestsHandler_UpdateGuest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Put("/guests/:id", h.UpdateGuest)
 
 		req := httptest.NewRequest(
@@ -599,7 +599,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{}`))
@@ -628,7 +628,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{"floors":[3]}`))
@@ -659,7 +659,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		body := fmt.Sprintf(`{"cursor":"%s","limit":10}`, cursor)
@@ -680,7 +680,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{}`))
@@ -696,7 +696,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{}`))
@@ -713,7 +713,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{"cursor":"not-a-uuid"}`))
@@ -730,7 +730,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{"cursor":"John Doe|not-a-uuid"}`))
@@ -753,7 +753,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{"search":"john"}`))
@@ -776,7 +776,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{"group_size":[2,3]}`))
@@ -793,7 +793,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{invalid`))
@@ -810,7 +810,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{"limit":-1}`))
@@ -827,7 +827,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{"limit":101}`))
@@ -852,7 +852,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{}`))
@@ -878,7 +878,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{}`))
@@ -900,7 +900,7 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Post("/guests/search", h.GetGuests)
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{}`))
@@ -932,7 +932,7 @@ func TestGuestsHandler_GetGuestWithStays(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Get("/guests/stays/:id", h.GetGuestWithStays)
 
 		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
@@ -950,7 +950,7 @@ func TestGuestsHandler_GetGuestWithStays(t *testing.T) {
 
 		mock := &mockGuestsRepository{}
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Get("/guests/stays/:id", h.GetGuestWithStays)
 
 		req := httptest.NewRequest("GET", "/guests/stays/not-a-uuid", nil)
@@ -969,7 +969,7 @@ func TestGuestsHandler_GetGuestWithStays(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Get("/guests/stays/:id", h.GetGuestWithStays)
 
 		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
@@ -988,7 +988,7 @@ func TestGuestsHandler_GetGuestWithStays(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Get("/guests/stays/:id", h.GetGuestWithStays)
 
 		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
@@ -1008,7 +1008,7 @@ func TestGuestsHandler_GetGuestWithStays(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewGuestsHandler(mock)
+		h := NewGuestsHandler(mock, nil)
 		app.Get("/guests/stays/:id", h.GetGuestWithStays)
 
 		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
