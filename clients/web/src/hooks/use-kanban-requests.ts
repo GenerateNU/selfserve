@@ -4,7 +4,7 @@ import type { Request } from "@shared";
 
 const CURSOR_START = "0";
 
-type RequestPage = { requests: Request[]; next_cursor: string };
+type RequestPage = { requests: Array<Request>; next_cursor: string };
 
 export function useKanbanRequests(hotelId: string | undefined, status: string) {
   const getRequests = useGetRequestCursorCursorHook();

@@ -26,7 +26,7 @@ type RequestCardItemProps = {
 };
 
 export function RequestCardItem({ request }: RequestCardItemProps) {
-  const status = (request.status as RequestStatus) ?? "pending";
+  const status = request.status as RequestStatus;
 
   return (
     <RequestCard status={status} className="w-full">

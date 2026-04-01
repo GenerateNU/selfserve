@@ -48,7 +48,7 @@ function KanbanColumnData({ hotelId, status }: { hotelId: string; status: string
     return () => observer.disconnect();
   }, [fetchNextPage]);
 
-  const requests = (data?.pages ?? []).flatMap((page) => page.requests ?? []);
+  const requests = (data?.pages ?? []).flatMap((page) => page.requests);
 
   return (
     <>
