@@ -60,13 +60,13 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	osGuestsRepo := tryInitOpenSearchGuestsRepo(cfg)
+	osRepos := tryInitOpenSearchRepositories(cfg)
 
 	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, osGuestsRepo); err != nil { //nolint:wsl
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, osRepos); err != nil { //nolint:wsl
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -81,17 +81,23 @@ func InitApp(cfg *config.Config) (*App, error) {
 	}, nil
 }
 
-func tryInitOpenSearchGuestsRepo(cfg *config.Config) storage.GuestsSearchRepository {
+type openSearchRepositories struct {
+	Guests storage.GuestsSearchRepository
+}
+
+func tryInitOpenSearchRepositories(cfg *config.Config) openSearchRepositories {
 	client, err := opensearchstorage.NewClient(cfg.OpenSearch)
 	if err != nil {
 		log.Printf("Warning: OpenSearch not available: %v", err)
-		return nil
+		return openSearchRepositories{}
 	}
 	if err := opensearchstorage.EnsureGuestsIndex(context.Background(), client); err != nil {
 		log.Printf("Warning: failed to ensure OpenSearch guests index: %v", err)
-		return nil
+		return openSearchRepositories{}
 	}
-	return repository.NewOpenSearchGuestsRepository(client)
+	return openSearchRepositories{
+		Guests: repository.NewOpenSearchGuestsRepository(client),
+	}
 }
 
 func tryInitRedis() *goredis.Client {
@@ -104,7 +110,7 @@ func tryInitRedis() *goredis.Client {
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	cfg *config.Config, s3Store *s3storage.Storage, osGuestsRepo storage.GuestsSearchRepository) error {
+	cfg *config.Config, s3Store *s3storage.Storage, osRepos openSearchRepositories) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -125,7 +131,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), osGuestsRepo)
+	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), osRepos.Guests)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
