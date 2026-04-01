@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "react-native-reanimated";
 import "../global.css";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import {
   DarkTheme,
   DefaultTheme,
@@ -15,6 +16,7 @@ import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { setConfig } from "@shared";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Client explicity created outside component to avoid recreation
 const queryClient = new QueryClient({
@@ -36,8 +38,12 @@ function AppConfigurator() {
   const { getToken } = useAuth();
   useEffect(() => {
     setConfig({
-      API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
+      API_BASE_URL:
+        process.env.EXPO_PUBLIC_API_BASE_URL ??
+        process.env.EXPO_PUBLIC_API_URL ??
+        "",
       getToken,
+      devClerkUserId: process.env.EXPO_PUBLIC_DEV_CLERK_USER_ID,
     });
   }, [getToken]);
 
@@ -56,18 +62,22 @@ export default function RootLayout() {
         <AppConfigurator />
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-            >
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="modal"
-                  options={{ presentation: "modal", title: "Modal" }}
-                />
-              </Stack>
-              <StatusBar style="auto" />
-            </ThemeProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <BottomSheetModalProvider>
+                <ThemeProvider
+                  value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+                >
+                  <Stack>
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen
+                      name="modal"
+                      options={{ presentation: "modal", title: "Modal" }}
+                    />
+                  </Stack>
+                  <StatusBar style="auto" />
+                </ThemeProvider>
+              </BottomSheetModalProvider>
+            </GestureHandlerRootView>
           </SafeAreaProvider>
         </QueryClientProvider>
       </ClerkLoaded>

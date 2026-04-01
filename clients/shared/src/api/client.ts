@@ -7,7 +7,10 @@ import { getConfig } from "./config";
 export const createRequest = (
   getToken: () => Promise<string | null>,
   baseUrl: string,
+  devClerkUserId?: string,
 ) => {
+  // TODO(production): Remove hardcoded tenant ID. Derive hotel/tenant context from
+  // authenticated user claims (or a server-issued context token), not client constants.
   const hardCodedHotelId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
@@ -24,7 +27,14 @@ export const createRequest = (
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
+          // TODO(production): Do not trust client-sent X-Hotel-ID for tenancy isolation.
+          // Backend should resolve tenant from auth context and ignore/validate this header.
           "X-Hotel-ID": hardCodedHotelId,
+          ...(devClerkUserId?.trim() && {
+            // TODO(production): Remove dev auth bypass header usage after auth middleware
+            // is fully enforced in all environments.
+            "X-Dev-User-Id": devClerkUserId.trim(),
+          }),
           ...config.headers,
         },
         body: config.data ? JSON.stringify(config.data) : undefined,
@@ -74,9 +84,9 @@ export const useAPIClient = (): HttpClient => {
   // can be called during app startup (e.g. in a useEffect)
   // before any API calls are executed.
   const request = async <T>(config: RequestConfig): Promise<T> => {
-    const { getToken } = getConfig();
+    const { getToken, devClerkUserId } = getConfig();
     const baseUrl = getBaseUrl();
-    const doRequest = createRequest(getToken, baseUrl);
+    const doRequest = createRequest(getToken, baseUrl, devClerkUserId);
     return doRequest<T>(config);
   };
 

@@ -8,6 +8,10 @@
 export type Config = {
   API_BASE_URL: string
   getToken: () => Promise<string | null>
+  /** When backend auth middleware is off in development, sent as X-Dev-User-Id for tab=my */
+  // TODO(production): Remove this config once backend auth is enforced and user identity
+  // is derived exclusively from verified tokens/claims.
+  devClerkUserId?: string
 }
 
 let config: Config | null = null
