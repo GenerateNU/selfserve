@@ -30,8 +30,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	opensearch "github.com/opensearch-project/opensearch-go/v2"
-
 	goredis "github.com/redis/go-redis/v9"
 )
 
@@ -40,7 +38,6 @@ type App struct {
 	Repo        *storage.Repository
 	S3Storage   *s3storage.Storage
 	RedisClient *goredis.Client
-	OSClient    *opensearch.Client
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
@@ -63,13 +60,13 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	osClient := tryInitOpenSearch(cfg)
+	osGuestsRepo := tryInitOpenSearchGuestsRepo(cfg)
 
 	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, osClient); err != nil { //nolint:wsl
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, osGuestsRepo); err != nil { //nolint:wsl
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -81,11 +78,10 @@ func InitApp(cfg *config.Config) (*App, error) {
 		Repo:        repo,
 		RedisClient: redisClient,
 		S3Storage:   s3Store,
-		OSClient:    osClient,
 	}, nil
 }
 
-func tryInitOpenSearch(cfg *config.Config) *opensearch.Client {
+func tryInitOpenSearchGuestsRepo(cfg *config.Config) storage.GuestsSearchRepository {
 	client, err := opensearchstorage.NewClient(cfg.OpenSearch)
 	if err != nil {
 		log.Printf("Warning: OpenSearch not available: %v", err)
@@ -95,7 +91,7 @@ func tryInitOpenSearch(cfg *config.Config) *opensearch.Client {
 		log.Printf("Warning: failed to ensure OpenSearch guests index: %v", err)
 		return nil
 	}
-	return client
+	return repository.NewOpenSearchGuestsRepository(client)
 }
 
 func tryInitRedis() *goredis.Client {
@@ -108,7 +104,7 @@ func tryInitRedis() *goredis.Client {
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	cfg *config.Config, s3Store *s3storage.Storage, osClient *opensearch.Client) error {
+	cfg *config.Config, s3Store *s3storage.Storage, osGuestsRepo storage.GuestsSearchRepository) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -129,10 +125,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	var osGuestsRepo storage.GuestsSearchRepository
-	if osClient != nil {
-		osGuestsRepo = repository.NewOpenSearchGuestsRepository(osClient)
-	}
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), osGuestsRepo)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
