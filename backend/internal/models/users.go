@@ -12,7 +12,6 @@ type CreateUser struct {
 	Role           *string `json:"role,omitempty" validate:"omitempty" example:"Receptionist"`
 	Department     *string `json:"department,omitempty" validate:"omitempty" example:"Housekeeping"`
 	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
-	ClerkID        string  `json:"clerk_id" validate:"notblank" example:"user_123"`
 	PhoneNumber    *string `json:"phone_number,omitempty" validate:"omitempty" example:"+11234567890"`
 	PrimaryEmail   *string `json:"primary_email,omitempty" validate:"omitempty,email" example:"john@example.com"`
 } //@name CreateUser
