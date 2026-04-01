@@ -11,6 +11,7 @@ import (
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/utils"
+	"github.com/generate/selfserve/internal/validation"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -29,6 +30,19 @@ type TasksHandler struct {
 
 func NewTasksHandler(repo storage.RequestsRepository, users staffUserIDResolver) *TasksHandler {
 	return &TasksHandler{repo: repo, users: users}
+}
+
+// validateCreateRequest applies the same rules as httpx.BindAndValidate for models.MakeRequest,
+// since CreateTask builds the payload in code rather than from JSON.
+func validateCreateRequest(req *models.Request) error {
+	if validation.Validate == nil {
+		return errs.InternalServerError()
+	}
+	if err := validation.Validate.Struct(req.MakeRequest); err != nil {
+		fieldErrors := validation.ToFieldErrors(err)
+		return errs.BadRequest(validation.DeterministicErrorString(fieldErrors))
+	}
+	return nil
 }
 
 // GetTasks returns a cursor page of tasks for the hotel, scoped by tab (my vs unassigned).
