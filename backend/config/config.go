@@ -6,4 +6,5 @@ type Config struct {
 	S3          `env:",prefix=AWS_S3_"`
 	LLM         `env:",prefix=LLM_"`
 	Clerk       `env:",prefix=CLERK_"`
+	OpenSearch  `env:",prefix=OPENSEARCH_"`
 }

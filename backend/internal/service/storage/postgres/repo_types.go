@@ -25,6 +25,14 @@ type GuestsRepository interface {
 	FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error)
 }
 
+// GuestsSearchRepository is implemented by OpenSearch. It handles
+// indexing and searching the denormalized GuestDocument.
+type GuestsSearchRepository interface {
+	IndexGuest(ctx context.Context, doc *models.GuestDocument) error
+	SearchGuests(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error)
+	DeleteGuest(ctx context.Context, id string) error
+}
+
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
 	FindRequest(ctx context.Context, id string) (*models.Request, error)

@@ -11,6 +11,7 @@ require (
 	github.com/firebase/genkit/go v1.4.0
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/gofiber/adaptor/v2 v2.2.1
+	github.com/opensearch-project/opensearch-go/v2 v2.3.0
 	github.com/redis/go-redis/v9 v9.17.3
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/stretchr/testify v1.11.1
