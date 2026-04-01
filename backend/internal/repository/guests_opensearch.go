@@ -22,102 +22,102 @@ func NewOpenSearchGuestsRepository(client *opensearch.Client) *OpenSearchGuestsR
 }
 
 func (r *OpenSearchGuestsRepository) IndexGuest(ctx context.Context, doc *models.GuestDocument) error {
-	body, err := json.Marshal(doc)
+	serializedDoc, err := json.Marshal(doc)
 	if err != nil {
 		return err
 	}
 
-	res, err := opensearchapi.IndexRequest{
+	indexResponse, err := opensearchapi.IndexRequest{
 		Index:      guestsIndex,
 		DocumentID: doc.ID,
-		Body:       bytes.NewReader(body),
+		Body:       bytes.NewReader(serializedDoc),
 	}.Do(ctx, r.client)
 	if err != nil {
 		return fmt.Errorf("indexing guest %s: %w", doc.ID, err)
 	}
-	defer res.Body.Close()
+	defer indexResponse.Body.Close()
 
-	if res.IsError() {
-		return fmt.Errorf("indexing guest %s failed: %s", doc.ID, res.String())
+	if indexResponse.IsError() {
+		return fmt.Errorf("indexing guest %s failed: %s", doc.ID, indexResponse.String())
 	}
 	return nil
 }
 
 func (r *OpenSearchGuestsRepository) DeleteGuest(ctx context.Context, id string) error {
-	res, err := opensearchapi.DeleteRequest{
+	deleteResponse, err := opensearchapi.DeleteRequest{
 		Index:      guestsIndex,
 		DocumentID: id,
 	}.Do(ctx, r.client)
 	if err != nil {
 		return fmt.Errorf("deleting guest %s from index: %w", id, err)
 	}
-	defer res.Body.Close()
+	defer deleteResponse.Body.Close()
 
-	if res.IsError() && res.StatusCode != 404 {
-		return fmt.Errorf("deleting guest %s failed: %s", id, res.String())
+	if deleteResponse.IsError() && deleteResponse.StatusCode != 404 {
+		return fmt.Errorf("deleting guest %s failed: %s", id, deleteResponse.String())
 	}
 	return nil
 }
 
 func (r *OpenSearchGuestsRepository) SearchGuests(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
-	query := buildGuestSearchQuery(filters)
-	body, err := json.Marshal(query)
+	searchQuery := buildGuestSearchQuery(filters)
+	serializedQuery, err := json.Marshal(searchQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := opensearchapi.SearchRequest{
+	searchResponse, err := opensearchapi.SearchRequest{
 		Index: []string{guestsIndex},
-		Body:  bytes.NewReader(body),
+		Body:  bytes.NewReader(serializedQuery),
 	}.Do(ctx, r.client)
 	if err != nil {
 		return nil, fmt.Errorf("searching guests: %w", err)
 	}
-	defer res.Body.Close()
+	defer searchResponse.Body.Close()
 
-	if res.IsError() {
-		return nil, fmt.Errorf("guest search failed: %s", res.String())
+	if searchResponse.IsError() {
+		return nil, fmt.Errorf("guest search failed: %s", searchResponse.String())
 	}
 
-	var result struct {
+	var decodedSearchResult struct {
 		Hits struct {
 			Hits []struct {
-				Source models.GuestDocument `json:"_source"`
-				Sort   []any                `json:"sort"`
+				GuestDocument models.GuestDocument `json:"_source"`
+				SortValues    []any                `json:"sort"`
 			} `json:"hits"`
 		} `json:"hits"`
 	}
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+	if err := json.NewDecoder(searchResponse.Body).Decode(&decodedSearchResult); err != nil {
 		return nil, fmt.Errorf("decoding search response: %w", err)
 	}
 
-	hits := result.Hits.Hits
+	searchHits := decodedSearchResult.Hits.Hits
 	var nextCursor *string
-	if len(hits) == filters.Limit+1 {
-		hits = hits[:filters.Limit]
-		last := hits[filters.Limit-1]
-		if len(last.Sort) >= 2 {
-			encoded := fmt.Sprintf("%v|%v", last.Sort[0], last.Sort[1])
-			nextCursor = &encoded
+	if len(searchHits) == filters.Limit+1 {
+		searchHits = searchHits[:filters.Limit]
+		lastHit := searchHits[filters.Limit-1]
+		if len(lastHit.SortValues) >= 2 {
+			encodedCursor := fmt.Sprintf("%v|%v", lastHit.SortValues[0], lastHit.SortValues[1])
+			nextCursor = &encodedCursor
 		}
 	}
 
-	guests := make([]*models.GuestWithBooking, 0, len(hits))
-	for _, hit := range hits {
-		doc := hit.Source
-		guests = append(guests, &models.GuestWithBooking{
-			ID:            doc.ID,
-			FirstName:     doc.FirstName,
-			LastName:      doc.LastName,
-			PreferredName: doc.PreferredName,
-			Floor:         doc.Floor,
-			RoomNumber:    doc.RoomNumber,
-			GroupSize:     doc.GroupSize,
+	guestResults := make([]*models.GuestWithBooking, 0, len(searchHits))
+	for _, hit := range searchHits {
+		guestDoc := hit.GuestDocument
+		guestResults = append(guestResults, &models.GuestWithBooking{
+			ID:            guestDoc.ID,
+			FirstName:     guestDoc.FirstName,
+			LastName:      guestDoc.LastName,
+			PreferredName: guestDoc.PreferredName,
+			Floor:         guestDoc.Floor,
+			RoomNumber:    guestDoc.RoomNumber,
+			GroupSize:     guestDoc.GroupSize,
 		})
 	}
 
 	return &models.GuestPage{
-		Data:       guests,
+		Data:       guestResults,
 		NextCursor: nextCursor,
 	}, nil
 }
