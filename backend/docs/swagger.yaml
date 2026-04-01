@@ -17,9 +17,6 @@ definitions:
     type: object
   CreateUser:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       department:
         example: Housekeeping
         type: string
@@ -257,9 +254,6 @@ definitions:
     type: object
   User:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
@@ -630,6 +624,11 @@ paths:
         name: status
         required: true
         type: string
+      - description: Hotel UUID
+        in: query
+        name: hotel_id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -692,6 +691,11 @@ paths:
       description: Retrieves rooms optionally filtered by floor, with any active guest
         bookings
       parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
       - collectionFormat: csv
         description: floors
         in: query

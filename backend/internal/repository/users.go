@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,6 +18,50 @@ type UsersRepository struct {
 
 func NewUsersRepository(db *pgxpool.Pool) *UsersRepository {
 	return &UsersRepository{db: db}
+}
+
+// ResolveStaffUserIDForRequests maps X-Dev-User-Id / Clerk ids to the value stored in requests.user_id.
+// Supports: (1) post-migration schema where users.id is the Clerk id (text), and (2) legacy schema with
+// uuid users.id plus users.clerk_id.
+// TODO(production): Prefer a verified auth principal from middleware instead of
+// accepting raw user identity from request headers.
+func (r *UsersRepository) ResolveStaffUserIDForRequests(ctx context.Context, header string) (string, error) {
+	header = strings.TrimSpace(header)
+	if header == "" {
+		return "", nil
+	}
+
+	var id string
+	var idLookupWasInvalidUUID bool
+	err := r.db.QueryRow(ctx, `SELECT id::text FROM users WHERE id = $1`, header).Scan(&id)
+	if err == nil {
+		return id, nil
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "22P02" {
+			idLookupWasInvalidUUID = true
+			err = pgx.ErrNoRows
+		} else {
+			return "", err
+		}
+	}
+
+	err = r.db.QueryRow(ctx, `SELECT id::text FROM users WHERE clerk_id = $1`, header).Scan(&id)
+	if err == nil {
+		return id, nil
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", errs.ErrNotFoundInDB
+	}
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "42703" && idLookupWasInvalidUUID {
+		return "", errs.ErrStaffUserIDNeedsDBMigration
+	}
+	if errors.As(err, &pgErr) && pgErr.Code == "42703" {
+		return "", errs.ErrNotFoundInDB
+	}
+	return "", err
 }
 
 func (r *UsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {

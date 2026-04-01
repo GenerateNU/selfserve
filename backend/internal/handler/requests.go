@@ -67,8 +67,8 @@ func validateCreateRequest(req *models.Request) error {
 	if req.GuestID != nil && !validUUID(*req.GuestID) {
 		errors["guest_id"] = "invalid uuid"
 	}
-	if req.UserID != nil && !validUUID(*req.UserID) {
-		errors["user_id"] = "invalid uuid"
+	if req.UserID != nil && strings.TrimSpace(*req.UserID) == "" {
+		errors["user_id"] = "must not be an empty string"
 	}
 	if req.Name == "" {
 		errors["name"] = "must not be an empty string"

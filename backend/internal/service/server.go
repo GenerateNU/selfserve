@@ -14,7 +14,7 @@ import (
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 
-	"github.com/generate/selfserve/internal/service/clerk"
+	// "github.com/generate/selfserve/internal/service/clerk" // re-enable with app.Use below when auth PR is merged
 	s3storage "github.com/generate/selfserve/internal/service/s3"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/validation"
@@ -99,6 +99,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
 	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
+	tasksHandler := handler.NewTasksHandler(repository.NewRequestsRepo(repo.DB), usersRepo)
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
@@ -114,8 +115,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/user", clerkWebhookHandler.CreateUser)
 	})
 
-	verifier := clerk.NewClerkJWTVerifier()
-	app.Use(clerk.NewAuthMiddleware(verifier))
+	// Clerk JWT middleware
+	// verifier := clerk.NewClerkJWTVerifier()
+	// app.Use(clerk.NewAuthMiddleware(verifier))
 
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
@@ -160,6 +162,15 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Get("/", roomsHandler.GetRoomsByFloor)
 	})
 
+	// tasks routes
+	api.Route("/tasks", func(r fiber.Router) {
+		r.Get("/", tasksHandler.GetTasks)
+		r.Post("/", tasksHandler.CreateTask)
+		r.Patch("/:id", tasksHandler.PatchTask)
+		r.Post("/:id/claim", tasksHandler.ClaimTask)
+		r.Post("/:id/drop", tasksHandler.DropTask)
+	})
+
 	// s3 routes
 	api.Route("/s3", func(r fiber.Router) {
 		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
@@ -187,8 +198,8 @@ func setupApp() *fiber.App {
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:3000, http://localhost:8081",
-		AllowMethods:     "GET,POST,PUT,DELETE",
-		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID",
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID, X-Dev-User-Id",
 		AllowCredentials: true,
 	}))
 

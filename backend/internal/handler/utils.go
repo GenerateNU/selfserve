@@ -18,6 +18,8 @@ func validUUID(s string) bool {
 }
 
 func hotelIDFromHeader(c *fiber.Ctx) (string, error) {
+	// TODO(production): Stop taking tenant scope from client-provided header.
+	// Resolve hotel_id from verified auth/session context on the server.
 	hotelID := strings.TrimSpace(c.Get(hotelIDHeader))
 	if hotelID == "" {
 		return "", errs.BadRequest("hotel_id header is required")

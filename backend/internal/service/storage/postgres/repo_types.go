@@ -25,6 +25,11 @@ type RequestsRepository interface {
 	FindRequests(ctx context.Context) ([]models.Request, error)
 
 	FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
+
+	FindTasks(ctx context.Context, hotelID string, userID string, filter *models.TaskFilter, cursor *models.TaskCursor) ([]*models.Task, error)
+	UpdateTaskStatus(ctx context.Context, hotelID, taskID, status string) error
+	ClaimTask(ctx context.Context, hotelID, taskID, staffUserID string) error
+	DropTask(ctx context.Context, hotelID, taskID, staffUserID string) error
 }
 
 type HotelsRepository interface {

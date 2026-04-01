@@ -22,6 +22,10 @@ type mockRequestRepository struct {
 	findRequestFunc          func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc         func(ctx context.Context) ([]models.Request, error)
 	findRequestsByCursorFunc func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
+	findTasksFunc            func(ctx context.Context, hotelID string, userID string, filter *models.TaskFilter, cursor *models.TaskCursor) ([]*models.Task, error)
+	updateTaskStatusFunc     func(ctx context.Context, hotelID, taskID, status string) error
+	claimTaskFunc            func(ctx context.Context, hotelID, taskID, staffUserID string) error
+	dropTaskFunc             func(ctx context.Context, hotelID, taskID, staffUserID string) error
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -38,6 +42,34 @@ func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Requ
 
 func (m *mockRequestRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
 	return m.findRequestsByCursorFunc(ctx, cursor, status, hotelID, pageSize)
+}
+
+func (m *mockRequestRepository) FindTasks(ctx context.Context, hotelID string, userID string, filter *models.TaskFilter, cursor *models.TaskCursor) ([]*models.Task, error) {
+	if m.findTasksFunc == nil {
+		return nil, nil
+	}
+	return m.findTasksFunc(ctx, hotelID, userID, filter, cursor)
+}
+
+func (m *mockRequestRepository) UpdateTaskStatus(ctx context.Context, hotelID, taskID, status string) error {
+	if m.updateTaskStatusFunc == nil {
+		return nil
+	}
+	return m.updateTaskStatusFunc(ctx, hotelID, taskID, status)
+}
+
+func (m *mockRequestRepository) ClaimTask(ctx context.Context, hotelID, taskID, staffUserID string) error {
+	if m.claimTaskFunc == nil {
+		return nil
+	}
+	return m.claimTaskFunc(ctx, hotelID, taskID, staffUserID)
+}
+
+func (m *mockRequestRepository) DropTask(ctx context.Context, hotelID, taskID, staffUserID string) error {
+	if m.dropTaskFunc == nil {
+		return nil
+	}
+	return m.dropTaskFunc(ctx, hotelID, taskID, staffUserID)
 }
 
 type mockLLMService struct {
