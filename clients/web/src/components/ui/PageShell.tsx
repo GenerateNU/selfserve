@@ -5,6 +5,7 @@ type PageShellProps = {
   header: ReactNode;
   drawer?: ReactNode;
   drawerOpen?: boolean;
+  onDrawerClose?: () => void;
   children: ReactNode;
   contentClassName?: string;
   bodyClassName?: string;
@@ -14,11 +15,13 @@ export function PageShell({
   header,
   drawer,
   drawerOpen = false,
+  onDrawerClose,
   children,
   contentClassName,
   bodyClassName,
 }: PageShellProps) {
   const hasDrawer = drawer !== undefined;
+  const showOverlay = hasDrawer && drawerOpen && onDrawerClose !== undefined;
 
   return (
     <main className="relative flex h-screen w-full min-w-0 overflow-hidden">
@@ -41,6 +44,15 @@ export function PageShell({
           </div>
         </section>
       </div>
+
+      {showOverlay && (
+        <button
+          type="button"
+          aria-label="Close drawer overlay"
+          className="absolute inset-0 z-40 bg-transparent"
+          onClick={onDrawerClose}
+        />
+      )}
 
       {hasDrawer && (
         <aside

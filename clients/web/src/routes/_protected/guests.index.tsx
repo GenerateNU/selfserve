@@ -9,8 +9,14 @@ import type { Request } from "@shared";
 import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
+import { GuestDetailsDrawer } from "@/components/guests/GuestDetailsDrawer";
+import {
+  getGuestDrawerVisibility,
+  resolveGuestDrawerSearch,
+} from "@/components/guests/guest-drawer-state";
 
 export const Route = createFileRoute("/_protected/guests/")({
+  validateSearch: (search: Record<string, unknown>) => search,
   component: GuestsQuickListPage,
 });
 
@@ -25,6 +31,7 @@ function groupSizeFilter(filter: string): Array<number> | undefined {
 
 function GuestsQuickListPage() {
   const navigate = useNavigate();
+  const resolvedSearch = resolveGuestDrawerSearch(Route.useSearch());
   const [searchTerm, setSearchTerm] = useState("");
   const [groupFilter, setGroupFilter] = useState("all");
   const [floorFilter, setFloorFilter] = useState("all");
@@ -51,6 +58,74 @@ function GuestsQuickListPage() {
     });
 
   const allGuests = data?.pages.flatMap((page) => page.data ?? []) ?? [];
+  const guestDrawerOpen = getGuestDrawerVisibility({
+    guestId: resolvedSearch.guestId,
+    generatedRequestOpen: generatedRequest !== null,
+  });
+  const anyDrawerOpen = generatedRequest !== null || guestDrawerOpen;
+  const selectedGuest = allGuests.find(
+    (guest) => guest.id === resolvedSearch.guestId,
+  );
+
+  const closeGuestDrawer = () => {
+    navigate({
+      to: "/guests",
+      search: (prev) => ({
+        ...prev,
+        guestId: undefined,
+        tab: undefined,
+        activityView: undefined,
+      }),
+      replace: true,
+    });
+  };
+
+  const closeAnyDrawer = () => {
+    if (generatedRequest !== null) {
+      setGeneratedRequest(null);
+      return;
+    }
+
+    closeGuestDrawer();
+  };
+
+  const drawer = generatedRequest ? (
+    <GeneratedRequestDrawer
+      request={generatedRequest}
+      onClose={() => setGeneratedRequest(null)}
+    />
+  ) : (
+    <GuestDetailsDrawer
+      guestName={
+        selectedGuest
+          ? `${selectedGuest.first_name} ${selectedGuest.last_name}`
+          : "Guest"
+      }
+      activeTab={resolvedSearch.tab}
+      onChangeTab={(tab) =>
+        navigate({
+          to: "/guests",
+          search: (prev) => ({
+            ...prev,
+            guestId: resolvedSearch.guestId,
+            tab,
+            activityView:
+              tab === "activity"
+                ? resolveGuestDrawerSearch(prev).activityView
+                : undefined,
+          }),
+          replace: true,
+        })
+      }
+      onClose={closeGuestDrawer}
+    >
+      {guestDrawerOpen ? (
+        <div className="text-sm text-text-subtle">
+          Guest drawer content will be added in the next milestone.
+        </div>
+      ) : null}
+    </GuestDetailsDrawer>
+  );
 
   return (
     <PageShell
@@ -59,13 +134,9 @@ function GuestsQuickListPage() {
           <h1 className="text-2xl font-semibold text-text-default">Guests</h1>
         </div>
       }
-      drawerOpen={generatedRequest !== null}
-      drawer={
-        <GeneratedRequestDrawer
-          request={generatedRequest}
-          onClose={() => setGeneratedRequest(null)}
-        />
-      }
+      drawerOpen={anyDrawerOpen}
+      onDrawerClose={closeAnyDrawer}
+      drawer={drawer}
     >
       <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
 
@@ -82,9 +153,18 @@ function GuestsQuickListPage() {
             isLoading={isLoading}
             onGroupFilterChange={setGroupFilter}
             onFloorFilterChange={setFloorFilter}
-            onGuestClick={(guestId) =>
-              navigate({ to: "/guests/$guestId", params: { guestId } })
-            }
+            onGuestClick={(guestId) => {
+              setGeneratedRequest(null);
+              navigate({
+                to: "/guests",
+                search: (prev) => ({
+                  ...prev,
+                  guestId,
+                  tab: "profile",
+                  activityView: undefined,
+                }),
+              });
+            }}
           />
 
           {isLoading && (
@@ -106,7 +186,7 @@ function GuestsQuickListPage() {
         </>
       )}
 
-      {generatedRequest === null && (
+      {!anyDrawerOpen && (
         <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
       )}
     </PageShell>
