@@ -155,7 +155,7 @@ func buildGuestSearchQuery(filters *models.GuestFilters) map[string]any {
 		boolQuery["minimum_should_match"] = 1
 	}
 
-	q := map[string]any{
+	openSearchQuery := map[string]any{
 		"query": map[string]any{"bool": boolQuery},
 		"sort": []any{
 			map[string]any{"full_name.keyword": "asc"},
@@ -165,8 +165,8 @@ func buildGuestSearchQuery(filters *models.GuestFilters) map[string]any {
 	}
 
 	if filters.CursorName != "" && filters.CursorID != "" {
-		q["search_after"] = []any{filters.CursorName, filters.CursorID}
+		openSearchQuery["search_after"] = []any{filters.CursorName, filters.CursorID}
 	}
 
-	return q
+	return openSearchQuery
 }
