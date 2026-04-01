@@ -45,7 +45,7 @@ export function PageShell({
       {hasDrawer && (
         <aside
           className={cn(
-            "absolute inset-y-0 right-0 z-50 h-full w-153 overflow-hidden bg-white shadow-xl shadow-black/25 transition-transform duration-300 ease-in-out",
+            "fixed inset-y-0 right-0 z-50 h-full w-153 overflow-hidden bg-white shadow-xl shadow-black/25 transition-transform duration-300 ease-in-out",
             drawerOpen ? "translate-x-0" : "translate-x-full",
           )}
         >
