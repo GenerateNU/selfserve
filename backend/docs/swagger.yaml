@@ -999,6 +999,18 @@ paths:
         name: X-Hotel-ID
         required: true
         type: string
+      - collectionFormat: csv
+        description: floors
+        in: query
+        items:
+          type: integer
+        name: floors
+        type: array
+      - description: Opaque cursor for the next page
+        in: query
+        name: cursor
+        type: string
+        type: string
       - description: Filters and pagination
         in: body
         name: body

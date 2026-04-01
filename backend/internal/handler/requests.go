@@ -85,6 +85,7 @@ func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
 		return err
 >>>>>>> 68e7301 (feat: request versioning (#173))
 	}
+	}
 
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: id, MakeRequest: requestBody})
 	if err != nil {
