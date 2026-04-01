@@ -7,7 +7,7 @@ import { GuestCard } from "@/components/ui/guest-card";
 import { router } from "expo-router";
 import { useAPIClient } from "@shared/api/client";
 import { useInfiniteQuery, InfiniteData } from "@tanstack/react-query";
-import { GuestPage } from "@shared/api/generated/models/guestPage";
+import type { GuestPage } from "@shared";
 import { getFloorConfig } from "./utils";
 
 export default function GuestsList() {
@@ -65,14 +65,16 @@ export default function GuestsList() {
       <Header title="Guests" />
       <FlatList
         data={allGuests}
-        keyExtractor={(g) => g.id}
+        keyExtractor={(g, index) => g.id ?? `guest-${index}`}
         renderItem={({ item }) => (
           <GuestCard
-            firstName={item.first_name}
-            lastName={item.last_name}
-            floor={item.floor}
-            room={item.room_number}
-            onPress={() => handleGuestPress(item.id)}
+            firstName={item.first_name ?? ""}
+            lastName={item.last_name ?? ""}
+            floor={item.floor ?? 0}
+            room={item.room_number ?? 0}
+            onPress={() => {
+              if (item.id) handleGuestPress(item.id);
+            }}
           />
         )}
         onEndReached={onEndReached}

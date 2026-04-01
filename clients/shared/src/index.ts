@@ -15,6 +15,7 @@ export type {
   GenerateRequestInput,
   Hotel,
   Guest,
+  GuestPage,
   Dev,
 } from "./api/generated/models";
 
