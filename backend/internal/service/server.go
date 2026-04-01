@@ -60,13 +60,13 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	osRepos := tryInitOpenSearchRepositories(cfg)
+	openSearchRepos := tryInitOpenSearchRepositories(cfg)
 
 	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, osRepos); err != nil { //nolint:wsl
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, openSearchRepos); err != nil { //nolint:wsl
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -110,7 +110,7 @@ func tryInitRedis() *goredis.Client {
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	cfg *config.Config, s3Store *s3storage.Storage, osRepos openSearchRepositories) error {
+	cfg *config.Config, s3Store *s3storage.Storage, openSearchRepos openSearchRepositories) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -131,7 +131,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), osRepos.Guests)
+	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), openSearchRepos.Guests)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
