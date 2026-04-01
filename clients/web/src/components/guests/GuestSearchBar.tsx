@@ -7,15 +7,15 @@ type GuestSearchBarProps = {
 
 export function GuestSearchBar({ value, onChange }: GuestSearchBarProps) {
   return (
-    <label className="flex w-full items-center gap-[1vw] border border-black bg-white px-[1vw] py-[1vh]">
+    <label className="flex h-11 w-full items-center gap-3 rounded-lg border border-stroke-subtle bg-white px-4">
       <input
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Search Guests"
-        className="w-full bg-transparent text-[1vw] text-black outline-none placeholder:text-black"
+        className="w-full bg-transparent text-sm text-text-default outline-none placeholder:text-text-subtle"
       />
-      <Search className="h-[2vh] w-[2vh] text-black" />
+      <Search className="h-4 w-4 text-text-subtle" />
     </label>
   );
 }

@@ -1,17 +1,22 @@
-import { usePostApiV1GuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
+import {
+  useGetApiV1GuestsStaysId,
+  usePostApiV1GuestsSearchHook,
+} from "@shared/api/generated/endpoints/guests/guests";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
-import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { useDebounce } from "../../hooks/use-debounce";
 import type { Request } from "@shared";
 import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { GuestDetailsDrawer } from "@/components/guests/GuestDetailsDrawer";
+import { GuestListHeader } from "@/components/guests/GuestListHeader";
 import {
+  clearGuestDrawerSearch,
   getGuestDrawerVisibility,
+  resolveGuestDrawerTitle,
   resolveGuestDrawerSearch,
 } from "@/components/guests/guest-drawer-state";
 
@@ -23,7 +28,6 @@ export const Route = createFileRoute("/_protected/guests/")({
 function groupSizeFilter(filter: string): Array<number> | undefined {
   if (filter === "1-2") return [1, 2];
   if (filter === "3-4") return [3, 4];
-  // Product decision: the largest group filter bucket is capped at 20.
   if (filter === "5+")
     return [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
   return undefined;
@@ -38,6 +42,9 @@ function GuestsQuickListPage() {
   const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
     null,
   );
+  const [lastResolvedGuestName, setLastResolvedGuestName] = useState<
+    string | undefined
+  >(undefined);
 
   const debouncedSearch = useDebounce(searchTerm, 300);
   const postGuests = usePostApiV1GuestsSearchHook();
@@ -66,16 +73,30 @@ function GuestsQuickListPage() {
   const selectedGuest = allGuests.find(
     (guest) => guest.id === resolvedSearch.guestId,
   );
+  const { data: selectedGuestDetails } = useGetApiV1GuestsStaysId(
+    resolvedSearch.guestId ?? "",
+    {
+      query: {
+        enabled: guestDrawerOpen,
+      },
+    },
+  );
+  const activeGuestName = selectedGuest
+    ? `${selectedGuest.first_name} ${selectedGuest.last_name}`
+    : selectedGuestDetails
+      ? `${selectedGuestDetails.first_name} ${selectedGuestDetails.last_name}`
+      : undefined;
+
+  useEffect(() => {
+    if (activeGuestName) {
+      setLastResolvedGuestName(activeGuestName);
+    }
+  }, [activeGuestName]);
 
   const closeGuestDrawer = () => {
     navigate({
       to: "/guests",
-      search: (prev) => ({
-        ...prev,
-        guestId: undefined,
-        tab: undefined,
-        activityView: undefined,
-      }),
+      search: (prev) => clearGuestDrawerSearch(prev),
       replace: true,
     });
   };
@@ -96,11 +117,11 @@ function GuestsQuickListPage() {
     />
   ) : (
     <GuestDetailsDrawer
-      guestName={
-        selectedGuest
-          ? `${selectedGuest.first_name} ${selectedGuest.last_name}`
-          : "Guest"
-      }
+      guestName={resolveGuestDrawerTitle({
+        guestId: resolvedSearch.guestId,
+        activeGuestName,
+        closingGuestName: lastResolvedGuestName,
+      })}
       activeTab={resolvedSearch.tab}
       onChangeTab={(tab) =>
         navigate({
@@ -138,7 +159,16 @@ function GuestsQuickListPage() {
       onDrawerClose={closeAnyDrawer}
       drawer={drawer}
     >
-      <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
+      <GuestListHeader
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedFloors={floorFilter === "all" ? [] : [Number(floorFilter)]}
+        selectedGroupSizes={groupFilter === "all" ? [] : [groupFilter]}
+        onApplyFilters={(floors, groupSizes) => {
+          setFloorFilter(floors[0] !== undefined ? String(floors[0]) : "all");
+          setGroupFilter(groupSizes[0] ?? "all");
+        }}
+      />
 
       {isError ? (
         <div className="border border-black bg-white px-[1vw] py-[2vh] text-[1vw] text-black">
@@ -148,11 +178,7 @@ function GuestsQuickListPage() {
         <>
           <GuestQuickListTable
             guests={allGuests}
-            groupFilter={groupFilter}
-            floorFilter={floorFilter}
             isLoading={isLoading}
-            onGroupFilterChange={setGroupFilter}
-            onFloorFilterChange={setFloorFilter}
             onGuestClick={(guestId) => {
               setGeneratedRequest(null);
               navigate({
@@ -186,8 +212,17 @@ function GuestsQuickListPage() {
         </>
       )}
 
-      {!anyDrawerOpen && (
-        <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      {generatedRequest === null && (
+        <GlobalTaskInput
+          onRequestGenerated={(request) => {
+            navigate({
+              to: "/guests",
+              search: (prev) => clearGuestDrawerSearch(prev),
+              replace: true,
+            });
+            setGeneratedRequest(request);
+          }}
+        />
       )}
     </PageShell>
   );

@@ -49,7 +49,7 @@ export function PageShell({
         <button
           type="button"
           aria-label="Close drawer overlay"
-          className="absolute inset-0 z-40 bg-transparent"
+          className="absolute inset-0 z-60 bg-transparent"
           onClick={onDrawerClose}
         />
       )}
@@ -57,7 +57,7 @@ export function PageShell({
       {hasDrawer && (
         <aside
           className={cn(
-            "fixed inset-y-0 right-0 z-50 h-full w-153 overflow-hidden bg-white shadow-xl shadow-black/25 transition-transform duration-300 ease-in-out",
+            "fixed inset-y-0 right-0 z-70 h-full w-153 overflow-hidden bg-white shadow-xl shadow-black/25 transition-transform duration-300 ease-in-out",
             drawerOpen ? "translate-x-0" : "translate-x-full",
           )}
         >

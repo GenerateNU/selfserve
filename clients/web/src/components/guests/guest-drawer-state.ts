@@ -19,6 +19,35 @@ export function resolveGuestDrawerSearch(search: GuestDrawerSearch): {
   };
 }
 
+export function clearGuestDrawerSearch<T extends GuestDrawerSearch>(
+  search: T,
+): T & {
+  guestId: undefined;
+  tab: undefined;
+  activityView: undefined;
+} {
+  return {
+    ...search,
+    guestId: undefined,
+    tab: undefined,
+    activityView: undefined,
+  };
+}
+
+export function resolveGuestDrawerTitle({
+  guestId,
+  activeGuestName,
+  closingGuestName,
+}: {
+  guestId?: string;
+  activeGuestName?: string;
+  closingGuestName?: string;
+}) {
+  if (activeGuestName) return activeGuestName;
+  if (!guestId && closingGuestName) return closingGuestName;
+  return "Guest";
+}
+
 export function getGuestDrawerVisibility({
   guestId,
   generatedRequestOpen,
