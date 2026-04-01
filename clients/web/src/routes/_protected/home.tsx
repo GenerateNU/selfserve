@@ -24,9 +24,16 @@ const KANBAN_COLUMNS = [
   { title: "Completed", status: "completed" },
 ] as const;
 
-function KanbanColumnData({ hotelId, status }: { hotelId: string; status: string }) {
+function KanbanColumnData({
+  hotelId,
+  status,
+}: {
+  hotelId: string;
+  status: string;
+}) {
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useKanbanRequests(hotelId, status);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useKanbanRequests(hotelId, status);
 
   const hasNextPageRef = useRef(hasNextPage);
   const isFetchingRef = useRef(isFetchingNextPage);
@@ -38,7 +45,11 @@ function KanbanColumnData({ hotelId, status }: { hotelId: string; status: string
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && hasNextPageRef.current && !isFetchingRef.current) {
+        if (
+          entry.isIntersecting &&
+          hasNextPageRef.current &&
+          !isFetchingRef.current
+        ) {
           fetchNextPage();
         }
       },
@@ -61,7 +72,9 @@ function KanbanColumnData({ hotelId, status }: { hotelId: string; status: string
 }
 
 function HomePage() {
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(null);
+  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
+    null,
+  );
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -95,7 +108,9 @@ function HomePage() {
       <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
         {KANBAN_COLUMNS.map((col) => (
           <KanbanColumn key={col.status} title={col.title}>
-            {hotelId && <KanbanColumnData hotelId={hotelId} status={col.status} />}
+            {hotelId && (
+              <KanbanColumnData hotelId={hotelId} status={col.status} />
+            )}
           </KanbanColumn>
         ))}
       </div>

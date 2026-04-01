@@ -30,7 +30,10 @@ export function RequestCardItem({ request }: RequestCardItemProps) {
 
   return (
     <RequestCard status={status} className="w-full">
-      <RequestCardTimestamp status={status} time={formatRequestTime(request.created_at)} />
+      <RequestCardTimestamp
+        status={status}
+        time={formatRequestTime(request.created_at)}
+      />
       <span className="text-base font-medium text-text-default pt-3">
         {request.name ?? "Untitled Request"}
       </span>
