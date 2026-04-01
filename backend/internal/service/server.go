@@ -14,17 +14,7 @@ import (
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
 
-<<<<<<< HEAD
 	// "github.com/generate/selfserve/internal/service/clerk" // re-enable with app.Use below when auth PR is merged
-=======
-<<<<<<< HEAD
-	"github.com/generate/selfserve/internal/service/clerk"
-	"github.com/generate/selfserve/internal/storage/redis"
-
-=======
-	// "github.com/generate/selfserve/internal/service/clerk" // re-enable with app.Use below when auth PR is merged
->>>>>>> 199fe84 (backend changes)
->>>>>>> 2fd1823 (merge conflict)
 	s3storage "github.com/generate/selfserve/internal/service/s3"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/validation"

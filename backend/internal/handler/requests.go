@@ -61,30 +61,9 @@ func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
 		return errs.BadRequest("request id is not a valid UUID")
 	}
 
-<<<<<<< HEAD
-	if req.GuestID != nil && !validUUID(*req.GuestID) {
-		errors["guest_id"] = "invalid uuid"
-	}
-	if req.UserID != nil && strings.TrimSpace(*req.UserID) == "" {
-		errors["user_id"] = "must not be an empty string"
-	}
-	if req.Name == "" {
-		errors["name"] = "must not be an empty string"
-	}
-	if req.RequestType == "" {
-		errors["request_type"] = "must not be an empty string"
-	}
-	if req.Status == "" {
-		errors["status"] = "must not be an empty string"
-	}
-	if req.Priority == "" {
-		errors["priority"] = "must not be an empty string"
-=======
 	var requestBody models.MakeRequest
 	if err := httpx.BindAndValidate(c, &requestBody); err != nil {
 		return err
->>>>>>> 68e7301 (feat: request versioning (#173))
-	}
 	}
 
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: id, MakeRequest: requestBody})

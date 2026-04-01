@@ -1,14 +1,11 @@
 import Feather from "@expo/vector-icons/Feather";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-<<<<<<< HEAD
 export type TaskFilterChip = {
   id: string;
   label: string;
 };
 
-=======
->>>>>>> 2ae1f63 (feat: profile page (#211))
 interface ActiveFilterChipsProps {
   chips: TaskFilterChip[];
   onRemove: (id: string) => void;
