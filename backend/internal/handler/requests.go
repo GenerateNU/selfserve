@@ -4,7 +4,9 @@ import (
 	"errors"
 	"log/slog"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
@@ -144,13 +146,15 @@ func validateGenerateRequest(input *models.GenerateRequestInput) error {
 // @Security     BearerAuth
 // @Router       /request/cursor/{cursor} [get]
 func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
-	cursor := c.Params("cursor")
+	cursorParam := c.Params("cursor")
 	status := c.Query("status")
 	hotelID := c.Query("hotel_id")
 
-	if !validUUID(cursor) {
-		return errs.BadRequest("cursor is not a valid request UUID")
+	nanos, err := strconv.ParseInt(cursorParam, 10, 64)
+	if err != nil {
+		return errs.BadRequest("cursor must be a Unix nanosecond timestamp")
 	}
+	cursor := time.Unix(0, nanos).UTC()
 
 	if !models.RequestStatus(status).IsValid() {
 		return errs.BadRequest("Status must be one of: pending, assigned, in progress, completed")

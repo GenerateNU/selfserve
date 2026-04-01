@@ -28,7 +28,6 @@ function KanbanColumnData({ hotelId, status }: { hotelId: string; status: string
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useKanbanRequests(hotelId, status);
 
-  // Keep refs so the observer callback always sees fresh values without being recreated
   const hasNextPageRef = useRef(hasNextPage);
   const isFetchingRef = useRef(isFetchingNextPage);
   hasNextPageRef.current = hasNextPage;

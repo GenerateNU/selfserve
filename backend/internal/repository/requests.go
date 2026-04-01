@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
+	"strconv"
+	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
@@ -75,14 +77,19 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
+func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor time.Time, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
 	rows, err := r.db.Query(ctx, `
-			SELECT *
+		WITH latest AS (
+			SELECT DISTINCT ON (id) *
 			FROM requests
-			WHERE id > $1 AND status = $2 AND hotel_id = $3
-			ORDER BY id
-			LIMIT $4
-		`, cursor, status, hotelID, pageSize+1)
+			WHERE status = $2 AND hotel_id = $3
+			ORDER BY id, request_version DESC
+		)
+		SELECT * FROM latest
+		WHERE created_at > $1
+		ORDER BY created_at ASC, id ASC
+		LIMIT $4
+	`, cursor, status, hotelID, pageSize+1)
 
 	if err != nil {
 		return nil, "", err
@@ -109,7 +116,7 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 	}
 
 	if len(requests) == pageSize+1 {
-		return requests[:pageSize], requests[pageSize-1].ID, nil
+		return requests[:pageSize], strconv.FormatInt(requests[pageSize-1].CreatedAt.UnixNano(), 10), nil
 	}
 
 	return requests, "", nil
