@@ -142,3 +142,35 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 
 	return requests, nil
 }
+
+func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID string, hotelID string) ([]*models.GuestRequest, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT ON (r.id)
+			r.id, r.name, r.priority, r.status, r.description, r.notes,
+			rm.room_number, r.request_type, r.request_category, r.created_at
+		FROM public.requests r
+		LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
+		WHERE r.guest_id = $1
+		  AND r.hotel_id = $2
+		ORDER BY r.id, r.request_version DESC
+	`, guestID, hotelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	requests := make([]*models.GuestRequest, 0)
+	for rows.Next() {
+		var req models.GuestRequest
+		if err := rows.Scan(
+			&req.ID, &req.Name, &req.Priority, &req.Status,
+			&req.Description, &req.Notes, &req.RoomNumber,
+			&req.RequestType, &req.RequestCategory, &req.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		requests = append(requests, &req)
+	}
+
+	return requests, rows.Err()
+}

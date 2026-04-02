@@ -230,3 +230,36 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 
 	return c.JSON(res)
 }
+
+// GetRequestsByGuest godoc
+// @Summary      Get requests by guest
+// @Description  Retrieves all requests for a given guest
+// @Tags         requests
+// @Produce      json
+// @Param        id  path  string  true  "Guest ID (UUID)"
+// @Success      200  {object}  []models.GuestRequest
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /request/guest/{id} [get]
+func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
+	guestID := c.Params("id")
+	if !validUUID(guestID) {
+		return errs.BadRequest("guest id is not a valid UUID")
+	}
+
+	hotelID := c.Get("X-Hotel-ID")
+	if hotelID == "" {
+		return errs.BadRequest("X-Hotel-ID header is required")
+	}
+	if !validUUID(hotelID) {
+		return errs.BadRequest("X-Hotel-ID must be a valid UUID")
+	}
+
+	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), guestID, hotelID)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(requests)
+}
