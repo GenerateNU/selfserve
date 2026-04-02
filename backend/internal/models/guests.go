@@ -69,20 +69,32 @@ type GuestWithBooking struct {
 } // @name GuestWithBooking
 
 type GuestWithStays struct {
-	ID           string  `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`
-	FirstName    string  `json:"first_name" validate:"required" example:"Jane"`
-	LastName     string  `json:"last_name" validate:"required" example:"Doe"`
-	Phone        *string `json:"phone,omitempty" example:"+1 (617) 012-3456"`
-	Email        *string `json:"email,omitempty" validate:"omitempty,email" example:"jane.doe@example.com"`
-	Preferences  *string `json:"preferences,omitempty" example:"extra pillows"`
-	Notes        *string `json:"notes,omitempty" example:"VIP"`
-	CurrentStays []Stay  `json:"current_stays" validate:"required"`
-	PastStays    []Stay  `json:"past_stays" validate:"required"`
+	ID                  string      `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`
+	FirstName           string      `json:"first_name" validate:"required" example:"Jane"`
+	LastName            string      `json:"last_name" validate:"required" example:"Doe"`
+	Phone               *string     `json:"phone,omitempty" example:"+1 (617) 012-3456"`
+	Email               *string     `json:"email,omitempty" validate:"omitempty,email" example:"jane.doe@example.com"`
+	Preferences         *string     `json:"preferences,omitempty" example:"extra pillows"`
+	Notes               *string     `json:"notes,omitempty" example:"VIP"`
+	Pronouns            *string     `json:"pronouns,omitempty" example:"she/her"`
+	DoNotDisturbStart   *time.Time  `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
+	DoNotDisturbEnd     *time.Time  `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
+	HousekeepingCadence *string     `json:"housekeeping_cadence,omitempty" example:"daily"`
+	Assistance          *Assistance `json:"assistance,omitempty"`
+	CurrentStays        []Stay      `json:"current_stays" validate:"required"`
+	PastStays           []Stay      `json:"past_stays" validate:"required"`
 } //@name GuestWithStays
 
 type Stay struct {
 	ArrivalDate   time.Time     `json:"arrival_date" validate:"required" example:"2024-01-02"`
 	DepartureDate time.Time     `json:"departure_date" validate:"required" example:"2024-01-05"`
 	RoomNumber    int           `json:"room_number" validate:"required" example:"101"`
+	GroupSize     *int          `json:"group_size,omitempty"`
 	Status        BookingStatus `json:"status" validate:"required"`
 } //@name Stay
+
+type Assistance struct {
+	Accessibility []string `json:"accessibility"`
+	Dietary       []string `json:"dietary"`
+	Medical       []string `json:"medical"`
+} //@name Assistance

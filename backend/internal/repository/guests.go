@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -83,39 +84,49 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 }
 
 func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
+	guest := &models.GuestWithStays{}
+	var assistanceRaw []byte
+
+	err := r.db.QueryRow(ctx, `
+		SELECT 
+			g.id, g.first_name, g.last_name, g.phone, g.email,
+			g.preferences, g.notes, g.pronouns, g.do_not_disturb_start,
+			g.do_not_disturb_end, g.housekeeping_cadence, g.assistance
+		FROM public.guests g
+		WHERE g.id = $1
+	`, id).Scan(
+		&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email,
+		&guest.Preferences, &guest.Notes, &guest.Pronouns, &guest.DoNotDisturbStart,
+		&guest.DoNotDisturbEnd, &guest.HousekeepingCadence, &assistanceRaw,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	if err := parseAssistance(assistanceRaw, guest); err != nil {
+		return nil, err
+	}
 
 	rows, err := r.db.Query(ctx, `
-		SELECT guests.id, guests.first_name, guests.last_name, guests.phone, guests.email,
-			guests.preferences, guests.notes, guest_bookings.arrival_date, guest_bookings.departure_date,
-			rooms.room_number, guest_bookings.status
-		FROM public.guests
-		LEFT JOIN guest_bookings ON guests.id = guest_bookings.guest_id
-		LEFT JOIN rooms ON rooms.id = guest_bookings.room_id
-		WHERE guests.id = $1
+		SELECT gb.arrival_date, gb.departure_date, rm.room_number, gb.status, gb.group_size
+		FROM guest_bookings gb
+		LEFT JOIN rooms rm ON rm.id = gb.room_id
+		WHERE gb.guest_id = $1
 	`, id)
-
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var guest *models.GuestWithStays
 	for rows.Next() {
-		var stay models.Stay
-		var arrivalDate *time.Time
-		var departureDate *time.Time
-		var roomNumber *int
+		var arrivalDate, departureDate *time.Time
+		var roomNumber, groupSize *int
 		var status *models.BookingStatus
 
-		if guest == nil {
-			guest = &models.GuestWithStays{}
-		}
-
-		err := rows.Scan(
-			&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email, &guest.Preferences, &guest.Notes,
-			&arrivalDate, &departureDate, &roomNumber, &status,
-		)
-		if err != nil {
+		if err := rows.Scan(&arrivalDate, &departureDate, &roomNumber, &status, &groupSize); err != nil {
 			return nil, err
 		}
 
@@ -123,30 +134,46 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 			continue
 		}
 
-		stay.ArrivalDate = *arrivalDate
-		stay.DepartureDate = *departureDate
-		stay.RoomNumber = *roomNumber
-		stay.Status = *status
-
-		switch *status {
-		case models.BookingStatusActive:
-			guest.CurrentStays = append(guest.CurrentStays, stay)
-		case models.BookingStatusInactive:
-			guest.PastStays = append(guest.PastStays, stay)
-		default:
-			return nil, errs.InternalServerError()
-		}
+		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, status)
+		guest = appendStay(guest, stay, *status)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
+	return guest, rows.Err()
+}
 
-	if guest == nil {
-		return nil, errs.ErrNotFoundInDB
+func parseAssistance(raw []byte, guest *models.GuestWithStays) error {
+	if raw == nil {
+		return nil
 	}
+	var assistance models.Assistance
+	if err := json.Unmarshal(raw, &assistance); err != nil {
+		return err
+	}
+	guest.Assistance = &assistance
+	return nil
+}
 
-	return guest, nil
+func buildStay(arrival, departure *time.Time, roomNumber, groupSize *int, status *models.BookingStatus) models.Stay {
+	stay := models.Stay{
+		ArrivalDate:   *arrival,
+		DepartureDate: *departure,
+		RoomNumber:    *roomNumber,
+		Status:        *status,
+	}
+	if groupSize != nil {
+		stay.GroupSize = groupSize
+	}
+	return stay
+}
+
+func appendStay(guest *models.GuestWithStays, stay models.Stay, status models.BookingStatus) *models.GuestWithStays {
+	switch status {
+	case models.BookingStatusActive:
+		guest.CurrentStays = append(guest.CurrentStays, stay)
+	default:
+		guest.PastStays = append(guest.PastStays, stay)
+	}
+	return guest
 }
 
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
