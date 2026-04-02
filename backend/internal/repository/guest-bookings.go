@@ -14,28 +14,27 @@ func NewGuestBookingsRepository(db *pgxpool.Pool) *GuestBookingsRepository {
 	return &GuestBookingsRepository{db: db}
 }
 
-
 func (r *GuestBookingsRepository) FindGroupSizeOptions(ctx context.Context, hotelID string) ([]int, error) {
-    rows, err := r.db.Query(ctx, `
+	rows, err := r.db.Query(ctx, `
         SELECT DISTINCT group_size
         FROM guest_bookings
         WHERE hotel_id = $1
           AND group_size IS NOT NULL
         ORDER BY group_size ASC
     `, hotelID)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    var sizes []int
-    for rows.Next() {
-        var size int
-        if err := rows.Scan(&size); err != nil {
-            return nil, err
-        }
-        sizes = append(sizes, size)
-    }
+	var sizes []int
+	for rows.Next() {
+		var size int
+		if err := rows.Scan(&size); err != nil {
+			return nil, err
+		}
+		sizes = append(sizes, size)
+	}
 
-    return sizes, rows.Err()
+	return sizes, rows.Err()
 }

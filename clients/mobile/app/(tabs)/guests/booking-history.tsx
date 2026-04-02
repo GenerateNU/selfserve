@@ -24,7 +24,9 @@ export default function BookingHistoryScreen() {
     .map(([year, data]) => ({ title: year, data, active: false }));
 
   const sections = [
-    ...(currentStays.length > 0 ? [{ title: "Active", data: currentStays, active: true }] : []),
+    ...(currentStays.length > 0
+      ? [{ title: "Active", data: currentStays, active: true }]
+      : []),
     ...pastSections,
   ];
 
@@ -34,12 +36,16 @@ export default function BookingHistoryScreen() {
         <Pressable onPress={() => router.back()}>
           <ChevronLeft size={24} color={Colors.light.text} />
         </Pressable>
-        <Text className="flex-1 text-center text-[5vw] font-semibold text-black">All Bookings</Text>
+        <Text className="flex-1 text-center text-[5vw] font-semibold text-black">
+          All Bookings
+        </Text>
         <View className="w-[6vw]" />
       </View>
 
       {isLoading ? (
-        <Text className="text-center mt-[4vh] text-[3.5vw] text-shadow-strong">Loading...</Text>
+        <Text className="text-center mt-[4vh] text-[3.5vw] text-shadow-strong">
+          Loading...
+        </Text>
       ) : (
         <SectionList
           sections={sections}
@@ -60,23 +66,36 @@ export default function BookingHistoryScreen() {
 }
 
 function BookingCard({ stay, isActive }: { stay: Stay; isActive: boolean }) {
-  const fmt = (d: string | Date) => new Date(d).toLocaleDateString("en-US", {
-    month: "2-digit", day: "2-digit", year: "numeric"
-  });
+  const fmt = (d: string | Date) =>
+    new Date(d).toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    });
 
   return (
-    <View className={`rounded-xl p-[4vw] mb-[2vw] border ${
-      isActive ? "bg-success-accent border-success-stroke" : "bg-white border-stroke-subtle"
-    }`}>
+    <View
+      className={`rounded-xl p-[4vw] mb-[2vw] border ${
+        isActive
+          ? "bg-success-accent border-success-stroke"
+          : "bg-white border-stroke-subtle"
+      }`}
+    >
       <View className="flex-row items-center justify-between mb-[1vh]">
-        <Text className={`text-[4vw] font-semibold ${isActive ? "text-primary" : "text-black"}`}>
+        <Text
+          className={`text-[4vw] font-semibold ${isActive ? "text-primary" : "text-black"}`}
+        >
           Room {stay.room_number}
         </Text>
-        <Text className={`text-[3.5vw] ${isActive ? "text-primary" : "text-shadow-strong"}`}>
+        <Text
+          className={`text-[3.5vw] ${isActive ? "text-primary" : "text-shadow-strong"}`}
+        >
           {stay.status}
         </Text>
       </View>
-      <Text className={`text-[3vw] ${isActive ? "text-primary" : "text-shadow-strong"}`}>
+      <Text
+        className={`text-[3vw] ${isActive ? "text-primary" : "text-shadow-strong"}`}
+      >
         {fmt(stay.arrival_date)} - {fmt(stay.departure_date)}
       </Text>
     </View>

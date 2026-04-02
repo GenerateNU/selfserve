@@ -15,8 +15,12 @@ export default function GuestsList() {
   const [floors, setFloor] = useState<number[] | null>(null);
   const [groupSizes, setGroupSize] = useState<number[] | null>(null);
 
-  const { data: floorOptions } = useGetRoomsFloors({ query: { staleTime: Infinity } });
-  const { data: groupSizeOptions } = useGetGuestBookingsGroupSizes({ query: { staleTime: Infinity } });
+  const { data: floorOptions } = useGetRoomsFloors({
+    query: { staleTime: Infinity },
+  });
+  const { data: groupSizeOptions } = useGetGuestBookingsGroupSizes({
+    query: { staleTime: Infinity },
+  });
 
   const onFloorChange = (floor: number) => {
     if (floors?.includes(floor)) {
@@ -35,7 +39,12 @@ export default function GuestsList() {
   };
 
   const api = useAPIClient();
-  const { data: guestData, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<
+  const {
+    data: guestData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<
     GuestPage,
     Error,
     InfiniteData<GuestPage>,
@@ -71,15 +80,25 @@ export default function GuestsList() {
             onPress={() => router.push(`/guests/${item.id}`)}
           />
         )}
-        onEndReached={() => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); }}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+        }}
         onEndReachedThreshold={0.3}
         ListHeaderComponent={
           <GuestListHeader
             search={search}
             setSearch={setSearch}
             filterConfig={[
-              ...getFloorConfig(floorOptions ?? [], floors ?? [], onFloorChange),
-              ...getGroupSizeConfig(groupSizeOptions ?? [], groupSizes ?? [], onGroupSizeChange),
+              ...getFloorConfig(
+                floorOptions ?? [],
+                floors ?? [],
+                onFloorChange,
+              ),
+              ...getGroupSizeConfig(
+                groupSizeOptions ?? [],
+                groupSizes ?? [],
+                onGroupSizeChange,
+              ),
             ]}
             activeFloors={floors ?? []}
             activeGroupSizes={groupSizes ?? []}
@@ -87,7 +106,9 @@ export default function GuestsList() {
             onGroupSizeChange={onGroupSizeChange}
           />
         }
-        ListFooterComponent={isFetchingNextPage ? <ActivityIndicator className="py-[2vh]" /> : null}
+        ListFooterComponent={
+          isFetchingNextPage ? <ActivityIndicator className="py-[2vh]" /> : null
+        }
         contentContainerStyle={{ gap: 8 }}
         className="flex-1"
       />

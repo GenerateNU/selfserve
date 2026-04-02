@@ -11,14 +11,20 @@ interface GuestHeaderProps {
   onTabChange: (t: Tab) => void;
 }
 
-export function GuestHeader({ name, activeTab, onTabChange }: GuestHeaderProps) {
+export function GuestHeader({
+  name,
+  activeTab,
+  onTabChange,
+}: GuestHeaderProps) {
   return (
     <View>
       <View className="flex-row items-center px-[4vw] py-[3vh]">
         <Pressable onPress={() => router.back()}>
           <ChevronLeft size={24} color={Colors.light.text} />
         </Pressable>
-        <Text className="flex-1 text-center text-[5vw] font-semibold text-black">{name}</Text>
+        <Text className="flex-1 text-center text-[5vw] font-semibold text-black">
+          {name}
+        </Text>
         <View className="w-[6vw]" />
       </View>
       <View className="flex-row border-b border-stroke-subtle">

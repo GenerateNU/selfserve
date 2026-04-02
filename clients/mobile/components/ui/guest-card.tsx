@@ -9,7 +9,14 @@ interface GuestCardProps {
   onPress: () => void;
 }
 
-export function GuestCard({ firstName, lastName, floor, room, groupSize, onPress }: GuestCardProps) {
+export function GuestCard({
+  firstName,
+  lastName,
+  floor,
+  room,
+  groupSize,
+  onPress,
+}: GuestCardProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -21,14 +28,20 @@ export function GuestCard({ firstName, lastName, floor, room, groupSize, onPress
         </Text>
         <View className="flex-row gap-[2vw]">
           <View className="bg-card rounded-md px-[2.5vw] py-[0.5vh]">
-            <Text className="text-primary text-[3vw] font-medium">Floor {floor}</Text>
+            <Text className="text-primary text-[3vw] font-medium">
+              Floor {floor}
+            </Text>
           </View>
           <View className="bg-card rounded-md px-[2.5vw] py-[0.5vh]">
-            <Text className="text-primary text-[3vw] font-medium">Room {room}</Text>
+            <Text className="text-primary text-[3vw] font-medium">
+              Room {room}
+            </Text>
           </View>
           {groupSize !== undefined && (
             <View className="bg-card rounded-md px-[2.5vw] py-[0.5vh]">
-              <Text className="text-primary text-[3vw] font-medium">Group {groupSize}</Text>
+              <Text className="text-primary text-[3vw] font-medium">
+                Group {groupSize}
+              </Text>
             </View>
           )}
         </View>

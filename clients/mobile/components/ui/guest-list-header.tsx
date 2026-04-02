@@ -1,5 +1,12 @@
 import { useState, useRef } from "react";
-import { View, TouchableOpacity, Modal, ScrollView, Text, Pressable } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  Text,
+  Pressable,
+} from "react-native";
 import { SlidersHorizontal, X } from "lucide-react-native";
 import { Colors } from "@/constants/theme";
 import { SearchBar } from "@/components/ui/search-bar";
@@ -16,10 +23,13 @@ interface GuestListHeaderProps {
 }
 
 export function GuestListHeader({
-  search, setSearch,
+  search,
+  setSearch,
   filterConfig,
-  activeFloors, activeGroupSizes,
-  onFloorChange, onGroupSizeChange,
+  activeFloors,
+  activeGroupSizes,
+  onFloorChange,
+  onGroupSizeChange,
 }: GuestListHeaderProps) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dropdownTop, setDropdownTop] = useState(0);
@@ -43,7 +53,10 @@ export function GuestListHeader({
         <View className="flex-1">
           <SearchBar value={search} onChangeText={setSearch} />
         </View>
-        <TouchableOpacity onPress={() => setFiltersOpen(!filtersOpen)} className="p-2">
+        <TouchableOpacity
+          onPress={() => setFiltersOpen(!filtersOpen)}
+          className="p-2"
+        >
           <SlidersHorizontal size={22} className="text-primary" />
         </TouchableOpacity>
       </View>

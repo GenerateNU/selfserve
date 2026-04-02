@@ -2,14 +2,14 @@ package handler
 
 import (
 	"context"
+
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/gofiber/fiber/v2"
 )
 
 type GuestBookingsRepository interface {
-    FindGroupSizeOptions(ctx context.Context, hotelID string) ([]int, error)
+	FindGroupSizeOptions(ctx context.Context, hotelID string) ([]int, error)
 }
-
 
 type GuestBookingHandler struct {
 	repo GuestBookingsRepository
@@ -28,15 +28,15 @@ func NewGuestBookingsHandler(repo GuestBookingsRepository) *GuestBookingHandler 
 // @Failure      500  {object}  map[string]string
 // @Router       /guest_bookings/group_sizes [get]
 func (h *GuestBookingHandler) GetGroupSizeOptions(c *fiber.Ctx) error {
-    hotelID := c.Get("X-Hotel-ID")
-    if hotelID == "" {
-        return errs.BadRequest("X-Hotel-ID header is required")
-    }
+	hotelID := c.Get("X-Hotel-ID")
+	if hotelID == "" {
+		return errs.BadRequest("X-Hotel-ID header is required")
+	}
 
-    sizes, err := h.repo.FindGroupSizeOptions(c.Context(), hotelID)
-    if err != nil {
-        return errs.InternalServerError()
-    }
+	sizes, err := h.repo.FindGroupSizeOptions(c.Context(), hotelID)
+	if err != nil {
+		return errs.InternalServerError()
+	}
 
-    return c.JSON(sizes)
+	return c.JSON(sizes)
 }

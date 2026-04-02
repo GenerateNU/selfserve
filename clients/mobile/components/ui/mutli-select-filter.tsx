@@ -28,7 +28,7 @@ export function MultiSelectFilter<T extends string | number>({
         <View className="bg-white border border-stroke-subtle rounded-b-xl overflow-hidden max-h-[40vh]">
           <ScrollView>
             {options.map((option, idx) => {
-      const isSelected = value?.includes(option.value as T);
+              const isSelected = value?.includes(option.value as T);
               return (
                 <FilterOptionRow
                   key={option.value}
@@ -62,7 +62,9 @@ function FilterTrigger({
         isOpen ? "rounded-t-xl border-b-0" : "rounded-xl"
       }`}
     >
-      <Text className="text-[3.5vw] font-semibold text-black">{placeholder}</Text>
+      <Text className="text-[3.5vw] font-semibold text-black">
+        {placeholder}
+      </Text>
       <ChevronDown size={14} color="#000000" />
     </Pressable>
   );
@@ -86,12 +88,12 @@ function FilterOptionRow<T extends number | string>({
         showBottomBorder ? "border-b border-shadow-weak" : ""
       } ${isSelected ? "bg-card" : "bg-white"}`}
     >
-      <Text className={`text-[3.5vw] ${isSelected ? "font-medium text-black" : "text-black"}`}>
+      <Text
+        className={`text-[3.5vw] ${isSelected ? "font-medium text-black" : "text-black"}`}
+      >
         {option.label}
       </Text>
-      {isSelected && (
-        <Check size={14} color={Colors.dark.greenBorder} />
-      )}
+      {isSelected && <Check size={14} color={Colors.dark.greenBorder} />}
     </Pressable>
   );
 }

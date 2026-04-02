@@ -182,11 +182,10 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Get("/floors", roomsHandler.GetFloors)
 	})
 
-	// guest booking routes 
+	// guest booking routes
 	api.Route("/guest_bookings", func(r fiber.Router) {
-    	r.Get("/group_sizes", guestBookingsHandler.GetGroupSizeOptions)
+		r.Get("/group_sizes", guestBookingsHandler.GetGroupSizeOptions)
 	})
-
 
 	// s3 routes
 	api.Route("/s3", func(r fiber.Router) {

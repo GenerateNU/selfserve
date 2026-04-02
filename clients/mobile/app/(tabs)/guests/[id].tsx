@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { View, Text, Pressable, ScrollView, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { Info, ChevronRight } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useGetGuestsStaysId } from "@shared/api/generated/endpoints/guests/guests";
@@ -13,17 +19,19 @@ export default function GuestProfileScreen() {
   const { data, isLoading } = useGetGuestsStaysId(id as string);
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
-  if (isLoading) return (
-    <View className="flex-1 items-center justify-center">
-      <ActivityIndicator />
-    </View>
-  );
+  if (isLoading)
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator />
+      </View>
+    );
 
-  if (!data) return (
-    <View className="flex-1 items-center justify-center">
-      <Text>Guest not found</Text>
-    </View>
-  );
+  if (!data)
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Guest not found</Text>
+      </View>
+    );
 
   return (
     <View className="flex-1 bg-white">
@@ -48,7 +56,9 @@ export default function GuestProfileScreen() {
           <GuestActivityTab
             currentStays={data.current_stays ?? []}
             pastStays={data.past_stays ?? []}
-            onViewAllBookings={() => router.push(`/guests/booking-history?id=${id}`)}
+            onViewAllBookings={() =>
+              router.push(`/guests/booking-history?id=${id}`)
+            }
           />
         )}
       </ScrollView>
@@ -61,7 +71,9 @@ function WaitingRequestsBanner({ name }: { name: string }) {
     <Pressable className="flex-row items-center justify-between px-[4vw] py-[1.5vh] bg-primary">
       <View className="flex-row items-center gap-[2vw]">
         <Info size={16} color={Colors.light.background} />
-        <Text className="text-white text-[3.5vw]">{name} is waiting on requests</Text>
+        <Text className="text-white text-[3.5vw]">
+          {name} is waiting on requests
+        </Text>
       </View>
       <ChevronRight size={16} color={Colors.light.background} />
     </Pressable>
