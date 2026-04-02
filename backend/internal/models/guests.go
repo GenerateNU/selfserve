@@ -40,13 +40,13 @@ type GuestPage struct {
 } // @name GuestPage
 
 type GuestWithBooking struct {
-	ID            string `json:"id"`
-	FirstName     string `json:"first_name"`
-	LastName      string `json:"last_name"`
+	ID            string `json:"id" validate:"required"`
+	FirstName     string `json:"first_name" validate:"required"`
+	LastName      string `json:"last_name" validate:"required"`
 	PreferredName string `json:"preferred_name"`
-	Floor         int    `json:"floor"`
-	RoomNumber    int    `json:"room_number"`
-	GroupSize     *int   `json:"group_size"`
+	Floor         int    `json:"floor" validate:"required"`
+	RoomNumber    int    `json:"room_number" validate:"required"`
+	GroupSize     *int   `json:"group_size" validate:"required"`
 } // @name GuestWithBooking
 
 type GuestWithStays struct {

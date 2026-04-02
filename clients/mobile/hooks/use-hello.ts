@@ -13,6 +13,6 @@ export const useGetHelloName = (name: string) => {
   const api = useAPIClient();
   return useQuery({
     queryKey: ["hello", name],
-    queryFn: () => api.get<string>(`/api/v1/hello/${name}`),
+    queryFn: () => api.get<string>(`/hello/${name}`),
   });
 };

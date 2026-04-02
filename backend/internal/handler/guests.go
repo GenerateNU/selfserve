@@ -94,7 +94,7 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 // @Failure      404  {object}  errs.HTTPError  "Guest not found"
 // @Failure      500   {object}  map[string]string "Internal server error"
 // @Security     BearerAuth
-// @Router       /api/v1/guests/stays/{id} [get]
+// @Router       /guests/stays/{id} [get]
 func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if !validUUID(id) {

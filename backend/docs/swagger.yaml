@@ -108,25 +108,6 @@ definitions:
         example: "2024-01-02T00:00:00Z"
         type: string
     type: object
-  GuestBooking:
-    properties:
-      arrival_date:
-        type: string
-      departure_date:
-        type: string
-      guest:
-        $ref: '#/definitions/Guest'
-      hotel_id:
-        example: 521e8400-e458-41d4-a716-446655440000
-        type: string
-      id:
-        example: f353ca91-4fc5-49f2-9b9e-304f83d11914
-        type: string
-      room:
-        $ref: '#/definitions/Room'
-      status:
-        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
-    type: object
   GuestFilters:
     properties:
       cursor:
@@ -178,9 +159,9 @@ definitions:
     required:
     - first_name
     - floor
+    - group_size
     - id
     - last_name
-    - preferred_name
     - room_number
     type: object
   GuestWithStays:
@@ -267,6 +248,12 @@ definitions:
         example: No special requests
         type: string
       priority:
+        enum:
+        - low
+        - medium
+        - normal
+        - high
+        - urgent
         example: urgent
         type: string
       request_category:
@@ -285,6 +272,10 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
+        enum:
+        - pending
+        - assigned
+        - completed
         example: assigned
         type: string
       user_id:
@@ -324,6 +315,12 @@ definitions:
         example: No special requests
         type: string
       priority:
+        enum:
+        - low
+        - medium
+        - normal
+        - high
+        - urgent
         example: urgent
         type: string
       request_category:
@@ -345,21 +342,14 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
+        enum:
+        - pending
+        - assigned
+        - completed
         example: assigned
         type: string
       user_id:
         example: 521ee400-e458-41d4-a716-446655440000
-        type: string
-    type: object
-  Room:
-    properties:
-      floor:
-        type: integer
-      room_number:
-        type: integer
-      room_status:
-        type: string
-      suite_type:
         type: string
     type: object
   RoomWithOptionalGuestBooking:
@@ -467,34 +457,6 @@ definitions:
         type: integer
       message: {}
     type: object
-  github_com_generate_selfserve_internal_models.CreateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
-  github_com_generate_selfserve_internal_models.UpdateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
   github_com_generate_selfserve_internal_models.BookingStatus:
     enum:
     - active
@@ -623,7 +585,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.UpdateGuest'
+          $ref: '#/definitions/UpdateGuest'
       produces:
       - application/json
       responses:
@@ -652,45 +614,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Updates a guest
-      tags:
-      - guests
-  /api/v1/guests/stays/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a single guest with previous stays given an id
-      parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/GuestWithStays'
-        "400":
-          description: Invalid guest ID format
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Guest not found
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Gets a guest with previous stays
       tags:
       - guests
   /api/v1/hotels:
@@ -795,14 +718,36 @@ paths:
       summary: Get developer member
       tags:
       - devs
-  /guest_bookings/floor:
+  /guest_bookings/group_sizes:
     get:
-      description: Retrieves multiple guest bookings whose booked rooms are in the
-        provided floors array
+      description: Retrieves all distinct group sizes across guest bookings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get available group size options
+      tags:
+      - guest-bookings
+  /guests/stays/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single guest with previous stays given an id
       parameters:
-      - description: Comma-separated floor numbers
-        in: query
-        name: floors
+      - description: Guest ID (UUID)
+        in: path
+        name: id
         required: true
         type: string
       produces:
@@ -811,24 +756,28 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/GuestBooking'
-            type: array
+            $ref: '#/definitions/GuestWithStays'
         "400":
-          description: Bad Request
+          description: Invalid guest ID format
           schema:
             additionalProperties:
               type: string
             type: object
+        "404":
+          description: Guest not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Get guest Bookings By Floor
+      security:
+      - BearerAuth: []
+      summary: Gets a guest with previous stays
       tags:
-      - guest-bookings
+      - guests
   /hello:
     get:
       consumes:
