@@ -10,12 +10,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/validation"
 )
 
 type Storage struct {
 	Client     *s3.Client
 	BucketName string
 	URL        *s3.PresignClient
+}
+
+type presignedURLRequest struct {
+	Key        string        `validate:"notblank"`
+	Expiration time.Duration `validate:"gt=0"`
 }
 
 func NewS3Storage(cfg config.S3) (*Storage, error) {
@@ -40,11 +46,8 @@ func NewS3Storage(cfg config.S3) (*Storage, error) {
 }
 
 func (s *Storage) GeneratePresignedUploadURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
-	if key == "" {
-		return "", fmt.Errorf("key is required")
-	}
-	if expiration <= 0 {
-		return "", fmt.Errorf("expiration must be greater than 0")
+	if err := validatePresignedURLRequest(key, expiration); err != nil {
+		return "", err
 	}
 
 	presignedURL, err := s.URL.PresignPutObject(ctx, &s3.PutObjectInput{
@@ -60,11 +63,8 @@ func (s *Storage) GeneratePresignedUploadURL(ctx context.Context, key string, ex
 }
 
 func (s *Storage) GeneratePresignedGetURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
-	if key == "" {
-		return "", fmt.Errorf("key is required")
-	}
-	if expiration <= 0 {
-		return "", fmt.Errorf("expiration must be greater than 0")
+	if err := validatePresignedURLRequest(key, expiration); err != nil {
+		return "", err
 	}
 
 	presignedURL, err := s.URL.PresignGetObject(ctx, &s3.GetObjectInput{
@@ -91,5 +91,34 @@ func (s *Storage) DeleteFile(ctx context.Context, key string) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete file with key %s: %w", key, err)
 	}
+	return nil
+}
+
+func validatePresignedURLRequest(key string, expiration time.Duration) error {
+	if validation.Validate == nil {
+		if key == "" {
+			return fmt.Errorf("key is required")
+		}
+		if expiration <= 0 {
+			return fmt.Errorf("expiration must be greater than 0")
+		}
+		return nil
+	}
+
+	req := presignedURLRequest{
+		Key:        key,
+		Expiration: expiration,
+	}
+	if err := validation.Validate.Struct(req); err != nil {
+		fieldErrors := validation.ToFieldErrors(err)
+		if fieldErrors["Key"] != "" || fieldErrors["key"] != "" {
+			return fmt.Errorf("key is required")
+		}
+		if fieldErrors["Expiration"] != "" || fieldErrors["expiration"] != "" {
+			return fmt.Errorf("expiration must be greater than 0")
+		}
+		return fmt.Errorf("invalid presigned URL request")
+	}
+
 	return nil
 }
