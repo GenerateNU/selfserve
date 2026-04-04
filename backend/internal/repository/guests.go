@@ -156,20 +156,22 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	row := r.db.QueryRow(ctx, `
 		UPDATE guests
 		SET
-			first_name = $2,
-			last_name = $3,
-			profile_picture = $4,
-			timezone = $5,
+			first_name = COALESCE($2, first_name),
+			last_name = COALESCE($3, last_name),
+			profile_picture = COALESCE($4, profile_picture),
+			timezone = COALESCE($5, timezone),
+			notes = COALESCE($6, notes),
 			updated_at = NOW()
 		WHERE id = $1
 		RETURNING
 			id, created_at, updated_at,
-			first_name, last_name, profile_picture, timezone`,
+			first_name, last_name, profile_picture, timezone, notes`,
 		id,
 		update.FirstName,
 		update.LastName,
 		update.ProfilePicture,
 		update.Timezone,
+		update.Notes,
 	)
 
 	err := row.Scan(
@@ -180,6 +182,7 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 		&guest.LastName,
 		&guest.ProfilePicture,
 		&guest.Timezone,
+		&guest.Notes,
 	)
 
 	if err != nil {

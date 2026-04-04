@@ -29,16 +29,18 @@ type CreateGuest struct {
 } // @name CreateGuest
 
 type UpdateGuest struct {
-	FirstName      string  `json:"first_name" validate:"notblank" example:"Jane"`
-	LastName       string  `json:"last_name" validate:"notblank" example:"Doe"`
+	FirstName      *string `json:"first_name,omitempty" validate:"omitempty,notblank" example:"Jane"`
+	LastName       *string `json:"last_name,omitempty" validate:"omitempty,notblank" example:"Doe"`
 	ProfilePicture *string `json:"profile_picture,omitempty" validate:"omitempty,url" example:"https://example.com/john.jpg"`
 	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
+	Notes          *string `json:"notes,omitempty" validate:"omitempty,max=1000" example:"VIP guest"`
 } //@name UpdateGuest
 
 type Guest struct {
 	ID        string    `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
 	CreatedAt time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`
 	UpdatedAt time.Time `json:"updated_at" example:"2024-01-02T00:00:00Z"`
+	Notes     *string   `json:"notes,omitempty" example:"VIP guest"`
 	CreateGuest
 } //@name Guest
 
