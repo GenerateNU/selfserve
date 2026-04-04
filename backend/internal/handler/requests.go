@@ -260,19 +260,8 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		Notes:                   notes,
 	}}
 
-	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
-	if err != nil {
-		slog.Error("failed to insert generated request", "error", err)
-		return errs.InternalServerError()
-	}
-	if r.NotificationSender != nil && req.UserID != nil {
-		if err := r.NotificationSender.Notify(c.Context(), *req.UserID, models.TypeTaskAssigned, msgTaskAssigned, res.Name); err != nil {
-			slog.Error("failed to send task assigned notification", "err", err)
-		}
-	}
-
 	return c.JSON(models.GenerateRequestResponse{
-		Request: *res,
+		Request: req,
 		Warning: warningFromAI(parsed.Warning),
 	})
 }
