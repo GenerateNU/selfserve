@@ -14,6 +14,7 @@ import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { setConfig } from "@shared";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 // Client explicity created outside component to avoid recreation
 const queryClient = new QueryClient({
@@ -40,6 +41,13 @@ function AppConfigurator() {
   return null;
 }
 
+// Registers the Expo push token with the backend and wires up tap-to-navigate.
+// Must render inside QueryClientProvider so useMutation is available.
+function PushNotificationRegistrar() {
+  usePushNotifications();
+  return null;
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
@@ -51,6 +59,7 @@ export default function RootLayout() {
       <ClerkLoaded>
         <AppConfigurator />
         <QueryClientProvider client={queryClient}>
+          <PushNotificationRegistrar />
           <SafeAreaProvider>
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
