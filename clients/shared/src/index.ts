@@ -61,3 +61,18 @@ export type {
   RoomWithOptionalGuestBooking,
   FilterRoomsRequest,
 } from "./api/generated/models";
+
+// Notification types and hooks
+export type {
+  Notification,
+  NotificationType,
+  RegisterDeviceTokenInput,
+} from "./types/notifications";
+
+export {
+  NOTIFICATIONS_QUERY_KEY,
+  useGetNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+  usePostDeviceToken,
+} from "./api/notifications";
