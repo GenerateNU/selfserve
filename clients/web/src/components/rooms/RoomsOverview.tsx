@@ -1,5 +1,6 @@
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { OverviewCard } from "@/components/rooms/OverviewCard";
+import { RoomTaskList } from "@/components/rooms/RoomTaskList";
 
 type RoomsOverviewProps = {
   rooms: Array<RoomWithOptionalGuestBooking>;
@@ -23,7 +24,7 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const vacantRooms = totalRooms - occupiedRooms;
 
   return (
-    <aside className="w-1/4 shrink-0 min-h-0 overflow-y-auto px-6">
+    <aside className="w-full max-w-[398px] shrink-0 min-h-0 overflow-y-auto px-6">
       <div className="flex flex-col">
         <OverviewCard
           title="Tasks"
@@ -61,6 +62,29 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
               field: "Expected Departures",
               value: occupiedAndCleaningRooms,
               description: "Guests",
+            },
+          ]}
+        />
+        <RoomTaskList
+          title="Unassigned Tasks"
+          onAssign={() => {}}
+          onExpand={() => {}}
+          tasks={[
+            {
+              id: "1",
+              title: "Room 101",
+              floor: 1,
+              roomNumber: 101,
+              department: "Maintenance",
+              priority: "high",
+            },
+            {
+              id: "2",
+              title: "Room 102",
+              floor: 1,
+              roomNumber: 102,
+              department: "Maintenance",
+              priority: "medium",
             },
           ]}
         />

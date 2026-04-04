@@ -50,9 +50,11 @@
   --color-bg-container: #f8f8f8;
   --color-bg-disabled: #bababa;
   --color-bg-primary: #ffffff;
+  --color-bg-orange: #fff3ed;
   --color-bg-secondary: #5d5d5d;
   --color-bg-high-priority: #ffeded;
   --color-text-default: #000;
+  --color-text-orange: #ff8c3f;
   --color-text-subtle: #747474;
   --color-text-secondary: #5d5d5d;
   --color-bg-selected: #edf5f1;
