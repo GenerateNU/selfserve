@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
 type DrawerShellProps = {
-  title: string;
+  title: ReactNode;
   onClose: () => void;
   children: ReactNode;
 };
