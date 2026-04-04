@@ -53,6 +53,11 @@ type Request struct {
 	MakeRequest
 } //@name Request
 
+type GetRequestsByGuestInput struct {
+	GuestID string `json:"guest_id" validate:"required,uuid"`
+	HotelID string `json:"hotel_id" validate:"required,uuid"`
+} //@name GetRequestsByGuestInput
+
 type GuestRequest struct {
 	ID              string    `json:"id"`
 	Name            string    `json:"name"`

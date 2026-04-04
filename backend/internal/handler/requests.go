@@ -243,20 +243,15 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Router       /request/guest/{id} [get]
 func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
-	guestID := c.Params("id")
-	if !validUUID(guestID) {
-		return errs.BadRequest("guest id is not a valid UUID")
+	input := models.GetRequestsByGuestInput{
+		GuestID: c.Params("id"),
+		HotelID: c.Get("X-Hotel-ID"),
+	}
+	if err := httpx.BindAndValidate(c, &input); err != nil {
+		return err
 	}
 
-	hotelID := c.Get("X-Hotel-ID")
-	if hotelID == "" {
-		return errs.BadRequest("X-Hotel-ID header is required")
-	}
-	if !validUUID(hotelID) {
-		return errs.BadRequest("X-Hotel-ID must be a valid UUID")
-	}
-
-	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), guestID, hotelID)
+	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), input.GuestID, input.HotelID)
 	if err != nil {
 		return errs.InternalServerError()
 	}
