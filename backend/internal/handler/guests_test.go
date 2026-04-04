@@ -787,6 +787,125 @@ func TestGuestsHandler_GetGuestWithStays(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
 	})
+
+	t.Run("returns new profile fields when present", func(t *testing.T) {
+		t.Parallel()
+
+		pronouns := "she/her"
+		housekeeping := "daily"
+		phone := "+1 (617) 012-3456"
+		email := "jane@example.com"
+		groupSize := 3
+
+		mock := &mockGuestsRepository{
+			findGuestStaysFunc: func(ctx context.Context, id string) (*models.GuestWithStays, error) {
+				return &models.GuestWithStays{
+					ID:                  id,
+					FirstName:           "Jane",
+					LastName:            "Doe",
+					Pronouns:            &pronouns,
+					HousekeepingCadence: &housekeeping,
+					Phone:               &phone,
+					Email:               &email,
+					Assistance: &models.Assistance{
+						Accessibility: []string{"wheelchair"},
+						Dietary:       []string{"peanuts"},
+						Medical:       []string{"pollen allergy"},
+					},
+					CurrentStays: []models.Stay{
+						{
+							ArrivalDate:   time.Now(),
+							DepartureDate: time.Now().Add(24 * time.Hour),
+							RoomNumber:    101,
+							GroupSize:     &groupSize,
+							Status:        models.BookingStatusActive,
+						},
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Get("/guests/stays/:id", h.GetGuestWithStays)
+
+		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "she/her")
+		assert.Contains(t, string(body), "daily")
+		assert.Contains(t, string(body), "wheelchair")
+		assert.Contains(t, string(body), "peanuts")
+		assert.Contains(t, string(body), "pollen allergy")
+		assert.Contains(t, string(body), "3")
+	})
+
+	t.Run("returns 200 when optional profile fields are absent", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{
+			findGuestStaysFunc: func(ctx context.Context, id string) (*models.GuestWithStays, error) {
+				return &models.GuestWithStays{
+					ID:        id,
+					FirstName: "John",
+					LastName:  "Doe",
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Get("/guests/stays/:id", h.GetGuestWithStays)
+
+		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.NotContains(t, string(body), "pronouns")
+		assert.NotContains(t, string(body), "assistance")
+		assert.NotContains(t, string(body), "housekeeping_cadence")
+	})
+
+	t.Run("returns group_size in stay", func(t *testing.T) {
+		t.Parallel()
+
+		groupSize := 5
+		mock := &mockGuestsRepository{
+			findGuestStaysFunc: func(ctx context.Context, id string) (*models.GuestWithStays, error) {
+				return &models.GuestWithStays{
+					ID:        id,
+					FirstName: "John",
+					LastName:  "Doe",
+					PastStays: []models.Stay{
+						{
+							ArrivalDate:   time.Now().Add(-48 * time.Hour),
+							DepartureDate: time.Now().Add(-24 * time.Hour),
+							RoomNumber:    202,
+							GroupSize:     &groupSize,
+							Status:        models.BookingStatusInactive,
+						},
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Get("/guests/stays/:id", h.GetGuestWithStays)
+
+		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"group_size":5`)
+	})
 }
 
 func TestGuestsHandler_UpdateGuest(t *testing.T) {
