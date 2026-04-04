@@ -1,9 +1,4 @@
-import {
-  FlagIcon,
-  MapPinIcon,
-  Maximize2Icon,
-  StoreIcon,
-} from "lucide-react";
+import { FlagIcon, MapPinIcon, Maximize2Icon, StoreIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
@@ -92,7 +87,8 @@ export function RoomTaskCard({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {priority && (priority == "medium" || priority == "high") &&
+          {priority &&
+            (priority == "medium" || priority == "high") &&
             (() => {
               const { label, Icon, containerClass, contentClass } =
                 priorityConfig[priority];
