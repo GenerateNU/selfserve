@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/generate/selfserve/internal/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -32,7 +33,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 			LIMIT $3
 		)
 		SELECT
-			pr.room_number, pr.floor, pr.suite_type, pr.room_status,
+			pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status,
 			json_agg(
 				json_build_object(
 					'id',              guests.id,
@@ -101,4 +102,38 @@ func (r *RoomsRepository) FindAllFloors(ctx context.Context, hotelID string) ([]
 	}
 
 	return floors, nil
+}
+
+func (r *RoomsRepository) FindRoomByNumber(ctx context.Context, hotelID string, roomReference string) (*models.Room, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, room_number, floor, suite_type, room_status
+		FROM rooms
+		WHERE hotel_id = $1
+			AND room_number::text = $2
+		LIMIT 2`,
+		hotelID, roomReference)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var rooms []*models.Room
+	for rows.Next() {
+		var room models.Room
+		if err := rows.Scan(&room.ID, &room.RoomNumber, &room.Floor, &room.SuiteType, &room.RoomStatus); err != nil {
+			return nil, err
+		}
+		rooms = append(rooms, &room)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(rooms) == 0 {
+		return nil, errs.ErrNotFoundInDB
+	}
+	if len(rooms) > 1 {
+		return nil, errs.ErrAlreadyExistsInDB
+	}
+	return rooms[0], nil
 }

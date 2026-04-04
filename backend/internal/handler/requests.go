@@ -183,7 +183,7 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Param  request  body  models.GenerateRequestInput  true  "Request data with raw text"
-// @Success      200   {object}  models.Request
+// @Success      200   {object}  models.GenerateRequestResponse
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Security     BearerAuth
@@ -200,10 +200,17 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 
 	parsed, err := r.GenerateRequestService.RunGenerateRequest(c.Context(), aiflows.GenerateRequestInput{
 		RawText: input.RawText,
+		HotelID: input.HotelID,
 	})
 	if err != nil {
 		slog.Error("genkit failed to generate a request", "error", err)
 		return errs.InternalServerError()
+	}
+
+	notes := parsed.Notes
+	if notes == nil {
+		empty := ""
+		notes = &empty
 	}
 
 	req := models.Request{ID: uuid.New().String(), MakeRequest: models.MakeRequest{
@@ -222,7 +229,7 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		EstimatedCompletionTime: parsed.EstimatedCompletionTime,
 		ScheduledTime:           nil, // TODO: Potentially add schedule time from user input / auto-scheduling
 		CompletedAt:             nil,
-		Notes:                   parsed.Notes,
+		Notes:                   notes,
 	}}
 
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
@@ -230,7 +237,21 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		return errs.InternalServerError()
 	}
 
-	return c.JSON(res)
+	return c.JSON(models.GenerateRequestResponse{
+		Request: *res,
+		Warning: warningFromAI(parsed.Warning),
+	})
+}
+
+func warningFromAI(w *aiflows.GenerateRequestWarning) *models.GenerateRequestWarning {
+	if w == nil {
+		return nil
+	}
+
+	return &models.GenerateRequestWarning{
+		Code:    w.Code,
+		Message: w.Message,
+	}
 }
 
 // GetRequestsByGuest godoc

@@ -549,6 +549,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		assert.Equal(t, 200, resp.StatusCode)
 
 		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"request"`)
 		assert.Contains(t, string(body), "generated-uuid")
 		assert.Contains(t, string(body), "Extra Towels Request")
 		assert.Contains(t, string(body), "urgent")
@@ -598,6 +599,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		assert.Equal(t, 200, resp.StatusCode)
 
 		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"request"`)
 		assert.Contains(t, string(body), "Room Cleaning")
 		assert.Contains(t, string(body), "housekeeping")
 		assert.Contains(t, string(body), "Cleaning")
@@ -769,6 +771,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 
 		assert.Equal(t, 200, resp.StatusCode)
 		assert.Equal(t, "I need the AC fixed in room 101 ASAP", capturedInput.RawText)
+		assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", capturedInput.HotelID)
 	})
 
 	t.Run("uses hotel_id from request body not LLM", func(t *testing.T) {
@@ -806,6 +809,90 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 
 		assert.Equal(t, 200, resp.StatusCode)
 		assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", capturedRequest.HotelID)
+	})
+
+	t.Run("defaults notes to empty string when LLM omits notes", func(t *testing.T) {
+		t.Parallel()
+
+		var capturedRequest *models.Request
+
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				capturedRequest = req
+				req.ID = "generated-uuid"
+				return req, nil
+			},
+		}
+
+		llmMock := &mockLLMService{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
+					Name:        "Test Request",
+					RequestType: "one-time",
+					Status:      "pending",
+					Priority:    "normal",
+					Notes:       nil,
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/generate", h.GenerateRequest)
+
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+		require.NotNil(t, capturedRequest)
+		require.NotNil(t, capturedRequest.Notes)
+		assert.Equal(t, "", *capturedRequest.Notes)
+	})
+
+	t.Run("returns warning metadata when room lookup warning exists", func(t *testing.T) {
+		t.Parallel()
+
+		warningMessage := "Room 301 could not be resolved for this hotel."
+
+		repoMock := &mockRequestRepository{
+			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
+				req.ID = "generated-uuid"
+				return req, nil
+			},
+		}
+
+		llmMock := &mockLLMService{
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+				return aiflows.GenerateRequestOutput{
+					Name:        "Soda Delivery",
+					RequestType: "one-time",
+					Status:      "pending",
+					Priority:    "normal",
+					Warning: &aiflows.GenerateRequestWarning{
+						Code:    "room_not_found",
+						Message: warningMessage,
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(repoMock, llmMock)
+		app.Post("/request/generate", h.GenerateRequest)
+
+		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"warning"`)
+		assert.Contains(t, string(body), `"room_not_found"`)
+		assert.Contains(t, string(body), warningMessage)
 	})
 }
 

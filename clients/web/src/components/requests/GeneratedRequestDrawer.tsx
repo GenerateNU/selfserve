@@ -25,6 +25,7 @@ export function GeneratedRequestDrawer({
 
   return (
     <DrawerShell title={request.name ?? "Generated Request"} onClose={onClose}>
+      <Field label="Room ID" value={request.room_id} />
       <Field label="Status" value={request.status} />
       <Field label="Priority" value={request.priority} />
       <Field label="Type" value={request.request_type} />

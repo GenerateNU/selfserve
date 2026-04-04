@@ -1,5 +1,20 @@
 basePath: /api/v1
 definitions:
+  Assistance:
+    properties:
+      accessibility:
+        items:
+          type: string
+        type: array
+      dietary:
+        items:
+          type: string
+        type: array
+      medical:
+        items:
+          type: string
+        type: array
+    type: object
   CreateGuest:
     properties:
       first_name:
@@ -84,6 +99,22 @@ definitions:
         example: Guest in room 504 needs extra towels urgently
         type: string
     type: object
+  GenerateRequestResponse:
+    properties:
+      request:
+        $ref: '#/definitions/Request'
+      warning:
+        $ref: '#/definitions/GenerateRequestWarning'
+    type: object
+  GenerateRequestWarning:
+    properties:
+      code:
+        example: room_not_found
+        type: string
+      message:
+        example: Room 301 could not be resolved for this hotel.
+        type: string
+    type: object
   Guest:
     properties:
       created_at:
@@ -98,6 +129,9 @@ definitions:
       last_name:
         example: Doe
         type: string
+      notes:
+        example: VIP guest
+        type: string
       profile_picture:
         example: https://example.com/john.jpg
         type: string
@@ -111,8 +145,10 @@ definitions:
   GuestBooking:
     properties:
       arrival_date:
+        example: "2024-01-02T00:00:00Z"
         type: string
       departure_date:
+        example: "2024-01-05T00:00:00Z"
         type: string
       guest:
         $ref: '#/definitions/Guest'
@@ -159,6 +195,31 @@ definitions:
       next_cursor:
         type: string
     type: object
+  GuestRequest:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      priority:
+        type: string
+      request_category:
+        type: string
+      request_type:
+        type: string
+      request_version:
+        type: string
+      room_number:
+        type: integer
+      status:
+        type: string
+    type: object
   GuestWithBooking:
     properties:
       first_name:
@@ -175,25 +236,29 @@ definitions:
         type: string
       room_number:
         type: integer
-    required:
-    - first_name
-    - floor
-    - id
-    - last_name
-    - preferred_name
-    - room_number
     type: object
   GuestWithStays:
     properties:
+      assistance:
+        $ref: '#/definitions/Assistance'
       current_stays:
         items:
           $ref: '#/definitions/Stay'
         type: array
+      do_not_disturb_end:
+        example: "07:00:00"
+        type: string
+      do_not_disturb_start:
+        example: "17:00:00"
+        type: string
       email:
         example: jane.doe@example.com
         type: string
       first_name:
         example: Jane
+        type: string
+      housekeeping_cadence:
+        example: daily
         type: string
       id:
         example: 530e8400-e458-41d4-a716-446655440000
@@ -213,6 +278,9 @@ definitions:
         type: string
       preferences:
         example: extra pillows
+        type: string
+      pronouns:
+        example: she/her
         type: string
     required:
     - current_stays
@@ -267,6 +335,12 @@ definitions:
         example: No special requests
         type: string
       priority:
+        enum:
+        - low
+        - medium
+        - normal
+        - high
+        - urgent
         example: urgent
         type: string
       request_category:
@@ -285,6 +359,10 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
+        enum:
+        - pending
+        - assigned
+        - completed
         example: assigned
         type: string
       user_id:
@@ -324,6 +402,12 @@ definitions:
         example: No special requests
         type: string
       priority:
+        enum:
+        - low
+        - medium
+        - normal
+        - high
+        - urgent
         example: urgent
         type: string
       request_category:
@@ -345,6 +429,10 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
+        enum:
+        - pending
+        - assigned
+        - completed
         example: assigned
         type: string
       user_id:
@@ -355,6 +443,8 @@ definitions:
     properties:
       floor:
         type: integer
+      id:
+        type: string
       room_number:
         type: integer
       room_status:
@@ -372,6 +462,8 @@ definitions:
         items:
           $ref: '#/definitions/Guest'
         type: array
+      id:
+        type: string
       room_number:
         type: integer
       room_status:
@@ -387,6 +479,8 @@ definitions:
       departure_date:
         example: "2024-01-05"
         type: string
+      group_size:
+        type: integer
       room_number:
         example: 101
         type: integer
@@ -405,6 +499,10 @@ definitions:
         type: string
       last_name:
         example: Doe
+        type: string
+      notes:
+        example: VIP guest
+        maxLength: 1000
         type: string
       profile_picture:
         example: https://example.com/john.jpg
@@ -467,34 +565,6 @@ definitions:
         type: integer
       message: {}
     type: object
-  github_com_generate_selfserve_internal_models.CreateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
-  github_com_generate_selfserve_internal_models.UpdateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
   github_com_generate_selfserve_internal_models.BookingStatus:
     enum:
     - active
@@ -623,7 +693,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.UpdateGuest'
+          $ref: '#/definitions/UpdateGuest'
       produces:
       - application/json
       responses:
@@ -969,7 +1039,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Request'
+            $ref: '#/definitions/GenerateRequestResponse'
         "400":
           description: Bad Request
           schema:
@@ -985,6 +1055,41 @@ paths:
       security:
       - BearerAuth: []
       summary: generates a request
+      tags:
+      - requests
+  /request/guest/{id}:
+    get:
+      description: Retrieves all requests for a given guest
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/GuestRequest'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get requests by guest
       tags:
       - requests
   /rooms:

@@ -46,6 +46,16 @@ type GenerateRequestInput struct {
 	HotelID string `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
 } //@name GenerateRequestInput
 
+type GenerateRequestWarning struct {
+	Code    string `json:"code" example:"room_not_found"`
+	Message string `json:"message" example:"Room 301 could not be resolved for this hotel."`
+} //@name GenerateRequestWarning
+
+type GenerateRequestResponse struct {
+	Request Request                 `json:"request"`
+	Warning *GenerateRequestWarning `json:"warning,omitempty"`
+} //@name GenerateRequestResponse
+
 type Request struct {
 	ID             string    `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
 	CreatedAt      time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`

@@ -13,6 +13,8 @@ export type {
   Request,
   MakeRequest,
   GenerateRequestInput,
+  GenerateRequestResponse,
+  GenerateRequestWarning,
   Hotel,
   Guest,
   Dev,
