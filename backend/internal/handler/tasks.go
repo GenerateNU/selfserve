@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -13,22 +12,15 @@ import (
 	"github.com/generate/selfserve/internal/utils"
 	"github.com/generate/selfserve/internal/validation"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
-
-const devUserIDHeader = "X-Dev-User-Id"
-// TODO(production): Remove X-Dev-User-Id fallback once backend auth middleware
-// always provides a verified staff identity.
-
-type staffUserIDResolver interface {
-	ResolveStaffUserIDForRequests(ctx context.Context, header string) (string, error)
-}
 
 type TasksHandler struct {
 	repo  storage.RequestsRepository
-	users staffUserIDResolver
+	users authUserLookup
 }
 
-func NewTasksHandler(repo storage.RequestsRepository, users staffUserIDResolver) *TasksHandler {
+func NewTasksHandler(repo storage.RequestsRepository, users authUserLookup) *TasksHandler {
 	return &TasksHandler{repo: repo, users: users}
 }
 
@@ -47,7 +39,7 @@ func validateCreateRequest(req *models.Request) error {
 
 // GetTasks returns a cursor page of tasks for the hotel, scoped by tab (my vs unassigned).
 func (h *TasksHandler) GetTasks(c *fiber.Ctx) error {
-	hotelID, err := hotelIDFromHeader(c)
+	authUserID, hotelID, err := userIDAndHotelFromAuth(c, h.users)
 	if err != nil {
 		return err
 	}
@@ -62,27 +54,14 @@ func (h *TasksHandler) GetTasks(c *fiber.Ctx) error {
 		return errs.BadRequest("tab must be my or unassigned")
 	}
 
-	headerUser := strings.TrimSpace(c.Get(devUserIDHeader))
-	if tab == models.TaskTabMy && headerUser == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "sign in required for my tasks",
-		})
-	}
-
 	var userID string
 	if tab == models.TaskTabMy {
-		resolved, resErr := h.users.ResolveStaffUserIDForRequests(c.Context(), headerUser)
-		if errors.Is(resErr, errs.ErrStaffUserIDNeedsDBMigration) {
-			return errs.BadRequest("database cannot map Clerk user ids yet; run supabase migrations or `supabase db reset`, then re-seed")
+		if strings.TrimSpace(authUserID) == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "sign in required for my tasks",
+			})
 		}
-		if errors.Is(resErr, errs.ErrNotFoundInDB) {
-			return errs.BadRequest("user is not registered; complete sign-in or run the Clerk user webhook once")
-		}
-		if resErr != nil {
-			slog.Error("resolve staff user for tasks", "error", resErr)
-			return errs.InternalServerError()
-		}
-		userID = resolved
+		userID = authUserID
 	}
 
 	cursorStr := strings.TrimSpace(c.Query("cursor"))
@@ -113,7 +92,7 @@ func (h *TasksHandler) GetTasks(c *fiber.Ctx) error {
 
 // CreateTask creates a lightweight request row used as a staff task.
 func (h *TasksHandler) CreateTask(c *fiber.Ctx) error {
-	hotelID, err := hotelIDFromHeader(c)
+	_, hotelID, err := userIDAndHotelFromAuth(c, h.users)
 	if err != nil {
 		return err
 	}
@@ -129,24 +108,15 @@ func (h *TasksHandler) CreateTask(c *fiber.Ctx) error {
 
 	var userID *string
 	if body.AssignToMe {
-		header := strings.TrimSpace(c.Get(devUserIDHeader))
-		if header == "" {
+		raw := c.Locals(clerkUserIDLocalKey)
+		clerkID, ok := raw.(string)
+		clerkID = strings.TrimSpace(clerkID)
+		if !ok || clerkID == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"message": "sign in required to assign a task to yourself",
 			})
 		}
-		resolved, resErr := h.users.ResolveStaffUserIDForRequests(c.Context(), header)
-		if errors.Is(resErr, errs.ErrStaffUserIDNeedsDBMigration) {
-			return errs.BadRequest("database cannot map Clerk user ids yet; run supabase migrations or `supabase db reset`, then re-seed")
-		}
-		if errors.Is(resErr, errs.ErrNotFoundInDB) {
-			return errs.BadRequest("user is not registered; complete sign-in or run the Clerk user webhook once")
-		}
-		if resErr != nil {
-			slog.Error("resolve staff user for create task", "error", resErr)
-			return errs.InternalServerError()
-		}
-		userID = &resolved
+		userID = &clerkID
 	}
 
 	status := string(models.StatusPending)
@@ -155,6 +125,7 @@ func (h *TasksHandler) CreateTask(c *fiber.Ctx) error {
 	}
 
 	req := models.Request{
+		ID: uuid.New().String(),
 		MakeRequest: models.MakeRequest{
 			HotelID:     hotelID,
 			Name:        name,
@@ -173,7 +144,7 @@ func (h *TasksHandler) CreateTask(c *fiber.Ctx) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, errs.ErrRequestUnknownHotel):
-			return errs.BadRequest("hotel not found for X-Hotel-ID; seed hotels or fix the header value")
+			return errs.BadRequest("hotel not found; check DEFAULT_HOTEL_ID and seed data")
 		case errors.Is(err, errs.ErrRequestUnknownAssignee):
 			return errs.BadRequest("assignee is not linked in the database")
 		case errors.Is(err, errs.ErrRequestInvalidUserID):
@@ -189,7 +160,7 @@ func (h *TasksHandler) CreateTask(c *fiber.Ctx) error {
 
 // PatchTask updates task (request) status for the hotel.
 func (h *TasksHandler) PatchTask(c *fiber.Ctx) error {
-	hotelID, err := hotelIDFromHeader(c)
+	_, hotelID, err := userIDAndHotelFromAuth(c, h.users)
 	if err != nil {
 		return err
 	}
@@ -217,7 +188,7 @@ func (h *TasksHandler) PatchTask(c *fiber.Ctx) error {
 
 // ClaimTask assigns an unassigned pending task to the current staff user.
 func (h *TasksHandler) ClaimTask(c *fiber.Ctx) error {
-	hotelID, err := hotelIDFromHeader(c)
+	userID, hotelID, err := userIDAndHotelFromAuth(c, h.users)
 	if err != nil {
 		return err
 	}
@@ -225,24 +196,12 @@ func (h *TasksHandler) ClaimTask(c *fiber.Ctx) error {
 	if !validUUID(id) {
 		return errs.BadRequest("invalid task id")
 	}
-	header := strings.TrimSpace(c.Get(devUserIDHeader))
-	if header == "" {
+	if strings.TrimSpace(userID) == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "sign in required to claim a task",
 		})
 	}
-	resolved, resErr := h.users.ResolveStaffUserIDForRequests(c.Context(), header)
-	if errors.Is(resErr, errs.ErrStaffUserIDNeedsDBMigration) {
-		return errs.BadRequest("database cannot map Clerk user ids yet; run supabase migrations or `supabase db reset`, then re-seed")
-	}
-	if errors.Is(resErr, errs.ErrNotFoundInDB) {
-		return errs.BadRequest("user is not registered; complete sign-in or run the Clerk user webhook once")
-	}
-	if resErr != nil {
-		slog.Error("resolve staff user for claim task", "error", resErr)
-		return errs.InternalServerError()
-	}
-	if err := h.repo.ClaimTask(c.Context(), hotelID, id, resolved); err != nil {
+	if err := h.repo.ClaimTask(c.Context(), hotelID, id, userID); err != nil {
 		switch {
 		case errors.Is(err, errs.ErrNotFoundInDB):
 			return errs.NotFound("task", "id", id)
@@ -258,7 +217,7 @@ func (h *TasksHandler) ClaimTask(c *fiber.Ctx) error {
 
 // DropTask returns a task to the unassigned pool if the current user holds it.
 func (h *TasksHandler) DropTask(c *fiber.Ctx) error {
-	hotelID, err := hotelIDFromHeader(c)
+	userID, hotelID, err := userIDAndHotelFromAuth(c, h.users)
 	if err != nil {
 		return err
 	}
@@ -266,24 +225,12 @@ func (h *TasksHandler) DropTask(c *fiber.Ctx) error {
 	if !validUUID(id) {
 		return errs.BadRequest("invalid task id")
 	}
-	header := strings.TrimSpace(c.Get(devUserIDHeader))
-	if header == "" {
+	if strings.TrimSpace(userID) == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "sign in required to drop a task",
 		})
 	}
-	resolved, resErr := h.users.ResolveStaffUserIDForRequests(c.Context(), header)
-	if errors.Is(resErr, errs.ErrStaffUserIDNeedsDBMigration) {
-		return errs.BadRequest("database cannot map Clerk user ids yet; run supabase migrations or `supabase db reset`, then re-seed")
-	}
-	if errors.Is(resErr, errs.ErrNotFoundInDB) {
-		return errs.BadRequest("user is not registered; complete sign-in or run the Clerk user webhook once")
-	}
-	if resErr != nil {
-		slog.Error("resolve staff user for drop task", "error", resErr)
-		return errs.InternalServerError()
-	}
-	if err := h.repo.DropTask(c.Context(), hotelID, id, resolved); err != nil {
+	if err := h.repo.DropTask(c.Context(), hotelID, id, userID); err != nil {
 		switch {
 		case errors.Is(err, errs.ErrNotFoundInDB):
 			return errs.NotFound("task", "id", id)

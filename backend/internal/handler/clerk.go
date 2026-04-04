@@ -12,8 +12,9 @@ import (
 )
 
 type ClerkWebHookHandler struct {
-	UsersRepository storage.UsersRepository
-	WebhookVerifier WebhookVerifier
+	UsersRepository  storage.UsersRepository
+	WebhookVerifier  WebhookVerifier
+	DefaultHotelID   string
 }
 
 type WebhookVerifier interface {
@@ -24,8 +25,8 @@ func NewWebhookVerifier(cfg *config.Config) (WebhookVerifier, error) {
 	return svix.NewWebhook(cfg.Clerk.WebhookSignature)
 }
 
-func NewClerkWebHookHandler(userRepo storage.UsersRepository, WebhookVerifier WebhookVerifier) *ClerkWebHookHandler {
-	return &ClerkWebHookHandler{UsersRepository: userRepo, WebhookVerifier: WebhookVerifier}
+func NewClerkWebHookHandler(userRepo storage.UsersRepository, WebhookVerifier WebhookVerifier, defaultHotelID string) *ClerkWebHookHandler {
+	return &ClerkWebHookHandler{UsersRepository: userRepo, WebhookVerifier: WebhookVerifier, DefaultHotelID: defaultHotelID}
 }
 
 func (h *ClerkWebHookHandler) CreateUser(c *fiber.Ctx) error {
@@ -48,7 +49,7 @@ func (h *ClerkWebHookHandler) CreateUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	res, err := h.UsersRepository.InsertUser(c.Context(), ReformatUserData(clerkUser))
+	res, err := h.UsersRepository.InsertUser(c.Context(), ReformatUserData(clerkUser, h.DefaultHotelID))
 	if err != nil {
 		return errs.InternalServerError()
 	}

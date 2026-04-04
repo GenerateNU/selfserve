@@ -111,8 +111,10 @@ definitions:
   GuestBooking:
     properties:
       arrival_date:
+        example: "2024-01-02T00:00:00Z"
         type: string
       departure_date:
+        example: "2024-01-05T00:00:00Z"
         type: string
       guest:
         $ref: '#/definitions/Guest'
@@ -175,13 +177,6 @@ definitions:
         type: string
       room_number:
         type: integer
-    required:
-    - first_name
-    - floor
-    - id
-    - last_name
-    - preferred_name
-    - room_number
     type: object
   GuestWithStays:
     properties:
@@ -267,6 +262,12 @@ definitions:
         example: No special requests
         type: string
       priority:
+        enum:
+        - low
+        - medium
+        - normal
+        - high
+        - urgent
         example: urgent
         type: string
       request_category:
@@ -285,6 +286,11 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
         example: assigned
         type: string
       user_id:
@@ -324,6 +330,12 @@ definitions:
         example: No special requests
         type: string
       priority:
+        enum:
+        - low
+        - medium
+        - normal
+        - high
+        - urgent
         example: urgent
         type: string
       request_category:
@@ -345,6 +357,11 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
         example: assigned
         type: string
       user_id:
@@ -467,34 +484,6 @@ definitions:
         type: integer
       message: {}
     type: object
-  github_com_generate_selfserve_internal_models.CreateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
-  github_com_generate_selfserve_internal_models.UpdateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
   github_com_generate_selfserve_internal_models.BookingStatus:
     enum:
     - active
@@ -623,7 +612,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.UpdateGuest'
+          $ref: '#/definitions/UpdateGuest'
       produces:
       - application/json
       responses:
@@ -994,23 +983,6 @@ paths:
       description: Retrieves rooms with optional floor filters and cursor pagination,
         including any active guest bookings
       parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: floors
-        in: query
-        items:
-          type: integer
-        name: floors
-        type: array
-      - description: Opaque cursor for the next page
-        in: query
-        name: cursor
-        type: string
-        type: string
       - description: Filters and pagination
         in: body
         name: body
@@ -1043,12 +1015,6 @@ paths:
   /rooms/floors:
     get:
       description: Retrieves all distinct floor numbers
-      parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
       produces:
       - application/json
       responses:

@@ -31,6 +31,31 @@ func (m *mockRoomsRepository) FindAllFloors(ctx context.Context, hotelID string)
 var _ RoomsRepository = (*mockRoomsRepository)(nil)
 
 const testHotelID = "00000000-0000-0000-0000-000000000001"
+const testClerkUserID = "user_test_clerk"
+
+type mockAuthLookup struct {
+	hotelID string
+	findErr error
+	noHotel bool
+}
+
+func (m *mockAuthLookup) FindUser(ctx context.Context, id string) (*models.User, error) {
+	if m.findErr != nil {
+		return nil, m.findErr
+	}
+	if m.noHotel {
+		return &models.User{CreateUser: models.CreateUser{ID: id, HotelID: nil}}, nil
+	}
+	hid := m.hotelID
+	return &models.User{CreateUser: models.CreateUser{ID: id, HotelID: &hid}}, nil
+}
+
+func withClerkAuth(app *fiber.App) {
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("userId", testClerkUserID)
+		return c.Next()
+	})
+}
 
 func TestRoomsHandler_FilterRooms(t *testing.T) {
 	t.Parallel()
@@ -50,12 +75,12 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Post("/rooms", h.FilterRooms)
 
 		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{}`))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -95,12 +120,12 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Post("/rooms", h.FilterRooms)
 
 		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{"floors":[2]}`))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -124,12 +149,12 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Post("/rooms", h.FilterRooms)
 
 		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{"floors":[99]}`))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -157,12 +182,12 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Post("/rooms", h.FilterRooms)
 
 		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{"limit":5}`))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -189,12 +214,12 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Post("/rooms", h.FilterRooms)
 
 		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{"cursor":"200","limit":10}`))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -205,7 +230,7 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		assert.Equal(t, 200, capturedCursor)
 	})
 
-	t.Run("returns 400 when hotel_id header is missing", func(t *testing.T) {
+	t.Run("returns 401 when Authorization context is missing", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
@@ -215,7 +240,7 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Post("/rooms", h.FilterRooms)
 
 		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{}`))
@@ -223,10 +248,10 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
-		assert.Equal(t, 400, resp.StatusCode)
+		assert.Equal(t, 401, resp.StatusCode)
 	})
 
-	t.Run("returns 400 when hotel_id header is invalid", func(t *testing.T) {
+	t.Run("returns 400 when user has no hotel association", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
@@ -236,12 +261,12 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{noHotel: true})
 		app.Post("/rooms", h.FilterRooms)
 
 		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{}`))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(hotelIDHeader, "not-a-uuid")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -260,12 +285,12 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Post("/rooms", h.FilterRooms)
 
 		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{}`))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -282,12 +307,12 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Post("/rooms", h.FilterRooms)
 
 		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{`))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -308,11 +333,11 @@ func TestRoomsHandler_GetFloors(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Get("/rooms/floors", h.GetFloors)
 
 		req := httptest.NewRequest("GET", "/rooms/floors", nil)
-		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -323,7 +348,7 @@ func TestRoomsHandler_GetFloors(t *testing.T) {
 		assert.Contains(t, string(body), `3`)
 	})
 
-	t.Run("returns 400 when hotel_id header is missing", func(t *testing.T) {
+	t.Run("returns 401 when Authorization context is missing", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
@@ -333,17 +358,17 @@ func TestRoomsHandler_GetFloors(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Get("/rooms/floors", h.GetFloors)
 
 		req := httptest.NewRequest("GET", "/rooms/floors", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
-		assert.Equal(t, 400, resp.StatusCode)
+		assert.Equal(t, 401, resp.StatusCode)
 	})
 
-	t.Run("returns 400 when hotel_id header is invalid", func(t *testing.T) {
+	t.Run("returns 400 when user has no hotel association", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
@@ -353,11 +378,11 @@ func TestRoomsHandler_GetFloors(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{noHotel: true})
 		app.Get("/rooms/floors", h.GetFloors)
 
 		req := httptest.NewRequest("GET", "/rooms/floors", nil)
-		req.Header.Set(hotelIDHeader, "not-a-uuid")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -374,11 +399,11 @@ func TestRoomsHandler_GetFloors(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
+		withClerkAuth(app)
+		h := NewRoomsHandler(mock, &mockAuthLookup{hotelID: testHotelID})
 		app.Get("/rooms/floors", h.GetFloors)
 
 		req := httptest.NewRequest("GET", "/rooms/floors", nil)
-		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 

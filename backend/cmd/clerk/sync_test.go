@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const syncTestDefaultHotelID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+
 type mockUsersRepositorySync struct {
 	bulkInsertFunc func(ctx context.Context, users []*models.CreateUser) error
 }
@@ -62,7 +64,7 @@ func TestSyncUsers(t *testing.T) {
 			},
 		}
 
-		err := syncUsers(context.Background(), server.URL, "test_secret", userMock)
+		err := syncUsers(context.Background(), server.URL, "test_secret", userMock, syncTestDefaultHotelID)
 		require.NoError(t, err)
 
 		assert.Len(t, capturedUsers, 2)
@@ -90,7 +92,7 @@ func TestSyncUsers(t *testing.T) {
 			},
 		}
 
-		err := syncUsers(context.Background(), server.URL, "bad_secret", userMock)
+		err := syncUsers(context.Background(), server.URL, "bad_secret", userMock, syncTestDefaultHotelID)
 		require.Error(t, err)
 	})
 
@@ -116,7 +118,7 @@ func TestSyncUsers(t *testing.T) {
 			},
 		}
 
-		err := syncUsers(context.Background(), server.URL, "test_secret", userMock)
+		err := syncUsers(context.Background(), server.URL, "test_secret", userMock, syncTestDefaultHotelID)
 		require.Error(t, err)
 	})
 
@@ -142,7 +144,7 @@ func TestSyncUsers(t *testing.T) {
 			},
 		}
 
-		err := syncUsers(context.Background(), server.URL, "test_secret", userMock)
+		err := syncUsers(context.Background(), server.URL, "test_secret", userMock, syncTestDefaultHotelID)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "db connection failed")
 	})
@@ -165,7 +167,7 @@ func TestSyncUsers(t *testing.T) {
 			},
 		}
 
-		err := syncUsers(context.Background(), server.URL, "test_secret", userMock)
+		err := syncUsers(context.Background(), server.URL, "test_secret", userMock, syncTestDefaultHotelID)
 		require.NoError(t, err)
 		assert.True(t, insertCalled)
 	})

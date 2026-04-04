@@ -13,8 +13,7 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
-
-	// "github.com/generate/selfserve/internal/service/clerk" // re-enable with app.Use below when auth PR is merged
+	"github.com/generate/selfserve/internal/service/clerk"
 	s3storage "github.com/generate/selfserve/internal/service/s3"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/validation"
@@ -98,47 +97,47 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
-	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
+	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB), usersRepo)
 	tasksHandler := handler.NewTasksHandler(repository.NewRequestsRepo(repo.DB), usersRepo)
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
 		return err
 	}
-	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
+	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier, cfg.DefaultHotelID)
 
 	// API v1 routes
 	api := app.Group("/api/v1")
 
-	// clerk webhook route
+	// Clerk webhook (Svix-signed; must not require JWT)
 	api.Route("/clerk", func(r fiber.Router) {
 		r.Post("/user", clerkWebhookHandler.CreateUser)
 	})
 
-	// Clerk JWT middleware
-	// verifier := clerk.NewClerkJWTVerifier()
-	// app.Use(clerk.NewAuthMiddleware(verifier))
+	verifier := clerk.NewClerkJWTVerifier()
+	protected := api.Group("/")
+	protected.Use(clerk.NewAuthMiddleware(verifier))
 
 	// Hello routes
-	api.Route("/hello", func(r fiber.Router) {
+	protected.Route("/hello", func(r fiber.Router) {
 		r.Get("/", helloHandler.GetHello)
 		r.Get("/:name", helloHandler.GetHelloName)
 	})
 
 	// Dev routes
-	api.Route("/devs", func(r fiber.Router) {
+	protected.Route("/devs", func(r fiber.Router) {
 		r.Get("/:name", devsHandler.GetMember)
 	})
 
 	// users routes
-	api.Route("/users", func(r fiber.Router) {
+	protected.Route("/users", func(r fiber.Router) {
 		r.Get("/:id", usersHandler.GetUserByID)
 		r.Post("/", usersHandler.CreateUser)
 		r.Put("/:id", usersHandler.UpdateUser)
 	})
 
 	// Guest Routes
-	api.Route("/guests", func(r fiber.Router) {
+	protected.Route("/guests", func(r fiber.Router) {
 		r.Post("/", guestsHandler.CreateGuest)
 		r.Get("/:id", guestsHandler.GetGuest)
 		r.Put("/:id", guestsHandler.UpdateGuest)
@@ -147,7 +146,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	})
 
 	// Request routes
-	api.Route("/request", func(r fiber.Router) {
+	protected.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Put("/:id", reqsHandler.UpdateRequest)
@@ -156,19 +155,19 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	})
 
 	// Hotel routes
-	api.Route("/hotels", func(r fiber.Router) {
+	protected.Route("/hotels", func(r fiber.Router) {
 		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
 
 	// rooms routes
-	api.Route("/rooms", func(r fiber.Router) {
+	protected.Route("/rooms", func(r fiber.Router) {
 		r.Post("/", roomsHandler.FilterRooms)
 		r.Get("/floors", roomsHandler.GetFloors)
 	})
 
 	// tasks routes
-	api.Route("/tasks", func(r fiber.Router) {
+	protected.Route("/tasks", func(r fiber.Router) {
 		r.Get("/", tasksHandler.GetTasks)
 		r.Post("/", tasksHandler.CreateTask)
 		r.Patch("/:id", tasksHandler.PatchTask)
@@ -177,7 +176,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	})
 
 	// s3 routes
-	api.Route("/s3", func(r fiber.Router) {
+	protected.Route("/s3", func(r fiber.Router) {
 		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
 	})
 
@@ -206,7 +205,7 @@ func setupApp() *fiber.App {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
-		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID, X-Dev-User-Id",
+		AllowHeaders:     "Origin, Content-Type, Authorization",
 		AllowCredentials: true,
 	}))
 

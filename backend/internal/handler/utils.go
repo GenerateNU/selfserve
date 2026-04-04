@@ -6,28 +6,12 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
-	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
-
-const hotelIDHeader = "X-Hotel-ID"
 
 func validUUID(s string) bool {
 	_, err := uuid.Parse(s)
 	return err == nil
-}
-
-func hotelIDFromHeader(c *fiber.Ctx) (string, error) {
-	// TODO(production): Stop taking tenant scope from client-provided header.
-	// Resolve hotel_id from verified auth/session context on the server.
-	hotelID := strings.TrimSpace(c.Get(hotelIDHeader))
-	if hotelID == "" {
-		return "", errs.BadRequest("hotel_id header is required")
-	}
-	if !validUUID(hotelID) {
-		return "", errs.BadRequest("hotel_id header must be a valid uuid")
-	}
-	return hotelID, nil
 }
 
 func AggregateErrors(errors map[string]string) error {
@@ -66,11 +50,13 @@ func ValidateCreateUserClerk(user *models.ClerkUser) error {
 	return AggregateErrors(errors)
 }
 
-func ReformatUserData(CreateUserRequest *models.ClerkUser) *models.CreateUser {
+func ReformatUserData(CreateUserRequest *models.ClerkUser, defaultHotelID string) *models.CreateUser {
+	hid := strings.TrimSpace(defaultHotelID)
 	result := &models.CreateUser{
 		FirstName: CreateUserRequest.FirstName,
 		LastName:  CreateUserRequest.LastName,
 		ID:        CreateUserRequest.ID,
+		HotelID:   &hid,
 	}
 	if CreateUserRequest.HasImage {
 		result.ProfilePicture = CreateUserRequest.ImageUrl

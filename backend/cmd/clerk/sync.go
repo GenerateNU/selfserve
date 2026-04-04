@@ -27,7 +27,7 @@ func main() {
 	usersRepo := repository.NewUsersRepository(repo.DB)
 
 	path := "/users"
-	err = syncUsers(ctx, cfg.BaseURL+path, cfg.SecretKey, usersRepo)
+	err = syncUsers(ctx, cfg.BaseURL+path, cfg.SecretKey, usersRepo, cfg.DefaultHotelID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,14 +35,14 @@ func main() {
 }
 
 func syncUsers(ctx context.Context, clerkBaseURL string, clerkSecret string,
-	usersRepo storage.UsersRepository) error {
+	usersRepo storage.UsersRepository, defaultHotelID string) error {
 
 	users, err := clerk.FetchUsersFromClerk(clerkBaseURL, clerkSecret)
 	if err != nil {
 		return err
 	}
 
-	transformed, err := clerk.ValidateAndReformatUserData(users)
+	transformed, err := clerk.ValidateAndReformatUserData(users, defaultHotelID)
 	if err != nil {
 		return err
 	}

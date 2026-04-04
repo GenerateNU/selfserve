@@ -17,11 +17,12 @@ type RoomsRepository interface {
 }
 
 type RoomsHandler struct {
-	repo RoomsRepository
+	repo  RoomsRepository
+	users authUserLookup
 }
 
-func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
-	return &RoomsHandler{repo: repo}
+func NewRoomsHandler(repo RoomsRepository, users authUserLookup) *RoomsHandler {
+	return &RoomsHandler{repo: repo, users: users}
 }
 
 // FilterRooms godoc
@@ -30,7 +31,6 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 // @Tags         rooms
 // @Accept       json
 // @Produce      json
-// @Param        X-Hotel-ID  header    string                      true   "Hotel ID (UUID)"
 // @Param        body        body      models.FilterRoomsRequest   false  "Filters and pagination"
 // @Success      200         {object}  utils.CursorPage[models.RoomWithOptionalGuestBooking]
 // @Failure      400         {object}  map[string]string
@@ -38,7 +38,7 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 // @Security     BearerAuth
 // @Router       /rooms [post]
 func (h *RoomsHandler) FilterRooms(c *fiber.Ctx) error {
-	hotelID, err := hotelIDFromHeader(c)
+	_, hotelID, err := userIDAndHotelFromAuth(c, h.users)
 	if err != nil {
 		return err
 	}
@@ -73,12 +73,11 @@ func (h *RoomsHandler) FilterRooms(c *fiber.Ctx) error {
 // @Description  Retrieves all distinct floor numbers
 // @Tags         rooms
 // @Produce      json
-// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
 // @Success      200  {array}   int
 // @Failure      500  {object}  map[string]string
 // @Router       /rooms/floors [get]
 func (h *RoomsHandler) GetFloors(c *fiber.Ctx) error {
-	hotelID, err := hotelIDFromHeader(c)
+	_, hotelID, err := userIDAndHotelFromAuth(c, h.users)
 	if err != nil {
 		return err
 	}

@@ -332,7 +332,7 @@ func (r *RequestsRepository) FindTasks(ctx context.Context, hotelID string, user
 func (r *RequestsRepository) UpdateTaskStatus(ctx context.Context, hotelID, taskID, status string) error {
 	cmd, err := r.db.Exec(ctx, `
 		UPDATE requests
-		SET status = $1, updated_at = now()
+		SET status = $1
 		WHERE id = $2::uuid AND hotel_id = $3::uuid
 	`, status, taskID, hotelID)
 	if err != nil {
@@ -347,7 +347,7 @@ func (r *RequestsRepository) UpdateTaskStatus(ctx context.Context, hotelID, task
 func (r *RequestsRepository) ClaimTask(ctx context.Context, hotelID, taskID, staffUserID string) error {
 	cmd, err := r.db.Exec(ctx, `
 		UPDATE requests
-		SET user_id = $1, status = $2, updated_at = now()
+		SET user_id = $1, status = $2
 		WHERE id = $3::uuid AND hotel_id = $4::uuid
 		  AND user_id IS NULL AND status = $5
 	`, staffUserID, string(models.StatusAssigned), taskID, hotelID, string(models.StatusPending))
@@ -371,7 +371,7 @@ func (r *RequestsRepository) ClaimTask(ctx context.Context, hotelID, taskID, sta
 func (r *RequestsRepository) DropTask(ctx context.Context, hotelID, taskID, staffUserID string) error {
 	cmd, err := r.db.Exec(ctx, `
 		UPDATE requests
-		SET user_id = NULL, status = $1, updated_at = now()
+		SET user_id = NULL, status = $1
 		WHERE id = $2::uuid AND hotel_id = $3::uuid
 		  AND user_id = $4
 		  AND status IN ($5, $6)

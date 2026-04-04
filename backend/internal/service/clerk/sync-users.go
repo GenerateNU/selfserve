@@ -8,13 +8,13 @@ import (
 	"github.com/generate/selfserve/internal/models"
 )
 
-func ValidateAndReformatUserData(users []models.ClerkUser) ([]*models.CreateUser, error) {
+func ValidateAndReformatUserData(users []models.ClerkUser, defaultHotelID string) ([]*models.CreateUser, error) {
 	var reformatedUsers []*models.CreateUser
 	for _, user := range users {
 		if err := handler.ValidateCreateUserClerk(&user); err != nil {
 			return nil, err
 		}
-		reformatedUsers = append(reformatedUsers, handler.ReformatUserData(&user))
+		reformatedUsers = append(reformatedUsers, handler.ReformatUserData(&user, defaultHotelID))
 	}
 	return reformatedUsers, nil
 }
