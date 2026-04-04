@@ -255,19 +255,9 @@ func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
 		return err
 	}
 
-	var cursorID string
-	var cursorVersion time.Time
-	if input.Cursor != "" {
-		parts := strings.SplitN(input.Cursor, "|", 2)
-		if len(parts) != 2 {
-			return errs.BadRequest("invalid cursor")
-		}
-		var err error
-		cursorID = parts[0]
-		cursorVersion, err = time.Parse(time.RFC3339Nano, parts[1])
-		if err != nil {
-			return errs.BadRequest("invalid cursor")
-		}
+	cursorID, cursorVersion, err := parseRequestCursor(input.Cursor)
+	if err != nil {
+		return errs.BadRequest("invalid cursor")
 	}
 
 	limit := utils.ResolveLimit(input.Limit)
@@ -281,4 +271,21 @@ func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(page)
+}
+
+// parseRequestCursor splits a "id|request_version" cursor string.
+// Returns zero values and nil error when cursor is empty (first page).
+func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
+	if cursor == "" {
+		return "", time.Time{}, nil
+	}
+	parts := strings.SplitN(cursor, "|", 2)
+	if len(parts) != 2 {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	version, err = time.Parse(time.RFC3339Nano, parts[1])
+	if err != nil {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	return parts[0], version, nil
 }
