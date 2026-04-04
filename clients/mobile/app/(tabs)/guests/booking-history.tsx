@@ -12,12 +12,15 @@ export default function BookingHistoryScreen() {
   const currentStays = data?.current_stays ?? [];
   const pastStays = data?.past_stays ?? [];
 
-  const grouped = pastStays.reduce<Record<string, Stay[]>>((acc: Record<string, Stay[]>, stay: Stay) => {
-    const year = new Date(stay.arrival_date).getFullYear().toString();
-    if (!acc[year]) acc[year] = [];
-    acc[year].push(stay);
-    return acc;
-  }, {});
+  const grouped = pastStays.reduce<Record<string, Stay[]>>(
+    (acc: Record<string, Stay[]>, stay: Stay) => {
+      const year = new Date(stay.arrival_date).getFullYear().toString();
+      if (!acc[year]) acc[year] = [];
+      acc[year].push(stay);
+      return acc;
+    },
+    {},
+  );
 
   const pastSections = Object.entries(grouped)
     .sort(([a], [b]) => Number(b) - Number(a))

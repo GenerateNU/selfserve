@@ -382,7 +382,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(mock, nil)
+		h := NewRequestsHandler(mock, nil, nil)
 		app.Post("/request", h.CreateRequest)
 
 		bodyWithInProgressStatus := `{
@@ -525,7 +525,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil)
+		h := NewRequestsHandler(mock, nil, nil)
 		app.Post("/request", h.CreateRequest)
 
 		bodyWithInvalidPriority := `{
@@ -787,7 +787,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
+		h := NewRequestsHandler(repoMock, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
@@ -936,7 +936,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(repoMock, llmMock)
+		h := NewRequestsHandler(repoMock, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
@@ -978,7 +978,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(repoMock, llmMock)
+		h := NewRequestsHandler(repoMock, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
@@ -1021,7 +1021,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock)
+		h := NewRequestsHandler(repoMock, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
