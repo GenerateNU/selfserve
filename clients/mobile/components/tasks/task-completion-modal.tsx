@@ -36,7 +36,12 @@ export function TaskCompletionModal({
   const origin = useMemo(() => ({ x: width / 2, y: 0 }), [width]);
 
   return (
-    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+    <Modal
+      transparent
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onClose}
+    >
       <Pressable className="flex-1 bg-black/40" onPress={onClose}>
         <Pressable
           className="mx-5 mt-32 bg-white rounded-2xl p-5"
@@ -79,4 +84,3 @@ export function TaskCompletionModal({
     </Modal>
   );
 }
-

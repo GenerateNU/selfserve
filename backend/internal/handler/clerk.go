@@ -12,9 +12,9 @@ import (
 )
 
 type ClerkWebHookHandler struct {
-	UsersRepository  storage.UsersRepository
-	WebhookVerifier  WebhookVerifier
-	DefaultHotelID   string
+	UsersRepository storage.UsersRepository
+	WebhookVerifier WebhookVerifier
+	DefaultHotelID  string
 }
 
 type WebhookVerifier interface {

@@ -51,116 +51,129 @@ function OptionChip({
   );
 }
 
-export const TaskFilterSheet = forwardRef<BottomSheetModal, TaskFilterSheetProps>(
-  function TaskFilterSheet({ tab, draft, setDraft, viewMode, setViewMode, onApply }, ref) {
-    // Tall first snap so filters + Apply are visible without dragging higher first.
-    const snapPoints = useMemo(() => ["90%", "95%"], []);
-    const renderBackdrop = useCallback(
-      (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
-        <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} />
-      ),
-      [],
-    );
+export const TaskFilterSheet = forwardRef<
+  BottomSheetModal,
+  TaskFilterSheetProps
+>(function TaskFilterSheet(
+  { tab, draft, setDraft, viewMode, setViewMode, onApply },
+  ref,
+) {
+  // Tall first snap so filters + Apply are visible without dragging higher first.
+  const snapPoints = useMemo(() => ["90%", "95%"], []);
+  const renderBackdrop = useCallback(
+    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    [],
+  );
 
-    const statusOptions =
-      tab === TAB.MY_TASKS ? TASK_FILTER_STATUS_MY : TASK_FILTER_STATUS_UNASSIGNED;
+  const statusOptions =
+    tab === TAB.MY_TASKS
+      ? TASK_FILTER_STATUS_MY
+      : TASK_FILTER_STATUS_UNASSIGNED;
 
-    return (
-      <BottomSheetModal
-        ref={ref}
-        snapPoints={snapPoints}
-        enablePanDownToClose
-        backdropComponent={renderBackdrop}
-        handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+  return (
+    <BottomSheetModal
+      ref={ref}
+      snapPoints={snapPoints}
+      enablePanDownToClose
+      backdropComponent={renderBackdrop}
+      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+    >
+      <BottomSheetScrollView
+        className="px-5"
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <BottomSheetScrollView
-          className="px-5"
-          contentContainerStyle={{ paddingBottom: 40 }}
-        >
-          <View className="flex-row items-center justify-between pt-2">
-            <Text className="text-xl font-bold text-gray-900">Filters</Text>
-            <Pressable onPress={() => setDraft({})}>
-              <Text className="text-sm" style={{ color: primary }}>
-                Reset
-              </Text>
-            </Pressable>
-          </View>
-
-          <Text className="text-sm font-semibold text-gray-800 mt-6">Department</Text>
-          <View className="flex-row flex-wrap gap-2 mt-2">
-            {TASK_FILTER_DEPARTMENTS.map((d) => (
-              <OptionChip
-                key={d.value}
-                label={d.label}
-                selected={draft.department === d.value}
-                onPress={() =>
-                  setDraft((prev) => ({
-                    ...prev,
-                    department: prev.department === d.value ? undefined : d.value,
-                  }))
-                }
-              />
-            ))}
-          </View>
-
-          <Text className="text-sm font-semibold text-gray-800 mt-6">Priority</Text>
-          <View className="flex-row flex-wrap gap-2 mt-2">
-            {TASK_FILTER_PRIORITIES.map((p) => (
-              <OptionChip
-                key={p.value}
-                label={p.label}
-                selected={draft.priority === p.value}
-                onPress={() =>
-                  setDraft((prev) => ({
-                    ...prev,
-                    priority: prev.priority === p.value ? undefined : p.value,
-                  }))
-                }
-              />
-            ))}
-          </View>
-
-          <Text className="text-sm font-semibold text-gray-800 mt-6">Status</Text>
-          <View className="flex-row flex-wrap gap-2 mt-2">
-            {statusOptions.map((s) => (
-              <OptionChip
-                key={s.value}
-                label={s.label}
-                selected={draft.status === s.value}
-                onPress={() =>
-                  setDraft((prev) => ({
-                    ...prev,
-                    status: prev.status === s.value ? undefined : s.value,
-                  }))
-                }
-              />
-            ))}
-          </View>
-
-          <Text className="text-sm font-semibold text-gray-800 mt-6">View</Text>
-          <View className="flex-row gap-2 mt-2">
-            <OptionChip
-              label="Default"
-              selected={viewMode === "default"}
-              onPress={() => setViewMode("default")}
-            />
-            <OptionChip
-              label="Compact"
-              selected={viewMode === "compact"}
-              onPress={() => setViewMode("compact")}
-            />
-          </View>
-
-          <Pressable
-            onPress={onApply}
-            className="rounded-lg py-3 items-center mt-8"
-            style={{ backgroundColor: primary }}
-          >
-            <Text className="text-white font-semibold">Apply Filters</Text>
+        <View className="flex-row items-center justify-between pt-2">
+          <Text className="text-xl font-bold text-gray-900">Filters</Text>
+          <Pressable onPress={() => setDraft({})}>
+            <Text className="text-sm" style={{ color: primary }}>
+              Reset
+            </Text>
           </Pressable>
-        </BottomSheetScrollView>
-      </BottomSheetModal>
-    );
-  },
-);
+        </View>
 
+        <Text className="text-sm font-semibold text-gray-800 mt-6">
+          Department
+        </Text>
+        <View className="flex-row flex-wrap gap-2 mt-2">
+          {TASK_FILTER_DEPARTMENTS.map((d) => (
+            <OptionChip
+              key={d.value}
+              label={d.label}
+              selected={draft.department === d.value}
+              onPress={() =>
+                setDraft((prev) => ({
+                  ...prev,
+                  department: prev.department === d.value ? undefined : d.value,
+                }))
+              }
+            />
+          ))}
+        </View>
+
+        <Text className="text-sm font-semibold text-gray-800 mt-6">
+          Priority
+        </Text>
+        <View className="flex-row flex-wrap gap-2 mt-2">
+          {TASK_FILTER_PRIORITIES.map((p) => (
+            <OptionChip
+              key={p.value}
+              label={p.label}
+              selected={draft.priority === p.value}
+              onPress={() =>
+                setDraft((prev) => ({
+                  ...prev,
+                  priority: prev.priority === p.value ? undefined : p.value,
+                }))
+              }
+            />
+          ))}
+        </View>
+
+        <Text className="text-sm font-semibold text-gray-800 mt-6">Status</Text>
+        <View className="flex-row flex-wrap gap-2 mt-2">
+          {statusOptions.map((s) => (
+            <OptionChip
+              key={s.value}
+              label={s.label}
+              selected={draft.status === s.value}
+              onPress={() =>
+                setDraft((prev) => ({
+                  ...prev,
+                  status: prev.status === s.value ? undefined : s.value,
+                }))
+              }
+            />
+          ))}
+        </View>
+
+        <Text className="text-sm font-semibold text-gray-800 mt-6">View</Text>
+        <View className="flex-row gap-2 mt-2">
+          <OptionChip
+            label="Default"
+            selected={viewMode === "default"}
+            onPress={() => setViewMode("default")}
+          />
+          <OptionChip
+            label="Compact"
+            selected={viewMode === "compact"}
+            onPress={() => setViewMode("compact")}
+          />
+        </View>
+
+        <Pressable
+          onPress={onApply}
+          className="rounded-lg py-3 items-center mt-8"
+          style={{ backgroundColor: primary }}
+        >
+          <Text className="text-white font-semibold">Apply Filters</Text>
+        </Pressable>
+      </BottomSheetScrollView>
+    </BottomSheetModal>
+  );
+});

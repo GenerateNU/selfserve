@@ -5,7 +5,7 @@ import "time"
 type TaskTab string
 
 const (
-	TaskTabMy          TaskTab = "my"
+	TaskTabMy         TaskTab = "my"
 	TaskTabUnassigned TaskTab = "unassigned"
 )
 
@@ -49,6 +49,6 @@ type Task struct {
 
 // CreateTaskBody is the POST /tasks JSON body from the mobile app.
 type CreateTaskBody struct {
-	Name        string `json:"name"`
-	AssignToMe  bool   `json:"assign_to_me"`
+	Name       string `json:"name"`
+	AssignToMe bool   `json:"assign_to_me"`
 }

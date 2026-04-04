@@ -35,7 +35,10 @@ export function TaskCard({
 
   if (isAssigned && expanded) {
     return (
-      <Pressable onPress={onPress} className="bg-white rounded-xl border border-gray-200 p-4 w-full">
+      <Pressable
+        onPress={onPress}
+        className="bg-white rounded-xl border border-gray-200 p-4 w-full"
+      >
         <Text className="text-lg font-bold">{task.title}</Text>
         <View className="flex-row items-center mt-1">
           <Text className="text-sm">{task.priority}</Text>
@@ -83,7 +86,11 @@ export function TaskCard({
             <TaskBadge label={task.location} />
           </View>
         </View>
-        <Pressable onPress={onPress} className="p-1" accessibilityLabel="Open task details">
+        <Pressable
+          onPress={onPress}
+          className="p-1"
+          accessibilityLabel="Open task details"
+        >
           <Feather name="more-horizontal" size={24} color="#6b7280" />
         </Pressable>
       </Pressable>
@@ -92,7 +99,10 @@ export function TaskCard({
 
   if (!isAssigned && expanded) {
     return (
-      <Pressable onPress={onPress} className="bg-white rounded-xl border border-gray-200 p-4 w-full">
+      <Pressable
+        onPress={onPress}
+        className="bg-white rounded-xl border border-gray-200 p-4 w-full"
+      >
         <Text className="text-lg font-bold">{task.title}</Text>
         <View className="flex-row flex-wrap gap-2 mt-1">
           <TaskBadge label={task.priority} />
@@ -126,7 +136,11 @@ export function TaskCard({
           <TaskBadge label={task.department} variant="outlined" />
         </View>
       </View>
-      <Pressable onPress={onPress} className="p-1" accessibilityLabel="Open task details">
+      <Pressable
+        onPress={onPress}
+        className="p-1"
+        accessibilityLabel="Open task details"
+      >
         <Feather name="more-horizontal" size={24} color="#6b7280" />
       </Pressable>
     </Pressable>

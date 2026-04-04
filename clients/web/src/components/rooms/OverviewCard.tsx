@@ -22,12 +22,12 @@ export function OverviewCard({
   className = "",
 }: OverviewCardProps) {
   return (
-<section className={cn("flex w-full min-w-0 flex-col", className)}>
-  <h2 className="my-2 shrink-0 text-sm font-medium leading-tight text-neutral-400">
-    {title}
-  </h2>
+    <section className={cn("flex w-full min-w-0 flex-col", className)}>
+      <h2 className="my-2 shrink-0 text-sm font-medium leading-tight text-neutral-400">
+        {title}
+      </h2>
 
-  <div className="h-0.5 w-full shrink-0 bg-stroke-subtle" />
+      <div className="h-0.5 w-full shrink-0 bg-stroke-subtle" />
 
       <div className="mt-0 flex flex-wrap items-start justify-between gap-y-2">
         {columns.map((col) => (

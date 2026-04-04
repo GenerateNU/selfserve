@@ -5,7 +5,10 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ActiveFilterChips, type TaskFilterChip } from "@/components/tasks/active-filter-chips";
+import {
+  ActiveFilterChips,
+  type TaskFilterChip,
+} from "@/components/tasks/active-filter-chips";
 import { TabBar } from "@/components/tasks/tab-bar";
 import { TaskCompletionModal } from "@/components/tasks/task-completion-modal";
 import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
@@ -31,7 +34,9 @@ import type { Task, TasksFilterState } from "@/types/tasks";
 
 const tabConfigs: Record<
   TabName,
-  { variant: (typeof TASK_ASSIGNMENT_STATE)[keyof typeof TASK_ASSIGNMENT_STATE] }
+  {
+    variant: (typeof TASK_ASSIGNMENT_STATE)[keyof typeof TASK_ASSIGNMENT_STATE];
+  }
 > = {
   [TAB.MY_TASKS]: { variant: TASK_ASSIGNMENT_STATE.ASSIGNED },
   [TAB.UNASSIGNED]: { variant: TASK_ASSIGNMENT_STATE.UNASSIGNED },
@@ -47,7 +52,9 @@ function labelForPriority(value: string) {
 
 function labelForStatus(value: string, tab: TabName) {
   const list =
-    tab === TAB.MY_TASKS ? TASK_FILTER_STATUS_MY : TASK_FILTER_STATUS_UNASSIGNED;
+    tab === TAB.MY_TASKS
+      ? TASK_FILTER_STATUS_MY
+      : TASK_FILTER_STATUS_UNASSIGNED;
   return list.find((s) => s.value === value)?.label ?? value;
 }
 
@@ -74,7 +81,10 @@ function buildChips(filters: TasksFilterState, tab: TabName): TaskFilterChip[] {
   return chips;
 }
 
-function removeChipId(filters: TasksFilterState, chipId: string): TasksFilterState {
+function removeChipId(
+  filters: TasksFilterState,
+  chipId: string,
+): TasksFilterState {
   const next = { ...filters };
   if (chipId.startsWith("department:")) next.department = undefined;
   if (chipId.startsWith("priority:")) next.priority = undefined;
@@ -93,7 +103,9 @@ export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
 
   const [myTasksFilters, setMyTasksFilters] = useState<TasksFilterState>({});
-  const [unassignedFilters, setUnassignedFilters] = useState<TasksFilterState>({});
+  const [unassignedFilters, setUnassignedFilters] = useState<TasksFilterState>(
+    {},
+  );
   const [myViewMode, setMyViewMode] = useState<TaskViewMode>("default");
   const [unassignedViewMode, setUnassignedViewMode] =
     useState<TaskViewMode>("default");
@@ -135,12 +147,7 @@ export default function TasksScreen() {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return tasks;
     return tasks.filter((t) => {
-      const blob = [
-        t.title,
-        t.description ?? "",
-        t.department,
-        t.location,
-      ]
+      const blob = [t.title, t.description ?? "", t.department, t.location]
         .join(" ")
         .toLowerCase();
       return blob.includes(q);
@@ -250,21 +257,25 @@ export default function TasksScreen() {
 
   const handleDrop = useCallback(
     (task: Task) => {
-      Alert.alert("Drop task?", "This returns the task to the unassigned list.", [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Drop",
-          style: "destructive",
-          onPress: () =>
-            dropTask.mutate(task.id, {
-              onError: (e) => {
-                const msg =
-                  e instanceof ApiError ? e.message : "Could not drop task";
-                Alert.alert("Error", msg);
-              },
-            }),
-        },
-      ]);
+      Alert.alert(
+        "Drop task?",
+        "This returns the task to the unassigned list.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Drop",
+            style: "destructive",
+            onPress: () =>
+              dropTask.mutate(task.id, {
+                onError: (e) => {
+                  const msg =
+                    e instanceof ApiError ? e.message : "Could not drop task";
+                  Alert.alert("Error", msg);
+                },
+              }),
+          },
+        ],
+      );
     },
     [dropTask],
   );

@@ -47,11 +47,15 @@ export const useTasksFeed = (tab: TabName, filters: TasksFilterState) => {
         limit: 20,
       };
       if (pageParam) params.cursor = pageParam;
-      if (filters.department?.trim()) params.department = filters.department.trim();
+      if (filters.department?.trim())
+        params.department = filters.department.trim();
       if (filters.priority?.trim()) params.priority = filters.priority.trim();
       if (filters.status?.trim()) params.status = filters.status.trim();
 
-      const page = await api.get<CursorPage<BackendTask>>(API_ENDPOINTS.TASKS, params);
+      const page = await api.get<CursorPage<BackendTask>>(
+        API_ENDPOINTS.TASKS,
+        params,
+      );
       const rawItems = Array.isArray(page.items) ? page.items : [];
       return {
         ...page,

@@ -12,12 +12,12 @@ import (
 const taskCursorVersion = 2
 
 type taskCursorPayload struct {
-	V  int    `json:"v"`
+	V   int    `json:"v"`
 	Tab string `json:"tab"`
-	Pr int    `json:"pr"`
-	Dk string `json:"dk"`
-	T  string `json:"t"`
-	ID string `json:"id"`
+	Pr  int    `json:"pr"`
+	Dk  string `json:"dk"`
+	T   string `json:"t"`
+	ID  string `json:"id"`
 }
 
 func EncodeTaskCursor(c models.TaskCursor) (string, error) {

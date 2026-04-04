@@ -19,7 +19,11 @@ export function TasksHeader({
       <Text className="text-2xl font-bold">Tasks</Text>
       <View className="flex-row items-center gap-4">
         <Pressable onPress={onToggleSearch} accessibilityLabel="Toggle search">
-          <Feather name="search" size={24} color={searchActive ? "#004FC5" : "#000"} />
+          <Feather
+            name="search"
+            size={24}
+            color={searchActive ? "#004FC5" : "#000"}
+          />
         </Pressable>
         <Pressable onPress={onOpenFilters} accessibilityLabel="Open filters">
           <Feather name="sliders" size={24} color="#000" />

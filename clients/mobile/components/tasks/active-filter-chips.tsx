@@ -32,7 +32,10 @@ export function ActiveFilterChips({
             className="bg-blue-600 rounded-full px-3 py-1 flex-row items-center gap-2"
           >
             <Text className="text-white text-sm">{chip.label}</Text>
-            <Pressable onPress={() => onRemove(chip.id)} accessibilityLabel="Remove filter">
+            <Pressable
+              onPress={() => onRemove(chip.id)}
+              accessibilityLabel="Remove filter"
+            >
               <Feather name="x" size={14} color="white" />
             </Pressable>
           </View>
