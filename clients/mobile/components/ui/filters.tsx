@@ -24,9 +24,11 @@ export function Filters<T extends string | number>({
   className,
 }: FiltersProps<T>) {
   return (
-    <View className={`gap-[2vw] ${className || ""}`}>
+    <View className={`flex-row gap-[2vw] p-[3vw] ${className || ""}`}>
       {filters.map((filter, index) => (
-        <MultiSelectFilter key={index} {...filter} />
+        <View key={index} className="flex-1">
+          <MultiSelectFilter {...filter} />
+        </View>
       ))}
     </View>
   );
