@@ -84,7 +84,8 @@ docker-run:
 		$(DOCKER_IMAGE_NAME)
 
 docker-up:
-	docker compose up --build
+	@doppler secrets download --no-file --format env --config prd > config/.env
+	@docker compose up --build
 
 docker-down:
 	docker compose down
