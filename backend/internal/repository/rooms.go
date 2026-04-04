@@ -60,7 +60,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		var rb models.RoomWithOptionalGuestBooking
 		var guestsJSON json.RawMessage
 		err := rows.Scan(
-			&rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus,
+			&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus,
 			&guestsJSON,
 		)
 		if err != nil {
