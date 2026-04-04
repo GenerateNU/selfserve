@@ -22,15 +22,16 @@ type command struct {
 
 // commands is the registry of all available CLI subcommands.
 // To add a new command: add an entry here and implement its run func below.
+//
+//	"my-new-command": {
+//		description: "What this command does",
+//		run:         runMyNewCommand,
+//	},
 var commands = map[string]command{
 	"sync-users": {
 		description: "Sync users from Clerk into the database",
 		run:         runSyncUsers,
 	},
-	// "my-new-command": {
-	// 	description: "What this command does",
-	// 	run:         runMyNewCommand,
-	// },
 }
 
 func main() {
