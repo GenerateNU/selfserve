@@ -237,8 +237,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		"id": "user_123",
 		"first_name": "John",
 		"last_name": "Doe",
-		"role": "Receptionist",
-		"clerk_id": "user_123"
+		"role": "Receptionist"
 	}`
 
 	t.Run("returns 200 on valid user creation", func(t *testing.T) {
@@ -296,8 +295,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"role": "Manager",
 			"employee_id": "EMP-67",
 			"department": "Front Desk",
-			"timezone": "America/New_York",
-			"clerk_id": "user_123"
+			"timezone": "America/New_York"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(bodyWithOptionals))
@@ -368,7 +366,6 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"first_name": "John",
 			"last_name": "Doe",
 			"role": "Receptionist",
-			"clerk_id": "user_123",
 			"timezone": "Invalid/Not_A_Timezone"
 		}`
 
@@ -404,36 +401,6 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, 500, resp.StatusCode)
-	})
-
-	t.Run("returns_400_when_clerk_id_is_missing", func(t *testing.T) {
-		body := `{
-		"id": "user_123",
-		"first_name": "John",
-		"last_name": "Doe",
-		"role": "Receptionist"
-	}`
-
-		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
-				return nil, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, &mockS3Storage{})
-		app.Post("/users", h.CreateUser)
-
-		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "clerk_id")
 	})
 }
 
