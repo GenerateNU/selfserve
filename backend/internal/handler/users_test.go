@@ -20,7 +20,6 @@ import (
 type mockUsersRepository struct {
 	findUserByIdFunc       func(ctx context.Context, id string) (*models.User, error)
 	insertUserFunc         func(ctx context.Context, user *models.CreateUser) (*models.User, error)
-	updateUserFunc         func(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
 	searchUsersByHotelFunc func(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
 	updateProfilePicFunc   func(ctx context.Context, userId string, key string) error
 	deleteProfilePicFunc   func(ctx context.Context, userId string) error
