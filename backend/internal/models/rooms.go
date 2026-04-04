@@ -1,6 +1,7 @@
 package models
 
 type Room struct {
+	ID         string `json:"id"`
 	RoomNumber int    `json:"room_number"`
 	Floor      int    `json:"floor"`
 	SuiteType  string `json:"suite_type"`

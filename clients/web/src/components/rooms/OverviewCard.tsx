@@ -22,7 +22,7 @@ export function OverviewCard({
   className = "",
 }: OverviewCardProps) {
   return (
-    <section className={cn("flex w-full min-w-0 flex-col bg-white", className)}>
+    <section className={cn("flex w-full min-w-0 flex-col", className)}>
       <h2 className="my-2 shrink-0 text-sm font-medium leading-tight text-neutral-400">
         {title}
       </h2>
@@ -55,7 +55,7 @@ export function OverviewCard({
                 col.valueSecondary != null && "whitespace-nowrap",
               )}
             >
-              <span className="text-[32px] font-bold text-text-default">
+              <span className="text-2xl lg:text-[32px] font-bold text-text-default">
                 {col.value}
               </span>
               {col.valueSecondary != null && (

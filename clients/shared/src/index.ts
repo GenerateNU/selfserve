@@ -13,6 +13,8 @@ export type {
   Request,
   MakeRequest,
   GenerateRequestInput,
+  GenerateRequestResponse,
+  GenerateRequestWarning,
   Hotel,
   Guest,
   Dev,
@@ -46,6 +48,8 @@ export {
   useGetApiV1GuestsId,
   usePutApiV1GuestsId,
 } from "./api/generated/endpoints/guests/guests";
+
+export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
 
 export {
   usePostRooms,
