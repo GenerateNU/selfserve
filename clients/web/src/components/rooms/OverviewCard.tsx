@@ -12,22 +12,19 @@ export type OverviewCardColumn = {
 
 type OverviewCardProps = {
   title: string;
-  description: string;
   columns: [OverviewCardColumn, OverviewCardColumn, OverviewCardColumn];
   className?: string;
 };
 
 export function OverviewCard({
   title,
-  description,
   columns,
   className = "",
 }: OverviewCardProps) {
   return (
     <section className={cn("flex w-full min-w-0 flex-col", className)}>
       <h2 className="my-2 shrink-0 text-sm font-medium leading-tight text-neutral-400">
-        <p>{title}</p>
-        <p>{description}</p>
+        {title}
       </h2>
 
       <div className="h-0.5 w-full shrink-0 bg-stroke-subtle" />
