@@ -70,14 +70,17 @@ export default function GuestsList() {
     <View className="flex-1 bg-white">
       <FlatList
         data={allGuests}
-        keyExtractor={(g) => g.id}
+        keyExtractor={(g) => g.id ?? ""}
         renderItem={({ item }) => (
           <GuestCard
-            firstName={item.first_name}
-            lastName={item.last_name}
-            floor={item.floor}
-            room={item.room_number}
-            onPress={() => router.push(`/guests/${item.id}`)}
+            firstName={item.first_name ?? ""}
+            lastName={item.last_name ?? ""}
+            floor={item.floor ?? 0}
+            room={item.room_number ?? 0}
+            onPress={() => {
+              if (!item.id) return;
+              router.push(`/guests/${item.id}`);
+            }}
           />
         )}
         onEndReached={() => {

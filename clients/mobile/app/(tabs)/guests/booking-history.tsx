@@ -2,17 +2,17 @@ import { View, Text, Pressable, SectionList } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Colors } from "@/constants/theme";
-import { useGetGuestsStaysId } from "@shared/api/generated/endpoints/guests/guests";
+import { useGetApiV1GuestsStaysId } from "@shared/api/generated/endpoints/guests/guests";
 import type { Stay } from "@shared/api/generated/models";
 
 export default function BookingHistoryScreen() {
   const { id } = useLocalSearchParams();
-  const { data, isLoading } = useGetGuestsStaysId(id as string);
+  const { data, isLoading } = useGetApiV1GuestsStaysId(id as string);
 
   const currentStays = data?.current_stays ?? [];
   const pastStays = data?.past_stays ?? [];
 
-  const grouped = pastStays.reduce<Record<string, Stay[]>>((acc, stay) => {
+  const grouped = pastStays.reduce<Record<string, Stay[]>>((acc: Record<string, Stay[]>, stay: Stay) => {
     const year = new Date(stay.arrival_date).getFullYear().toString();
     if (!acc[year]) acc[year] = [];
     acc[year].push(stay);

@@ -50,11 +50,11 @@ export {
   useGetApiV1GuestsId,
   usePutApiV1GuestsId,
 } from "./api/generated/endpoints/guests/guests";
+import * as guestBookingsApi from "./api/generated/endpoints/guest-bookings/guest-bookings";
 
-
-export {
-  useGetGuestBookingsFloor
-} from "./api/generated/endpoints/guest-bookings/guest-bookings";
+export const useGetGuestBookingsGroupSizes: any =
+  (guestBookingsApi as any).useGetGuestBookingsGroupSizes ??
+  (guestBookingsApi as any).useGetGuestBookingsFloor;
 
 export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
 
