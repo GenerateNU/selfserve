@@ -5,21 +5,12 @@ import (
 	"log/slog"
 	"time"
 
-	"context"
-
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 )
-
-type UsersRepository interface {
-	FindUser(ctx context.Context, id string) (*models.User, error)
-	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
-	UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
-	SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
-}
 
 // UpdateProfilePictureRequest represents the request body for updating a profile picture
 // @Description Request body containing the S3 key after uploading
