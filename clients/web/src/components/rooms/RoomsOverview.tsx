@@ -23,12 +23,17 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const vacantRooms = totalRooms - occupiedRooms;
 
   return (
-    <aside className="w-1/4 shrink-0 min-h-0 overflow-y-auto bg-white p-[2vw]">
-      <div className="flex flex-col gap-[2.2vh]">
+    <aside className="w-1/4 shrink-0 min-h-0 overflow-y-auto px-6">
+      <div className="flex flex-col">
         <OverviewCard
           title="Tasks"
           columns={[
-            { field: "Urgent", value: 0, description: "Tasks" },
+            {
+              field: "Urgent",
+              value: 0,
+              description: "Tasks",
+              urgent: true,
+            },
             {
               field: "Unassigned",
               value: cleaningOnlyRooms,
@@ -43,8 +48,9 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
           columns={[
             {
               field: "Floor Occupancy",
-              value: vacantRooms,
-              description: "Rooms left",
+              value: occupiedRooms,
+              valueSecondary: totalRooms,
+              description: "Rooms occupied",
             },
             {
               field: "Expected Arrivals",

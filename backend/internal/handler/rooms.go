@@ -34,6 +34,7 @@ func NewRoomsHandler(repo RoomsRepository, users authUserLookup) *RoomsHandler {
 // @Param        body        body      models.FilterRoomsRequest   false  "Filters and pagination"
 // @Success      200         {object}  utils.CursorPage[models.RoomWithOptionalGuestBooking]
 // @Failure      400         {object}  map[string]string
+// @Failure      401         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
 // @Security     BearerAuth
 // @Router       /rooms [post]
@@ -74,7 +75,10 @@ func (h *RoomsHandler) FilterRooms(c *fiber.Ctx) error {
 // @Tags         rooms
 // @Produce      json
 // @Success      200  {array}   int
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /rooms/floors [get]
 func (h *RoomsHandler) GetFloors(c *fiber.Ctx) error {
 	_, hotelID, err := userIDAndHotelFromAuth(c, h.users)

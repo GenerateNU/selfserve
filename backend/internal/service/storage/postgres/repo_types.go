@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	"github.com/generate/selfserve/internal/models"
 )
@@ -19,6 +20,14 @@ type GuestsRepository interface {
 	FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error)
 }
 
+// GuestsSearchRepository is implemented by OpenSearch. It handles
+// indexing and searching the denormalized GuestDocument.
+type GuestsSearchRepository interface {
+	IndexGuest(ctx context.Context, doc *models.GuestDocument) error
+	SearchGuests(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error)
+	DeleteGuest(ctx context.Context, id string) error
+}
+
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
@@ -29,6 +38,7 @@ type RequestsRepository interface {
 	UpdateTaskStatus(ctx context.Context, hotelID, taskID, status string) error
 	ClaimTask(ctx context.Context, hotelID, taskID, staffUserID string) error
 	DropTask(ctx context.Context, hotelID, taskID, staffUserID string) error
+	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
 type HotelsRepository interface {

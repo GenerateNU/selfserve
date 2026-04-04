@@ -329,6 +329,46 @@ func (r *RequestsRepository) FindTasks(ctx context.Context, hotelID string, user
 	return tasks, rows.Err()
 }
 
+func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	rows, err := r.db.Query(ctx, `
+		WITH latest AS (
+			SELECT DISTINCT ON (r.id)
+				r.id, r.name, r.priority, r.status, r.description, r.notes,
+				rm.room_number, r.request_type, r.request_category, r.created_at,
+				r.request_version
+			FROM public.requests r
+			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
+			WHERE r.guest_id = $1
+			  AND r.hotel_id = $2
+			ORDER BY r.id ASC, r.request_version DESC
+		)
+		SELECT * FROM latest
+		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
+		ORDER BY id ASC
+		LIMIT $5
+	`, guestID, hotelID, cursorID, cursorVersion, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	requests := make([]*models.GuestRequest, 0)
+	for rows.Next() {
+		var req models.GuestRequest
+		if err := rows.Scan(
+			&req.ID, &req.Name, &req.Priority, &req.Status,
+			&req.Description, &req.Notes, &req.RoomNumber,
+			&req.RequestType, &req.RequestCategory, &req.CreatedAt,
+			&req.RequestVersion,
+		); err != nil {
+			return nil, err
+		}
+		requests = append(requests, &req)
+	}
+
+	return requests, rows.Err()
+}
+
 func (r *RequestsRepository) UpdateTaskStatus(ctx context.Context, hotelID, taskID, status string) error {
 	cmd, err := r.db.Exec(ctx, `
 		UPDATE requests

@@ -18,14 +18,15 @@ import (
 )
 
 type mockRequestRepository struct {
-	makeRequestFunc          func(ctx context.Context, req *models.Request) (*models.Request, error)
-	findRequestFunc          func(ctx context.Context, id string) (*models.Request, error)
-	findRequestsFunc         func(ctx context.Context) ([]models.Request, error)
-	findRequestsByCursorFunc func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
-	findTasksFunc            func(ctx context.Context, hotelID string, userID string, filter *models.TaskFilter, cursor *models.TaskCursor) ([]*models.Task, error)
-	updateTaskStatusFunc     func(ctx context.Context, hotelID, taskID, status string) error
-	claimTaskFunc            func(ctx context.Context, hotelID, taskID, staffUserID string) error
-	dropTaskFunc             func(ctx context.Context, hotelID, taskID, staffUserID string) error
+	makeRequestFunc           func(ctx context.Context, req *models.Request) (*models.Request, error)
+	findRequestFunc           func(ctx context.Context, id string) (*models.Request, error)
+	findRequestsFunc          func(ctx context.Context) ([]models.Request, error)
+	findRequestsByCursorFunc  func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
+	findTasksFunc             func(ctx context.Context, hotelID string, userID string, filter *models.TaskFilter, cursor *models.TaskCursor) ([]*models.Task, error)
+	updateTaskStatusFunc      func(ctx context.Context, hotelID, taskID, status string) error
+	claimTaskFunc             func(ctx context.Context, hotelID, taskID, staffUserID string) error
+	dropTaskFunc              func(ctx context.Context, hotelID, taskID, staffUserID string) error
+	findRequestsByGuestIDFunc func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -78,6 +79,13 @@ type mockLLMService struct {
 
 func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
 	return m.runGenerateRequestFunc(ctx, input)
+}
+
+func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	if m.findRequestsByGuestIDFunc == nil {
+		return nil, nil
+	}
+	return m.findRequestsByGuestIDFunc(ctx, guestID, hotelID, cursorID, cursorVersion, limit)
 }
 
 func TestRequestHandler_GetRequest(t *testing.T) {
@@ -995,6 +1003,175 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+}
+
+func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
+	t.Parallel()
+
+	validGuestID := "530e8400-e458-41d4-a716-446655440000"
+	validHotelID := "521e8400-e458-41d4-a716-446655440000"
+
+	t.Run("returns 200 with guest requests", func(t *testing.T) {
+		t.Parallel()
+
+		description := "This is a very urgent request"
+		mock := &mockRequestRepository{
+			findRequestsByGuestIDFunc: func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+				return []*models.GuestRequest{
+					{
+						ID:             "630e8400-e458-41d4-a716-446655440000",
+						Name:           "HELP HELP HELP",
+						Priority:       "high",
+						Status:         "pending",
+						Description:    &description,
+						RequestType:    "one-time",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/guest/:id", h.GetRequestsByGuest)
+
+		req := httptest.NewRequest("GET", "/request/guest/"+validGuestID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "HELP HELP HELP")
+		assert.Contains(t, string(body), "high")
+		assert.Contains(t, string(body), "630e8400-e458-41d4-a716-446655440000")
+	})
+
+	t.Run("returns 200 with empty list when no requests", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestsByGuestIDFunc: func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+				return []*models.GuestRequest{}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/guest/:id", h.GetRequestsByGuest)
+
+		req := httptest.NewRequest("GET", "/request/guest/"+validGuestID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "[]")
+	})
+
+	t.Run("passes correct guest_id and hotel_id to repository", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestsByGuestIDFunc: func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+				assert.Equal(t, validGuestID, guestID)
+				assert.Equal(t, validHotelID, hotelID)
+				return []*models.GuestRequest{}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/guest/:id", h.GetRequestsByGuest)
+
+		req := httptest.NewRequest("GET", "/request/guest/"+validGuestID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when guest_id is invalid UUID", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/guest/:id", h.GetRequestsByGuest)
+
+		req := httptest.NewRequest("GET", "/request/guest/not-a-uuid", nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "guest_id")
+	})
+
+	t.Run("returns 400 when X-Hotel-ID header is missing", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/guest/:id", h.GetRequestsByGuest)
+
+		req := httptest.NewRequest("GET", "/request/guest/"+validGuestID, nil)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "hotel_id")
+	})
+
+	t.Run("returns 400 when X-Hotel-ID is invalid UUID", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/guest/:id", h.GetRequestsByGuest)
+
+		req := httptest.NewRequest("GET", "/request/guest/"+validGuestID, nil)
+		req.Header.Set("X-Hotel-ID", "not-a-uuid")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "hotel_id")
+	})
+
+	t.Run("returns 500 on repository error", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestsByGuestIDFunc: func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+				return nil, errors.New("db connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil)
+		app.Get("/request/guest/:id", h.GetRequestsByGuest)
+
+		req := httptest.NewRequest("GET", "/request/guest/"+validGuestID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
 		assert.Equal(t, 500, resp.StatusCode)
 	})
 }
