@@ -85,28 +85,41 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 }
 
 func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
+	guest := &models.GuestWithStays{}
+
+	err := r.db.QueryRow(ctx, `
+		SELECT
+			g.id, g.first_name, g.last_name, g.phone, g.email,
+			g.preferences, g.notes, g.pronouns, g.do_not_disturb_start,
+			g.do_not_disturb_end, g.housekeeping_cadence, g.assistance
+		FROM public.guests g
+		WHERE g.id = $1
+	`, id).Scan(
+		&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email,
+		&guest.Preferences, &guest.Notes, &guest.Pronouns, &guest.DoNotDisturbStart,
+		&guest.DoNotDisturbEnd, &guest.HousekeepingCadence, &guest.Assistance,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
 
 	rows, err := r.db.Query(ctx, `
-		SELECT guests.id, guests.first_name, guests.last_name, guests.phone, guests.email,
-			guests.preferences, guests.notes, guest_bookings.arrival_date, guest_bookings.departure_date,
-			rooms.room_number, guest_bookings.status
-		FROM public.guests
-		LEFT JOIN guest_bookings ON guests.id = guest_bookings.guest_id
-		LEFT JOIN rooms ON rooms.id = guest_bookings.room_id
-		WHERE guests.id = $1
+		SELECT gb.arrival_date, gb.departure_date, rm.room_number, gb.status, gb.group_size
+		FROM guest_bookings gb
+		LEFT JOIN rooms rm ON rm.id = gb.room_id
+		WHERE gb.guest_id = $1
 	`, id)
-
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var guest *models.GuestWithStays
 	for rows.Next() {
-		var stay models.Stay
-		var arrivalDate *time.Time
-		var departureDate *time.Time
-		var roomNumber *int
+		var arrivalDate, departureDate *time.Time
+		var roomNumber, groupSize *int
 		var status *models.BookingStatus
 
 		if guest == nil {
@@ -128,32 +141,34 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 			continue
 		}
 
-		stay.ArrivalDate = *arrivalDate
-		stay.DepartureDate = *departureDate
-		stay.RoomNumber = *roomNumber
-		stay.Status = *status
-
-		switch *status {
-		case models.BookingStatusActive:
-			guest.CurrentStays = append(guest.CurrentStays, stay)
-		case models.BookingStatusInactive:
-			guest.PastStays = append(guest.PastStays, stay)
-		default:
-			return nil, errs.InternalServerError()
-		}
+		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, status)
+		guest = appendStay(guest, stay, *status)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
+	return guest, rows.Err()
+}
+
+func buildStay(arrival, departure *time.Time, roomNumber, groupSize *int, status *models.BookingStatus) models.Stay {
+	stay := models.Stay{
+		ArrivalDate:   *arrival,
+		DepartureDate: *departure,
+		RoomNumber:    *roomNumber,
+		Status:        *status,
 	}
-
-	if guest == nil {
-		return nil, errs.ErrNotFoundInDB
+	if groupSize != nil {
+		stay.GroupSize = groupSize
 	}
+	return stay
+}
 
-	sortGuestStays(guest)
-
-	return guest, nil
+func appendStay(guest *models.GuestWithStays, stay models.Stay, status models.BookingStatus) *models.GuestWithStays {
+	switch status {
+	case models.BookingStatusActive:
+		guest.CurrentStays = append(guest.CurrentStays, stay)
+	default:
+		guest.PastStays = append(guest.PastStays, stay)
+	}
+	return guest
 }
 
 func sortGuestStays(guest *models.GuestWithStays) {
@@ -172,20 +187,22 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	row := r.db.QueryRow(ctx, `
 		UPDATE guests
 		SET
-			first_name = $2,
-			last_name = $3,
-			profile_picture = $4,
-			timezone = $5,
+			first_name = COALESCE($2, first_name),
+			last_name = COALESCE($3, last_name),
+			profile_picture = COALESCE($4, profile_picture),
+			timezone = COALESCE($5, timezone),
+			notes = COALESCE($6, notes),
 			updated_at = NOW()
 		WHERE id = $1
 		RETURNING
 			id, created_at, updated_at,
-			first_name, last_name, profile_picture, timezone`,
+			first_name, last_name, profile_picture, timezone, notes`,
 		id,
 		update.FirstName,
 		update.LastName,
 		update.ProfilePicture,
 		update.Timezone,
+		update.Notes,
 	)
 
 	err := row.Scan(
@@ -196,6 +213,7 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 		&guest.LastName,
 		&guest.ProfilePicture,
 		&guest.Timezone,
+		&guest.Notes,
 	)
 
 	if err != nil {

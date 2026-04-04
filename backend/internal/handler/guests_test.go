@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -345,236 +346,6 @@ func TestGuestsHandler_GetGuest(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
-		assert.Equal(t, 500, resp.StatusCode)
-	})
-}
-
-func TestGuestsHandler_UpdateGuest(t *testing.T) {
-	t.Parallel()
-
-	validID := "530e8400-e458-41d4-a716-446655440000"
-
-	t.Run("returns 200 on valid update with required fields", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{
-			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
-				require.Equal(t, validID, id)
-				require.Equal(t, "Jane", update.FirstName)
-				require.Equal(t, "Smith", update.LastName)
-
-				return &models.Guest{
-					ID:        validID,
-					CreatedAt: time.Now().Add(-time.Hour),
-					UpdatedAt: time.Now(),
-					CreateGuest: models.CreateGuest{
-						FirstName: update.FirstName,
-						LastName:  update.LastName,
-					},
-				}, nil
-			},
-		}
-
-		app := fiber.New()
-		h := NewGuestsHandler(mock, nil)
-		app.Put("/guests/:id", h.UpdateGuest)
-
-		req := httptest.NewRequest(
-			"PUT",
-			"/guests/"+validID,
-			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith"}`),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 200, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "Jane")
-		assert.Contains(t, string(body), "Smith")
-	})
-
-	t.Run("returns 400 when first_name is missing", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{}
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock, nil)
-		app.Put("/guests/:id", h.UpdateGuest)
-
-		req := httptest.NewRequest(
-			"PUT",
-			"/guests/"+validID,
-			bytes.NewBufferString(`{"last_name":"Smith"}`),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "first_name")
-	})
-
-	t.Run("returns 400 when last_name is missing", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{}
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock, nil)
-		app.Put("/guests/:id", h.UpdateGuest)
-
-		req := httptest.NewRequest(
-			"PUT",
-			"/guests/"+validID,
-			bytes.NewBufferString(`{"first_name":"Jane"}`),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "last_name")
-	})
-
-	t.Run("returns 400 when both required fields are empty strings", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{}
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock, nil)
-		app.Put("/guests/:id", h.UpdateGuest)
-
-		req := httptest.NewRequest(
-			"PUT",
-			"/guests/"+validID,
-			bytes.NewBufferString(`{"first_name":"","last_name":""}`),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "first_name")
-		assert.Contains(t, string(body), "last_name")
-	})
-
-	t.Run("returns 400 on invalid UUID", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{}
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock, nil)
-		app.Put("/guests/:id", h.UpdateGuest)
-
-		req := httptest.NewRequest(
-			"PUT",
-			"/guests/not-a-uuid",
-			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith"}`),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-	})
-
-	t.Run("returns 400 on invalid JSON", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{}
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock, nil)
-		app.Put("/guests/:id", h.UpdateGuest)
-
-		req := httptest.NewRequest(
-			"PUT",
-			"/guests/"+validID,
-			bytes.NewBufferString(`{invalid json`),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-	})
-
-	t.Run("returns 400 on invalid timezone", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{}
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock, nil)
-		app.Put("/guests/:id", h.UpdateGuest)
-
-		req := httptest.NewRequest(
-			"PUT",
-			"/guests/"+validID,
-			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith","timezone":"Eastern"}`),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "timezone")
-	})
-
-	t.Run("returns 404 when guest not found", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{
-			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
-				return nil, errs.ErrNotFoundInDB
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock, nil)
-		app.Put("/guests/:id", h.UpdateGuest)
-
-		req := httptest.NewRequest(
-			"PUT",
-			"/guests/"+validID,
-			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith"}`),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 404, resp.StatusCode)
-	})
-
-	t.Run("returns 500 on repository error", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{
-			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
-				return nil, errors.New("db failure")
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock, nil)
-		app.Put("/guests/:id", h.UpdateGuest)
-
-		req := httptest.NewRequest(
-			"PUT",
-			"/guests/"+validID,
-			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith"}`),
-		)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
 		assert.Equal(t, 500, resp.StatusCode)
 	})
 }
@@ -1015,5 +786,458 @@ func TestGuestsHandler_GetGuestWithStays(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
+	})
+
+	t.Run("returns new profile fields when present", func(t *testing.T) {
+		t.Parallel()
+
+		pronouns := "she/her"
+		housekeeping := "daily"
+		phone := "+1 (617) 012-3456"
+		email := "jane@example.com"
+		groupSize := 3
+
+		mock := &mockGuestsRepository{
+			findGuestStaysFunc: func(ctx context.Context, id string) (*models.GuestWithStays, error) {
+				return &models.GuestWithStays{
+					ID:                  id,
+					FirstName:           "Jane",
+					LastName:            "Doe",
+					Pronouns:            &pronouns,
+					HousekeepingCadence: &housekeeping,
+					Phone:               &phone,
+					Email:               &email,
+					Assistance: &models.Assistance{
+						Accessibility: []string{"wheelchair"},
+						Dietary:       []string{"peanuts"},
+						Medical:       []string{"pollen allergy"},
+					},
+					CurrentStays: []models.Stay{
+						{
+							ArrivalDate:   time.Now(),
+							DepartureDate: time.Now().Add(24 * time.Hour),
+							RoomNumber:    101,
+							GroupSize:     &groupSize,
+							Status:        models.BookingStatusActive,
+						},
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Get("/guests/stays/:id", h.GetGuestWithStays)
+
+		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "she/her")
+		assert.Contains(t, string(body), "daily")
+		assert.Contains(t, string(body), "wheelchair")
+		assert.Contains(t, string(body), "peanuts")
+		assert.Contains(t, string(body), "pollen allergy")
+		assert.Contains(t, string(body), "3")
+	})
+
+	t.Run("returns 200 when optional profile fields are absent", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{
+			findGuestStaysFunc: func(ctx context.Context, id string) (*models.GuestWithStays, error) {
+				return &models.GuestWithStays{
+					ID:        id,
+					FirstName: "John",
+					LastName:  "Doe",
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Get("/guests/stays/:id", h.GetGuestWithStays)
+
+		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.NotContains(t, string(body), "pronouns")
+		assert.NotContains(t, string(body), "assistance")
+		assert.NotContains(t, string(body), "housekeeping_cadence")
+	})
+
+	t.Run("returns group_size in stay", func(t *testing.T) {
+		t.Parallel()
+
+		groupSize := 5
+		mock := &mockGuestsRepository{
+			findGuestStaysFunc: func(ctx context.Context, id string) (*models.GuestWithStays, error) {
+				return &models.GuestWithStays{
+					ID:        id,
+					FirstName: "John",
+					LastName:  "Doe",
+					PastStays: []models.Stay{
+						{
+							ArrivalDate:   time.Now().Add(-48 * time.Hour),
+							DepartureDate: time.Now().Add(-24 * time.Hour),
+							RoomNumber:    202,
+							GroupSize:     &groupSize,
+							Status:        models.BookingStatusInactive,
+						},
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Get("/guests/stays/:id", h.GetGuestWithStays)
+
+		req := httptest.NewRequest("GET", "/guests/stays/"+validID, nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"group_size":5`)
+	})
+}
+
+func TestGuestsHandler_UpdateGuest(t *testing.T) {
+	t.Parallel()
+
+	validID := "530e8400-e458-41d4-a716-446655440000"
+
+	t.Run("returns 200 when updating first and last name", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{
+			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
+				require.Equal(t, validID, id)
+				require.Equal(t, "Jane", *update.FirstName)
+				require.Equal(t, "Smith", *update.LastName)
+
+				return &models.Guest{
+					ID:        validID,
+					CreatedAt: time.Now().Add(-time.Hour),
+					UpdatedAt: time.Now(),
+					CreateGuest: models.CreateGuest{
+						FirstName: *update.FirstName,
+						LastName:  *update.LastName,
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"first_name":"Jane","last_name":"Smith"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "Jane")
+		assert.Contains(t, string(body), "Smith")
+	})
+
+	t.Run("returns 200 when only first_name is updated", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{
+			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
+				require.Equal(t, "Jane", *update.FirstName)
+				require.Nil(t, update.LastName)
+				return &models.Guest{
+					ID:        validID,
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					CreateGuest: models.CreateGuest{
+						FirstName: *update.FirstName,
+						LastName:  "Doe",
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"first_name":"Jane"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+	})
+
+	t.Run("returns 200 when only notes is updated", func(t *testing.T) {
+		t.Parallel()
+
+		notes := "VIP guest"
+		mock := &mockGuestsRepository{
+			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
+				require.Nil(t, update.FirstName)
+				require.Nil(t, update.LastName)
+				require.Equal(t, notes, *update.Notes)
+				return &models.Guest{
+					ID:        validID,
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					Notes:     update.Notes,
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"notes":"VIP guest"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "VIP guest")
+	})
+
+	t.Run("returns 200 when no fields are provided", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{
+			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
+				require.Nil(t, update.FirstName)
+				require.Nil(t, update.LastName)
+				require.Nil(t, update.Notes)
+				return &models.Guest{
+					ID:        validID,
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when first_name is blank string", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"first_name":""}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "first_name")
+	})
+
+	t.Run("returns 400 when last_name is blank string", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"last_name":""}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "last_name")
+	})
+
+	t.Run("returns 400 when notes exceeds 1000 chars", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		longNotes := `{"notes":"` + strings.Repeat("a", 1001) + `"}`
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(longNotes),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "notes")
+	})
+
+	t.Run("returns 400 on invalid UUID", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/not-a-uuid",
+			bytes.NewBufferString(`{"first_name":"Jane"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("returns 400 on invalid JSON", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{invalid json`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("returns 400 on invalid timezone", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{}
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"timezone":"Eastern"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "timezone")
+	})
+
+	t.Run("returns 404 when guest not found", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{
+			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
+				return nil, errs.ErrNotFoundInDB
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"first_name":"Jane"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 404, resp.StatusCode)
+	})
+
+	t.Run("returns 500 on repository error", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockGuestsRepository{
+			updateGuestFunc: func(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
+				return nil, errors.New("db failure")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewGuestsHandler(mock, nil)
+		app.Put("/guests/:id", h.UpdateGuest)
+
+		req := httptest.NewRequest(
+			"PUT",
+			"/guests/"+validID,
+			bytes.NewBufferString(`{"first_name":"Jane"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 500, resp.StatusCode)
 	})
 }

@@ -1,62 +1,52 @@
+import { useGetRequestRoomId } from "@shared";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
+import { RoomAccordion } from "@/components/rooms/RoomAccordion";
+import { RoomRequestList } from "@/components/rooms/RoomRequestList";
+import { RoomTabBar } from "@/components/rooms/RoomTabBar";
 
 type RoomDetailsDrawerProps = {
   room: RoomWithOptionalGuestBooking | null;
   onClose: () => void;
 };
 
-function Field({ label, value }: { label: string; value?: string | number }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="text-xs text-zinc-500 uppercase tracking-wide">
-        {label}
-      </span>
-      <span className="text-sm text-zinc-900 dark:text-zinc-100">
-        {value ?? "—"}
-      </span>
-    </div>
-  );
-}
-
 export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
+  const { data } = useGetRequestRoomId(room?.id ?? "", {
+    query: { enabled: room?.id != null },
+  });
+
   if (!room) return null;
 
-  return (
-    <DrawerShell title={`Room ${room.room_number}`} onClose={onClose}>
-      <Field label="Floor" value={room.floor} />
-      <Field label="Suite Type" value={room.suite_type} />
-      <Field label="Room Status" value={room.room_status} />
-      <Field label="Booking Status" value={room.booking_status} />
+  const assignedItems = (data?.assigned ?? []).map((r) => ({
+    ...r,
+    isAssigned: true,
+  }));
+  const unassignedItems = data?.unassigned ?? [];
 
-      <div className="flex flex-col gap-2">
-        <span className="text-xs text-zinc-500 uppercase tracking-wide">
-          Guests
-        </span>
-        {room.guests && room.guests.length > 0 ? (
-          <ul className="flex flex-col gap-4">
-            {room.guests.map((guest) => (
-              <li
-                key={guest.id}
-                className="flex flex-col gap-1 text-sm text-zinc-900 dark:text-zinc-100"
-              >
-                <span className="font-medium">
-                  {[guest.first_name, guest.last_name]
-                    .filter(Boolean)
-                    .join(" ") || "—"}
-                </span>
-                {guest.timezone && (
-                  <span className="text-xs text-zinc-500">
-                    {guest.timezone}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <span className="text-sm text-zinc-900 dark:text-zinc-100">—</span>
-        )}
-      </div>
+  const roomAccordionItems = [
+    {
+      value: "Your Tasks",
+      trigger: "Your Tasks",
+      content: <RoomRequestList requests={assignedItems} />,
+    },
+    {
+      value: "Unassigned Tasks",
+      trigger: "Unassigned Tasks",
+      content: <RoomRequestList requests={unassignedItems} />,
+    },
+  ];
+
+  return (
+    <DrawerShell
+      title={`Room ${room.room_number}`}
+      onClose={onClose}
+      className="px-2 py-0"
+    >
+      <RoomTabBar />
+      <RoomAccordion
+        items={roomAccordionItems}
+        defaultValue={["Your Tasks", "Unassigned Tasks"]}
+      />
     </DrawerShell>
   );
 }

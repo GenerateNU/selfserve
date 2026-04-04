@@ -1,14 +1,15 @@
 import { usePostApiV1GuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { MakeRequestPriority } from "@shared";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { useDebounce } from "../../hooks/use-debounce";
 import type { Request } from "@shared";
-import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
-import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
+import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
+import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 
 export const Route = createFileRoute("/_protected/guests/")({
   component: GuestsQuickListPage,
@@ -28,9 +29,11 @@ function GuestsQuickListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [groupFilter, setGroupFilter] = useState("all");
   const [floorFilter, setFloorFilter] = useState("all");
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
-    null,
-  );
+  const [generatedData, setGeneratedData] = useState<{
+    name?: string;
+    description?: string;
+    priority?: MakeRequestPriority;
+  } | null>(null);
 
   const debouncedSearch = useDebounce(searchTerm, 300);
   const postGuests = usePostApiV1GuestsSearchHook();
@@ -96,24 +99,45 @@ function GuestsQuickListPage() {
 
   return (
     <PageShell
-      header={
-        <div className="px-6 py-5 border-b border-stroke-subtle">
-          <h1 className="text-2xl font-semibold text-text-default">Guests</h1>
-        </div>
-      }
-      drawerOpen={generatedRequest !== null}
+      header={{
+        title: "Guests",
+        description: "Description blah blah fries -> bag",
+      }}
+      drawerOpen={generatedData !== null}
       drawer={
-        <GeneratedRequestDrawer
-          request={generatedRequest}
-          onClose={() => setGeneratedRequest(null)}
-        />
+        generatedData !== null ? (
+          <CreateRequestDrawer
+            initialData={generatedData}
+            onClose={() => setGeneratedData(null)}
+          />
+        ) : null
       }
     >
       <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
-      {renderContent()}
-
-      {generatedRequest === null && (
-        <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      <GuestQuickListTable
+        guests={filteredGuests}
+        groupFilter={groupFilter}
+        floorFilter={floorFilter}
+        onGroupFilterChange={setGroupFilter}
+        onFloorFilterChange={setFloorFilter}
+        onGuestClick={(guestId) =>
+          navigate({ to: "/guests/$guestId", params: { guestId } })
+        }
+      />
+      {generatedData === null && (
+        <GlobalTaskInput
+          onRequestGenerated={(r: Request) => {
+            const p = r.priority;
+            setGeneratedData({
+              name: r.name,
+              description: r.description,
+              priority:
+                p && p in MakeRequestPriority
+                  ? (p as MakeRequestPriority)
+                  : undefined,
+            });
+          }}
+        />
       )}
     </PageShell>
   );

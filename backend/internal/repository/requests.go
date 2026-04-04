@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
@@ -75,22 +76,27 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
+func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
 	rows, err := r.db.Query(ctx, `
-			SELECT *
+		WITH latest AS (
+			SELECT DISTINCT ON (id) *
 			FROM requests
-			WHERE id > $1 AND status = $2 AND hotel_id = $3
-			ORDER BY id
-			LIMIT $4
-		`, cursor, status, hotelID, pageSize+1)
+			WHERE status = $3 AND hotel_id = $4
+			ORDER BY id, request_version DESC
+		)
+		SELECT * FROM latest
+		WHERE (request_version, id) > ($1, $2)
+		ORDER BY request_version ASC, id ASC
+		LIMIT $5
+	`, cursorTime, cursorID, status, hotelID, pageSize+1)
 
 	if err != nil {
-		return nil, "", err
+		return nil, time.Time{}, "", err
 	}
 
 	defer rows.Close()
 
-	var requests []*models.Request
+	requests := make([]*models.Request, 0)
 	for rows.Next() {
 		var request models.Request
 		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
@@ -99,20 +105,21 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
 			&request.CreatedAt, &request.UserID, &request.RequestVersion)
 		if err != nil {
-			return nil, "", err
+			return nil, time.Time{}, "", err
 		}
 		requests = append(requests, &request)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, "", errs.ErrNotFoundInDB
+		return nil, time.Time{}, "", errs.ErrNotFoundInDB
 	}
 
 	if len(requests) == pageSize+1 {
-		return requests[:pageSize], requests[pageSize-1].ID, nil
+		last := requests[pageSize-1]
+		return requests[:pageSize], last.RequestVersion, last.ID, nil
 	}
 
-	return requests, "", nil
+	return requests, time.Time{}, "", nil
 }
 
 func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
@@ -141,4 +148,101 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 	}
 
 	return requests, nil
+}
+
+func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	rows, err := r.db.Query(ctx, `
+		WITH latest AS (
+			SELECT DISTINCT ON (r.id)
+				r.id, r.name, r.priority, r.status, r.description, r.notes,
+				rm.room_number, r.request_type, r.request_category, r.created_at,
+				r.request_version
+			FROM public.requests r
+			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
+			WHERE r.guest_id = $1
+			  AND r.hotel_id = $2
+			ORDER BY r.id ASC, r.request_version DESC
+		)
+		SELECT * FROM latest
+		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
+		ORDER BY id ASC
+		LIMIT $5
+	`, guestID, hotelID, cursorID, cursorVersion, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return scanGuestRequests(rows)
+}
+
+func (r *RequestsRepository) FindMyRequestsByRoomID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	rows, err := r.db.Query(ctx, `
+		WITH latest AS (
+			SELECT DISTINCT ON (r.id)
+				r.id, r.name, r.priority, r.status, r.description, r.notes,
+				rm.room_number, r.request_type, r.request_category, r.created_at,
+				r.request_version
+			FROM public.requests r
+			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
+			WHERE r.room_id = $1
+			  AND r.hotel_id = $2
+			  AND r.user_id = $3
+			ORDER BY r.id ASC, r.request_version DESC
+		)
+		SELECT * FROM latest
+		WHERE ($4::text = '' OR (id::text, request_version) > ($4, $5))
+		ORDER BY id ASC
+		LIMIT $6
+	`, roomID, hotelID, userID, cursorID, cursorVersion, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return scanGuestRequests(rows)
+}
+
+func (r *RequestsRepository) FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	rows, err := r.db.Query(ctx, `
+		WITH latest AS (
+			SELECT DISTINCT ON (r.id)
+				r.id, r.name, r.priority, r.status, r.description, r.notes,
+				rm.room_number, r.request_type, r.request_category, r.created_at,
+				r.request_version
+			FROM public.requests r
+			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
+			WHERE r.room_id = $1
+			  AND r.hotel_id = $2
+			  AND r.user_id IS NULL
+			ORDER BY r.id ASC, r.request_version DESC
+		)
+		SELECT * FROM latest
+		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
+		ORDER BY id ASC
+		LIMIT $5
+	`, roomID, hotelID, cursorID, cursorVersion, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return scanGuestRequests(rows)
+}
+
+func scanGuestRequests(rows pgx.Rows) ([]*models.GuestRequest, error) {
+	requests := make([]*models.GuestRequest, 0)
+	for rows.Next() {
+		var req models.GuestRequest
+		if err := rows.Scan(
+			&req.ID, &req.Name, &req.Priority, &req.Status,
+			&req.Description, &req.Notes, &req.RoomNumber,
+			&req.RequestType, &req.RequestCategory, &req.CreatedAt,
+			&req.RequestVersion,
+		); err != nil {
+			return nil, err
+		}
+		requests = append(requests, &req)
+	}
+	return requests, rows.Err()
 }
