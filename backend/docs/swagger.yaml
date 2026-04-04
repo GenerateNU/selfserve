@@ -1,5 +1,20 @@
 basePath: /api/v1
 definitions:
+  Assistance:
+    properties:
+      accessibility:
+        items:
+          type: string
+        type: array
+      dietary:
+        items:
+          type: string
+        type: array
+      medical:
+        items:
+          type: string
+        type: array
+    type: object
   CreateGuest:
     properties:
       first_name:
@@ -98,6 +113,9 @@ definitions:
       last_name:
         example: Doe
         type: string
+      notes:
+        example: VIP guest
+        type: string
       profile_picture:
         example: https://example.com/john.jpg
         type: string
@@ -161,6 +179,31 @@ definitions:
       next_cursor:
         type: string
     type: object
+  GuestRequest:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      priority:
+        type: string
+      request_category:
+        type: string
+      request_type:
+        type: string
+      request_version:
+        type: string
+      room_number:
+        type: integer
+      status:
+        type: string
+    type: object
   GuestWithBooking:
     properties:
       first_name:
@@ -177,25 +220,29 @@ definitions:
         type: string
       room_number:
         type: integer
-    required:
-    - first_name
-    - floor
-    - id
-    - last_name
-    - preferred_name
-    - room_number
     type: object
   GuestWithStays:
     properties:
+      assistance:
+        $ref: '#/definitions/Assistance'
       current_stays:
         items:
           $ref: '#/definitions/Stay'
         type: array
+      do_not_disturb_end:
+        example: "07:00:00"
+        type: string
+      do_not_disturb_start:
+        example: "17:00:00"
+        type: string
       email:
         example: jane.doe@example.com
         type: string
       first_name:
         example: Jane
+        type: string
+      housekeeping_cadence:
+        example: daily
         type: string
       id:
         example: 530e8400-e458-41d4-a716-446655440000
@@ -215,6 +262,9 @@ definitions:
         type: string
       preferences:
         example: extra pillows
+        type: string
+      pronouns:
+        example: she/her
         type: string
     required:
     - current_stays
@@ -296,7 +346,8 @@ definitions:
         enum:
         - pending
         - assigned
-        - in progress
+        - in
+        - progress
         - completed
         example: assigned
         type: string
@@ -367,7 +418,8 @@ definitions:
         enum:
         - pending
         - assigned
-        - in progress
+        - in
+        - progress
         - completed
         example: assigned
         type: string
@@ -379,6 +431,8 @@ definitions:
     properties:
       floor:
         type: integer
+      id:
+        type: string
       room_number:
         type: integer
       room_status:
@@ -396,6 +450,8 @@ definitions:
         items:
           $ref: '#/definitions/Guest'
         type: array
+      id:
+        type: string
       room_number:
         type: integer
       room_status:
@@ -411,6 +467,8 @@ definitions:
       departure_date:
         example: "2024-01-05"
         type: string
+      group_size:
+        type: integer
       room_number:
         example: 101
         type: integer
@@ -429,6 +487,10 @@ definitions:
         type: string
       last_name:
         example: Doe
+        type: string
+      notes:
+        example: VIP guest
+        maxLength: 1000
         type: string
       profile_picture:
         example: https://example.com/john.jpg
@@ -491,34 +553,6 @@ definitions:
         type: integer
       message: {}
     type: object
-  github_com_generate_selfserve_internal_models.CreateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
-        type: string
-    type: object
-  github_com_generate_selfserve_internal_models.UpdateGuest:
-    properties:
-      first_name:
-        example: Jane
-        type: string
-      last_name:
-        example: Doe
-        type: string
-      profile_picture:
-        example: https://example.com/john.jpg
-        type: string
-      timezone:
-        example: America/New_York
   github_com_generate_selfserve_internal_models.BookingStatus:
     enum:
     - active
@@ -647,7 +681,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_generate_selfserve_internal_models.UpdateGuest'
+          $ref: '#/definitions/UpdateGuest'
       produces:
       - application/json
       responses:
@@ -1011,6 +1045,41 @@ paths:
       summary: generates a request
       tags:
       - requests
+  /request/guest/{id}:
+    get:
+      description: Retrieves all requests for a given guest
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/GuestRequest'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get requests by guest
+      tags:
+      - requests
   /rooms:
     post:
       consumes:
@@ -1018,11 +1087,6 @@ paths:
       description: Retrieves rooms with optional floor filters and cursor pagination,
         including any active guest bookings
       parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
       - description: Filters and pagination
         in: body
         name: body
@@ -1041,6 +1105,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -1055,12 +1125,6 @@ paths:
   /rooms/floors:
     get:
       description: Retrieves all distinct floor numbers
-      parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -1070,12 +1134,26 @@ paths:
             items:
               type: integer
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get Floors
       tags:
       - rooms
