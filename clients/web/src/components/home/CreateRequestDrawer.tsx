@@ -4,7 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
-import type { MakeRequest, User } from "@shared";
+import type { MakeRequest, RequestRequestPriority, User } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { AssigneePicker } from "@/components/ui/AssigneePicker";
 import { cn } from "@/lib/utils";
@@ -17,8 +17,7 @@ const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
   { key: "history", label: "History" },
 ];
 
-const PRIORITIES = ["low", "medium", "high"] as const;
-type Priority = (typeof PRIORITIES)[number];
+const PRIORITIES: RequestRequestPriority[] = ["low", "medium", "high"];
 
 type FieldRowProps = {
   label: string;
@@ -50,7 +49,7 @@ type CreateRequestDrawerProps = {
   initialData?: {
     name?: string;
     description?: string;
-    priority?: Priority;
+    priority?: RequestPriority;
   };
 };
 
@@ -64,7 +63,7 @@ export function CreateRequestDrawer({
   const [description, setDescription] = useState(
     initialData?.description ?? "",
   );
-  const [priority, setPriority] = useState<Priority>(
+  const [priority, setRequestPriority] = useState<RequestPriority>(
     initialData?.priority ?? "medium",
   );
   const [assignee, setAssignee] = useState<User | undefined>();
@@ -127,14 +126,14 @@ export function CreateRequestDrawer({
         <div className="flex items-center gap-8">
           <div className="flex w-28 shrink-0 items-center gap-1">
             <GripHorizontal className="size-4.5 text-text-subtle" />
-            <span className="text-sm text-text-subtle">Priority</span>
+            <span className="text-sm text-text-subtle">RequestPriority</span>
           </div>
           <div className="flex items-center gap-1">
             {PRIORITIES.map((p) => (
               <button
                 key={p}
                 type="button"
-                onClick={() => setPriority(p)}
+                onClick={() => setRequestPriority(p)}
                 className={cn(
                   "rounded px-2 py-0.5 text-xs capitalize transition-colors",
                   priority === p

@@ -19,6 +19,7 @@ export type {
   Guest,
   GuestPage,
   Dev,
+  RequestPriority,
 } from "./api/generated/models";
 
 // Generated API Functions
