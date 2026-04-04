@@ -1,22 +1,28 @@
 import { FloorDropdown } from "./FloorDropdown";
+import { OrderByDropdown } from "./OrderByDropdown";
 import { RoomsFilterPopover } from "@/components/rooms/RoomsFilterPopover";
 
-type RoomsHeaderProps = {
+type RoomsToolbarProps = {
   selectedFloors: Array<number>;
   onChangeSelectedFloors: (floors: Array<number>) => void;
+  ascending: boolean;
+  setAscending: (ascending: boolean) => void;
 };
 
-export function RoomsHeader({
+export function RoomsToolbar({
   selectedFloors,
   onChangeSelectedFloors,
-}: RoomsHeaderProps) {
+  ascending,
+  setAscending,
+}: RoomsToolbarProps) {
   return (
-    <header className="z-30 bg-bg-container px-16 py-6 flex items-center gap-3">
+    <div className="flex items-center gap-3">
       <FloorDropdown
         selected={selectedFloors}
         onChangeSelectedFloors={onChangeSelectedFloors}
       />
       <RoomsFilterPopover />
-    </header>
+      <OrderByDropdown ascending={ascending} setAscending={setAscending} />
+    </div>
   );
 }

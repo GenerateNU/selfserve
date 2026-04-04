@@ -56,7 +56,9 @@
   --color-text-subtle: #747474;
   --color-text-secondary: #5d5d5d;
   --color-bg-selected: #edf5f1;
+  --color-neutral-10: #fafafa;
   --color-neutral-400: #808080;
+  --color-neutral-750: #464646;
   --color-muted: #f0f0f0;
   --color-request-pending-secondary: #fcdcd1;
   --color-request-pending: #f25118;
