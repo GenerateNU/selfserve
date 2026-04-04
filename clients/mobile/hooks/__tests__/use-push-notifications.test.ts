@@ -24,7 +24,10 @@ jest.mock("@shared/api/notifications", () => ({
 }));
 
 // Import after mocks so the module-level setNotificationHandler call uses the mock
-import { usePushNotifications, registerForPushNotificationsAsync } from "../use-push-notifications";
+import {
+  usePushNotifications,
+  registerForPushNotificationsAsync,
+} from "../use-push-notifications";
 
 const Notifications = require("expo-notifications");
 
