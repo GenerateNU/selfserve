@@ -4,7 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
-import type { MakeRequest, MakeRequestPriority, User  } from "@shared";
+import type { MakeRequest, MakeRequestPriority, User } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { AssigneePicker } from "@/components/ui/AssigneePicker";
 import { cn } from "@/lib/utils";
@@ -126,9 +126,7 @@ export function CreateRequestDrawer({
         <div className="flex items-center gap-8">
           <div className="flex w-28 shrink-0 items-center gap-1">
             <GripHorizontal className="size-4.5 text-text-subtle" />
-            <span className="text-sm text-text-subtle">
-              MakeRequestPriority
-            </span>
+            <span className="text-sm text-text-subtle">Priority</span>
           </div>
           <div className="flex items-center gap-1">
             {PRIORITIES.map((p) => (
