@@ -15,6 +15,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { StartupProvider, StartupStatus, useStartup } from "@/context/startup";
 import NoUserInfo from "@/components/ui/NoUserInfo";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +61,13 @@ function AppLayout() {
   );
 }
 
+// Registers the Expo push token with the backend and wires up tap-to-navigate.
+// Must render inside QueryClientProvider so useMutation is available.
+function PushNotificationRegistrar() {
+  usePushNotifications();
+  return null;
+}
+
 export default function RootLayout() {
   return (
     <ClerkProvider
@@ -67,6 +75,7 @@ export default function RootLayout() {
       tokenCache={tokenCache}
     >
       <QueryClientProvider client={queryClient}>
+        <PushNotificationRegistrar />
         <StartupProvider>
           <SafeAreaProvider>
             <AppLayout />
