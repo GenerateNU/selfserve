@@ -33,6 +33,13 @@ function HomePage() {
     });
   }
 
+  const drawer = drawerData !== null ? (
+    <CreateRequestDrawer
+      initialData={drawerData}
+      onClose={() => setDrawerData(null)}
+    />
+  ) : null;
+
   return (
     <PageShell
       header={{
@@ -40,14 +47,7 @@ function HomePage() {
         description: "Overview of all tasks currently at play",
       }}
       drawerOpen={drawerData !== null}
-      drawer={
-        drawerData !== null ? (
-          <CreateRequestDrawer
-            initialData={drawerData}
-            onClose={() => setDrawerData(null)}
-          />
-        ) : null
-      }
+      drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
       <HomeToolbar className="mt-2" onCreateRequest={handleCreateRequest} />
