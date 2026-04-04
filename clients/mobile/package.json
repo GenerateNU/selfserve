@@ -78,11 +78,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "moduleNameMapper": {
-      "^@shared/(.*)$": "<rootDir>/../shared/src/$1",
-      "^react$": "<rootDir>/node_modules/react",
-      "^react/(.*)$": "<rootDir>/node_modules/react/$1",
-      "^@tanstack/react-query$": "<rootDir>/node_modules/@tanstack/react-query",
-      "^@tanstack/react-query/(.*)$": "<rootDir>/node_modules/@tanstack/react-query/$1"
+      "^@shared/(.*)$": "<rootDir>/../shared/src/$1"
     }
   }
 }
