@@ -454,6 +454,17 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
+  RoomRequestsResponse:
+    properties:
+      assigned:
+        items:
+          $ref: '#/definitions/GuestRequest'
+        type: array
+      unassigned:
+        items:
+          $ref: '#/definitions/GuestRequest'
+        type: array
+    type: object
   RoomWithOptionalGuestBooking:
     properties:
       booking_status:
@@ -1183,6 +1194,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Get requests by guest
+      tags:
+      - requests
+  /request/room/{id}:
+    get:
+      description: 'Returns two lists for the given room and hotel: requests assigned
+        to the caller and unassigned requests'
+      parameters:
+      - description: Room ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/RoomRequestsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get requests by room
       tags:
       - requests
   /rooms:
