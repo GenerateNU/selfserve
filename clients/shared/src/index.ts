@@ -17,6 +17,7 @@ export type {
   GenerateRequestWarning,
   Hotel,
   Guest,
+  GuestPage,
   Dev,
 } from "./api/generated/models";
 

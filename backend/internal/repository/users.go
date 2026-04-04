@@ -67,6 +67,27 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 	return createdUser, nil
 }
 
+func (r *UsersRepository) UpdateProfilePicture(ctx context.Context, userId string, key string) error {
+	_, err := r.db.Exec(ctx, `
+		UPDATE users SET profile_picture = $1 WHERE id = $2
+	`, key, userId)
+	return err
+}
+
+func (r *UsersRepository) GetKey(ctx context.Context, userId string) (string, error) {
+	var key string
+	err := r.db.QueryRow(ctx, `SELECT profile_picture FROM users WHERE id=$1`, userId).Scan(&key)
+	if err != nil {
+		return "", err
+	}
+	return key, nil
+}
+
+func (r *UsersRepository) DeleteProfilePicture(ctx context.Context, userId string) error {
+	_, err := r.db.Exec(ctx, `UPDATE users SET profile_picture = NULL WHERE id=$1`, userId)
+	return err
+}
+
 func (r *UsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
 	var user models.User
 
@@ -88,6 +109,39 @@ func (r *UsersRepository) UpdateUser(ctx context.Context, id string, update *mod
 	}
 
 	return &user, nil
+}
+
+func (r *UsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, created_at, updated_at
+		FROM users
+		WHERE hotel_id = $1
+		  AND ($2 = '' OR LOWER(first_name || ' ' || last_name) LIKE '%' || LOWER($2) || '%')
+		  AND ($3 = '' OR id > $3)
+		ORDER BY id
+		LIMIT $4
+	`, hotelID, query, cursor, limit+1)
+	if err != nil {
+		return nil, "", err
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.HotelID, &u.EmployeeID, &u.ProfilePicture, &u.Role, &u.Department, &u.Timezone, &u.PhoneNumber, &u.PrimaryEmail, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return nil, "", err
+		}
+		users = append(users, &u)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, "", err
+	}
+
+	if len(users) == limit+1 {
+		return users[:limit], users[limit-1].ID, nil
+	}
+	return users, "", nil
 }
 
 func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {

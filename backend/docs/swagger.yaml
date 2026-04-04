@@ -606,6 +606,13 @@ definitions:
         description: nil when no more pages
         type: string
     type: object
+  internal_handler.UpdateProfilePictureRequest:
+    description: Request body containing the S3 key after uploading
+    properties:
+      key:
+        example: profile-pictures/user123/1706540000.jpg
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -1296,7 +1303,155 @@ paths:
       summary: Get Floors
       tags:
       - rooms
+  /s3/presigned-get-url/{key}:
+    get:
+      consumes:
+      - application/json
+      description: Generates a presigned URL for a file. The key is the full S3 path
+        (e.g., profile-pictures/user123/image.jpg)
+      parameters:
+      - description: File key (full path after /presigned-url/)
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Presigned URL
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate a presigned URL for a file
+      tags:
+      - s3
+  /s3/presigned-url/{key}:
+    get:
+      consumes:
+      - application/json
+      description: Generates a presigned URL for a file. The key is the full S3 path
+        (e.g., profile-pictures/user123/image.jpg)
+      parameters:
+      - description: File key (full path after /presigned-url/)
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Presigned URL
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate a presigned URL for a file
+      tags:
+      - s3
+  /s3/upload-url/{userId}:
+    get:
+      description: Generates a presigned S3 URL and unique key for uploading a profile
+        picture. After uploading to S3, use PUT /users/{userId}/profile-picture to
+        save the key.
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - default: jpg
+        description: File extension (jpg, jpeg, png, webp)
+        in: query
+        name: ext
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns presigned_url and key
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get presigned URL for profile picture upload
+      tags:
+      - s3
   /users:
+    get:
+      consumes:
+      - application/json
+      description: Returns a paginated list of users for a hotel, optionally filtered
+        by name
+      parameters:
+      - description: Hotel UUID
+        in: query
+        name: hotel_id
+        required: true
+        type: string
+      - description: Pagination cursor (last seen user ID)
+        in: query
+        name: cursor
+        type: string
+      - description: Name search query
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Search users by hotel
+      tags:
+      - users
     post:
       consumes:
       - application/json
@@ -1370,14 +1525,14 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates fields on a user
+      description: Updates allowed fields on a user
       parameters:
       - description: User ID
         in: path
         name: id
         required: true
         type: string
-      - description: User update data
+      - description: Fields to update
         in: body
         name: request
         required: true
@@ -1410,7 +1565,124 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Updates a user
+      summary: Update user
+      tags:
+      - users
+  /users/{userId}/profile-picture:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes the user's profile picture from the database
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete user's profile picture
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the user's profile picture key and returns a presigned
+        URL for display
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns key and presigned_url if profile picture exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: No profile picture found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user's profile picture
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Saves the S3 key to the user's profile after the image has been
+        uploaded to S3
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: S3 key from upload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.UpdateProfilePictureRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update user's profile picture
       tags:
       - users
 schemes:
