@@ -33,12 +33,13 @@ function HomePage() {
     });
   }
 
-  const drawer = drawerData !== null ? (
-    <CreateRequestDrawer
-      initialData={drawerData}
-      onClose={() => setDrawerData(null)}
-    />
-  ) : null;
+  const drawer =
+    drawerData !== null ? (
+      <CreateRequestDrawer
+        initialData={drawerData}
+        onClose={() => setDrawerData(null)}
+      />
+    ) : null;
 
   return (
     <PageShell
