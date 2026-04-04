@@ -169,7 +169,11 @@ export function CreateRequestDrawer({
             <GripHorizontal className="size-4.5 text-text-subtle" />
             <span className="text-sm text-text-subtle">Room</span>
           </div>
-          <RoomPicker selectedRoom={room} onSelect={setRoom} />
+          <RoomPicker
+            selectedRoom={room}
+            initialRoomId={initialData?.room_id}
+            onSelect={setRoom}
+          />
         </div>
         <FieldRow label="Deadline" value="Empty" />
         <FieldRow label="Department" value="Empty" />

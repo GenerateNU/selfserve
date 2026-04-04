@@ -12,10 +12,11 @@ import { cn, useDebounce } from "@/lib/utils";
 
 type RoomPickerProps = {
   selectedRoom?: RoomWithOptionalGuestBooking;
+  initialRoomId?: string;
   onSelect: (room: RoomWithOptionalGuestBooking) => void;
 };
 
-export function RoomPicker({ selectedRoom, onSelect }: RoomPickerProps) {
+export function RoomPicker({ selectedRoom, initialRoomId, onSelect }: RoomPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
@@ -25,14 +26,19 @@ export function RoomPicker({ selectedRoom, onSelect }: RoomPickerProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["rooms", "picker"],
     queryFn: () => postRooms({ limit: 200 }),
-    enabled: open,
+    enabled: open || !!initialRoomId,
   });
 
-  const rooms = (data?.items ?? []).filter((room) =>
+  const allRooms = data?.items ?? [];
+
+  const rooms = allRooms.filter((room) =>
     debouncedSearch
       ? String(room.room_number).includes(debouncedSearch)
       : true,
   );
+
+  const displayRoom =
+    selectedRoom ?? (initialRoomId ? allRooms.find((r) => r.id === initialRoomId) : undefined);
 
   function handleSelect(room: RoomWithOptionalGuestBooking) {
     onSelect(room);
@@ -40,8 +46,8 @@ export function RoomPicker({ selectedRoom, onSelect }: RoomPickerProps) {
     setSearch("");
   }
 
-  const triggerLabel = selectedRoom
-    ? `Room ${selectedRoom.room_number}`
+  const triggerLabel = displayRoom
+    ? `Room ${displayRoom.room_number}`
     : "No room";
 
   return (
@@ -49,7 +55,7 @@ export function RoomPicker({ selectedRoom, onSelect }: RoomPickerProps) {
       <PopoverTrigger
         className={cn(
           "flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-bg-selected",
-          selectedRoom ? "text-text-default" : "text-text-subtle",
+          displayRoom ? "text-text-default" : "text-text-subtle",
         )}
       >
         {triggerLabel}
@@ -86,7 +92,7 @@ export function RoomPicker({ selectedRoom, onSelect }: RoomPickerProps) {
               onClick={() => handleSelect(room)}
               className={cn(
                 "flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-bg-selected",
-                selectedRoom?.id === room.id && "bg-bg-selected",
+                displayRoom?.id === room.id && "bg-bg-selected",
               )}
             >
               <div className="min-w-0">
