@@ -7,6 +7,7 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	"github.com/generate/selfserve/internal/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -222,6 +223,32 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomID(ctx context.Context,
 	defer rows.Close()
 
 	return scanGuestRequests(rows)
+}
+
+// PatchRequest reads the latest version, merges non-nil patch fields, and inserts a new version.
+func (r *RequestsRepository) PatchRequest(ctx context.Context, id string, patch *models.PatchRequest) (*models.Request, error) {
+	current, err := r.FindRequest(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	utils.ApplyPtr(&current.UserID, patch.UserID)
+	utils.ApplyPtr(&current.GuestID, patch.GuestID)
+	utils.ApplyPtr(&current.ReservationID, patch.ReservationID)
+	utils.Apply(&current.Name, patch.Name)
+	utils.ApplyPtr(&current.Description, patch.Description)
+	utils.ApplyPtr(&current.RoomID, patch.RoomID)
+	utils.ApplyPtr(&current.RequestCategory, patch.RequestCategory)
+	utils.Apply(&current.RequestType, patch.RequestType)
+	utils.ApplyPtr(&current.Department, patch.Department)
+	utils.Apply(&current.Status, patch.Status)
+	utils.Apply(&current.Priority, patch.Priority)
+	utils.ApplyPtr(&current.EstimatedCompletionTime, patch.EstimatedCompletionTime)
+	utils.ApplyPtr(&current.ScheduledTime, patch.ScheduledTime)
+	utils.ApplyPtr(&current.CompletedAt, patch.CompletedAt)
+	utils.ApplyPtr(&current.Notes, patch.Notes)
+
+	return r.InsertRequest(ctx, current)
 }
 
 func scanGuestRequests(rows pgx.Rows) ([]*models.GuestRequest, error) {

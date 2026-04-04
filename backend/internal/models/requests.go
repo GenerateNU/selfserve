@@ -57,6 +57,26 @@ type MakeRequest struct {
 	Notes                   *string    `json:"notes" example:"No special requests"`
 } //@name MakeRequest
 
+// PatchRequest is the body for PUT /request/:id — all fields are optional.
+// Only non-nil fields are applied; the rest are copied from the current version.
+type PatchRequest struct {
+	UserID                  *string    `json:"user_id"`
+	GuestID                 *string    `json:"guest_id"`
+	ReservationID           *string    `json:"reservation_id"`
+	Name                    *string    `json:"name" validate:"omitempty,notblank"`
+	Description             *string    `json:"description"`
+	RoomID                  *string    `json:"room_id"`
+	RequestCategory         *string    `json:"request_category"`
+	RequestType             *string    `json:"request_type" validate:"omitempty,notblank"`
+	Department              *string    `json:"department"`
+	Status                  *string    `json:"status" validate:"omitempty,oneof='pending' 'assigned' 'in progress' 'completed'"`
+	Priority                *string    `json:"priority" validate:"omitempty,oneof=low medium high"`
+	EstimatedCompletionTime *int       `json:"estimated_completion_time"`
+	ScheduledTime           *time.Time `json:"scheduled_time"`
+	CompletedAt             *time.Time `json:"completed_at"`
+	Notes                   *string    `json:"notes"`
+} //@name PatchRequest
+
 type GenerateRequestInput struct {
 	RawText string `json:"raw_text" example:"Guest in room 504 needs extra towels urgently"`
 	HotelID string `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
