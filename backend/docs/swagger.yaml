@@ -116,7 +116,6 @@ definitions:
       departure_date:
         example: "2024-01-05T00:00:00Z"
         type: string
-        type: string
       guest:
         $ref: '#/definitions/Guest'
       hotel_id:
