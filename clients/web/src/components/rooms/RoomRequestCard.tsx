@@ -28,7 +28,7 @@ const priorityConfig: Record<Exclude<Priority, "low">, PriorityConfig> = {
   },
 };
 
-export type RoomTaskCardData = {
+export type RoomRequestCardData = {
   title: string;
   floor: number;
   roomNumber: number;
@@ -37,13 +37,13 @@ export type RoomTaskCardData = {
   assignedTo?: string | null;
 };
 
-export type RoomTaskCardProps = RoomTaskCardData & {
+export type RoomRequestCardProps = RoomRequestCardData & {
   onAssignToSelf?: () => void;
   onExpand?: () => void;
   className?: string;
 };
 
-export function RoomTaskCard({
+export function RoomRequestCard({
   title,
   floor,
   roomNumber,
@@ -53,7 +53,7 @@ export function RoomTaskCard({
   onAssignToSelf,
   onExpand,
   className = "",
-}: RoomTaskCardProps) {
+}: RoomRequestCardProps) {
   return (
     <div
       className={cn(
@@ -70,7 +70,7 @@ export function RoomTaskCard({
             type="button"
             onClick={onExpand}
             className="shrink-0 text-text-subtle hover:text-text-default"
-            aria-label="Expand task"
+            aria-label="Expand request"
           >
             <Maximize2Icon className="size-[1.125rem]" strokeWidth={1.5} />
           </button>

@@ -1,6 +1,6 @@
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { OverviewCard } from "@/components/rooms/OverviewCard";
-import { RoomTaskList } from "@/components/rooms/RoomTaskList";
+import { RoomRequestList } from "@/components/rooms/RoomRequestList";
 
 type RoomsOverviewProps = {
   rooms: Array<RoomWithOptionalGuestBooking>;
@@ -40,7 +40,11 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
               value: cleaningOnlyRooms,
               description: "Tasks",
             },
-            { field: "Pending", value: cleaningRooms, description: "Tasks" },
+            {
+              field: "Pending",
+              value: cleaningRooms,
+              description: "Tasks",
+            },
           ]}
         />
 
@@ -65,9 +69,9 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
             },
           ]}
         />
-        <RoomTaskList
+        <RoomRequestList
           title="Unassigned Tasks"
-          tasks={[
+          requests={[
             {
               id: "1",
               title: "Room 101",

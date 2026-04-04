@@ -13,7 +13,7 @@ const STATUS_CHIPS = [
   "Reserved",
   "Out of Order",
   "Needs Cleaning",
-  "Open Tasks",
+  "Open Requests",
 ];
 const ATTRIBUTE_CHIPS = ["Standard", "Deluxe", "Suite", "Accessible"];
 const ADVANCED_CHIPS = [
@@ -23,7 +23,7 @@ const ADVANCED_CHIPS = [
   "Early Check-ins",
 ];
 
-const INITIAL_SELECTED = new Set<string>(["Occupied", "Open Tasks"]);
+const INITIAL_SELECTED = new Set<string>(["Occupied", "Open Requests"]);
 
 function FilterPopoverHeader({ onReset }: { onReset: () => void }) {
   return (
