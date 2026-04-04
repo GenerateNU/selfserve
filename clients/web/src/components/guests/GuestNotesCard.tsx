@@ -4,9 +4,7 @@ type GuestNotesCardProps = {
   initialNotes?: string;
 };
 
-export function GuestNotesCard({
-  initialNotes = "",
-}: GuestNotesCardProps) {
+export function GuestNotesCard({ initialNotes = "" }: GuestNotesCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [notes, setNotes] = useState(initialNotes);
   const [draft, setDraft] = useState(initialNotes);
