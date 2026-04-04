@@ -19,32 +19,37 @@ func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, genera
 				return GenerateRequestOutput{}, err
 			}
 
-			output := *resp
-			if output.RoomMentioned != nil && *output.RoomMentioned && output.RoomReference != nil {
-				roomResult, err := LookupRoom(ctx, roomLookupRepo, RoomLookupInput{
-					HotelID:       input.HotelID,
-					RoomReference: *output.RoomReference,
-				})
-				if err != nil {
-					return GenerateRequestOutput{}, err
-				}
-
-				output.RoomID = roomResult.RoomID
-				if roomResult.Message != nil {
-					code := "room_not_found"
-					if roomResult.Ambiguous {
-						code = "room_ambiguous"
-					}
-					output.Warning = &GenerateRequestWarning{
-						Code:    code,
-						Message: *roomResult.Message,
-					}
-				}
-			}
-
-			return output, nil
+			return enrichWithRoomLookup(ctx, roomLookupRepo, input.HotelID, *resp)
 		},
 	)
 
 	return generateRequestFlow
+}
+
+func enrichWithRoomLookup(ctx context.Context, roomLookupRepo RoomLookupRepository, hotelID string, output GenerateRequestOutput) (GenerateRequestOutput, error) {
+	if output.RoomMentioned == nil || !*output.RoomMentioned || output.RoomReference == nil {
+		return output, nil
+	}
+
+	roomResult, err := LookupRoom(ctx, roomLookupRepo, RoomLookupInput{
+		HotelID:       hotelID,
+		RoomReference: *output.RoomReference,
+	})
+	if err != nil {
+		return GenerateRequestOutput{}, err
+	}
+
+	output.RoomID = roomResult.RoomID
+	if roomResult.Message != nil {
+		code := "room_not_found"
+		if roomResult.Ambiguous {
+			code = "room_ambiguous"
+		}
+		output.Warning = &GenerateRequestWarning{
+			Code:    code,
+			Message: *roomResult.Message,
+		}
+	}
+
+	return output, nil
 }

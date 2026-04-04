@@ -23,17 +23,17 @@ type RoomLookupResult struct {
 }
 
 type GenerateRequestOutput struct {
-	GuestID                 *string                 `json:"guest_id,omitempty"`
-	UserID                  *string                 `json:"user_id,omitempty"`
-	ReservationID           *string                 `json:"reservation_id,omitempty"`
-	Name                    string                  `json:"name"`
+	GuestID                 *string                 `json:"guest_id,omitempty" validate:"omitempty,uuid"`
+	UserID                  *string                 `json:"user_id,omitempty" validate:"omitempty,uuid"`
+	ReservationID           *string                 `json:"reservation_id,omitempty" validate:"omitempty,uuid"`
+	Name                    string                  `json:"name" validate:"notblank"`
 	Description             *string                 `json:"description,omitempty"`
-	RoomID                  *string                 `json:"room_id,omitempty"`
+	RoomID                  *string                 `json:"room_id,omitempty" validate:"omitempty,uuid"`
 	RequestCategory         *string                 `json:"request_category,omitempty"`
-	RequestType             string                  `json:"request_type"`
+	RequestType             string                  `json:"request_type" validate:"notblank"`
 	Department              *string                 `json:"department,omitempty"`
-	Status                  string                  `json:"status"`
-	Priority                string                  `json:"priority"`
+	Status                  string                  `json:"status" validate:"request_status"`
+	Priority                string                  `json:"priority" validate:"request_priority"`
 	EstimatedCompletionTime *int                    `json:"estimated_completion_time,omitempty"`
 	Notes                   *string                 `json:"notes,omitempty"`
 	RoomMentioned           *bool                   `json:"room_mentioned,omitempty"`

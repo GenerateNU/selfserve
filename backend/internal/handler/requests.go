@@ -13,6 +13,7 @@ import (
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/utils"
+	"github.com/generate/selfserve/internal/validation"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -206,6 +207,10 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		slog.Error("genkit failed to generate a request", "error", err)
 		return errs.InternalServerError()
 	}
+	if err := validation.Validate.Struct(parsed); err != nil {
+		slog.Error("generated request failed validation", "error", validation.DeterministicErrorString(validation.ToFieldErrors(err)))
+		return errs.InternalServerError()
+	}
 
 	notes := parsed.Notes
 	if notes == nil {
@@ -234,6 +239,7 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
 	if err != nil {
+		slog.Error("failed to insert generated request", "error", err)
 		return errs.InternalServerError()
 	}
 

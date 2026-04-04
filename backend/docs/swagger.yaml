@@ -335,13 +335,7 @@ definitions:
         example: No special requests
         type: string
       priority:
-        enum:
-        - low
-        - medium
-        - normal
-        - high
-        - urgent
-        example: urgent
+        example: high
         type: string
       request_category:
         example: Cleaning
@@ -359,10 +353,6 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
-        enum:
-        - pending
-        - assigned
-        - completed
         example: assigned
         type: string
       user_id:
@@ -402,13 +392,7 @@ definitions:
         example: No special requests
         type: string
       priority:
-        enum:
-        - low
-        - medium
-        - normal
-        - high
-        - urgent
-        example: urgent
+        example: high
         type: string
       request_category:
         example: Cleaning
@@ -429,10 +413,6 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
-        enum:
-        - pending
-        - assigned
-        - completed
         example: assigned
         type: string
       user_id:
