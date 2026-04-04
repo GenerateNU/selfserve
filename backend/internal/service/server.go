@@ -16,9 +16,11 @@ import (
 	"github.com/generate/selfserve/internal/repository"
 
 	"github.com/generate/selfserve/internal/service/clerk"
+	notificationssvc "github.com/generate/selfserve/internal/service/notifications"
 	"github.com/generate/selfserve/internal/storage/redis"
 
 	s3storage "github.com/generate/selfserve/internal/service/s3"
+	opensearchstorage "github.com/generate/selfserve/internal/service/storage/opensearch"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/generate/selfserve/internal/validation"
 	"github.com/goccy/go-json"
@@ -29,7 +31,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-
 	goredis "github.com/redis/go-redis/v9"
 )
 
@@ -60,11 +61,14 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
+	openSearchRepos := tryInitOpenSearchRepositories(cfg)
+
+	roomsRepo := repository.NewRoomsRepository(repo.DB)
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM, roomsRepo)
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store); err != nil {
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, openSearchRepos); err != nil { //nolint:wsl
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -79,6 +83,25 @@ func InitApp(cfg *config.Config) (*App, error) {
 	}, nil
 }
 
+type openSearchRepositories struct {
+	Guests storage.GuestsSearchRepository
+}
+
+func tryInitOpenSearchRepositories(cfg *config.Config) openSearchRepositories {
+	client, err := opensearchstorage.NewClient(cfg.OpenSearch)
+	if err != nil {
+		log.Printf("Warning: OpenSearch not available: %v", err)
+		return openSearchRepositories{}
+	}
+	if err := opensearchstorage.EnsureGuestsIndex(context.Background(), client); err != nil {
+		log.Printf("Warning: failed to ensure OpenSearch guests index: %v", err)
+		return openSearchRepositories{}
+	}
+	return openSearchRepositories{
+		Guests: repository.NewOpenSearchGuestsRepository(client),
+	}
+}
+
 func tryInitRedis() *goredis.Client {
 	redisClient, err := redis.InitRedis()
 	if err != nil {
@@ -89,7 +112,7 @@ func tryInitRedis() *goredis.Client {
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	cfg *config.Config, s3Store *s3storage.Storage) error {
+	cfg *config.Config, s3Store *s3storage.Storage, openSearchRepos openSearchRepositories) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -106,15 +129,21 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// initialize users repo
 	usersRepo := repository.NewUsersRepository(repo.DB)
 
+	// initialize notifications
+	notifRepo := repository.NewNotificationsRepository(repo.DB)
+	notifService := notificationssvc.NewService(notifRepo)
+	notifHandler := handler.NewNotificationsHandler(notifRepo)
+
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
+	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), openSearchRepos.Guests)
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
 	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
+	guestBookingsHandler := handler.NewGuestBookingsHandler(repository.NewGuestBookingsRepository(repo.DB))
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
@@ -167,6 +196,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Put("/:id", reqsHandler.UpdateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
 		r.Post("/cursor", reqsHandler.GetRequestByCursor)
+		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
 	})
 
 	// Hotel routes
@@ -181,9 +211,26 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Get("/floors", roomsHandler.GetFloors)
 	})
 
+	// guest booking routes
+	api.Route("/guest_bookings", func(r fiber.Router) {
+		r.Get("/group_sizes", guestBookingsHandler.GetGroupSizeOptions)
+	})
+
 	// s3 routes
 	api.Route("/s3", func(r fiber.Router) {
 		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
+	})
+
+	// notification routes
+	api.Route("/notifications", func(r fiber.Router) {
+		r.Get("/", notifHandler.ListNotifications)
+		r.Put("/read-all", notifHandler.MarkAllRead)
+		r.Put("/:id/read", notifHandler.MarkRead)
+	})
+
+	// device token routes
+	api.Route("/device-tokens", func(r fiber.Router) {
+		r.Post("/", notifHandler.RegisterDeviceToken)
 	})
 
 	return nil

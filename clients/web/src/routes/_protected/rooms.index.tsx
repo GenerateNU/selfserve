@@ -4,18 +4,19 @@ import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
 import { useQuery } from "@tanstack/react-query";
 import type { Request, RoomWithOptionalGuestBooking } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
-import { SortByContainer } from "@/components/rooms/SortByContainer";
 import { PageShell } from "@/components/ui/PageShell";
-import { RoomsHeader } from "@/components/rooms/RoomsHeader";
+import { RoomsToolbar } from "@/components/rooms/RoomsToolbar";
 import { RoomsList } from "@/components/rooms/RoomsList";
 import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
 import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
+import { RoomsOverview } from "@/components/rooms/RoomsOverview";
 
 export const Route = createFileRoute("/_protected/rooms/")({
   component: RoomsPage,
 });
 
 function RoomsPage() {
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
@@ -49,33 +50,42 @@ function RoomsPage() {
 
   return (
     <PageShell
-      header={
-        <RoomsHeader
-          selectedFloors={selectedFloors}
-          onChangeSelectedFloors={setSelectedFloors}
-        />
-      }
+      header={{
+        title: "Rooms",
+        description:
+          "Find any room and access essential details like availability, occupancy, and status at a glance.",
+      }}
       drawerOpen={generatedRequest !== null || selectedRoom !== null}
       drawer={drawerContent}
+      bodyClassName="overflow-hidden"
+      contentClassName={"h-full"}
     >
-      <SortByContainer ascending={ascending} setAscending={setAscending} />
-      <RoomsList
-        rooms={rooms?.items ?? []}
+      <RoomsToolbar
+        searchTerm={searchTerm}
+        onChangeSearchTerm={setSearchTerm}
+        selectedFloors={selectedFloors}
+        onChangeSelectedFloors={setSelectedFloors}
         ascending={ascending}
-        onRoomSelect={(room) => {
-          setGeneratedRequest(null);
-          setSelectedRoom(room);
-        }}
-        selectedRoomNumber={selectedRoom?.room_number ?? null}
+        setAscending={setAscending}
       />
-      {generatedRequest === null && selectedRoom === null && (
-        <GlobalTaskInput
-          onRequestGenerated={(r) => {
-            setSelectedRoom(null);
-            setGeneratedRequest(r);
+      <div className="flex min-h-0 flex-row">
+        <RoomsList
+          rooms={rooms?.items ?? []}
+          ascending={ascending}
+          onRoomSelect={(room) => {
+            setGeneratedRequest(null);
+            setSelectedRoom(room);
           }}
+          selectedRoomNumber={selectedRoom?.room_number ?? null}
         />
-      )}
+        <RoomsOverview rooms={rooms?.items ?? []} />
+      </div>
+      <GlobalTaskInput
+        onRequestGenerated={(r) => {
+          setSelectedRoom(null);
+          setGeneratedRequest(r);
+        }}
+      />
     </PageShell>
   );
 }
