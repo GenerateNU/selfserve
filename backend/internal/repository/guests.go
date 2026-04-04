@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -85,10 +84,9 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 
 func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
 	guest := &models.GuestWithStays{}
-	var assistanceRaw []byte
 
 	err := r.db.QueryRow(ctx, `
-		SELECT 
+		SELECT
 			g.id, g.first_name, g.last_name, g.phone, g.email,
 			g.preferences, g.notes, g.pronouns, g.do_not_disturb_start,
 			g.do_not_disturb_end, g.housekeeping_cadence, g.assistance
@@ -97,16 +95,12 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 	`, id).Scan(
 		&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email,
 		&guest.Preferences, &guest.Notes, &guest.Pronouns, &guest.DoNotDisturbStart,
-		&guest.DoNotDisturbEnd, &guest.HousekeepingCadence, &assistanceRaw,
+		&guest.DoNotDisturbEnd, &guest.HousekeepingCadence, &guest.Assistance,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
 		}
-		return nil, err
-	}
-
-	if err := parseAssistance(assistanceRaw, guest); err != nil {
 		return nil, err
 	}
 
@@ -139,18 +133,6 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 	}
 
 	return guest, rows.Err()
-}
-
-func parseAssistance(raw []byte, guest *models.GuestWithStays) error {
-	if raw == nil {
-		return nil
-	}
-	var assistance models.Assistance
-	if err := json.Unmarshal(raw, &assistance); err != nil {
-		return err
-	}
-	guest.Assistance = &assistance
-	return nil
 }
 
 func buildStay(arrival, departure *time.Time, roomNumber, groupSize *int, status *models.BookingStatus) models.Stay {

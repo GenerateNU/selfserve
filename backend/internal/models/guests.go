@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+)
 
 type GuestDocument struct {
 	ID            string    `json:"id"`
@@ -98,3 +102,14 @@ type Assistance struct {
 	Dietary       []string `json:"dietary"`
 	Medical       []string `json:"medical"`
 } //@name Assistance
+
+func (a *Assistance) Scan(src any) error {
+	if src == nil {
+		return nil
+	}
+	b, ok := src.([]byte)
+	if !ok {
+		return fmt.Errorf("expected []byte, got %T", src)
+	}
+	return json.Unmarshal(b, a)
+}
