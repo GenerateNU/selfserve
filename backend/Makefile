@@ -6,7 +6,7 @@ ENV_FILE := config/.env
 LOAD_ENV := doppler run --
 LLM_URL := http://127.0.0.1:11434
 
-.PHONY: all build run dev test format tidy download clean docker-build docker-run docker-up docker-down \
+.PHONY: all build run dev test format tidy download clean docker-build docker-run docker-token docker-up docker-down \
         migrate-new migrate-up migrate-down migrate-status migrate-reset db-start db-stop db-reset swagger swagger-fmt docker-build docker-run llm-start genkit-run seed cli
 
 all: build
@@ -83,8 +83,11 @@ docker-run:
 		--name $(APP_NAME)-container \
 		$(DOCKER_IMAGE_NAME)
 
+docker-token:
+	@echo "export DOPPLER_TOKEN=$$(doppler configs tokens create docker --project selfserve-backend --config prd --plain)"
+
 docker-up:
-	docker compose up --build
+	@docker compose up --build
 
 docker-down:
 	docker compose down
