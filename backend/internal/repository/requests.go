@@ -85,8 +85,8 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 			ORDER BY id, request_version DESC
 		)
 		SELECT * FROM latest
-		WHERE (created_at, id) > ($1, $2)
-		ORDER BY created_at ASC, id ASC
+		WHERE (request_version, id) > ($1, $2)
+		ORDER BY request_version ASC, id ASC
 		LIMIT $5
 	`, cursorTime, cursorID, status, hotelID, pageSize+1)
 
@@ -116,7 +116,7 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 
 	if len(requests) == pageSize+1 {
 		last := requests[pageSize-1]
-		return requests[:pageSize], last.CreatedAt, last.ID, nil
+		return requests[:pageSize], last.RequestVersion, last.ID, nil
 	}
 
 	return requests, time.Time{}, "", nil
