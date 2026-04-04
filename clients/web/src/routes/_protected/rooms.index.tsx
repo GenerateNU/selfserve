@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_protected/rooms/")({
 });
 
 function RoomsPage() {
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
@@ -60,6 +61,8 @@ function RoomsPage() {
       contentClassName={"h-full"}
     >
       <RoomsToolbar
+        searchTerm={searchTerm}
+        onChangeSearchTerm={setSearchTerm}
         selectedFloors={selectedFloors}
         onChangeSelectedFloors={setSelectedFloors}
         ascending={ascending}

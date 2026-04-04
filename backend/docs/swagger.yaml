@@ -220,6 +220,13 @@ definitions:
         type: string
       room_number:
         type: integer
+    required:
+    - first_name
+    - floor
+    - group_size
+    - id
+    - last_name
+    - room_number
     type: object
   GuestWithStays:
     properties:
@@ -712,45 +719,6 @@ paths:
       summary: Updates a guest
       tags:
       - guests
-  /api/v1/guests/stays/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a single guest with previous stays given an id
-      parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/GuestWithStays'
-        "400":
-          description: Invalid guest ID format
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Guest not found
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Gets a guest with previous stays
-      tags:
-      - guests
   /api/v1/hotels:
     post:
       consumes:
@@ -853,14 +821,36 @@ paths:
       summary: Get developer member
       tags:
       - devs
-  /guest_bookings/floor:
+  /guest_bookings/group_sizes:
     get:
-      description: Retrieves multiple guest bookings whose booked rooms are in the
-        provided floors array
+      description: Retrieves all distinct group sizes across guest bookings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get available group size options
+      tags:
+      - guest-bookings
+  /guests/stays/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single guest with previous stays given an id
       parameters:
-      - description: Comma-separated floor numbers
-        in: query
-        name: floors
+      - description: Guest ID (UUID)
+        in: path
+        name: id
         required: true
         type: string
       produces:
@@ -869,24 +859,28 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/GuestBooking'
-            type: array
+            $ref: '#/definitions/GuestWithStays'
         "400":
-          description: Bad Request
+          description: Invalid guest ID format
           schema:
             additionalProperties:
               type: string
             type: object
+        "404":
+          description: Guest not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Get guest Bookings By Floor
+      security:
+      - BearerAuth: []
+      summary: Gets a guest with previous stays
       tags:
-      - guest-bookings
+      - guests
   /hello:
     get:
       consumes:

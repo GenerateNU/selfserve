@@ -165,8 +165,6 @@ const { mutate } = useMutation({
   },
 });
 ```
-<<<<<<< HEAD
-=======
 
 ### Custom Hooks
 
@@ -384,4 +382,3 @@ if len(batch) > 0 {
 - Testing Library for component tests
 - jsdom environment
 - Test files in `tests/` directory or colocated with `*.test.ts` suffix
->>>>>>> origin
