@@ -150,47 +150,54 @@ func validateGenerateRequest(input *models.GenerateRequestInput) error {
 
 // GetRequestByCursor godoc
 // @Summary      Get requests by cursor
-// @Description  Gets 20 requests starting after the cursor ID, filtered by status
+// @Description  Gets 20 requests starting after the cursor position, filtered by status
 // @Tags         requests
 // @Accept       json
 // @Produce      json
-// @Param        cursor    path      string  true  "Cursor UUID"
-// @Param        status    query     string  true  "Status filter: pending, assigned, in progress, completed"
-// @Param        hotel_id  query     string  true  "Hotel UUID"
-// @Success      200     {object}  map[string]interface{}  "Returns requests array and next_cursor"
+// @Param        X-Hotel-ID  header  string                          true   "Hotel UUID"
+// @Param        body        body    models.GetRequestsByStatusInput  false  "Cursor position and status filter"
+// @Success      200     {object}  map[string]interface{}  "Returns requests array, next_cursor_time, and next_cursor_id"
 // @Failure      400     {object}  map[string]string
 // @Failure      500     {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /request/cursor/{cursor} [get]
+// @Router       /request/cursor [post]
 func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
-	cursor := c.Params("cursor")
-	status := c.Query("status")
-	hotelID := c.Query("hotel_id")
-
-	if !validUUID(cursor) {
-		return errs.BadRequest("cursor is not a valid request UUID")
+	var body models.GetRequestsByStatusInput
+	if err := c.BodyParser(&body); err != nil {
+		return errs.InvalidJSON()
+	}
+	body.HotelID = c.Get("X-Hotel-ID")
+	if err := httpx.Validate(&body); err != nil {
+		return err
 	}
 
-	if !models.RequestStatus(status).IsValid() {
-		return errs.BadRequest("Status must be one of: pending, assigned, in progress, completed")
+	var cursorTime time.Time
+	if body.CursorTime != nil {
+		cursorTime = time.UnixMilli(*body.CursorTime).UTC()
+	} else {
+		cursorTime = time.UnixMilli(0).UTC()
 	}
 
-	if !validUUID(hotelID) {
-		return errs.BadRequest("hotel_id is not a valid UUID")
+	cursorID := "00000000-0000-0000-0000-000000000000"
+	if body.CursorID != nil {
+		cursorID = *body.CursorID
 	}
 
-	requests, nextCursor, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursor, status, hotelID, defaultPageSize)
+	requests, nextCursorTime, nextCursorID, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursorTime, cursorID, body.Status, body.HotelID, defaultPageSize)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
-			return errs.NotFound("request cursor id", "cursor", cursor)
+			return errs.NotFound("requests", "cursor", body.CursorTime)
 		}
 		return c.SendStatus(fiber.ErrInternalServerError.Code)
 	}
 
-	return c.JSON(fiber.Map{
-		"requests":    requests,
-		"next_cursor": nextCursor,
-	})
+	resp := fiber.Map{"requests": requests}
+	if !nextCursorTime.IsZero() {
+		resp["next_cursor_time"] = nextCursorTime.UnixMilli()
+		resp["next_cursor_id"] = nextCursorID
+	}
+
+	return c.JSON(resp)
 }
 
 // GenerateRequest godoc

@@ -115,6 +115,20 @@ definitions:
         example: Room 301 could not be resolved for this hotel.
         type: string
     type: object
+  GetRequestsByStatusInput:
+    properties:
+      cursor_id:
+        type: string
+      cursor_time:
+        type: integer
+      status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
+        type: string
+    type: object
   Guest:
     properties:
       created_at:
@@ -1079,32 +1093,28 @@ paths:
       summary: creates a request
       tags:
       - requests
-  /request/cursor/{cursor}:
-    get:
+  /request/cursor:
+    post:
       consumes:
       - application/json
-      description: Gets 20 requests starting after the cursor ID, filtered by status
+      description: Gets 20 requests starting after the cursor position, filtered by
+        status
       parameters:
-      - description: Cursor UUID
-        in: path
-        name: cursor
-        required: true
-        type: string
-      - description: 'Status filter: pending, assigned, in progress, completed'
-        in: query
-        name: status
-        required: true
-        type: string
       - description: Hotel UUID
-        in: query
-        name: hotel_id
+        in: header
+        name: X-Hotel-ID
         required: true
         type: string
+      - description: Cursor position and status filter
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/GetRequestsByStatusInput'
       produces:
       - application/json
       responses:
         "200":
-          description: Returns requests array and next_cursor
+          description: Returns requests array, next_cursor_time, and next_cursor_id
           schema:
             additionalProperties: true
             type: object
