@@ -139,7 +139,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB), s3Store)
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), openSearchRepos.Guests)
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
+	reqsRepo := repository.NewRequestsRepo(repo.DB)
+	reqsHandler := handler.NewRequestsHandler(reqsRepo, genkitInstance, notifService)
+	tasksHandler := handler.NewTasksHandler(reqsRepo, usersRepo)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
 	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
@@ -202,6 +204,15 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
 	})
 
+	// Staff tasks (requests as tasks)
+	api.Route("/tasks", func(r fiber.Router) {
+		r.Get("/", tasksHandler.GetTasks)
+		r.Post("/", tasksHandler.CreateTask)
+		r.Patch("/:id", tasksHandler.PatchTask)
+		r.Post("/:id/claim", tasksHandler.ClaimTask)
+		r.Post("/:id/drop", tasksHandler.DropTask)
+	})
+
 	// Hotel routes
 	api.Route("/hotels", func(r fiber.Router) {
 		r.Get("/:id", hotelsHandler.GetHotelByID)
@@ -262,7 +273,7 @@ func setupApp() *fiber.App {
 	allowedOrigins := os.Getenv("APP_CORS_ORIGINS")
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
-		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
 		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID",
 		AllowCredentials: true,
 	}))

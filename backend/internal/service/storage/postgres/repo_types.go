@@ -48,6 +48,10 @@ type RequestsRepository interface {
 	FindRequests(ctx context.Context) ([]models.Request, error)
 	FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
 	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	FindTasks(ctx context.Context, hotelID, clerkUserID string, filter models.TaskFilter, cursorRank int, cursorDeptKey string, cursorCreatedAt time.Time, cursorID string, hasCursor bool) ([]models.Task, error)
+	UpdateTaskStatus(ctx context.Context, hotelID, requestID, clerkUserID, newStatus string) error
+	ClaimTask(ctx context.Context, hotelID, requestID, clerkUserID string) error
+	DropTask(ctx context.Context, hotelID, requestID, clerkUserID string) error
 }
 
 type HotelsRepository interface {

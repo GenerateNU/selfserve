@@ -46,6 +46,7 @@ type MakeRequest struct {
 	Name                    string     `json:"name" validate:"notblank" example:"room cleaning"`
 	Description             *string    `json:"description" example:"clean 504"`
 	RoomID                  *string    `json:"room_id" example:"521e8422-e458-41d4-a716-446655440000"`
+	LocationDisplay         *string    `json:"location_display,omitempty" example:"North wing, 12B"`
 	RequestCategory         *string    `json:"request_category" example:"Cleaning"`
 	RequestType             string     `json:"request_type" validate:"notblank" example:"recurring"`
 	Department              *string    `json:"department" example:"maintenance"`

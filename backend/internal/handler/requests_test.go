@@ -24,6 +24,10 @@ type mockRequestRepository struct {
 	findRequestsFunc          func(ctx context.Context) ([]models.Request, error)
 	findRequestsByCursorFunc  func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
 	findRequestsByGuestIDFunc func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	findTasksFunc             func(ctx context.Context, hotelID, clerkUserID string, filter models.TaskFilter, cursorRank int, cursorDeptKey string, cursorCreatedAt time.Time, cursorID string, hasCursor bool) ([]models.Task, error)
+	updateTaskStatusFunc      func(ctx context.Context, hotelID, requestID, clerkUserID, newStatus string) error
+	claimTaskFunc             func(ctx context.Context, hotelID, requestID, clerkUserID string) error
+	dropTaskFunc              func(ctx context.Context, hotelID, requestID, clerkUserID string) error
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -52,6 +56,34 @@ func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input aiflows.G
 
 func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	return m.findRequestsByGuestIDFunc(ctx, guestID, hotelID, cursorID, cursorVersion, limit)
+}
+
+func (m *mockRequestRepository) FindTasks(ctx context.Context, hotelID, clerkUserID string, filter models.TaskFilter, cursorRank int, cursorDeptKey string, cursorCreatedAt time.Time, cursorID string, hasCursor bool) ([]models.Task, error) {
+	if m.findTasksFunc == nil {
+		return []models.Task{}, nil
+	}
+	return m.findTasksFunc(ctx, hotelID, clerkUserID, filter, cursorRank, cursorDeptKey, cursorCreatedAt, cursorID, hasCursor)
+}
+
+func (m *mockRequestRepository) UpdateTaskStatus(ctx context.Context, hotelID, requestID, clerkUserID, newStatus string) error {
+	if m.updateTaskStatusFunc == nil {
+		return nil
+	}
+	return m.updateTaskStatusFunc(ctx, hotelID, requestID, clerkUserID, newStatus)
+}
+
+func (m *mockRequestRepository) ClaimTask(ctx context.Context, hotelID, requestID, clerkUserID string) error {
+	if m.claimTaskFunc == nil {
+		return nil
+	}
+	return m.claimTaskFunc(ctx, hotelID, requestID, clerkUserID)
+}
+
+func (m *mockRequestRepository) DropTask(ctx context.Context, hotelID, requestID, clerkUserID string) error {
+	if m.dropTaskFunc == nil {
+		return nil
+	}
+	return m.dropTaskFunc(ctx, hotelID, requestID, clerkUserID)
 }
 
 func TestRequestHandler_GetRequest(t *testing.T) {
