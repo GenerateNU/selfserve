@@ -30,9 +30,9 @@ const priorityConfig: Record<Exclude<Priority, "low">, PriorityConfig> = {
 
 export type RoomRequestCardData = {
   title: string;
-  floor: number;
-  roomNumber: number;
-  department: string;
+  floor?: number;
+  roomNumber?: number;
+  department?: string;
   priority?: Priority;
   assignedTo?: string | null;
 };
@@ -54,6 +54,8 @@ export function RoomRequestCard({
   onExpand,
   className = "",
 }: RoomRequestCardProps) {
+  const hasLocation = floor != null || roomNumber != null;
+
   return (
     <div
       className={cn(
@@ -76,15 +78,19 @@ export function RoomRequestCard({
           </button>
         </div>
 
-        <div className="flex items-center gap-1">
-          <MapPinIcon
-            className="size-3 shrink-0 text-text-subtle"
-            strokeWidth={1.5}
-          />
-          <span className="text-xs text-text-subtle">
-            Floor {floor}, Room {roomNumber}
-          </span>
-        </div>
+        {hasLocation && (
+          <div className="flex items-center gap-1">
+            <MapPinIcon
+              className="size-3 shrink-0 text-text-subtle"
+              strokeWidth={1.5}
+            />
+            <span className="text-xs text-text-subtle">
+              {floor != null && `Floor ${floor}`}
+              {floor != null && roomNumber != null && ", "}
+              {roomNumber != null && `Room ${roomNumber}`}
+            </span>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-3">
           {priority &&
@@ -107,13 +113,15 @@ export function RoomRequestCard({
                 </div>
               );
             })()}
-          <div className="inline-flex items-center gap-2 rounded border border-stroke-subtle bg-bg-primary px-2 py-1">
-            <StoreIcon
-              className="size-3 shrink-0 text-text-default"
-              strokeWidth={1.5}
-            />
-            <span className="text-xs text-text-default">{department}</span>
-          </div>
+          {department && (
+            <div className="inline-flex items-center gap-2 rounded border border-stroke-subtle bg-bg-primary px-2 py-1">
+              <StoreIcon
+                className="size-3 shrink-0 text-text-default"
+                strokeWidth={1.5}
+              />
+              <span className="text-xs text-text-default">{department}</span>
+            </div>
+          )}
         </div>
       </div>
 
