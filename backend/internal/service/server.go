@@ -11,6 +11,7 @@ import (
 	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/aiflows"
+	"github.com/generate/selfserve/internal/cache"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
@@ -51,7 +52,8 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	redisClient := tryInitRedis()
+	redisClient := tryInitRedis(cfg.Redis)
+	jsonCache := cache.NewJSONCache(cache.NewRedisStore(redisClient))
 
 	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
@@ -68,7 +70,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, openSearchRepos); err != nil { //nolint:wsl
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, openSearchRepos, jsonCache); err != nil { //nolint:wsl
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -102,8 +104,8 @@ func tryInitOpenSearchRepositories(cfg *config.Config) openSearchRepositories {
 	}
 }
 
-func tryInitRedis() *goredis.Client {
-	redisClient, err := redis.InitRedis()
+func tryInitRedis(cfg config.Redis) *goredis.Client {
+	redisClient, err := redis.InitRedis(cfg)
 	if err != nil {
 		log.Printf("Warning: Redis not available: %v", err)
 		return nil
@@ -112,7 +114,7 @@ func tryInitRedis() *goredis.Client {
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	cfg *config.Config, s3Store *s3storage.Storage, openSearchRepos openSearchRepositories) error {
+	cfg *config.Config, s3Store *s3storage.Storage, openSearchRepos openSearchRepositories, jsonCache *cache.JSONCache) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -128,22 +130,30 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// initialize users repo
 	usersRepo := repository.NewUsersRepository(repo.DB)
+	usersReadRepo := buildUsersRepository(jsonCache, usersRepo)
 
 	// initialize notifications
 	notifRepo := repository.NewNotificationsRepository(repo.DB)
 	notifService := notificationssvc.NewService(notifRepo)
 	notifHandler := handler.NewNotificationsHandler(notifRepo)
 
+	guestsRepo := repository.NewGuestsRepository(repo.DB)
+	guestsReadRepo := buildGuestsRepository(jsonCache, guestsRepo)
+	hotelsRepo := repository.NewHotelsRepository(repo.DB)
+	hotelsReadRepo := buildHotelsRepository(jsonCache, hotelsRepo)
+	guestBookingsRepo := repository.NewGuestBookingsRepository(repo.DB)
+	guestBookingsReadRepo := buildGuestBookingsRepository(jsonCache, guestBookingsRepo)
+
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
-	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB))
-	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), openSearchRepos.Guests)
+	usersHandler := handler.NewUsersHandler(usersReadRepo)
+	guestsHandler := handler.NewGuestsHandler(guestsReadRepo, openSearchRepos.Guests)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
-	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
+	hotelsHandler := handler.NewHotelsHandler(hotelsReadRepo)
 	s3Handler := handler.NewS3Handler(s3Store)
 	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
-	guestBookingsHandler := handler.NewGuestBookingsHandler(repository.NewGuestBookingsRepository(repo.DB))
+	guestBookingsHandler := handler.NewGuestBookingsHandler(guestBookingsReadRepo)
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
