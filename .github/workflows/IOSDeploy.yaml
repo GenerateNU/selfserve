@@ -20,7 +20,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        working-directory: clients 
+        working-directory: clients
         run: make install-shared && make install-mobile
 
       - name: Setup Expo and EAS
