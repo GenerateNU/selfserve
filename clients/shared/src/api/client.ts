@@ -100,5 +100,10 @@ export const getBaseUrl = (): string => {
     throw new Error("API_BASE_URL is not configured. Check your .env file.");
   }
 
-  return url;
+  const trimmed = url.replace(/\/+$/, "");
+  if (trimmed.endsWith("/api/v1")) {
+    return trimmed;
+  }
+
+  return `${trimmed}/api/v1`;
 };
