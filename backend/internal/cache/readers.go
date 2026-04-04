@@ -10,12 +10,15 @@ import (
 
 const keyPrefix = "selfserve:v1"
 
-type UsersReader interface {
+type UsersRepository interface {
 	FindUser(ctx context.Context, id string) (*models.User, error)
+	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
 }
 
-type HotelsReader interface {
+type HotelsRepository interface {
 	FindByID(ctx context.Context, id string) (*models.Hotel, error)
+	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
 }
 
 type GuestBookingsReader interface {
@@ -24,20 +27,20 @@ type GuestBookingsReader interface {
 
 type CachedUsersRepository struct {
 	cache *JSONCache
-	next  UsersReader
+	next  UsersRepository
 	ttl   time.Duration
 }
 
 type CachedHotelsRepository struct {
 	cache *JSONCache
-	next  HotelsReader
+	next  HotelsRepository
 	ttl   time.Duration
 }
 
 type CachedGuestsRepository struct {
-	cache        *JSONCache
-	next         storage.GuestsRepository
-	guestTTL     time.Duration
+	cache         *JSONCache
+	next          storage.GuestsRepository
+	guestTTL      time.Duration
 	guestStaysTTL time.Duration
 }
 
@@ -47,11 +50,11 @@ type CachedGuestBookingsRepository struct {
 	ttl   time.Duration
 }
 
-func NewCachedUsersRepository(cache *JSONCache, next UsersReader, ttl time.Duration) *CachedUsersRepository {
+func NewCachedUsersRepository(cache *JSONCache, next UsersRepository, ttl time.Duration) *CachedUsersRepository {
 	return &CachedUsersRepository{cache: cache, next: next, ttl: ttl}
 }
 
-func NewCachedHotelsRepository(cache *JSONCache, next HotelsReader, ttl time.Duration) *CachedHotelsRepository {
+func NewCachedHotelsRepository(cache *JSONCache, next HotelsRepository, ttl time.Duration) *CachedHotelsRepository {
 	return &CachedHotelsRepository{cache: cache, next: next, ttl: ttl}
 }
 
@@ -70,7 +73,9 @@ func (r *CachedUsersRepository) FindUser(ctx context.Context, id string) (*model
 	key := userKey(id)
 
 	var cached models.User
-	if hit, err := r.cache.GetJSON(ctx, key, &cached); err == nil && hit {
+	if hit, err := r.cache.GetJSON(ctx, key, &cached); err != nil {
+		r.cache.WarnReadError(key, err)
+	} else if hit {
 		return &cached, nil
 	}
 
@@ -79,28 +84,18 @@ func (r *CachedUsersRepository) FindUser(ctx context.Context, id string) (*model
 		return nil, err
 	}
 
-	_ = r.cache.SetJSON(ctx, key, user, r.ttl)
+	if err := r.cache.SetJSON(ctx, key, user, r.ttl); err != nil {
+		r.cache.WarnWriteError(key, err)
+	}
 	return user, nil
 }
 
 func (r *CachedUsersRepository) InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error) {
-	repo, ok := r.next.(interface {
-		InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
-	})
-	if !ok {
-		return nil, nil
-	}
-	return repo.InsertUser(ctx, user)
+	return r.next.InsertUser(ctx, user)
 }
 
 func (r *CachedUsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
-	repo, ok := r.next.(interface {
-		UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
-	})
-	if !ok {
-		return nil, nil
-	}
-	return repo.UpdateUser(ctx, id, update)
+	return r.next.UpdateUser(ctx, id, update)
 }
 
 func (r *CachedHotelsRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
@@ -110,7 +105,9 @@ func (r *CachedHotelsRepository) FindByID(ctx context.Context, id string) (*mode
 	key := hotelKey(id)
 
 	var cached models.Hotel
-	if hit, err := r.cache.GetJSON(ctx, key, &cached); err == nil && hit {
+	if hit, err := r.cache.GetJSON(ctx, key, &cached); err != nil {
+		r.cache.WarnReadError(key, err)
+	} else if hit {
 		return &cached, nil
 	}
 
@@ -119,18 +116,14 @@ func (r *CachedHotelsRepository) FindByID(ctx context.Context, id string) (*mode
 		return nil, err
 	}
 
-	_ = r.cache.SetJSON(ctx, key, hotel, r.ttl)
+	if err := r.cache.SetJSON(ctx, key, hotel, r.ttl); err != nil {
+		r.cache.WarnWriteError(key, err)
+	}
 	return hotel, nil
 }
 
 func (r *CachedHotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
-	repo, ok := r.next.(interface {
-		InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
-	})
-	if !ok {
-		return nil, nil
-	}
-	return repo.InsertHotel(ctx, hotel)
+	return r.next.InsertHotel(ctx, hotel)
 }
 
 func (r *CachedGuestsRepository) InsertGuest(ctx context.Context, guest *models.CreateGuest) (*models.Guest, error) {
@@ -144,7 +137,9 @@ func (r *CachedGuestsRepository) FindGuest(ctx context.Context, id string) (*mod
 	key := guestKey(id)
 
 	var cached models.Guest
-	if hit, err := r.cache.GetJSON(ctx, key, &cached); err == nil && hit {
+	if hit, err := r.cache.GetJSON(ctx, key, &cached); err != nil {
+		r.cache.WarnReadError(key, err)
+	} else if hit {
 		return &cached, nil
 	}
 
@@ -153,7 +148,9 @@ func (r *CachedGuestsRepository) FindGuest(ctx context.Context, id string) (*mod
 		return nil, err
 	}
 
-	_ = r.cache.SetJSON(ctx, key, guest, r.guestTTL)
+	if err := r.cache.SetJSON(ctx, key, guest, r.guestTTL); err != nil {
+		r.cache.WarnWriteError(key, err)
+	}
 	return guest, nil
 }
 
@@ -172,7 +169,9 @@ func (r *CachedGuestsRepository) FindGuestWithStayHistory(ctx context.Context, i
 	key := guestStaysKey(id)
 
 	var cached models.GuestWithStays
-	if hit, err := r.cache.GetJSON(ctx, key, &cached); err == nil && hit {
+	if hit, err := r.cache.GetJSON(ctx, key, &cached); err != nil {
+		r.cache.WarnReadError(key, err)
+	} else if hit {
 		return &cached, nil
 	}
 
@@ -181,7 +180,9 @@ func (r *CachedGuestsRepository) FindGuestWithStayHistory(ctx context.Context, i
 		return nil, err
 	}
 
-	_ = r.cache.SetJSON(ctx, key, guest, r.guestStaysTTL)
+	if err := r.cache.SetJSON(ctx, key, guest, r.guestStaysTTL); err != nil {
+		r.cache.WarnWriteError(key, err)
+	}
 	return guest, nil
 }
 
@@ -192,7 +193,9 @@ func (r *CachedGuestBookingsRepository) FindGroupSizeOptions(ctx context.Context
 	key := guestBookingGroupSizesKey(hotelID)
 
 	var cached []int
-	if hit, err := r.cache.GetJSON(ctx, key, &cached); err == nil && hit {
+	if hit, err := r.cache.GetJSON(ctx, key, &cached); err != nil {
+		r.cache.WarnReadError(key, err)
+	} else if hit {
 		return cached, nil
 	}
 
@@ -201,7 +204,9 @@ func (r *CachedGuestBookingsRepository) FindGroupSizeOptions(ctx context.Context
 		return nil, err
 	}
 
-	_ = r.cache.SetJSON(ctx, key, sizes, r.ttl)
+	if err := r.cache.SetJSON(ctx, key, sizes, r.ttl); err != nil {
+		r.cache.WarnWriteError(key, err)
+	}
 	return sizes, nil
 }
 

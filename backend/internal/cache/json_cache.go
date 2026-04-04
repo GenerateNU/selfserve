@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
@@ -17,18 +18,25 @@ type KVStore interface {
 }
 
 type JSONCache struct {
-	store KVStore
+	store  KVStore
+	logger *slog.Logger
 }
 
 type RedisStore struct {
 	client *goredis.Client
 }
 
-func NewJSONCache(store KVStore) *JSONCache {
+func NewJSONCache(store KVStore, logger ...*slog.Logger) *JSONCache {
 	if store == nil {
 		return nil
 	}
-	return &JSONCache{store: store}
+
+	resolvedLogger := slog.Default()
+	if len(logger) > 0 && logger[0] != nil {
+		resolvedLogger = logger[0]
+	}
+
+	return &JSONCache{store: store, logger: resolvedLogger}
 }
 
 func NewRedisStore(client *goredis.Client) *RedisStore {
@@ -75,3 +83,16 @@ func (c *JSONCache) SetJSON(ctx context.Context, key string, value any, ttl time
 	return c.store.Set(ctx, key, string(encoded), ttl)
 }
 
+func (c *JSONCache) WarnReadError(key string, err error) {
+	if c == nil || err == nil {
+		return
+	}
+	c.logger.Warn("redis cache read failed", "key", key, "err", err)
+}
+
+func (c *JSONCache) WarnWriteError(key string, err error) {
+	if c == nil || err == nil {
+		return
+	}
+	c.logger.Warn("redis cache write failed", "key", key, "err", err)
+}

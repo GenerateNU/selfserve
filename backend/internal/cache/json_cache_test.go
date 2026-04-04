@@ -115,4 +115,3 @@ func TestJSONCache_GetJSONReturnsStoreError(t *testing.T) {
 	assert.False(t, hit)
 	require.ErrorIs(t, err, expectedErr)
 }
-

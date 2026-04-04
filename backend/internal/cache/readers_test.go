@@ -1,8 +1,10 @@
 package cache
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -232,4 +234,50 @@ func TestCachedGuestBookingsRepository_FindGroupSizeOptionsUsesHotelScopedKey(t 
 	require.NoError(t, err)
 	assert.Equal(t, []int{1, 2, 4}, sizes)
 	assert.Equal(t, "selfserve:v1:guest_booking_group_sizes:hotel-1", store.lastSetKey)
+}
+
+func TestCachedUsersRepository_FindUserLogsWarnOnCacheReadError(t *testing.T) {
+	t.Parallel()
+
+	var logBuffer bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
+
+	repo := &stubUsersRepo{
+		findUserFn: func(_ context.Context, id string) (*models.User, error) {
+			return &models.User{CreateUser: models.CreateUser{ID: id, FirstName: "Ada"}}, nil
+		},
+	}
+	store := &fakeKVStore{getErr: errors.New("redis unavailable")}
+
+	cached := NewCachedUsersRepository(NewJSONCache(store, logger), repo, 5*time.Minute)
+	user, err := cached.FindUser(context.Background(), "user-1")
+
+	require.NoError(t, err)
+	assert.Equal(t, "Ada", user.FirstName)
+	assert.Contains(t, logBuffer.String(), "redis cache read failed")
+	assert.Contains(t, logBuffer.String(), "key=selfserve:v1:user:user-1")
+	assert.Contains(t, logBuffer.String(), "redis unavailable")
+}
+
+func TestCachedUsersRepository_FindUserLogsWarnOnCacheWriteError(t *testing.T) {
+	t.Parallel()
+
+	var logBuffer bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
+
+	repo := &stubUsersRepo{
+		findUserFn: func(_ context.Context, id string) (*models.User, error) {
+			return &models.User{CreateUser: models.CreateUser{ID: id, FirstName: "Ada"}}, nil
+		},
+	}
+	store := &fakeKVStore{setErr: errors.New("redis write unavailable")}
+
+	cached := NewCachedUsersRepository(NewJSONCache(store, logger), repo, 5*time.Minute)
+	user, err := cached.FindUser(context.Background(), "user-1")
+
+	require.NoError(t, err)
+	assert.Equal(t, "Ada", user.FirstName)
+	assert.Contains(t, logBuffer.String(), "redis cache write failed")
+	assert.Contains(t, logBuffer.String(), "key=selfserve:v1:user:user-1")
+	assert.Contains(t, logBuffer.String(), "redis write unavailable")
 }

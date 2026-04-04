@@ -39,4 +39,3 @@ func buildGuestBookingsRepository(
 	}
 	return cache.NewCachedGuestBookingsRepository(jsonCache, repo, 5*time.Minute)
 }
-

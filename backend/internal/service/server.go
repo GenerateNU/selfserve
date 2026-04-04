@@ -42,6 +42,19 @@ type App struct {
 	RedisClient *goredis.Client
 }
 
+func (a *App) Close() error {
+	if a == nil {
+		return nil
+	}
+
+	var err error
+	if a.Repo != nil {
+		err = errors.Join(err, a.Repo.Close())
+	}
+
+	return errors.Join(err, redis.Close(a.RedisClient))
+}
+
 func InitApp(cfg *config.Config) (*App, error) {
 	validation.Init()
 
@@ -57,10 +70,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
-		if e := repo.Close(); e != nil {
-			return nil, errors.Join(err, e)
-		}
-		return nil, err
+		return nil, errors.Join(err, repo.Close(), redis.Close(redisClient))
 	}
 
 	openSearchRepos := tryInitOpenSearchRepositories(cfg)
@@ -71,10 +81,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 	setupClerk(cfg)
 
 	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, openSearchRepos, jsonCache); err != nil { //nolint:wsl
-		if e := repo.Close(); e != nil {
-			return nil, errors.Join(err, e)
-		}
-		return nil, err
+		return nil, errors.Join(err, repo.Close(), redis.Close(redisClient))
 	}
 
 	return &App{
