@@ -12,9 +12,7 @@ import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
-import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
 import { useKanbanRequests } from "@/hooks/use-kanban-requests";
-import { PLACEHOLDER_COLUMNS } from "@/mock-data/home";
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
