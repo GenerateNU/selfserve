@@ -20,6 +20,8 @@ import (
 
 const defaultPageSize = 20
 
+const msgTaskAssigned = "New task assigned to you"
+
 // NotificationSender is implemented by the notifications service.
 // It is nilable - if nil, notification triggering is skipped.
 type NotificationSender interface {
@@ -64,7 +66,7 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	}
 
 	if r.NotificationSender != nil && requestBody.UserID != nil {
-		if err := r.NotificationSender.Notify(c.Context(), *requestBody.UserID, models.TypeTaskAssigned, "New task assigned to you", res.Name); err != nil {
+		if err := r.NotificationSender.Notify(c.Context(), *requestBody.UserID, models.TypeTaskAssigned, msgTaskAssigned, res.Name); err != nil {
 			slog.Error("failed to send task assigned notification", "err", err)
 		}
 	}
@@ -246,7 +248,7 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 	}
 
 	if r.NotificationSender != nil && req.UserID != nil {
-		if err := r.NotificationSender.Notify(c.Context(), *req.UserID, models.TypeTaskAssigned, "New task assigned to you", res.Name); err != nil {
+		if err := r.NotificationSender.Notify(c.Context(), *req.UserID, models.TypeTaskAssigned, msgTaskAssigned, res.Name); err != nil {
 			slog.Error("failed to send task assigned notification", "err", err)
 		}
 	}
