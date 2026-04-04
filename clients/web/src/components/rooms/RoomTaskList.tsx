@@ -1,12 +1,12 @@
+import type { RoomTaskCardData } from "@/components/rooms/RoomTaskCard";
 import { cn } from "@/lib/utils";
 import { RoomTaskCard } from "@/components/rooms/RoomTaskCard";
-import type { RoomTaskCardData } from "@/components/rooms/RoomTaskCard";
 
 export type RoomTaskItem = RoomTaskCardData & { id: string };
 
 type RoomTaskListProps = {
   title: string;
-  tasks: RoomTaskItem[];
+  tasks: Array<RoomTaskItem>;
   onAssignToSelf?: (id: string) => void;
   onExpand?: (id: string) => void;
   className?: string;

@@ -1,4 +1,3 @@
-import type { LucideIcon } from "lucide-react";
 import {
   FlagIcon,
   MapPinIcon,
@@ -6,6 +5,7 @@ import {
   StoreIcon,
   TriangleAlertIcon,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
