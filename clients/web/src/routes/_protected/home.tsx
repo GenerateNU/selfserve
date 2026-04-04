@@ -16,7 +16,9 @@ export const Route = createFileRoute("/_protected/home")({
 });
 
 function HomePage() {
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(null);
+  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
+    null,
+  );
   const [createRequestOpen, setCreateTaskOpen] = useState(false);
 
   const drawerOpen = createRequestOpen || generatedRequest !== null;
