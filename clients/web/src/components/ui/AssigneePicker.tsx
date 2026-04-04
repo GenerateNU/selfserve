@@ -11,7 +11,7 @@ import { SearchBar } from "@/components/ui/SearchBar";
 import { cn, useDebounce } from "@/lib/utils";
 
 type SearchUsersResponse = {
-  users: User[];
+  users: Array<User>;
   next_cursor: string;
 };
 
@@ -65,7 +65,7 @@ export function AssigneePicker({
           method: "GET",
           params: {
             hotel_id: hotelId,
-            cursor: pageParam as string,
+            cursor: pageParam,
             q: debouncedSearch,
           },
         }),
@@ -74,7 +74,7 @@ export function AssigneePicker({
       enabled: open && !!hotelId,
     });
 
-  const users = data?.pages.flatMap((p) => p.users ?? []) ?? [];
+  const users = data?.pages.flatMap((p) => p.users) ?? [];
 
   function handleSelect(user: User) {
     onSelect(user);
