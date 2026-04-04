@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type DrawerShellProps = {
-  title: string;
+  title: ReactNode;
   onClose: () => void;
   children: ReactNode;
   className?: string;
