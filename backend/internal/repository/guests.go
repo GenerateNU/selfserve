@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
-	"sort"
 	"iter"
+	"sort"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
