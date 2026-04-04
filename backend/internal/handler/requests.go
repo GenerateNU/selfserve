@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"sort"
@@ -19,15 +20,25 @@ import (
 
 const defaultPageSize = 20
 
+const msgTaskAssigned = "New task assigned to you"
+
+// NotificationSender is implemented by the notifications service.
+// It is nilable - if nil, notification triggering is skipped.
+type NotificationSender interface {
+	Notify(ctx context.Context, userID string, notifType models.NotificationType, title, body string) error
+}
+
 type RequestsHandler struct {
 	RequestRepository      storage.RequestsRepository
 	GenerateRequestService aiflows.GenerateRequestService
+	NotificationSender     NotificationSender
 }
 
-func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService aiflows.GenerateRequestService) *RequestsHandler {
+func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService aiflows.GenerateRequestService, notificationSender NotificationSender) *RequestsHandler {
 	return &RequestsHandler{
 		RequestRepository:      repo,
 		GenerateRequestService: generateRequestService,
+		NotificationSender:     notificationSender,
 	}
 }
 
@@ -52,6 +63,12 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: uuid.New().String(), MakeRequest: requestBody})
 	if err != nil {
 		return errs.InternalServerError()
+	}
+
+	if r.NotificationSender != nil && requestBody.UserID != nil {
+		if err := r.NotificationSender.Notify(c.Context(), *requestBody.UserID, models.TypeTaskAssigned, msgTaskAssigned, res.Name); err != nil {
+			slog.Error("failed to send task assigned notification", "err", err)
+		}
 	}
 
 	return c.JSON(res)
@@ -257,6 +274,13 @@ func warningFromAI(w *aiflows.GenerateRequestWarning) *models.GenerateRequestWar
 		Code:    w.Code,
 		Message: w.Message,
 	}
+	if r.NotificationSender != nil && req.UserID != nil {
+		if err := r.NotificationSender.Notify(c.Context(), *req.UserID, models.TypeTaskAssigned, msgTaskAssigned, res.Name); err != nil {
+			slog.Error("failed to send task assigned notification", "err", err)
+		}
+	}
+
+	return c.JSON(res)
 }
 
 // GetRequestsByGuest godoc
