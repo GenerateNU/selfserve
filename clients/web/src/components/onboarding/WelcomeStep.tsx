@@ -8,14 +8,14 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
   return (
     <div className="flex w-screen h-screen">
       <LeftPanel />
-      <div className="flex-1 flex justify-center items-start pt-[clamp(80px,19.45vh,191px)] px-[clamp(40px,9.6vw,132px)] overflow-hidden">
-        <div className="w-full max-w-[617px] h-[clamp(500px,70.37vh,691px)] border border-black rounded-[24px] bg-[var(--color-bg-primary)] flex flex-col items-center pt-[clamp(80px,21.79vh,214px)] pb-12 px-12 box-border gap-[clamp(16px,6.21vh,61px)]">
+      <div className="flex-1 flex justify-center items-start pt-[clamp(5rem,19.45vh,11.9375rem)] px-[clamp(2.5rem,9.6vw,8.25rem)] overflow-hidden">
+        <div className="w-full max-w-[38.5625rem] h-[clamp(31.25rem,70.37vh,43.1875rem)] border border-[var(--color-text-default)] rounded-[1.5rem] bg-[var(--color-bg-primary)] flex flex-col items-center pt-[clamp(5rem,21.79vh,13.375rem)] pb-12 px-12 box-border gap-[clamp(1rem,6.21vh,3.8125rem)]">
           {/* Logo */}
-          <div className="w-20 h-20 border border-black rounded-lg bg-[var(--color-bg-primary)] shrink-0" />
+          <div className="w-20 h-20 border border-[var(--color-text-default)] rounded-lg bg-[var(--color-bg-primary)] shrink-0" />
 
           {/* Welcome + Button */}
           <div className="w-[72.45%] flex flex-col items-center gap-4">
-            <h1 className="font-normal text-[clamp(22px,2.5vw,30px)] leading-[1.2] tracking-[-0.35px] text-center m-0">
+            <h1 className="font-normal text-[clamp(1.375rem,2.5vw,1.875rem)] leading-[1.2] tracking-[-0.021875rem] text-center m-0">
               Welcome
             </h1>
             <button
@@ -23,7 +23,7 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
                 console.log("Start clicked");
                 onNext();
               }}
-              className="w-full h-14 rounded-[14px] bg-[var(--color-primary)] text-white border-none text-base"
+              className="w-full h-14 rounded-[0.875rem] bg-[var(--color-primary)] text-[var(--color-bg-primary)] border-none text-base"
             >
               Start ›
             </button>
