@@ -127,7 +127,9 @@ export function CreateRequestDrawer({
         <div className="flex items-center gap-8">
           <div className="flex w-28 shrink-0 items-center gap-1">
             <GripHorizontal className="size-4.5 text-text-subtle" />
-            <span className="text-sm text-text-subtle">MakeRequestPriority</span>
+            <span className="text-sm text-text-subtle">
+              MakeRequestPriority
+            </span>
           </div>
           <div className="flex items-center gap-1">
             {PRIORITIES.map((p) => (

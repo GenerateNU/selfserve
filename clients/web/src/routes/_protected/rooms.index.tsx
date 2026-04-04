@@ -91,7 +91,10 @@ function RoomsPage() {
           setGeneratedData({
             name: r.name,
             description: r.description,
-            priority: p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
+            priority:
+              p && p in MakeRequestPriority
+                ? (p as MakeRequestPriority)
+                : undefined,
           });
         }}
       />

@@ -31,7 +31,8 @@ function HomePage() {
     setDrawerData({
       name: request.name,
       description: request.description,
-      priority: p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
+      priority:
+        p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
     });
   }
 
