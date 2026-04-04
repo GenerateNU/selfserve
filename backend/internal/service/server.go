@@ -127,7 +127,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// initialize users repo
 	usersRepo := repository.NewUsersRepository(repo.DB)
-	roomsRepo := repository.NewRoomsRepository(repo.DB)
 
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
@@ -137,7 +136,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
-	roomsHandler := handler.NewRoomsHandler(roomsRepo)
+	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
