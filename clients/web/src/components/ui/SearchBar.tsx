@@ -1,5 +1,5 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
 import { Search } from "lucide-react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type SearchBarProps = Omit<
@@ -43,9 +43,12 @@ export function SearchBar({
         {...inputProps}
       />
       <span
-        className={cn("ml-2 flex shrink-0 items-center text-text-subtle", iconClassName)}
+        className={cn(
+          "ml-2 flex shrink-0 items-center text-text-subtle",
+          iconClassName,
+        )}
       >
-        {icon ?? <Search className="h-[18px] w-[18px]" strokeWidth={2} />}
+        {icon ?? <Search className="size-4" strokeWidth={2} />}
       </span>
     </label>
   );
