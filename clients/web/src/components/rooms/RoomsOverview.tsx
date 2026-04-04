@@ -67,8 +67,6 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
         />
         <RoomTaskList
           title="Unassigned Tasks"
-          onAssign={() => {}}
-          onExpand={() => {}}
           tasks={[
             {
               id: "1",
@@ -85,6 +83,7 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
               roomNumber: 102,
               department: "Maintenance",
               priority: "medium",
+              assignedTo: "John Doe",
             },
           ]}
         />

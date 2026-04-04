@@ -7,7 +7,7 @@ export type RoomTaskItem = RoomTaskCardData & { id: string };
 type RoomTaskListProps = {
   title: string;
   tasks: RoomTaskItem[];
-  onAssign: (id: string) => void;
+  onAssignToSelf?: (id: string) => void;
   onExpand?: (id: string) => void;
   className?: string;
 };
@@ -15,7 +15,7 @@ type RoomTaskListProps = {
 export function RoomTaskList({
   title,
   tasks,
-  onAssign,
+  onAssignToSelf,
   onExpand,
   className = "",
 }: RoomTaskListProps) {
@@ -32,7 +32,7 @@ export function RoomTaskList({
           <RoomTaskCard
             key={id}
             {...task}
-            onAssign={() => onAssign(id)}
+            onAssignToSelf={onAssignToSelf ? () => onAssignToSelf(id) : undefined}
             onExpand={onExpand ? () => onExpand(id) : undefined}
           />
         ))}

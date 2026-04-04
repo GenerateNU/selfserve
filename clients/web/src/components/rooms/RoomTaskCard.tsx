@@ -46,10 +46,11 @@ export type RoomTaskCardData = {
   roomNumber: number;
   department: string;
   priority?: Priority;
+  assignedTo?: string | null;
 };
 
 export type RoomTaskCardProps = RoomTaskCardData & {
-  onAssign: () => void;
+  onAssignToSelf?: () => void;
   onExpand?: () => void;
   className?: string;
 };
@@ -60,7 +61,8 @@ export function RoomTaskCard({
   roomNumber,
   department,
   priority,
-  onAssign,
+  assignedTo,
+  onAssignToSelf,
   onExpand,
   className = "",
 }: RoomTaskCardProps) {
@@ -126,9 +128,11 @@ export function RoomTaskCard({
         </div>
       </div>
 
-      <Button variant="primary" className="w-full" onClick={onAssign}>
-        Assign to Self
-      </Button>
+      {!assignedTo && (
+        <Button variant="primary" className="w-full" onClick={onAssignToSelf}>
+          Assign to Self
+        </Button>
+      )}
     </div>
   );
 }
