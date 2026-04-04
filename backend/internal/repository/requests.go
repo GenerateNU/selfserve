@@ -77,19 +77,19 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor time.Time, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
+func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH latest AS (
 			SELECT DISTINCT ON (id) *
 			FROM requests
-			WHERE status = $2 AND hotel_id = $3
+			WHERE status = $3 AND hotel_id = $4
 			ORDER BY id, request_version DESC
 		)
 		SELECT * FROM latest
-		WHERE created_at > $1
+		WHERE (created_at, id) > ($1, $2)
 		ORDER BY created_at ASC, id ASC
-		LIMIT $4
-	`, cursor, status, hotelID, pageSize+1)
+		LIMIT $5
+	`, cursorTime, cursorID, status, hotelID, pageSize+1)
 
 	if err != nil {
 		return nil, "", err
@@ -116,7 +116,9 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 	}
 
 	if len(requests) == pageSize+1 {
-		return requests[:pageSize], strconv.FormatInt(requests[pageSize-1].CreatedAt.UnixNano(), 10), nil
+		last := requests[pageSize-1]
+		nextCursor := strconv.FormatInt(last.CreatedAt.UnixNano(), 10) + "|" + last.ID
+		return requests[:pageSize], nextCursor, nil
 	}
 
 	return requests, "", nil

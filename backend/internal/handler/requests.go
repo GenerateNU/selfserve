@@ -150,11 +150,23 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 	status := c.Query("status")
 	hotelID := c.Query("hotel_id")
 
-	nanos, err := strconv.ParseInt(cursorParam, 10, 64)
-	if err != nil {
-		return errs.BadRequest("cursor must be a Unix nanosecond timestamp")
+	var cursorTime time.Time
+	var cursorID string
+	if cursorParam == "0" || cursorParam == "" {
+		cursorTime = time.Unix(0, 0).UTC()
+		cursorID = ""
+	} else {
+		parts := strings.SplitN(cursorParam, "|", 2)
+		if len(parts) != 2 {
+			return errs.BadRequest("cursor must be in format '{nanos}|{id}'")
+		}
+		nanos, err := strconv.ParseInt(parts[0], 10, 64)
+		if err != nil {
+			return errs.BadRequest("cursor timestamp is invalid")
+		}
+		cursorTime = time.Unix(0, nanos).UTC()
+		cursorID = parts[1]
 	}
-	cursor := time.Unix(0, nanos).UTC()
 
 	if !models.RequestStatus(status).IsValid() {
 		return errs.BadRequest("Status must be one of: pending, assigned, in progress, completed")
@@ -164,10 +176,10 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 		return errs.BadRequest("hotel_id is not a valid UUID")
 	}
 
-	requests, nextCursor, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursor, status, hotelID, defaultPageSize)
+	requests, nextCursor, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursorTime, cursorID, status, hotelID, defaultPageSize)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
-			return errs.NotFound("request cursor id", "cursor", cursor)
+			return errs.NotFound("request cursor id", "cursor", cursorParam)
 		}
 		return c.SendStatus(fiber.ErrInternalServerError.Code)
 	}
