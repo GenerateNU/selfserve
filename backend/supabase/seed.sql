@@ -117,30 +117,30 @@ ON CONFLICT (id) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
 -- Requests — 5 versions of the same request (composite PK: id + request_version)
--- All share the same created_at (original creation time). scheduled_time evolves
--- across versions as the request was updated; the latest version has 06:01.
+-- All share the same created_at (original creation time) and scheduled_time 06:00.
+-- The latest request_version is what FindRequestsByStatusPaginated will surface.
 -- -----------------------------------------------------------------------------
 INSERT INTO public.requests (id, hotel_id, user_id, name, request_type, status, priority, room_id, department, scheduled_time, created_at, request_version)
 VALUES
-  ('c0000000-0000-0001-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
    'room cleaning', 'recurring', 'pending', 'normal', '102', 'Housekeeping',
-   '2026-03-31T08:00:00Z', '2026-03-31T14:00:00Z', '2026-03-31T14:00:00Z'),
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T01:00:00Z'),
 
-  ('c0000000-0000-0001-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
    'room cleaning', 'recurring', 'pending', 'normal', '102', 'Housekeeping',
-   '2026-03-31T09:30:00Z', '2026-03-31T01:00:00Z', '2026-03-31T02:00:00Z'),
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T02:00:00Z'),
 
-  ('c0000000-0000-0001-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
    'room cleaning', 'recurring', 'pending', 'high', '102', 'Housekeeping',
-   '2026-03-31T08:45:00Z', '2026-03-31T01:00:00Z', '2026-03-31T03:00:00Z'),
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T03:00:00Z'),
 
-  ('c0000000-0000-0001-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
    'room cleaning', 'recurring', 'pending', 'high', '102', 'Housekeeping',
-   '2026-03-31T08:15:00Z', '2026-03-31T01:00:00Z', '2026-03-31T04:00:00Z'),
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T04:00:00Z'),
 
-  ('c0000000-0000-0001-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
-   'room cleaning (MOST RECENT)', 'recurring', 'pending', 'urgent', '102', 'Housekeeping',
-   '2026-03-31T06:01:00Z', '2026-03-31T01:00:00Z', '2026-03-31T05:00:00Z')
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+   'room cleaning', 'recurring', 'pending', 'urgent', '102', 'Housekeeping',
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T05:00:00Z')
 ON CONFLICT (id, request_version) DO NOTHING;
 
 -- -----------------------------------------------------------------------------

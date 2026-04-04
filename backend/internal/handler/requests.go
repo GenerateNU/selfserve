@@ -131,9 +131,9 @@ func validateGenerateRequest(input *models.GenerateRequestInput) error {
 }
 
 type cursorBody struct {
-	CursorTime int64  `json:"cursor_time"`
-	CursorID   string `json:"cursor_id"`
-	Status     string `json:"status"`
+	CursorTime *int64  `json:"cursor_time"`
+	CursorID   *string `json:"cursor_id"`
+	Status     string  `json:"status"`
 }
 
 // GetRequestByCursor godoc
@@ -144,7 +144,7 @@ type cursorBody struct {
 // @Produce      json
 // @Param        X-Hotel-ID  header    string      true   "Hotel UUID"
 // @Param        body        body      cursorBody  false  "Cursor position and status filter"
-// @Success      200     {object}  map[string]interface{}  "Returns requests array and next_cursor"
+// @Success      200     {object}  map[string]interface{}  "Returns requests array, next_cursor_time, and next_cursor_id"
 // @Failure      400     {object}  map[string]string
 // @Failure      500     {object}  map[string]string
 // @Security     BearerAuth
@@ -156,7 +156,18 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 	}
 
 	hotelID := c.Get("X-Hotel-ID")
-	cursorTime := time.Unix(0, body.CursorTime).UTC()
+
+	var cursorTime time.Time
+	if body.CursorTime != nil {
+		cursorTime = time.UnixMilli(*body.CursorTime).UTC()
+	} else {
+		cursorTime = time.UnixMilli(0).UTC()
+	}
+
+	cursorID := "00000000-0000-0000-0000-000000000000"
+	if body.CursorID != nil {
+		cursorID = *body.CursorID
+	}
 
 	if !models.RequestStatus(body.Status).IsValid() {
 		return errs.BadRequest("Status must be one of: pending, assigned, in progress, completed")
@@ -166,7 +177,7 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 		return errs.BadRequest("X-Hotel-ID header must be a valid UUID")
 	}
 
-	requests, nextCursor, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursorTime, body.CursorID, body.Status, hotelID, defaultPageSize)
+	requests, nextCursorTime, nextCursorID, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursorTime, cursorID, body.Status, hotelID, defaultPageSize)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("requests", "cursor", body.CursorTime)
@@ -174,10 +185,13 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.ErrInternalServerError.Code)
 	}
 
-	return c.JSON(fiber.Map{
-		"requests":    requests,
-		"next_cursor": nextCursor,
-	})
+	resp := fiber.Map{"requests": requests}
+	if !nextCursorTime.IsZero() {
+		resp["next_cursor_time"] = nextCursorTime.UnixMilli()
+		resp["next_cursor_id"] = nextCursorID
+	}
+
+	return c.JSON(resp)
 }
 
 // GenerateRequest godoc

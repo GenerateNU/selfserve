@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -77,7 +76,7 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
+func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH latest AS (
 			SELECT DISTINCT ON (id) *
@@ -92,12 +91,12 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 	`, cursorTime, cursorID, status, hotelID, pageSize+1)
 
 	if err != nil {
-		return nil, "", err
+		return nil, time.Time{}, "", err
 	}
 
 	defer rows.Close()
 
-	var requests []*models.Request
+	requests := make([]*models.Request, 0)
 	for rows.Next() {
 		var request models.Request
 		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
@@ -106,22 +105,21 @@ func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, 
 			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
 			&request.CreatedAt, &request.UserID, &request.RequestVersion)
 		if err != nil {
-			return nil, "", err
+			return nil, time.Time{}, "", err
 		}
 		requests = append(requests, &request)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, "", errs.ErrNotFoundInDB
+		return nil, time.Time{}, "", errs.ErrNotFoundInDB
 	}
 
 	if len(requests) == pageSize+1 {
 		last := requests[pageSize-1]
-		nextCursor := strconv.FormatInt(last.CreatedAt.UnixNano(), 10) + "|" + last.ID
-		return requests[:pageSize], nextCursor, nil
+		return requests[:pageSize], last.CreatedAt, last.ID, nil
 	}
 
-	return requests, "", nil
+	return requests, time.Time{}, "", nil
 }
 
 func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
