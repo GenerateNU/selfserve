@@ -7,8 +7,8 @@ import { PageShell } from "../components/ui/PageShell";
 import {
   clearGuestDrawerSearch,
   getGuestDrawerVisibility,
-  resolveGuestDrawerTitle,
   resolveGuestDrawerSearch,
+  resolveGuestDrawerTitle,
 } from "../components/guests/guest-drawer-state";
 import { formatDate } from "../utils/dates";
 

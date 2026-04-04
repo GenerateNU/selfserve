@@ -1,5 +1,5 @@
-import { DrawerShell } from "@/components/ui/DrawerShell";
 import type { GuestDrawerTab } from "./guest-drawer-state";
+import { DrawerShell } from "@/components/ui/DrawerShell";
 
 type GuestDetailsDrawerProps = {
   guestName: string;

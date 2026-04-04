@@ -16,8 +16,8 @@ import { GuestListHeader } from "@/components/guests/GuestListHeader";
 import {
   clearGuestDrawerSearch,
   getGuestDrawerVisibility,
-  resolveGuestDrawerTitle,
   resolveGuestDrawerSearch,
+  resolveGuestDrawerTitle,
 } from "@/components/guests/guest-drawer-state";
 
 export const Route = createFileRoute("/_protected/guests/")({
@@ -165,7 +165,7 @@ function GuestsQuickListPage() {
         selectedFloors={floorFilter === "all" ? [] : [Number(floorFilter)]}
         selectedGroupSizes={groupFilter === "all" ? [] : [groupFilter]}
         onApplyFilters={(floors, groupSizes) => {
-          setFloorFilter(floors[0] !== undefined ? String(floors[0]) : "all");
+          setFloorFilter(floors.length > 0 ? String(floors[0]) : "all");
           setGroupFilter(groupSizes[0] ?? "all");
         }}
       />
