@@ -68,6 +68,13 @@
   --color-request-assigned: #1a56db;
   --color-request-completed-secondary: #cde4ce;
   --color-request-completed: #047a0d;
+
+  /* Onboarding tokens */
+  --color-text-heading: #0f172b;
+  --color-text-muted: #62748e;
+  --color-bg-input: #f1f5f9;
+  --color-bg-avatar: #cbd5e1;
+  
 }
 
 button {

@@ -14,13 +14,13 @@ export function RoleCard({
   return (
     <button
       onClick={onSelect}
-      className={`p-4 rounded-xl border-2 text-left transition-colors w-full bg-white
-        ${selected ? "border-[var(--color-primary)]" : "border-gray-200 hover:border-gray-300"}`}
+      className={`p-4 rounded-xl border-2 text-left transition-colors w-full bg-[var(--color-bg-primary)]
+        ${selected ? "border-[var(--color-primary)]" : "border-[var(--color-stroke-subtle)] hover:border-[var(--color-stroke-default)]"}`}
     >
-      <p className="text-[clamp(12px,1.2vw,16px)] font-medium text-gray-900 m-0">
+      <p className="text-[clamp(0.75rem,1.2vw,1rem)] font-medium text-[var(--color-text-default)] m-0">
         {label}
       </p>
-      <p className="text-[clamp(10px,1vw,14px)] text-gray-500 mt-1 m-0">
+      <p className="text-[clamp(0.625rem,1vw,0.875rem)] text-[var(--color-text-subtle)] mt-1 m-0">
         {description}
       </p>
     </button>
