@@ -22,3 +22,16 @@ func BindAndValidate[T any](context *fiber.Ctx, output *T) error {
 
 	return nil
 }
+
+func ValidateStruct[T any](v T) error {
+	if validation.Validate == nil {
+		return errs.InternalServerError()
+	}
+
+	if err := validation.Validate.Struct(v); err != nil {
+		fieldErrors := validation.ToFieldErrors(err)
+		return errs.BadRequest(validation.DeterministicErrorString(fieldErrors))
+	}
+
+	return nil
+}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/models"
 	s3storage "github.com/generate/selfserve/internal/service/s3"
 	"github.com/gofiber/fiber/v2"
 )
@@ -43,9 +44,12 @@ func (h *S3Handler) GeneratePresignedUploadURL(c *fiber.Ctx) error {
 		return errs.BadRequest("key is required")
 	}
 
-	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), key, expirationTime)
+	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), models.PresignedURLInput{
+		Key:        key,
+		Expiration: expirationTime,
+	})
 	if err != nil {
-		return errs.InternalServerError()
+		return err
 	}
 
 	return c.JSON(fiber.Map{
@@ -72,9 +76,12 @@ func (h *S3Handler) GetUploadURL(c *fiber.Ctx) error {
 	}
 
 	key := fmt.Sprintf("profile-pictures/%s/%d.%s", userId, time.Now().Unix(), ext)
-	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), key, expirationTime)
+	presignedURL, err := h.S3Storage.GeneratePresignedUploadURL(c.Context(), models.PresignedURLInput{
+		Key:        key,
+		Expiration: expirationTime,
+	})
 	if err != nil {
-		return errs.InternalServerError()
+		return err
 	}
 
 	return c.JSON(fiber.Map{
@@ -100,9 +107,12 @@ func (h *S3Handler) GeneratePresignedGetURL(c *fiber.Ctx) error {
 		return errs.BadRequest("key is required")
 	}
 
-	presignedURL, err := h.S3Storage.GeneratePresignedGetURL(c.Context(), key, expirationTime)
+	presignedURL, err := h.S3Storage.GeneratePresignedGetURL(c.Context(), models.PresignedURLInput{
+		Key:        key,
+		Expiration: expirationTime,
+	})
 	if err != nil {
-		return errs.InternalServerError()
+		return err
 	}
 
 	return c.JSON(fiber.Map{

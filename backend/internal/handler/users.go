@@ -145,9 +145,12 @@ func (h *UsersHandler) GetProfilePicture(c *fiber.Ctx) error {
 	}
 
 	// Generate presigned URL for displaying the image
-	presignedURL, err := h.S3Storage.GeneratePresignedGetURL(c.Context(), key, 5*time.Minute)
+	presignedURL, err := h.S3Storage.GeneratePresignedGetURL(c.Context(), models.PresignedURLInput{
+		Key:        key,
+		Expiration: 5 * time.Minute,
+	})
 	if err != nil {
-		return errs.InternalServerError()
+		return err
 	}
 
 	return c.JSON(fiber.Map{
