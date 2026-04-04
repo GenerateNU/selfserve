@@ -10,6 +10,7 @@ import { RoomsHeader } from "@/components/rooms/RoomsHeader";
 import { RoomsList } from "@/components/rooms/RoomsList";
 import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
 import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
+import { RoomsOverview } from "@/components/rooms/RoomsOverview";
 
 export const Route = createFileRoute("/_protected/rooms/")({
   component: RoomsPage,
@@ -57,25 +58,28 @@ function RoomsPage() {
       }
       drawerOpen={generatedRequest !== null || selectedRoom !== null}
       drawer={drawerContent}
+      bodyClassName="overflow-hidden"
+      contentClassName={"h-full pb-26.5"}
     >
       <SortByContainer ascending={ascending} setAscending={setAscending} />
-      <RoomsList
-        rooms={rooms?.items ?? []}
-        ascending={ascending}
-        onRoomSelect={(room) => {
-          setGeneratedRequest(null);
-          setSelectedRoom(room);
-        }}
-        selectedRoomNumber={selectedRoom?.room_number ?? null}
-      />
-      {generatedRequest === null && selectedRoom === null && (
-        <GlobalTaskInput
-          onRequestGenerated={(r) => {
-            setSelectedRoom(null);
-            setGeneratedRequest(r);
+      <div className="flex min-h-0 flex-row">
+        <RoomsList
+          rooms={rooms?.items ?? []}
+          ascending={ascending}
+          onRoomSelect={(room) => {
+            setGeneratedRequest(null);
+            setSelectedRoom(room);
           }}
+          selectedRoomNumber={selectedRoom?.room_number ?? null}
         />
-      )}
+        <RoomsOverview rooms={rooms?.items ?? []} />
+      </div>
+      <GlobalTaskInput
+        onRequestGenerated={(r) => {
+          setSelectedRoom(null);
+          setGeneratedRequest(r);
+        }}
+      />
     </PageShell>
   );
 }
