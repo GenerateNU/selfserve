@@ -837,15 +837,18 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 							Priority:    "normal",
 						},
 					},
-				}, "1743379200000000000", nil
+				}, "1743379200000000000|530e8400-e458-41d4-a716-446655440002", nil
 			},
 		}
 
 		app := fiber.New()
 		h := NewRequestsHandler(mock, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/0?status=pending&hotel_id=521e8400-e458-41d4-a716-446655440000", nil)
+		reqBody := bytes.NewBufferString(`{"cursor_time":0,"cursor_id":"","status":"pending"}`)
+		req := httptest.NewRequest("POST", "/request/cursor", reqBody)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -857,7 +860,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		assert.Contains(t, string(body), "next_cursor")
 	})
 
-	t.Run("returns 400 when cursor is not a valid timestamp", func(t *testing.T) {
+	t.Run("returns 400 when X-Hotel-ID header is missing", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
@@ -868,16 +871,18 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/notanumber?status=pending&hotel_id=521e8400-e458-41d4-a716-446655440000", nil)
+		reqBody := bytes.NewBufferString(`{"cursor_time":0,"cursor_id":"","status":"pending"}`)
+		req := httptest.NewRequest("POST", "/request/cursor", reqBody)
+		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 400, resp.StatusCode)
 
 		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "cursor")
+		assert.Contains(t, string(body), "X-Hotel-ID")
 	})
 
 	t.Run("returns 400 when status is invalid", func(t *testing.T) {
@@ -891,9 +896,12 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/0?status=invalid&hotel_id=521e8400-e458-41d4-a716-446655440000", nil)
+		reqBody := bytes.NewBufferString(`{"cursor_time":0,"cursor_id":"","status":"invalid"}`)
+		req := httptest.NewRequest("POST", "/request/cursor", reqBody)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -903,7 +911,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		assert.Contains(t, string(body), "Status")
 	})
 
-	t.Run("returns 400 when hotel_id is invalid", func(t *testing.T) {
+	t.Run("returns 400 when X-Hotel-ID is not a valid UUID", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
@@ -914,16 +922,19 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/0?status=pending&hotel_id=notaUUID", nil)
+		reqBody := bytes.NewBufferString(`{"cursor_time":0,"cursor_id":"","status":"pending"}`)
+		req := httptest.NewRequest("POST", "/request/cursor", reqBody)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "notaUUID")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 400, resp.StatusCode)
 
 		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "hotel_id")
+		assert.Contains(t, string(body), "X-Hotel-ID")
 	})
 
 	t.Run("returns 404 when not found in db", func(t *testing.T) {
@@ -937,9 +948,12 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/0?status=pending&hotel_id=521e8400-e458-41d4-a716-446655440000", nil)
+		reqBody := bytes.NewBufferString(`{"cursor_time":0,"cursor_id":"","status":"pending"}`)
+		req := httptest.NewRequest("POST", "/request/cursor", reqBody)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -957,9 +971,12 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/0?status=pending&hotel_id=521e8400-e458-41d4-a716-446655440000", nil)
+		reqBody := bytes.NewBufferString(`{"cursor_time":0,"cursor_id":"","status":"pending"}`)
+		req := httptest.NewRequest("POST", "/request/cursor", reqBody)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
