@@ -23,11 +23,7 @@ describe("guest UI helpers", () => {
   describe("GuestQuickListTable", () => {
     it("does not show the empty state while the first page is loading", () => {
       render(
-        <GuestQuickListTable
-          guests={[]}
-          isLoading
-          onGuestClick={() => {}}
-        />,
+        <GuestQuickListTable guests={[]} isLoading onGuestClick={() => {}} />,
       );
 
       expect(screen.queryByText("No guests match your current filters.")).toBe(
@@ -57,12 +53,7 @@ describe("guest UI helpers", () => {
     });
 
     it("renders grouped table headings for guest, active bookings, and specific assistance", () => {
-      render(
-        <GuestQuickListTable
-          guests={[]}
-          onGuestClick={() => {}}
-        />,
-      );
+      render(<GuestQuickListTable guests={[]} onGuestClick={() => {}} />);
 
       expect(screen.getByText("Guest")).not.toBeNull();
       expect(screen.getByText("Active Bookings")).not.toBeNull();
@@ -92,7 +83,9 @@ describe("guest UI helpers", () => {
       expect(screen.getByText("(Lucy)")).not.toBeNull();
       expect(screen.getByText("Suite 300")).not.toBeNull();
       expect(screen.getByText("Floor 3")).not.toBeNull();
-      expect(screen.getByText((content) => content.trim() === "5")).not.toBeNull();
+      expect(
+        screen.getByText((content) => content.trim() === "5"),
+      ).not.toBeNull();
     });
 
     it("falls back to the first name when preferred name is missing", () => {
@@ -265,9 +258,9 @@ describe("guest UI helpers", () => {
       );
 
       expect(
-        screen.getByRole("button", { name: "Visit Activity" }).getAttribute(
-          "aria-pressed",
-        ),
+        screen
+          .getByRole("button", { name: "Visit Activity" })
+          .getAttribute("aria-pressed"),
       ).toBe("true");
     });
   });
