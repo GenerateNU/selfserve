@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -13,6 +15,11 @@ import (
 )
 
 const expoPushURL = "https://exp.host/--/exponent-push-api/v2/push/send"
+
+var (
+	ErrExpoPushFailed   = errors.New("expo push request failed")
+	ErrExpoPushRejected = errors.New("expo push rejected by server")
+)
 
 // NotificationSender is implemented by Service. Handlers that trigger
 // notifications depend on this interface for testability.
@@ -72,12 +79,12 @@ func (s *Service) sendExpoPush(tokens []string, title, body string) {
 
 	resp, err := s.client.Post(expoPushURL, "application/json", bytes.NewReader(payload))
 	if err != nil {
-		slog.Error("notifications: expo push failed", "err", err)
+		slog.Error("notifications: expo push failed", "err", fmt.Errorf("%w: %w", ErrExpoPushFailed, err))
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		slog.Error("notifications: expo push returned error status", "status", resp.StatusCode)
+		slog.Error("notifications: expo push rejected", "err", fmt.Errorf("%w: status %d", ErrExpoPushRejected, resp.StatusCode))
 	}
 }
