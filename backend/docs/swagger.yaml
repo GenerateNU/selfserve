@@ -32,9 +32,6 @@ definitions:
     type: object
   CreateUser:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       department:
         example: Housekeeping
         type: string
@@ -144,27 +141,6 @@ definitions:
       updated_at:
         example: "2024-01-02T00:00:00Z"
         type: string
-    type: object
-  GuestBooking:
-    properties:
-      arrival_date:
-        example: "2024-01-02T00:00:00Z"
-        type: string
-      departure_date:
-        example: "2024-01-05T00:00:00Z"
-        type: string
-      guest:
-        $ref: '#/definitions/Guest'
-      hotel_id:
-        example: 521e8400-e458-41d4-a716-446655440000
-        type: string
-      id:
-        example: f353ca91-4fc5-49f2-9b9e-304f83d11914
-        type: string
-      room:
-        $ref: '#/definitions/Room'
-      status:
-        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
     type: object
   GuestFilters:
     properties:
@@ -348,10 +324,8 @@ definitions:
         enum:
         - low
         - medium
-        - normal
         - high
-        - urgent
-        example: urgent
+        example: high
         type: string
       request_category:
         example: Cleaning
@@ -447,10 +421,8 @@ definitions:
         enum:
         - low
         - medium
-        - normal
         - high
-        - urgent
-        example: urgent
+        example: high
         type: string
       request_category:
         example: Cleaning
@@ -549,9 +521,6 @@ definitions:
     type: object
   User:
     properties:
-      clerk_id:
-        example: user_123
-        type: string
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
