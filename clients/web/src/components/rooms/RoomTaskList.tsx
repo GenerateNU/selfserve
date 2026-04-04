@@ -32,7 +32,9 @@ export function RoomTaskList({
           <RoomTaskCard
             key={id}
             {...task}
-            onAssignToSelf={onAssignToSelf ? () => onAssignToSelf(id) : undefined}
+            onAssignToSelf={
+              onAssignToSelf ? () => onAssignToSelf(id) : undefined
+            }
             onExpand={onExpand ? () => onExpand(id) : undefined}
           />
         ))}
