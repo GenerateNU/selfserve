@@ -52,3 +52,24 @@ type Request struct {
 	RequestVersion time.Time `json:"request_version" example:"2024-01-02T00:00:00Z"`
 	MakeRequest
 } //@name Request
+
+type GetRequestsByGuestInput struct {
+	GuestID string `json:"guest_id" validate:"required,uuid"`
+	HotelID string `json:"hotel_id" validate:"required,uuid"`
+	Cursor  string `json:"cursor"`
+	Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
+} //@name GetRequestsByGuestInput
+
+type GuestRequest struct {
+	ID              string    `json:"id"`
+	Name            string    `json:"name"`
+	Priority        string    `json:"priority"`
+	Status          string    `json:"status"`
+	Description     *string   `json:"description,omitempty"`
+	Notes           *string   `json:"notes,omitempty"`
+	RoomNumber      *int      `json:"room_number,omitempty"`
+	RequestType     string    `json:"request_type"`
+	RequestCategory *string   `json:"request_category,omitempty"`
+	CreatedAt       time.Time `json:"created_at"`
+	RequestVersion  time.Time `json:"request_version"`
+} //@name GuestRequest

@@ -5,12 +5,14 @@ import (
 	"log/slog"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -229,4 +231,61 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(res)
+}
+
+// GetRequestsByGuest godoc
+// @Summary      Get requests by guest
+// @Description  Retrieves all requests for a given guest
+// @Tags         requests
+// @Produce      json
+// @Param        id  path  string  true  "Guest ID (UUID)"
+// @Success      200  {object}  []models.GuestRequest
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /request/guest/{id} [get]
+func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
+	input := models.GetRequestsByGuestInput{
+		GuestID: c.Params("id"),
+		HotelID: c.Get("X-Hotel-ID"),
+		Cursor:  c.Query("cursor"),
+		Limit:   c.QueryInt("limit"),
+	}
+	if err := httpx.Validate(&input); err != nil {
+		return err
+	}
+
+	cursorID, cursorVersion, err := parseRequestCursor(input.Cursor)
+	if err != nil {
+		return errs.BadRequest("invalid cursor")
+	}
+
+	limit := utils.ResolveLimit(input.Limit)
+	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), input.GuestID, input.HotelID, cursorID, cursorVersion, limit+1)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	page := utils.BuildCursorPage(requests, limit, func(req *models.GuestRequest) string {
+		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
+	})
+
+	return c.JSON(page)
+}
+
+// parseRequestCursor splits a "id|request_version" cursor string.
+// Returns zero values and nil error when cursor is empty (first page).
+func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
+	if cursor == "" {
+		return "", time.Time{}, nil
+	}
+	parts := strings.SplitN(cursor, "|", 2)
+	if len(parts) != 2 {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	version, err = time.Parse(time.RFC3339Nano, parts[1])
+	if err != nil {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	return parts[0], version, nil
 }
