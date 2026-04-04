@@ -32,6 +32,10 @@ var commands = map[string]command{
 		description: "Sync users from Clerk into the database",
 		run:         runSyncUsers,
 	},
+	"reindex-guests": {
+		description: "Fetch all guests from the database and reindex them in OpenSearch",
+		run:         runReindexGuests,
+	},
 }
 
 func main() {

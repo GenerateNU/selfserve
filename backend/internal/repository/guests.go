@@ -191,6 +191,53 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	return &guest, nil
 }
 
+func (r *GuestsRepository) FetchAllGuestDocuments(ctx context.Context) ([]*models.GuestDocument, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			g.id,
+			gb.hotel_id,
+			CONCAT_WS(' ', g.first_name, g.last_name) AS full_name,
+			g.first_name,
+			g.last_name,
+			COALESCE(g.preferences, g.first_name) AS preferred_name,
+			g.email,
+			g.phone,
+			g.preferences,
+			g.notes,
+			r.floor,
+			r.room_number,
+			gb.group_size,
+			gb.status,
+			gb.arrival_date,
+			gb.departure_date
+		FROM guest_bookings gb
+		JOIN guests g ON g.id = gb.guest_id
+		JOIN rooms r ON r.id = gb.room_id
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var docs []*models.GuestDocument
+	for rows.Next() {
+		var doc models.GuestDocument
+		err := rows.Scan(
+			&doc.ID, &doc.HotelID, &doc.FullName,
+			&doc.FirstName, &doc.LastName, &doc.PreferredName,
+			&doc.Email, &doc.Phone, &doc.Preferences, &doc.Notes,
+			&doc.Floor, &doc.RoomNumber, &doc.GroupSize,
+			&doc.BookingStatus, &doc.ArrivalDate, &doc.DepartureDate,
+		)
+		if err != nil {
+			return nil, err
+		}
+		docs = append(docs, &doc)
+	}
+
+	return docs, rows.Err()
+}
+
 func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
 	floorsFilter := filters.Floors
 	groupSizesFilter := filters.GroupSize
