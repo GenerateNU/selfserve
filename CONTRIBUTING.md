@@ -2,6 +2,24 @@
 
 ## Local Setup
 
+### Docker
+
+To run the backend via Docker, the container fetches secrets directly from Doppler at startup using a service token.
+
+Generate a token and export it in your shell:
+
+```bash
+eval $(make docker-token)
+```
+
+Then start the stack:
+
+```bash
+make docker-up
+```
+
+You'll need to re-run `eval $(make docker-token)` in any new shell session, or add `DOPPLER_TOKEN` to your shell profile.
+
 ### OpenSearch
 
 Run OpenSearch locally with the security plugin disabled (no TLS or auth required for local dev):
