@@ -16,8 +16,9 @@ import (
 )
 
 type mockRoomsRepository struct {
-	findRoomsFunc  func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
-	findFloorsFunc func(ctx context.Context, hotelID string) ([]int, error)
+	findRoomsFunc   func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	findFloorsFunc  func(ctx context.Context, hotelID string) ([]int, error)
+	findRoomByIDFunc func(ctx context.Context, hotelID string, id string) (*models.RoomWithOptionalGuestBooking, error)
 }
 
 func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
@@ -26,6 +27,10 @@ func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx cont
 
 func (m *mockRoomsRepository) FindAllFloors(ctx context.Context, hotelID string) ([]int, error) {
 	return m.findFloorsFunc(ctx, hotelID)
+}
+
+func (m *mockRoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id string) (*models.RoomWithOptionalGuestBooking, error) {
+	return m.findRoomByIDFunc(ctx, hotelID, id)
 }
 
 var _ RoomsRepository = (*mockRoomsRepository)(nil)

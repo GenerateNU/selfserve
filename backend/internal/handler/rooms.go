@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -14,6 +15,7 @@ import (
 type RoomsRepository interface {
 	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
 	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
+	FindRoomByID(ctx context.Context, hotelID string, id string) (*models.RoomWithOptionalGuestBooking, error)
 }
 
 type RoomsHandler struct {
@@ -66,6 +68,41 @@ func (h *RoomsHandler) FilterRooms(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(page)
+}
+
+// GetRoomByID godoc
+// @Summary      Get room by ID
+// @Description  Retrieves a single room by its UUID
+// @Tags         rooms
+// @Produce      json
+// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
+// @Param        id          path      string  true   "Room ID (UUID)"
+// @Success      200  {object}  models.RoomWithOptionalGuestBooking
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      404  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /rooms/{id} [get]
+func (h *RoomsHandler) GetRoomByID(c *fiber.Ctx) error {
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
+	id := c.Params("id")
+	if id == "" {
+		return errs.BadRequest("id is required")
+	}
+
+	room, err := h.repo.FindRoomByID(c.Context(), hotelID, id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("room", "id", id)
+		}
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(room)
 }
 
 // GetFloors godoc
