@@ -6,12 +6,15 @@ create table if not exists public.notifications (
     title      text        not null,
     body       text        not null,
     data       jsonb,
-    read_at    timestamptz,
-    created_at timestamptz default now()
+    read_at     timestamptz,
+    is_archived boolean     not null default false,
+    archived_at timestamptz,
+    created_at  timestamptz default now()
 );
 
 create index if not exists idx_notifications_user_id_created_at
-    on public.notifications (user_id, created_at desc);
+    on public.notifications (user_id, created_at desc)
+    where is_archived = false;
 
 -- Enable RLS
 alter table public.notifications enable row level security;
