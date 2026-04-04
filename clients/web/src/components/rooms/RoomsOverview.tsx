@@ -74,20 +74,17 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
           requests={[
             {
               id: "1",
-              title: "Room 101",
-              floor: 1,
-              roomNumber: 101,
-              department: "Maintenance",
+              name: "Room 101",
+              room_number: 101,
+              request_category: "Maintenance",
               priority: "low",
             },
             {
               id: "2",
-              title: "Room 102",
-              floor: 1,
-              roomNumber: 102,
-              department: "Maintenance",
+              name: "Room 102",
+              room_number: 102,
+              request_category: "Maintenance",
               priority: "medium",
-              assignedTo: "John Doe",
             },
           ]}
         />

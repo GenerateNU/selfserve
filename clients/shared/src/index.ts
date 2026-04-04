@@ -7,6 +7,8 @@ export type { Config } from "./api/config";
 export { setConfig, getConfig } from "./api/config";
 
 // Generated Types - Models
+export { MakeRequestPriority } from "./api/generated/models";
+
 export type {
   User,
   CreateUser,
@@ -17,6 +19,7 @@ export type {
   GenerateRequestWarning,
   Hotel,
   Guest,
+  GuestPage,
   Dev,
 } from "./api/generated/models";
 
@@ -29,6 +32,7 @@ export {
 export {
   usePostRequest,
   usePostRequestGenerate,
+  useGetRequestRoomId,
 } from "./api/generated/endpoints/requests/requests";
 
 export {
@@ -59,4 +63,6 @@ export {
 export type {
   RoomWithOptionalGuestBooking,
   FilterRoomsRequest,
+  GuestRequest,
+  RoomRequestsResponse,
 } from "./api/generated/models";

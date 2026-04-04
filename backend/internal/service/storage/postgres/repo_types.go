@@ -17,8 +17,14 @@ type NotificationsRepository interface {
 }
 
 type UsersRepository interface {
+	FindUser(ctx context.Context, id string) (*models.User, error)
 	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
+	UpdateProfilePicture(ctx context.Context, userId string, key string) error
+	DeleteProfilePicture(ctx context.Context, userId string) error
+	GetKey(ctx context.Context, userId string) (string, error)
 	BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error
+	SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
 }
 
 type GuestsRepository interface {
@@ -43,6 +49,8 @@ type RequestsRepository interface {
 	FindRequests(ctx context.Context) ([]models.Request, error)
 	FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
 	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	FindMyRequestsByRoomID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
 type HotelsRepository interface {
@@ -50,6 +58,12 @@ type HotelsRepository interface {
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
 }
 
+// S3Storage defines the interface for S3 operations
+type S3Storage interface {
+	GeneratePresignedUploadURL(ctx context.Context, in models.PresignedURLInput) (string, error)
+	GeneratePresignedGetURL(ctx context.Context, in models.PresignedURLInput) (string, error)
+	DeleteFile(ctx context.Context, key string) error
+}
 type RoomsRepository interface {
 	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
 	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
