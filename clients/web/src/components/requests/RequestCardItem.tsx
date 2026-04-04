@@ -48,7 +48,7 @@ export function RequestCardItem({ request }: RequestCardItemProps) {
     ? `Floor ${room.floor}, Room ${room.room_number}`
     : null;
 
-  const tags = [assigneeName].filter(Boolean) as string[];
+  const tags = [assigneeName].filter(Boolean) as Array<string>;
   const hasBottomRow = roomLabel || request.department;
 
   return (
