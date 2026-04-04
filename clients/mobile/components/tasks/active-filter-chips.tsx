@@ -1,11 +1,6 @@
 import Feather from "@expo/vector-icons/Feather";
 import { Pressable, Text, View } from "react-native";
 
-interface FilterItem {
-  label: string;
-  value: string;
-}
-
 interface ActiveFilterChipsProps {
   filters: { label: string; value: string }[];
   onRemoveFilter: (value: string) => void;

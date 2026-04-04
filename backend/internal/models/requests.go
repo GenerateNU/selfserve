@@ -23,8 +23,8 @@ func (s RequestStatus) IsValid() bool {
 
 // for post because the ID and timestamps should always be generated
 type MakeRequest struct {
-	HotelID                 string     `json:"hotel_id" validate:"notblank" example:"521e8400-e458-41d4-a716-446655440000"`
-	GuestID                 *string    `json:"guest_id" example:"521e8417-e458-41d4-a716-446655440990"`
+	HotelID                 string     `json:"hotel_id" validate:"notblank,uuid" example:"521e8400-e458-41d4-a716-446655440000"`
+	GuestID                 *string    `json:"guest_id" validate:"omitempty,uuid" example:"521e8417-e458-41d4-a716-446655440990"`
 	UserID                  *string    `json:"user_id" example:"521ee400-e458-41d4-a716-446655440000"`
 	ReservationID           *string    `json:"reservation_id" example:"521e8400-e458-41d4-a716-498655440000"`
 	Name                    string     `json:"name" validate:"notblank" example:"room cleaning"`
@@ -33,8 +33,8 @@ type MakeRequest struct {
 	RequestCategory         *string    `json:"request_category" example:"Cleaning"`
 	RequestType             string     `json:"request_type" validate:"notblank" example:"recurring"`
 	Department              *string    `json:"department" example:"maintenance"`
-	Status                  string     `json:"status"  validate:"notblank" example:"assigned"`
-	Priority                string     `json:"priority" validate:"notblank" example:"urgent"`
+	Status                  string     `json:"status" validate:"oneof=pending assigned completed" example:"assigned"`
+	Priority                string     `json:"priority" validate:"oneof=low medium normal high urgent" example:"urgent"`
 	EstimatedCompletionTime *int       `json:"estimated_completion_time" example:"30"`
 	ScheduledTime           *time.Time `json:"scheduled_time" example:"2024-01-01T00:00:00Z"`
 	CompletedAt             *time.Time `json:"completed_at" example:"2024-01-01T00:30:00Z"`
@@ -47,8 +47,29 @@ type GenerateRequestInput struct {
 } //@name GenerateRequestInput
 
 type Request struct {
-	ID        string    `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
-	CreatedAt time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`
-	UpdatedAt time.Time `json:"updated_at" example:"2024-01-02T00:00:00Z"`
+	ID             string    `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
+	CreatedAt      time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`
+	RequestVersion time.Time `json:"request_version" example:"2024-01-02T00:00:00Z"`
 	MakeRequest
 } //@name Request
+
+type GetRequestsByGuestInput struct {
+	GuestID string `json:"guest_id" validate:"required,uuid"`
+	HotelID string `json:"hotel_id" validate:"required,uuid"`
+	Cursor  string `json:"cursor"`
+	Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
+} //@name GetRequestsByGuestInput
+
+type GuestRequest struct {
+	ID              string    `json:"id"`
+	Name            string    `json:"name"`
+	Priority        string    `json:"priority"`
+	Status          string    `json:"status"`
+	Description     *string   `json:"description,omitempty"`
+	Notes           *string   `json:"notes,omitempty"`
+	RoomNumber      *int      `json:"room_number,omitempty"`
+	RequestType     string    `json:"request_type"`
+	RequestCategory *string   `json:"request_category,omitempty"`
+	CreatedAt       time.Time `json:"created_at"`
+	RequestVersion  time.Time `json:"request_version"`
+} //@name GuestRequest

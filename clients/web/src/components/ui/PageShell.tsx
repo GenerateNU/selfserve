@@ -6,6 +6,8 @@ type PageShellProps = {
   drawer?: ReactNode;
   drawerOpen?: boolean;
   children: ReactNode;
+  contentClassName?: string;
+  bodyClassName?: string;
 };
 
 export function PageShell({
@@ -13,27 +15,41 @@ export function PageShell({
   drawer,
   drawerOpen = false,
   children,
+  contentClassName,
+  bodyClassName,
 }: PageShellProps) {
   const hasDrawer = drawer !== undefined;
 
   return (
-    <main className="flex h-screen w-full min-w-0 overflow-hidden">
+    <main className="relative flex h-screen w-full min-w-0 overflow-hidden">
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         <header className="shrink-0 bg-bg-container">{header}</header>
 
-        <section className="flex-1 min-h-0 overflow-auto bg-bg-primary">
-          <div className="flex flex-col mx-auto w-full px-16">{children}</div>
+        <section
+          className={cn(
+            "flex-1 min-h-0 overflow-auto bg-bg-primary",
+            bodyClassName,
+          )}
+        >
+          <div
+            className={cn(
+              "flex flex-col mx-auto w-full px-16",
+              contentClassName,
+            )}
+          >
+            {children}
+          </div>
         </section>
       </div>
 
       {hasDrawer && (
         <aside
           className={cn(
-            "relative min-w-0 shrink-0 overflow-hidden shadow-xl shadow-black/25 transition-[flex-basis] duration-300 ease-in-out",
-            drawerOpen ? "basis-[45vw]" : "basis-0",
+            "fixed inset-y-0 right-0 z-50 h-full w-153 overflow-hidden bg-white shadow-xl shadow-black/25 transition-transform duration-300 ease-in-out",
+            drawerOpen ? "translate-x-0" : "translate-x-full",
           )}
         >
-          <div className="h-full w-[45vw]">{drawer}</div>
+          <div className="h-full w-full">{drawer}</div>
         </aside>
       )}
     </main>

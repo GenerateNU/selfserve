@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"log/slog"
+	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
@@ -14,10 +16,18 @@ import (
 
 type GuestsHandler struct {
 	GuestsRepository storage.GuestsRepository
+	searchGuests     func(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error)
 }
 
-func NewGuestsHandler(repo storage.GuestsRepository) *GuestsHandler {
-	return &GuestsHandler{GuestsRepository: repo}
+func NewGuestsHandler(repo storage.GuestsRepository, searchRepo storage.GuestsSearchRepository) *GuestsHandler {
+	// TODO: once OpenSearch setup is complete —
+	// 1. enforce searchRepo as required (fail startup if nil)
+	// 2. remove the Postgres fallback below
+	search := repo.FindGuestsWithActiveBooking
+	if searchRepo != nil {
+		search = searchRepo.SearchGuests
+	}
+	return &GuestsHandler{GuestsRepository: repo, searchGuests: search}
 }
 
 // CreateGuest godoc
@@ -176,8 +186,28 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 		return err
 	}
 
-	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
+	if len(filters.Floors) == 0 {
+		filters.Floors = nil
+	}
+	if len(filters.GroupSize) == 0 {
+		filters.GroupSize = nil
+	}
+
+	if filters.Cursor != "" {
+		parts := strings.SplitN(filters.Cursor, "|", 2)
+		if len(parts) != 2 {
+			return errs.BadRequest("invalid cursor")
+		}
+		if _, err := uuid.Parse(parts[1]); err != nil {
+			return errs.BadRequest("invalid cursor")
+		}
+		filters.CursorName = parts[0]
+		filters.CursorID = parts[1]
+	}
+
+	guests, err := h.searchGuests(c.Context(), &filters)
 	if err != nil {
+		slog.Error("failed to get guests", "error", err)
 		return errs.InternalServerError()
 	}
 

@@ -5,12 +5,16 @@ import (
 	"log/slog"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 const defaultPageSize = 20
@@ -40,17 +44,12 @@ func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService 
 // @Security     BearerAuth
 // @Router       /request [post]
 func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
-	var incoming models.MakeRequest
-	if err := c.BodyParser(&incoming); err != nil {
-		return errs.InvalidJSON()
-	}
-	req := models.Request{MakeRequest: incoming}
-
-	if err := validateCreateRequest(&req); err != nil {
+	var requestBody models.MakeRequest
+	if err := httpx.BindAndValidate(c, &requestBody); err != nil {
 		return err
 	}
 
-	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: uuid.New().String(), MakeRequest: requestBody})
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -58,40 +57,23 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func validateCreateRequest(req *models.Request) error {
-	errors := make(map[string]string)
-
-	if !validUUID(req.HotelID) {
-		errors["hotel_id"] = "invalid uuid"
+func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if !validUUID(id) {
+		return errs.BadRequest("request id is not a valid UUID")
 	}
 
-	if req.GuestID != nil && !validUUID(*req.GuestID) {
-		errors["guest_id"] = "invalid uuid"
-	}
-	if req.UserID != nil && !validUUID(*req.UserID) {
-		errors["user_id"] = "invalid uuid"
-	}
-	if req.Name == "" {
-		errors["name"] = "must not be an empty string"
-	}
-	if req.RequestType == "" {
-		errors["request_type"] = "must not be an empty string"
-	}
-	if req.Status == "" {
-		errors["status"] = "must not be an empty string"
-	}
-	if req.Priority == "" {
-		errors["priority"] = "must not be an empty string"
+	var requestBody models.MakeRequest
+	if err := httpx.BindAndValidate(c, &requestBody); err != nil {
+		return err
 	}
 
-	if len(errors) > 0 {
-		var parts []string
-		for field, violation := range errors {
-			parts = append(parts, field+": "+violation)
-		}
-		return errs.BadRequest(strings.Join(parts, ", "))
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: id, MakeRequest: requestBody})
+	if err != nil {
+		return errs.InternalServerError()
 	}
-	return nil
+
+	return c.JSON(res)
 }
 
 func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
@@ -121,14 +103,14 @@ func (r *RequestsHandler) GetRequests(c *fiber.Ctx) error {
 	return c.JSON(dev)
 }
 
-func validateGenerateRequest(incoming *models.GenerateRequestInput) error {
+func validateGenerateRequest(input *models.GenerateRequestInput) error {
 	errors := make(map[string]string)
 
-	if !validUUID(incoming.HotelID) {
+	if !validUUID(input.HotelID) {
 		errors["hotel_id"] = "invalid uuid"
 	}
 
-	if incoming.RawText == "" {
+	if input.RawText == "" {
 		errors["raw_text"] = "must not be an empty string"
 	}
 
@@ -207,25 +189,25 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Router       /request/generate [post]
 func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
-	var incoming models.GenerateRequestInput
-	if err := c.BodyParser(&incoming); err != nil {
+	var input models.GenerateRequestInput
+	if err := c.BodyParser(&input); err != nil {
 		return errs.InvalidJSON()
 	}
 
-	if err := validateGenerateRequest(&incoming); err != nil {
+	if err := validateGenerateRequest(&input); err != nil {
 		return err
 	}
 
 	parsed, err := r.GenerateRequestService.RunGenerateRequest(c.Context(), aiflows.GenerateRequestInput{
-		RawText: incoming.RawText,
+		RawText: input.RawText,
 	})
 	if err != nil {
 		slog.Error("genkit failed to generate a request", "error", err)
 		return errs.InternalServerError()
 	}
 
-	req := models.Request{MakeRequest: models.MakeRequest{
-		HotelID:                 incoming.HotelID,
+	req := models.Request{ID: uuid.New().String(), MakeRequest: models.MakeRequest{
+		HotelID:                 input.HotelID,
 		GuestID:                 parsed.GuestID,
 		UserID:                  parsed.UserID,
 		ReservationID:           parsed.ReservationID,
@@ -243,14 +225,67 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		Notes:                   parsed.Notes,
 	}}
 
-	if err := validateCreateRequest(&req); err != nil {
-		return err
-	}
-
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
 	return c.JSON(res)
+}
+
+// GetRequestsByGuest godoc
+// @Summary      Get requests by guest
+// @Description  Retrieves all requests for a given guest
+// @Tags         requests
+// @Produce      json
+// @Param        id  path  string  true  "Guest ID (UUID)"
+// @Success      200  {object}  []models.GuestRequest
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /request/guest/{id} [get]
+func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
+	input := models.GetRequestsByGuestInput{
+		GuestID: c.Params("id"),
+		HotelID: c.Get("X-Hotel-ID"),
+		Cursor:  c.Query("cursor"),
+		Limit:   c.QueryInt("limit"),
+	}
+	if err := httpx.Validate(&input); err != nil {
+		return err
+	}
+
+	cursorID, cursorVersion, err := parseRequestCursor(input.Cursor)
+	if err != nil {
+		return errs.BadRequest("invalid cursor")
+	}
+
+	limit := utils.ResolveLimit(input.Limit)
+	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), input.GuestID, input.HotelID, cursorID, cursorVersion, limit+1)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	page := utils.BuildCursorPage(requests, limit, func(req *models.GuestRequest) string {
+		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
+	})
+
+	return c.JSON(page)
+}
+
+// parseRequestCursor splits a "id|request_version" cursor string.
+// Returns zero values and nil error when cursor is empty (first page).
+func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
+	if cursor == "" {
+		return "", time.Time{}, nil
+	}
+	parts := strings.SplitN(cursor, "|", 2)
+	if len(parts) != 2 {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	version, err = time.Parse(time.RFC3339Nano, parts[1])
+	if err != nil {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	return parts[0], version, nil
 }
