@@ -18,9 +18,10 @@ import (
 
 // Mock repository - allows us to control what the "database" returns in tests
 type mockUsersRepository struct {
-	findUserByIdFunc func(ctx context.Context, id string) (*models.User, error)
-	insertUserFunc   func(ctx context.Context, user *models.CreateUser) (*models.User, error)
-	updateUserFunc   func(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
+	findUserByIdFunc      func(ctx context.Context, id string) (*models.User, error)
+	insertUserFunc        func(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	updateUserFunc        func(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
+	searchUsersByHotelFunc func(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
 }
 
 // Implement the interface - calls our controllable function
@@ -43,6 +44,13 @@ func (m *mockUsersRepository) UpdateUser(ctx context.Context, id string, update 
 		return m.updateUserFunc(ctx, id, update)
 	}
 	return nil, nil
+}
+
+func (m *mockUsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
+	if m.searchUsersByHotelFunc != nil {
+		return m.searchUsersByHotelFunc(ctx, hotelID, cursor, query, limit)
+	}
+	return nil, "", nil
 }
 
 func TestUsersHandler_GetUserByID(t *testing.T) {

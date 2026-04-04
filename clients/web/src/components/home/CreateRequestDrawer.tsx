@@ -4,8 +4,9 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
-import type { MakeRequest } from "@shared";
+import type { MakeRequest, User } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
+import { AssigneePicker } from "@/components/ui/AssigneePicker";
 import { cn } from "@/lib/utils";
 
 type ActivityTab = "all" | "comments" | "history";
@@ -49,6 +50,7 @@ export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
+  const [assignee, setAssignee] = useState<User | undefined>();
 
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
@@ -86,6 +88,7 @@ export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
       status: "pending",
       request_type: "general",
       description: description.trim() || undefined,
+      user_id: assignee?.id,
     });
   }
 
@@ -128,11 +131,19 @@ export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
           </div>
         </div>
 
-        <FieldRow
-          label="Assignee"
-          value="Assign Someone"
-          valueClassName="text-primary"
-        />
+        <div className="flex items-center gap-8">
+          <div className="flex w-28 shrink-0 items-center gap-1">
+            <GripHorizontal className="size-4.5 text-text-subtle" />
+            <span className="text-sm text-text-subtle">Assignee</span>
+          </div>
+          {backendUser?.hotel_id && (
+            <AssigneePicker
+              hotelId={backendUser.hotel_id}
+              selectedUser={assignee}
+              onSelect={setAssignee}
+            />
+          )}
+        </div>
         <FieldRow label="Deadline" value="Empty" />
         <FieldRow label="Department" value="Empty" />
         <FieldRow label="Location" value="Empty" />

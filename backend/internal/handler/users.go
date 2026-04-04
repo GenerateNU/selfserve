@@ -15,7 +15,10 @@ type UsersRepository interface {
 	FindUser(ctx context.Context, id string) (*models.User, error)
 	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
 	UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
+	SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
 }
+
+const defaultUsersPageSize = 20
 
 type UsersHandler struct {
 	repo UsersRepository
@@ -85,6 +88,40 @@ func (h *UsersHandler) UpdateUser(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(user)
+}
+
+// SearchUsers godoc
+// @Summary      Search users by hotel
+// @Description  Returns a paginated list of users for a hotel, optionally filtered by name
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        hotel_id  query     string  true   "Hotel UUID"
+// @Param        cursor    query     string  false  "Pagination cursor (last seen user ID)"
+// @Param        q         query     string  false  "Name search query"
+// @Success      200   {object}  map[string]interface{}
+// @Failure      400   {object}  errs.HTTPError
+// @Failure      500   {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /users [get]
+func (h *UsersHandler) SearchUsers(c *fiber.Ctx) error {
+	hotelID := c.Query("hotel_id")
+	if hotelID == "" {
+		return errs.BadRequest("hotel_id is required")
+	}
+	cursor := c.Query("cursor")
+	query := c.Query("q")
+
+	users, nextCursor, err := h.repo.SearchUsersByHotel(c.Context(), hotelID, cursor, query, defaultUsersPageSize)
+	if err != nil {
+		slog.Error("failed to search users", "hotel_id", hotelID, "err", err)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(fiber.Map{
+		"users":       users,
+		"next_cursor": nextCursor,
+	})
 }
 
 // CreateUser godoc
