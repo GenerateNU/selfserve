@@ -107,9 +107,12 @@ func (a *Assistance) Scan(src any) error {
 	if src == nil {
 		return nil
 	}
-	b, ok := src.([]byte)
+	rawBytes, ok := src.([]byte)
 	if !ok {
-		return fmt.Errorf("expected []byte, got %T", src)
+		return fmt.Errorf("Assistance.Scan: expected []byte from JSONB column, got %T", src)
 	}
-	return json.Unmarshal(b, a)
+	if err := json.Unmarshal(rawBytes, a); err != nil {
+		return fmt.Errorf("Assistance.Scan: failed to unmarshal JSONB into Assistance: %w", err)
+	}
+	return nil
 }
