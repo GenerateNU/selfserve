@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Info, ChevronRight } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { useGetApiV1GuestsStaysId } from "@shared/api/generated/endpoints/guests/guests";
+import { useGetGuestsStaysId } from "@shared/api/generated/endpoints/guests/guests";
 import { GuestHeader, Tab } from "@/components/ui/guest-header";
 import { GuestProfileTab } from "@/components/ui/guest-profile";
 import { GuestActivityTab } from "@/components/ui/guest-activity";
@@ -16,7 +16,7 @@ import { Colors } from "@/constants/theme";
 
 export default function GuestProfileScreen() {
   const { id } = useLocalSearchParams();
-  const { data, isLoading } = useGetApiV1GuestsStaysId(id as string);
+  const { data, isLoading } = useGetGuestsStaysId(id as string);
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
   if (isLoading)
