@@ -7,7 +7,7 @@ LOAD_ENV := doppler run --
 LLM_URL := http://127.0.0.1:11434
 
 .PHONY: all build run dev test format tidy download clean docker-build docker-run \
-        migrate-new migrate-up migrate-down migrate-status migrate-reset db-start db-stop db-reset swagger swagger-fmt docker-build docker-run llm-start genkit-run seed
+        migrate-new migrate-up migrate-down migrate-status migrate-reset db-start db-stop db-reset swagger swagger-fmt docker-build docker-run llm-start genkit-run seed cli
 
 all: build
 
@@ -41,6 +41,9 @@ dev: llm-start db-start clean build
 genkit-run: llm-start db-start
 	@$(LOAD_ENV) \
 	genkit start -- go run $(CMD_PATH)
+
+cli:
+	@$(LOAD_ENV) go run ./cmd/cli $(filter-out $@,$(MAKECMDGOALS))
 
 sync-users:
 	@$(LOAD_ENV) go run ./cmd/clerk/sync.go
