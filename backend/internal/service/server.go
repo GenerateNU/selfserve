@@ -154,7 +154,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
-	usersHandler := handler.NewUsersHandler(usersReadRepo)
+	usersHandler := handler.NewUsersHandler(usersReadRepo, s3Store)
 	guestsHandler := handler.NewGuestsHandler(guestsReadRepo, openSearchRepos.Guests)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
 	hotelsHandler := handler.NewHotelsHandler(hotelsReadRepo)
@@ -192,8 +192,12 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// users routes
 	api.Route("/users", func(r fiber.Router) {
+		r.Get("/", usersHandler.SearchUsers)
 		r.Get("/:id", usersHandler.GetUserByID)
 		r.Post("/", usersHandler.CreateUser)
+		r.Get("/:userId/profile-picture", usersHandler.GetProfilePicture)
+		r.Put("/:userId/profile-picture", usersHandler.UpdateProfilePicture)
+		r.Delete("/:userId/profile-picture", usersHandler.DeleteProfilePicture)
 		r.Put("/:id", usersHandler.UpdateUser)
 	})
 
@@ -214,12 +218,20 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Get("/:id", reqsHandler.GetRequest)
 		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
 		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
+		r.Get("/room/:id", reqsHandler.GetRequestsByRoomID)
 	})
 
 	// Hotel routes
 	api.Route("/hotels", func(r fiber.Router) {
 		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
+	})
+
+	// s3 routes
+	api.Route("/s3", func(r fiber.Router) {
+		r.Get("/presigned-url/*", s3Handler.GeneratePresignedUploadURL)
+		r.Get("/upload-url/:userId", s3Handler.GetUploadURL)
+		r.Get("/presigned-get-url/*", s3Handler.GeneratePresignedGetURL)
 	})
 
 	// rooms routes
@@ -231,11 +243,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// guest booking routes
 	api.Route("/guest_bookings", func(r fiber.Router) {
 		r.Get("/group_sizes", guestBookingsHandler.GetGroupSizeOptions)
-	})
-
-	// s3 routes
-	api.Route("/s3", func(r fiber.Router) {
-		r.Get("/presigned-url/:key", s3Handler.GeneratePresignedURL)
 	})
 
 	// notification routes

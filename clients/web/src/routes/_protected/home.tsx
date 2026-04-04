@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { MakeRequestPriority } from "@shared";
 import type { Request } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
@@ -9,38 +10,39 @@ import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
 import { PLACEHOLDER_COLUMNS } from "@/mock-data/home";
-import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
 });
 
 function HomePage() {
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
-    null,
-  );
-  const [createRequestOpen, setCreateTaskOpen] = useState(false);
-
-  const drawerOpen = createRequestOpen || generatedRequest !== null;
+  const [drawerData, setDrawerData] = useState<{
+    name?: string;
+    description?: string;
+    priority?: MakeRequestPriority;
+  } | null>(null);
 
   function handleCreateRequest() {
-    setGeneratedRequest(null);
-    setCreateTaskOpen(true);
+    setDrawerData({});
   }
 
   function handleRequestGenerated(request: Request) {
-    setCreateTaskOpen(false);
-    setGeneratedRequest(request);
+    const p = request.priority;
+    setDrawerData({
+      name: request.name,
+      description: request.description,
+      priority:
+        p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
+    });
   }
 
-  const drawer = createRequestOpen ? (
-    <CreateRequestDrawer onClose={() => setCreateTaskOpen(false)} />
-  ) : (
-    <GeneratedRequestDrawer
-      request={generatedRequest}
-      onClose={() => setGeneratedRequest(null)}
-    />
-  );
+  const drawer =
+    drawerData !== null ? (
+      <CreateRequestDrawer
+        initialData={drawerData}
+        onClose={() => setDrawerData(null)}
+      />
+    ) : null;
 
   return (
     <PageShell
@@ -48,7 +50,7 @@ function HomePage() {
         title: "Home",
         description: "Overview of all tasks currently at play",
       }}
-      drawerOpen={drawerOpen}
+      drawerOpen={drawerData !== null}
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
@@ -65,7 +67,7 @@ function HomePage() {
           ))}
         </div>
       </div>
-      {!createRequestOpen && generatedRequest === null && (
+      {drawerData === null && (
         <GlobalTaskInput onRequestGenerated={handleRequestGenerated} />
       )}
     </PageShell>

@@ -321,6 +321,48 @@ func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
 	return c.JSON(page)
 }
 
+// GetRequestsByRoomID godoc
+// @Summary      Get requests by room
+// @Description  Returns two lists for the given room and hotel: requests assigned to the caller and unassigned requests
+// @Tags         requests
+// @Produce      json
+// @Param        id          path    string  true  "Room ID (UUID)"
+// @Param        X-Hotel-ID  header  string  true  "Hotel ID (UUID)"
+// @Success      200  {object}  models.RoomRequestsResponse
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /request/room/{id} [get]
+func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userId").(string)
+	if !ok || userID == "" {
+		return errs.Unauthorized()
+	}
+
+	input := models.GetRequestsByRoomInput{
+		RoomID:  c.Params("id"),
+		HotelID: c.Get("X-Hotel-ID"),
+	}
+	if err := httpx.Validate(&input); err != nil {
+		return err
+	}
+
+	assigned, err := r.RequestRepository.FindMyRequestsByRoomID(c.Context(), input.RoomID, input.HotelID, userID, "", time.Time{}, utils.DefaultPageLimit)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	unassigned, err := r.RequestRepository.FindUnassignedRequestsByRoomID(c.Context(), input.RoomID, input.HotelID, "", time.Time{}, utils.DefaultPageLimit)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(models.RoomRequestsResponse{
+		Assigned:   assigned,
+		Unassigned: unassigned,
+	})
+}
+
 // parseRequestCursor splits a "id|request_version" cursor string.
 // Returns zero values and nil error when cursor is empty (first page).
 func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
