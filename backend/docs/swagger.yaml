@@ -142,27 +142,6 @@ definitions:
         example: "2024-01-02T00:00:00Z"
         type: string
     type: object
-  GuestBooking:
-    properties:
-      arrival_date:
-        example: "2024-01-02T00:00:00Z"
-        type: string
-      departure_date:
-        example: "2024-01-05T00:00:00Z"
-        type: string
-      guest:
-        $ref: '#/definitions/Guest'
-      hotel_id:
-        example: 521e8400-e458-41d4-a716-446655440000
-        type: string
-      id:
-        example: f353ca91-4fc5-49f2-9b9e-304f83d11914
-        type: string
-      room:
-        $ref: '#/definitions/Room'
-      status:
-        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
-    type: object
   GuestFilters:
     properties:
       cursor:
@@ -367,11 +346,43 @@ definitions:
         enum:
         - pending
         - assigned
+        - in progress
         - completed
         example: assigned
         type: string
       user_id:
         example: 521ee400-e458-41d4-a716-446655440000
+        type: string
+    type: object
+  Notification:
+    properties:
+      body:
+        type: string
+      created_at:
+        type: string
+      data:
+        items:
+          type: integer
+        type: array
+      id:
+        type: string
+      read_at:
+        type: string
+      title:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.NotificationType'
+      user_id:
+        type: string
+    type: object
+  RegisterDeviceTokenInput:
+    properties:
+      platform:
+        enum:
+        - ios
+        - android
+        type: string
+      token:
         type: string
     type: object
   Request:
@@ -435,6 +446,7 @@ definitions:
         enum:
         - pending
         - assigned
+        - in progress
         - completed
         example: assigned
         type: string
@@ -442,18 +454,16 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
-  Room:
+  RoomRequestsResponse:
     properties:
-      floor:
-        type: integer
-      id:
-        type: string
-      room_number:
-        type: integer
-      room_status:
-        type: string
-      suite_type:
-        type: string
+      assigned:
+        items:
+          $ref: '#/definitions/GuestRequest'
+        type: array
+      unassigned:
+        items:
+          $ref: '#/definitions/GuestRequest'
+        type: array
     type: object
   RoomWithOptionalGuestBooking:
     properties:
@@ -576,6 +586,14 @@ definitions:
     x-enum-varnames:
     - BookingStatusActive
     - BookingStatusInactive
+  github_com_generate_selfserve_internal_models.NotificationType:
+    enum:
+    - task_assigned
+    - high_priority_task
+    type: string
+    x-enum-varnames:
+    - TypeTaskAssigned
+    - TypeHighPriorityTask
   github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
     properties:
       has_more:
@@ -794,6 +812,34 @@ paths:
       summary: Get hotel by ID
       tags:
       - hotels
+  /device-tokens:
+    post:
+      consumes:
+      - application/json
+      description: Registers an Expo push token so the user receives mobile push notifications
+      parameters:
+      - description: Device token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/RegisterDeviceTokenInput'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Register device token
+      tags:
+      - notifications
   /devs/{name}:
     get:
       consumes:
@@ -929,6 +975,67 @@ paths:
       summary: Get personalized hello message
       tags:
       - hello
+  /notifications:
+    get:
+      description: Returns the most recent notifications for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Notification'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List notifications
+      tags:
+      - notifications
+  /notifications/{id}/read:
+    put:
+      description: Marks a single notification as read for the authenticated user
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Mark notification as read
+      tags:
+      - notifications
+  /notifications/read-all:
+    put:
+      description: Marks all unread notifications as read for the authenticated user
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Mark all notifications as read
+      tags:
+      - notifications
   /request:
     post:
       consumes:
@@ -1080,6 +1187,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Get requests by guest
+      tags:
+      - requests
+  /request/room/{id}:
+    get:
+      description: 'Returns two lists for the given room and hotel: requests assigned
+        to the caller and unassigned requests'
+      parameters:
+      - description: Room ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/RoomRequestsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get requests by room
       tags:
       - requests
   /rooms:
