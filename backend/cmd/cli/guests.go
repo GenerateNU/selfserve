@@ -30,13 +30,11 @@ func runReindexGuests(ctx context.Context, cfg config.Config, _ []string) error 
 	guestsRepo := repository.NewGuestsRepository(pgRepo.DB)
 	osGuestsRepo := repository.NewOpenSearchGuestsRepository(osClient)
 
-	docs, err := guestsRepo.FetchAllGuestDocuments(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to fetch guest documents: %w", err)
-	}
-
 	var indexed, failed int
-	for _, doc := range docs {
+	for doc, err := range guestsRepo.AllGuestDocuments(ctx) {
+		if err != nil {
+			return fmt.Errorf("failed to fetch guest documents: %w", err)
+		}
 		if err := osGuestsRepo.IndexGuest(ctx, doc); err != nil {
 			slog.Error("failed to index guest", "id", doc.ID, "error", err)
 			failed++
