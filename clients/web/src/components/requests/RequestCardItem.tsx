@@ -69,7 +69,7 @@ export function RequestCardItem({ request }: RequestCardItemProps) {
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded px-2 py-1 text-[11px] tracking-tight text-text-secondary bg-bg-disabled"
+                  className="rounded px-2 py-1 text-[11px] tracking-[-0.11px] text-text-secondary bg-stroke-disabled"
                 >
                   {tag}
                 </span>
