@@ -5,7 +5,7 @@ import { DrawerShell } from "@/components/ui/DrawerShell";
 
 type ActivityTab = "all" | "comments" | "history";
 
-const ACTIVITY_TABS: { key: ActivityTab; label: string }[] = [
+const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
   { key: "all", label: "All" },
   { key: "comments", label: "Comments" },
   { key: "history", label: "History" },
