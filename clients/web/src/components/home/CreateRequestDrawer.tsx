@@ -160,13 +160,13 @@ export function CreateRequestDrawer({
             />
           )}
         </div>
+        <FieldRow label="Room" value="Empty" />
         <FieldRow label="Deadline" value="Empty" />
         <FieldRow label="Department" value="Empty" />
         <FieldRow label="Location" value="Empty" />
 
         {showMore && (
           <>
-            <FieldRow label="Room" value="Empty" />
             <FieldRow label="Tags" value="Empty" />
           </>
         )}
