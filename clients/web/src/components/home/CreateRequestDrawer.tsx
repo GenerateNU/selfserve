@@ -2,11 +2,11 @@ import { useState } from "react";
 import { ChevronDown, GripHorizontal } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
-import { DrawerShell } from "@/components/ui/DrawerShell";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
 import type { MakeRequest } from "@shared";
+import { DrawerShell } from "@/components/ui/DrawerShell";
+import { cn } from "@/lib/utils";
 
 type ActivityTab = "all" | "comments" | "history";
 
@@ -103,7 +103,6 @@ export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
 
   return (
     <DrawerShell title={titleInput} onClose={onClose}>
-
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-8">
           <div className="flex w-28 shrink-0 items-center gap-1">
