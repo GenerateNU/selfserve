@@ -4,9 +4,10 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
-import type { MakeRequest, MakeRequestPriority, User } from "@shared";
+import type { MakeRequest, MakeRequestPriority, RoomWithOptionalGuestBooking, User } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { AssigneePicker } from "@/components/ui/AssigneePicker";
+import { RoomPicker } from "@/components/ui/RoomPicker";
 import { cn } from "@/lib/utils";
 
 type ActivityTab = "all" | "comments" | "history";
@@ -67,6 +68,7 @@ export function CreateRequestDrawer({
     initialData?.priority ?? "medium",
   );
   const [assignee, setAssignee] = useState<User | undefined>();
+  const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>();
 
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
@@ -105,6 +107,7 @@ export function CreateRequestDrawer({
       request_type: "general",
       description: description.trim() || undefined,
       user_id: assignee?.id,
+      room_id: room?.id,
     });
   }
 
@@ -160,7 +163,13 @@ export function CreateRequestDrawer({
             />
           )}
         </div>
-        <FieldRow label="Room" value="Empty" />
+        <div className="flex items-center gap-8">
+          <div className="flex w-28 shrink-0 items-center gap-1">
+            <GripHorizontal className="size-4.5 text-text-subtle" />
+            <span className="text-sm text-text-subtle">Room</span>
+          </div>
+          <RoomPicker selectedRoom={room} onSelect={setRoom} />
+        </div>
         <FieldRow label="Deadline" value="Empty" />
         <FieldRow label="Department" value="Empty" />
         <FieldRow label="Location" value="Empty" />
