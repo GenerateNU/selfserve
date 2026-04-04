@@ -2,7 +2,6 @@ import { renderHook, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 
-// expo-notifications: factory must not reference outer variables (jest hoisting)
 jest.mock("expo-notifications", () => ({
   setNotificationHandler: jest.fn(),
   getPermissionsAsync: jest.fn(),
@@ -23,7 +22,6 @@ jest.mock("@shared/api/notifications", () => ({
   usePostDeviceToken: () => ({ mutate: mockRegisterToken }),
 }));
 
-// Import after mocks so the module-level setNotificationHandler call uses the mock
 import {
   usePushNotifications,
   registerForPushNotificationsAsync,
