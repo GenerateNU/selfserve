@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { cn, useDebounce } from "@/lib/utils";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 type SearchUsersResponse = {
   users: Array<User>;
@@ -20,29 +21,6 @@ type AssigneePickerProps = {
   selectedUser?: User;
   onSelect: (user: User) => void;
 };
-
-function UserAvatar({ user }: { user: User }) {
-  const initials = [user.first_name?.[0], user.last_name?.[0]]
-    .filter(Boolean)
-    .join("")
-    .toUpperCase();
-
-  if (user.profile_picture) {
-    return (
-      <img
-        src={user.profile_picture}
-        alt={initials}
-        className="size-7 shrink-0 rounded-full object-cover"
-      />
-    );
-  }
-
-  return (
-    <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-bg-selected text-xs font-medium text-text-default">
-      {initials || "?"}
-    </div>
-  );
-}
 
 export function AssigneePicker({
   hotelId,
