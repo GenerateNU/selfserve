@@ -16,7 +16,11 @@ type RoomPickerProps = {
   onSelect: (room: RoomWithOptionalGuestBooking) => void;
 };
 
-export function RoomPicker({ selectedRoom, initialRoomId, onSelect }: RoomPickerProps) {
+export function RoomPicker({
+  selectedRoom,
+  initialRoomId,
+  onSelect,
+}: RoomPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
@@ -32,13 +36,12 @@ export function RoomPicker({ selectedRoom, initialRoomId, onSelect }: RoomPicker
   const allRooms = data?.items ?? [];
 
   const rooms = allRooms.filter((room) =>
-    debouncedSearch
-      ? String(room.room_number).includes(debouncedSearch)
-      : true,
+    debouncedSearch ? String(room.room_number).includes(debouncedSearch) : true,
   );
 
   const displayRoom =
-    selectedRoom ?? (initialRoomId ? allRooms.find((r) => r.id === initialRoomId) : undefined);
+    selectedRoom ??
+    (initialRoomId ? allRooms.find((r) => r.id === initialRoomId) : undefined);
 
   function handleSelect(room: RoomWithOptionalGuestBooking) {
     onSelect(room);
