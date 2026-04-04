@@ -33,6 +33,30 @@ func (s *stubUsersRepo) UpdateUser(_ context.Context, id string, update *models.
 	return &models.User{CreateUser: models.CreateUser{ID: id, PhoneNumber: update.PhoneNumber}}, nil
 }
 
+func (s *stubUsersRepo) UpdateProfilePicture(_ context.Context, _ string, _ string) error {
+	return nil
+}
+
+func (s *stubUsersRepo) DeleteProfilePicture(_ context.Context, _ string) error {
+	return nil
+}
+
+func (s *stubUsersRepo) GetKey(_ context.Context, _ string) (string, error) {
+	return "", nil
+}
+
+func (s *stubUsersRepo) BulkInsertUsers(_ context.Context, _ []*models.CreateUser) error {
+	return nil
+}
+
+func (s *stubUsersRepo) SearchUsersByHotel(
+	_ context.Context,
+	_, _, _ string,
+	_ int,
+) ([]*models.User, string, error) {
+	return nil, "", nil
+}
+
 type stubHotelsRepo struct {
 	findByIDCalls int
 	findByIDFn    func(ctx context.Context, id string) (*models.Hotel, error)

@@ -9,7 +9,7 @@ import (
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 )
 
-func buildUsersRepository(jsonCache *cache.JSONCache, repo *repository.UsersRepository) handler.UsersRepository {
+func buildUsersRepository(jsonCache *cache.JSONCache, repo *repository.UsersRepository) storage.UsersRepository {
 	if jsonCache == nil {
 		return repo
 	}

@@ -14,6 +14,11 @@ type UsersRepository interface {
 	FindUser(ctx context.Context, id string) (*models.User, error)
 	InsertUser(ctx context.Context, user *models.CreateUser) (*models.User, error)
 	UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error)
+	UpdateProfilePicture(ctx context.Context, userID string, key string) error
+	DeleteProfilePicture(ctx context.Context, userID string) error
+	GetKey(ctx context.Context, userID string) (string, error)
+	BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error
+	SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
 }
 
 type HotelsRepository interface {
@@ -96,6 +101,30 @@ func (r *CachedUsersRepository) InsertUser(ctx context.Context, user *models.Cre
 
 func (r *CachedUsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
 	return r.next.UpdateUser(ctx, id, update)
+}
+
+func (r *CachedUsersRepository) UpdateProfilePicture(ctx context.Context, userID string, key string) error {
+	return r.next.UpdateProfilePicture(ctx, userID, key)
+}
+
+func (r *CachedUsersRepository) DeleteProfilePicture(ctx context.Context, userID string) error {
+	return r.next.DeleteProfilePicture(ctx, userID)
+}
+
+func (r *CachedUsersRepository) GetKey(ctx context.Context, userID string) (string, error) {
+	return r.next.GetKey(ctx, userID)
+}
+
+func (r *CachedUsersRepository) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
+	return r.next.BulkInsertUsers(ctx, users)
+}
+
+func (r *CachedUsersRepository) SearchUsersByHotel(
+	ctx context.Context,
+	hotelID, cursor, query string,
+	limit int,
+) ([]*models.User, string, error) {
+	return r.next.SearchUsersByHotel(ctx, hotelID, cursor, query, limit)
 }
 
 func (r *CachedHotelsRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
