@@ -31,8 +31,6 @@ export const unstable_settings = {
 };
 
 // Component to configure auth provider and the api base url
-// Called synchronously during render (not in useEffect) so config is set before
-// QueryClientProvider's children render and fire their initial queries.
 function AppConfigurator() {
   const { getToken } = useAuth();
   setConfig({
