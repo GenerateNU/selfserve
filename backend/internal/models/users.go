@@ -21,6 +21,12 @@ type UpdateUser struct {
 	PhoneNumber *string `json:"phone_number,omitempty" validate:"omitempty" example:"+11234567890"`
 } //@name UpdateUser
 
+type OnboardUser struct {
+	Role         string  `json:"role" validate:"notblank" example:"manager"`
+	EmployeeRole *string `json:"employee_role,omitempty" example:"front_desk"`
+	HotelName    *string `json:"hotel_name,omitempty" example:"Hotel California"`
+} //@name OnboardUser
+
 type CreateUserWebhook struct {
 	ClerkUser `json:"data"`
 }
@@ -35,6 +41,7 @@ type ClerkUser struct {
 
 type User struct {
 	CreateUser
-	CreatedAt time.Time `json:"created_at" example:"2024-01-01T00:00:00Z"`
-	UpdatedAt time.Time `json:"updated_at" example:"2024-01-01T00:00:00Z"`
+	IsOnboarded bool      `json:"is_onboarded" example:"false"`
+	CreatedAt   time.Time `json:"created_at" example:"2024-01-01T00:00:00Z"`
+	UpdatedAt   time.Time `json:"updated_at" example:"2024-01-01T00:00:00Z"`
 } //@name User
