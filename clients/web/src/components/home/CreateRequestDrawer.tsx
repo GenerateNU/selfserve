@@ -17,7 +17,7 @@ const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
   { key: "history", label: "History" },
 ];
 
-const PRIORITIES: RequestRequestPriority[] = ["low", "medium", "high"];
+const PRIORITIES: Array<RequestRequestPriority> = ["low", "medium", "high"];
 
 type FieldRowProps = {
   label: string;
