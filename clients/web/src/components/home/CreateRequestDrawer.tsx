@@ -4,7 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
-import type { MakeRequest, User } from "@shared";
+import type { MakeRequest, MakeRequestPriority, User } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { AssigneePicker } from "@/components/ui/AssigneePicker";
 import { cn } from "@/lib/utils";
@@ -17,8 +17,7 @@ const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
   { key: "history", label: "History" },
 ];
 
-const PRIORITIES = ["low", "medium", "high"] as const;
-type Priority = (typeof PRIORITIES)[number];
+const PRIORITIES: Array<MakeRequestPriority> = ["low", "medium", "high"];
 
 type FieldRowProps = {
   label: string;
@@ -47,14 +46,26 @@ function FieldRow({ label, value, valueClassName }: FieldRowProps) {
 
 type CreateRequestDrawerProps = {
   onClose: () => void;
+  initialData?: {
+    name?: string;
+    description?: string;
+    priority?: MakeRequestPriority;
+  };
 };
 
-export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
+export function CreateRequestDrawer({
+  onClose,
+  initialData,
+}: CreateRequestDrawerProps) {
   const [showMore, setShowMore] = useState(false);
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<Priority>("medium");
+  const [name, setName] = useState(initialData?.name ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
+  const [priority, setPriority] = useState<MakeRequestPriority>(
+    initialData?.priority ?? "medium",
+  );
   const [assignee, setAssignee] = useState<User | undefined>();
 
   const queryClient = useQueryClient();

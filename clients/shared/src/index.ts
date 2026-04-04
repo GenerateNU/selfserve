@@ -7,6 +7,8 @@ export type { Config } from "./api/config";
 export { setConfig, getConfig } from "./api/config";
 
 // Generated Types - Models
+export { MakeRequestPriority } from "./api/generated/models";
+
 export type {
   User,
   CreateUser,
