@@ -99,6 +99,22 @@ definitions:
         example: Guest in room 504 needs extra towels urgently
         type: string
     type: object
+  GenerateRequestResponse:
+    properties:
+      request:
+        $ref: '#/definitions/Request'
+      warning:
+        $ref: '#/definitions/GenerateRequestWarning'
+    type: object
+  GenerateRequestWarning:
+    properties:
+      code:
+        example: room_not_found
+        type: string
+      message:
+        example: Room 301 could not be resolved for this hotel.
+        type: string
+    type: object
   Guest:
     properties:
       created_at:
@@ -125,6 +141,27 @@ definitions:
       updated_at:
         example: "2024-01-02T00:00:00Z"
         type: string
+    type: object
+  GuestBooking:
+    properties:
+      arrival_date:
+        example: "2024-01-02T00:00:00Z"
+        type: string
+      departure_date:
+        example: "2024-01-05T00:00:00Z"
+        type: string
+      guest:
+        $ref: '#/definitions/Guest'
+      hotel_id:
+        example: 521e8400-e458-41d4-a716-446655440000
+        type: string
+      id:
+        example: f353ca91-4fc5-49f2-9b9e-304f83d11914
+        type: string
+      room:
+        $ref: '#/definitions/Room'
+      status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
     type: object
   GuestFilters:
     properties:
@@ -308,10 +345,8 @@ definitions:
         enum:
         - low
         - medium
-        - normal
         - high
-        - urgent
-        example: urgent
+        example: high
         type: string
       request_category:
         example: Cleaning
@@ -375,10 +410,8 @@ definitions:
         enum:
         - low
         - medium
-        - normal
         - high
-        - urgent
-        example: urgent
+        example: high
         type: string
       request_category:
         example: Cleaning
@@ -409,6 +442,19 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
+  Room:
+    properties:
+      floor:
+        type: integer
+      id:
+        type: string
+      room_number:
+        type: integer
+      room_status:
+        type: string
+      suite_type:
+        type: string
+    type: object
   RoomWithOptionalGuestBooking:
     properties:
       booking_status:
@@ -419,6 +465,8 @@ definitions:
         items:
           $ref: '#/definitions/Guest'
         type: array
+      id:
+        type: string
       room_number:
         type: integer
       room_status:
@@ -981,7 +1029,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Request'
+            $ref: '#/definitions/GenerateRequestResponse'
         "400":
           description: Bad Request
           schema:

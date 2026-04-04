@@ -10,11 +10,16 @@ import (
 )
 
 const defaultOllamaServer = "http://127.0.0.1:11434"
+const defaultOllamaModel = "reaperdoesntrun/Qwen3-0.6B-Distilled:latest"
 
-func InitGenkit(ctx context.Context, llmConfig *config.LLM) *GenkitService {
+func InitGenkit(ctx context.Context, llmConfig *config.LLM, roomLookupRepo RoomLookupRepository) *GenkitService {
 	serverAddr := llmConfig.ServerAddress
 	if serverAddr == "" {
 		serverAddr = defaultOllamaServer
+	}
+	modelName := llmConfig.Model
+	if modelName == "" {
+		modelName = defaultOllamaModel
 	}
 	llmProvider := &ollama.Ollama{
 		ServerAddress: serverAddr,
@@ -24,7 +29,7 @@ func InitGenkit(ctx context.Context, llmConfig *config.LLM) *GenkitService {
 	genkitInstance := genkit.Init(ctx, genkit.WithPlugins(llmProvider))
 
 	model := llmProvider.DefineModel(genkitInstance, ollama.ModelDefinition{
-		Name: llmConfig.Model,
+		Name: modelName,
 		Type: "generate",
 	}, &ai.ModelOptions{
 		Supports: &ai.ModelSupports{
@@ -39,7 +44,7 @@ func InitGenkit(ctx context.Context, llmConfig *config.LLM) *GenkitService {
 		MaxOutputTokens: llmConfig.MaxOutputTokens,
 		Temperature:     llmConfig.Temperature,
 	}
-	generateRequestFlow := DefineGenerateRequest(genkitInstance, model, generationConfig)
+	generateRequestFlow := DefineGenerateRequest(genkitInstance, model, generationConfig, roomLookupRepo)
 
 	return &GenkitService{
 		genkit:              genkitInstance,
