@@ -8,278 +8,278 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignUpRouteImport } from './routes/sign-up'
-import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as ProtectedRouteImport } from './routes/_protected'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProtectedTestApiRouteImport } from './routes/_protected/test-api'
-import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
-import { Route as ProtectedRoomsRouteImport } from './routes/_protected/rooms'
-import { Route as ProtectedProfileRouteImport } from './routes/_protected/profile'
-import { Route as ProtectedHomeRouteImport } from './routes/_protected/home'
-import { Route as ProtectedRoomsIndexRouteImport } from './routes/_protected/rooms.index'
-import { Route as ProtectedGuestsIndexRouteImport } from './routes/_protected/guests.index'
-import { Route as ProtectedGuestsGuestIdRouteImport } from './routes/_protected/guests.$guestId'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as SignUpRouteImport } from "./routes/sign-up";
+import { Route as SignInRouteImport } from "./routes/sign-in";
+import { Route as ProtectedRouteImport } from "./routes/_protected";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as ProtectedTestApiRouteImport } from "./routes/_protected/test-api";
+import { Route as ProtectedSettingsRouteImport } from "./routes/_protected/settings";
+import { Route as ProtectedRoomsRouteImport } from "./routes/_protected/rooms";
+import { Route as ProtectedProfileRouteImport } from "./routes/_protected/profile";
+import { Route as ProtectedHomeRouteImport } from "./routes/_protected/home";
+import { Route as ProtectedRoomsIndexRouteImport } from "./routes/_protected/rooms.index";
+import { Route as ProtectedGuestsIndexRouteImport } from "./routes/_protected/guests.index";
+import { Route as ProtectedGuestsGuestIdRouteImport } from "./routes/_protected/guests.$guestId";
 
 const SignUpRoute = SignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
+  id: "/sign-up",
+  path: "/sign-up",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SignInRoute = SignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
+  id: "/sign-in",
+  path: "/sign-in",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ProtectedRoute = ProtectedRouteImport.update({
-  id: '/_protected',
+  id: "/_protected",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ProtectedTestApiRoute = ProtectedTestApiRouteImport.update({
-  id: '/test-api',
-  path: '/test-api',
+  id: "/test-api",
+  path: "/test-api",
   getParentRoute: () => ProtectedRoute,
-} as any)
+} as any);
 const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+  id: "/settings",
+  path: "/settings",
   getParentRoute: () => ProtectedRoute,
-} as any)
+} as any);
 const ProtectedRoomsRoute = ProtectedRoomsRouteImport.update({
-  id: '/rooms',
-  path: '/rooms',
+  id: "/rooms",
+  path: "/rooms",
   getParentRoute: () => ProtectedRoute,
-} as any)
+} as any);
 const ProtectedProfileRoute = ProtectedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+  id: "/profile",
+  path: "/profile",
   getParentRoute: () => ProtectedRoute,
-} as any)
+} as any);
 const ProtectedHomeRoute = ProtectedHomeRouteImport.update({
-  id: '/home',
-  path: '/home',
+  id: "/home",
+  path: "/home",
   getParentRoute: () => ProtectedRoute,
-} as any)
+} as any);
 const ProtectedRoomsIndexRoute = ProtectedRoomsIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => ProtectedRoomsRoute,
-} as any)
+} as any);
 const ProtectedGuestsIndexRoute = ProtectedGuestsIndexRouteImport.update({
-  id: '/guests/',
-  path: '/guests/',
+  id: "/guests/",
+  path: "/guests/",
   getParentRoute: () => ProtectedRoute,
-} as any)
+} as any);
 const ProtectedGuestsGuestIdRoute = ProtectedGuestsGuestIdRouteImport.update({
-  id: '/guests/$guestId',
-  path: '/guests/$guestId',
+  id: "/guests/$guestId",
+  path: "/guests/$guestId",
   getParentRoute: () => ProtectedRoute,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
-  '/home': typeof ProtectedHomeRoute
-  '/profile': typeof ProtectedProfileRoute
-  '/rooms': typeof ProtectedRoomsRouteWithChildren
-  '/settings': typeof ProtectedSettingsRoute
-  '/test-api': typeof ProtectedTestApiRoute
-  '/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
-  '/guests/': typeof ProtectedGuestsIndexRoute
-  '/rooms/': typeof ProtectedRoomsIndexRoute
+  "/": typeof IndexRoute;
+  "/sign-in": typeof SignInRoute;
+  "/sign-up": typeof SignUpRoute;
+  "/home": typeof ProtectedHomeRoute;
+  "/profile": typeof ProtectedProfileRoute;
+  "/rooms": typeof ProtectedRoomsRouteWithChildren;
+  "/settings": typeof ProtectedSettingsRoute;
+  "/test-api": typeof ProtectedTestApiRoute;
+  "/guests/$guestId": typeof ProtectedGuestsGuestIdRoute;
+  "/guests/": typeof ProtectedGuestsIndexRoute;
+  "/rooms/": typeof ProtectedRoomsIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
-  '/home': typeof ProtectedHomeRoute
-  '/profile': typeof ProtectedProfileRoute
-  '/settings': typeof ProtectedSettingsRoute
-  '/test-api': typeof ProtectedTestApiRoute
-  '/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
-  '/guests': typeof ProtectedGuestsIndexRoute
-  '/rooms': typeof ProtectedRoomsIndexRoute
+  "/": typeof IndexRoute;
+  "/sign-in": typeof SignInRoute;
+  "/sign-up": typeof SignUpRoute;
+  "/home": typeof ProtectedHomeRoute;
+  "/profile": typeof ProtectedProfileRoute;
+  "/settings": typeof ProtectedSettingsRoute;
+  "/test-api": typeof ProtectedTestApiRoute;
+  "/guests/$guestId": typeof ProtectedGuestsGuestIdRoute;
+  "/guests": typeof ProtectedGuestsIndexRoute;
+  "/rooms": typeof ProtectedRoomsIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/_protected': typeof ProtectedRouteWithChildren
-  '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
-  '/_protected/home': typeof ProtectedHomeRoute
-  '/_protected/profile': typeof ProtectedProfileRoute
-  '/_protected/rooms': typeof ProtectedRoomsRouteWithChildren
-  '/_protected/settings': typeof ProtectedSettingsRoute
-  '/_protected/test-api': typeof ProtectedTestApiRoute
-  '/_protected/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
-  '/_protected/guests/': typeof ProtectedGuestsIndexRoute
-  '/_protected/rooms/': typeof ProtectedRoomsIndexRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexRoute;
+  "/_protected": typeof ProtectedRouteWithChildren;
+  "/sign-in": typeof SignInRoute;
+  "/sign-up": typeof SignUpRoute;
+  "/_protected/home": typeof ProtectedHomeRoute;
+  "/_protected/profile": typeof ProtectedProfileRoute;
+  "/_protected/rooms": typeof ProtectedRoomsRouteWithChildren;
+  "/_protected/settings": typeof ProtectedSettingsRoute;
+  "/_protected/test-api": typeof ProtectedTestApiRoute;
+  "/_protected/guests/$guestId": typeof ProtectedGuestsGuestIdRoute;
+  "/_protected/guests/": typeof ProtectedGuestsIndexRoute;
+  "/_protected/rooms/": typeof ProtectedRoomsIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/sign-in'
-    | '/sign-up'
-    | '/home'
-    | '/profile'
-    | '/rooms'
-    | '/settings'
-    | '/test-api'
-    | '/guests/$guestId'
-    | '/guests/'
-    | '/rooms/'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/sign-in"
+    | "/sign-up"
+    | "/home"
+    | "/profile"
+    | "/rooms"
+    | "/settings"
+    | "/test-api"
+    | "/guests/$guestId"
+    | "/guests/"
+    | "/rooms/";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/'
-    | '/sign-in'
-    | '/sign-up'
-    | '/home'
-    | '/profile'
-    | '/settings'
-    | '/test-api'
-    | '/guests/$guestId'
-    | '/guests'
-    | '/rooms'
+    | "/"
+    | "/sign-in"
+    | "/sign-up"
+    | "/home"
+    | "/profile"
+    | "/settings"
+    | "/test-api"
+    | "/guests/$guestId"
+    | "/guests"
+    | "/rooms";
   id:
-    | '__root__'
-    | '/'
-    | '/_protected'
-    | '/sign-in'
-    | '/sign-up'
-    | '/_protected/home'
-    | '/_protected/profile'
-    | '/_protected/rooms'
-    | '/_protected/settings'
-    | '/_protected/test-api'
-    | '/_protected/guests/$guestId'
-    | '/_protected/guests/'
-    | '/_protected/rooms/'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/"
+    | "/_protected"
+    | "/sign-in"
+    | "/sign-up"
+    | "/_protected/home"
+    | "/_protected/profile"
+    | "/_protected/rooms"
+    | "/_protected/settings"
+    | "/_protected/test-api"
+    | "/_protected/guests/$guestId"
+    | "/_protected/guests/"
+    | "/_protected/rooms/";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ProtectedRoute: typeof ProtectedRouteWithChildren
-  SignInRoute: typeof SignInRoute
-  SignUpRoute: typeof SignUpRoute
+  IndexRoute: typeof IndexRoute;
+  ProtectedRoute: typeof ProtectedRouteWithChildren;
+  SignInRoute: typeof SignInRoute;
+  SignUpRoute: typeof SignUpRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/sign-up': {
-      id: '/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof SignUpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sign-in': {
-      id: '/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_protected': {
-      id: '/_protected'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof ProtectedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_protected/test-api': {
-      id: '/_protected/test-api'
-      path: '/test-api'
-      fullPath: '/test-api'
-      preLoaderRoute: typeof ProtectedTestApiRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/settings': {
-      id: '/_protected/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof ProtectedSettingsRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/rooms': {
-      id: '/_protected/rooms'
-      path: '/rooms'
-      fullPath: '/rooms'
-      preLoaderRoute: typeof ProtectedRoomsRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/profile': {
-      id: '/_protected/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProtectedProfileRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/home': {
-      id: '/_protected/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof ProtectedHomeRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/rooms/': {
-      id: '/_protected/rooms/'
-      path: '/'
-      fullPath: '/rooms/'
-      preLoaderRoute: typeof ProtectedRoomsIndexRouteImport
-      parentRoute: typeof ProtectedRoomsRoute
-    }
-    '/_protected/guests/': {
-      id: '/_protected/guests/'
-      path: '/guests'
-      fullPath: '/guests/'
-      preLoaderRoute: typeof ProtectedGuestsIndexRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/guests/$guestId': {
-      id: '/_protected/guests/$guestId'
-      path: '/guests/$guestId'
-      fullPath: '/guests/$guestId'
-      preLoaderRoute: typeof ProtectedGuestsGuestIdRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
+    "/sign-up": {
+      id: "/sign-up";
+      path: "/sign-up";
+      fullPath: "/sign-up";
+      preLoaderRoute: typeof SignUpRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/sign-in": {
+      id: "/sign-in";
+      path: "/sign-in";
+      fullPath: "/sign-in";
+      preLoaderRoute: typeof SignInRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_protected": {
+      id: "/_protected";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof ProtectedRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_protected/test-api": {
+      id: "/_protected/test-api";
+      path: "/test-api";
+      fullPath: "/test-api";
+      preLoaderRoute: typeof ProtectedTestApiRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/_protected/settings": {
+      id: "/_protected/settings";
+      path: "/settings";
+      fullPath: "/settings";
+      preLoaderRoute: typeof ProtectedSettingsRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/_protected/rooms": {
+      id: "/_protected/rooms";
+      path: "/rooms";
+      fullPath: "/rooms";
+      preLoaderRoute: typeof ProtectedRoomsRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/_protected/profile": {
+      id: "/_protected/profile";
+      path: "/profile";
+      fullPath: "/profile";
+      preLoaderRoute: typeof ProtectedProfileRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/_protected/home": {
+      id: "/_protected/home";
+      path: "/home";
+      fullPath: "/home";
+      preLoaderRoute: typeof ProtectedHomeRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/_protected/rooms/": {
+      id: "/_protected/rooms/";
+      path: "/";
+      fullPath: "/rooms/";
+      preLoaderRoute: typeof ProtectedRoomsIndexRouteImport;
+      parentRoute: typeof ProtectedRoomsRoute;
+    };
+    "/_protected/guests/": {
+      id: "/_protected/guests/";
+      path: "/guests";
+      fullPath: "/guests/";
+      preLoaderRoute: typeof ProtectedGuestsIndexRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
+    "/_protected/guests/$guestId": {
+      id: "/_protected/guests/$guestId";
+      path: "/guests/$guestId";
+      fullPath: "/guests/$guestId";
+      preLoaderRoute: typeof ProtectedGuestsGuestIdRouteImport;
+      parentRoute: typeof ProtectedRoute;
+    };
   }
 }
 
 interface ProtectedRoomsRouteChildren {
-  ProtectedRoomsIndexRoute: typeof ProtectedRoomsIndexRoute
+  ProtectedRoomsIndexRoute: typeof ProtectedRoomsIndexRoute;
 }
 
 const ProtectedRoomsRouteChildren: ProtectedRoomsRouteChildren = {
   ProtectedRoomsIndexRoute: ProtectedRoomsIndexRoute,
-}
+};
 
 const ProtectedRoomsRouteWithChildren = ProtectedRoomsRoute._addFileChildren(
   ProtectedRoomsRouteChildren,
-)
+);
 
 interface ProtectedRouteChildren {
-  ProtectedHomeRoute: typeof ProtectedHomeRoute
-  ProtectedProfileRoute: typeof ProtectedProfileRoute
-  ProtectedRoomsRoute: typeof ProtectedRoomsRouteWithChildren
-  ProtectedSettingsRoute: typeof ProtectedSettingsRoute
-  ProtectedTestApiRoute: typeof ProtectedTestApiRoute
-  ProtectedGuestsGuestIdRoute: typeof ProtectedGuestsGuestIdRoute
-  ProtectedGuestsIndexRoute: typeof ProtectedGuestsIndexRoute
+  ProtectedHomeRoute: typeof ProtectedHomeRoute;
+  ProtectedProfileRoute: typeof ProtectedProfileRoute;
+  ProtectedRoomsRoute: typeof ProtectedRoomsRouteWithChildren;
+  ProtectedSettingsRoute: typeof ProtectedSettingsRoute;
+  ProtectedTestApiRoute: typeof ProtectedTestApiRoute;
+  ProtectedGuestsGuestIdRoute: typeof ProtectedGuestsGuestIdRoute;
+  ProtectedGuestsIndexRoute: typeof ProtectedGuestsIndexRoute;
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
@@ -290,27 +290,27 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedTestApiRoute: ProtectedTestApiRoute,
   ProtectedGuestsGuestIdRoute: ProtectedGuestsGuestIdRoute,
   ProtectedGuestsIndexRoute: ProtectedGuestsIndexRoute,
-}
+};
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
   ProtectedRouteChildren,
-)
+);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
+import type { getRouter } from "./router.tsx";
+import type { createStart } from "@tanstack/react-start";
+declare module "@tanstack/react-start" {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }
