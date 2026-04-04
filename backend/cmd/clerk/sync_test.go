@@ -45,6 +45,10 @@ func (m *mockUsersRepositorySync) UpdateUser(ctx context.Context, id string, upd
 	return nil, nil
 }
 
+func (m *mockUsersRepositorySync) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
+	return nil, "", nil
+}
+
 // Makes the compiler verify the mock implements the interface
 var _ storage.UsersRepository = (*mockUsersRepositorySync)(nil)
 
