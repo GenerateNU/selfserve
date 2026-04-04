@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"iter"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -189,6 +190,91 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	}
 
 	return &guest, nil
+}
+
+const fetchAllGuestDocumentsPageSize = 100
+
+// AllGuestDocuments returns a paginated iterator over every guest document in the
+// database. It yields one *models.GuestDocument at a time, fetching the next page
+// only when the previous one is exhausted. Stop iterating early by returning false
+// from the yield function; the first non-nil error stops iteration and is yielded
+// as the second value.
+func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*models.GuestDocument, error] {
+	return func(yield func(*models.GuestDocument, error) bool) {
+		var cursorName, cursorID string
+
+		for {
+			rows, err := r.db.Query(ctx, `
+				SELECT
+					g.id,
+					gb.hotel_id,
+					CONCAT_WS(' ', g.first_name, g.last_name) AS full_name,
+					g.first_name,
+					g.last_name,
+					COALESCE(g.preferences, g.first_name) AS preferred_name,
+					g.email,
+					g.phone,
+					g.preferences,
+					g.notes,
+					r.floor,
+					r.room_number,
+					gb.group_size,
+					gb.status,
+					gb.arrival_date,
+					gb.departure_date
+				FROM guest_bookings gb
+				JOIN guests g ON g.id = gb.guest_id
+				JOIN rooms r ON r.id = gb.room_id
+				WHERE (
+					$1::text = ''
+					OR (CONCAT_WS(' ', g.first_name, g.last_name), g.id::text) > ($1::text, $2::text)
+				)
+				ORDER BY CONCAT_WS(' ', g.first_name, g.last_name) ASC, g.id ASC
+				LIMIT $3
+			`, cursorName, cursorID, fetchAllGuestDocumentsPageSize)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			var page []*models.GuestDocument
+			for rows.Next() {
+				var doc models.GuestDocument
+				if err := rows.Scan(
+					&doc.ID, &doc.HotelID, &doc.FullName,
+					&doc.FirstName, &doc.LastName, &doc.PreferredName,
+					&doc.Email, &doc.Phone, &doc.Preferences, &doc.Notes,
+					&doc.Floor, &doc.RoomNumber, &doc.GroupSize,
+					&doc.BookingStatus, &doc.ArrivalDate, &doc.DepartureDate,
+				); err != nil {
+					rows.Close()
+					yield(nil, err)
+					return
+				}
+				page = append(page, &doc)
+			}
+			rows.Close()
+
+			if err := rows.Err(); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			for _, doc := range page {
+				if !yield(doc, nil) {
+					return
+				}
+			}
+
+			if len(page) < fetchAllGuestDocumentsPageSize {
+				return // last page
+			}
+
+			last := page[len(page)-1]
+			cursorName = last.FullName
+			cursorID = last.ID
+		}
+	}
 }
 
 func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {

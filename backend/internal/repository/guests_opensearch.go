@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/generate/selfserve/internal/models"
 	opensearchstorage "github.com/generate/selfserve/internal/service/storage/opensearch"
@@ -39,6 +40,65 @@ func (r *OpenSearchGuestsRepository) IndexGuest(ctx context.Context, doc *models
 	if indexResponse.IsError() {
 		return fmt.Errorf("indexing guest %s failed: %s", doc.ID, indexResponse.String())
 	}
+	return nil
+}
+
+func (r *OpenSearchGuestsRepository) BulkIndexGuests(ctx context.Context, docs []*models.GuestDocument) error {
+	if len(docs) == 0 {
+		return nil
+	}
+
+	var body bytes.Buffer
+	for _, doc := range docs {
+		meta := fmt.Sprintf(`{"index":{"_index":%q,"_id":%q}}`, opensearchstorage.GuestsIndex, doc.ID)
+		body.WriteString(meta)
+		body.WriteByte('\n')
+		serialized, err := json.Marshal(doc)
+		if err != nil {
+			return fmt.Errorf("marshaling guest %s: %w", doc.ID, err)
+		}
+		body.Write(serialized)
+		body.WriteByte('\n')
+	}
+
+	res, err := opensearchapi.BulkRequest{
+		Body: &body,
+	}.Do(ctx, r.client)
+	if err != nil {
+		return fmt.Errorf("bulk indexing guests: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return fmt.Errorf("bulk index failed: %s", res.String())
+	}
+
+	var result struct {
+		Errors bool `json:"errors"`
+		Items  []map[string]struct {
+			ID     string `json:"_id"`
+			Status int    `json:"status"`
+			Error  *struct {
+				Reason string `json:"reason"`
+			} `json:"error,omitempty"`
+		} `json:"items"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return fmt.Errorf("decoding bulk response: %w", err)
+	}
+
+	if result.Errors {
+		var errs []string
+		for _, item := range result.Items {
+			for _, op := range item {
+				if op.Error != nil {
+					errs = append(errs, fmt.Sprintf("id=%s: %s", op.ID, op.Error.Reason))
+				}
+			}
+		}
+		return fmt.Errorf("bulk index partial failure: %s", strings.Join(errs, "; "))
+	}
+
 	return nil
 }
 
