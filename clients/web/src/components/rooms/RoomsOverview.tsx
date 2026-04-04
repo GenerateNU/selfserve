@@ -24,7 +24,7 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const vacantRooms = totalRooms - occupiedRooms;
 
   return (
-    <aside className="w-full max-w-[398px] shrink-0 min-h-0 overflow-y-auto px-6">
+    <aside className="w-full max-w-[24.875rem] shrink-0 min-h-0 overflow-y-auto px-6">
       <div className="flex flex-col">
         <OverviewCard
           title="Tasks"
@@ -74,7 +74,7 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
               floor: 1,
               roomNumber: 101,
               department: "Maintenance",
-              priority: "high",
+              priority: "low",
             },
             {
               id: "2",

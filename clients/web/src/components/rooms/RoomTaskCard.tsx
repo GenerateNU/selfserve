@@ -3,7 +3,6 @@ import {
   MapPinIcon,
   Maximize2Icon,
   StoreIcon,
-  TriangleAlertIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -19,7 +18,7 @@ type PriorityConfig = {
   contentClass: string;
 };
 
-const priorityConfig: Record<Priority, PriorityConfig> = {
+const priorityConfig: Record<Exclude<Priority, "low">, PriorityConfig> = {
   high: {
     label: "High Priority",
     Icon: FlagIcon,
@@ -31,12 +30,6 @@ const priorityConfig: Record<Priority, PriorityConfig> = {
     Icon: FlagIcon,
     containerClass: "bg-bg-orange",
     contentClass: "text-text-orange",
-  },
-  low: {
-    label: "Low Priority",
-    Icon: TriangleAlertIcon,
-    containerClass: "bg-warning-accent",
-    contentClass: "text-warning",
   },
 };
 
@@ -84,7 +77,7 @@ export function RoomTaskCard({
             className="shrink-0 text-text-subtle hover:text-text-default"
             aria-label="Expand task"
           >
-            <Maximize2Icon className="size-[18px]" strokeWidth={1.5} />
+            <Maximize2Icon className="size-[1.125rem]" strokeWidth={1.5} />
           </button>
         </div>
 
@@ -99,7 +92,7 @@ export function RoomTaskCard({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {priority &&
+          {priority && (priority == "medium" || priority == "high") &&
             (() => {
               const { label, Icon, containerClass, contentClass } =
                 priorityConfig[priority];
