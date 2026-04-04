@@ -6,7 +6,7 @@ import { guestListItems } from "../../components/guests/guest-mocks";
 import type { Request } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
-import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
+import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 
 export const Route = createFileRoute("/_protected/guests/")({
   component: GuestsQuickListPage,
@@ -17,9 +17,11 @@ function GuestsQuickListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [groupFilter, setGroupFilter] = useState("all");
   const [floorFilter, setFloorFilter] = useState("all");
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
-    null,
-  );
+  const [generatedData, setGeneratedData] = useState<{
+    name?: string;
+    description?: string;
+    priority?: "low" | "medium" | "high";
+  } | null>(null);
 
   const filteredGuests = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -52,12 +54,14 @@ function GuestsQuickListPage() {
         title: "Guests",
         description: "Description blah blah fries -> bag",
       }}
-      drawerOpen={generatedRequest !== null}
+      drawerOpen={generatedData !== null}
       drawer={
-        <GeneratedRequestDrawer
-          request={generatedRequest}
-          onClose={() => setGeneratedRequest(null)}
-        />
+        generatedData !== null ? (
+          <CreateRequestDrawer
+            initialData={generatedData}
+            onClose={() => setGeneratedData(null)}
+          />
+        ) : null
       }
     >
       <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
@@ -71,8 +75,16 @@ function GuestsQuickListPage() {
           navigate({ to: "/guests/$guestId", params: { guestId } })
         }
       />
-      {generatedRequest === null && (
-        <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      {generatedData === null && (
+        <GlobalTaskInput
+          onRequestGenerated={(r: Request) =>
+            setGeneratedData({
+              name: r.name,
+              description: r.description,
+              priority: r.priority as "low" | "medium" | "high" | undefined,
+            })
+          }
+        />
       )}
     </PageShell>
   );

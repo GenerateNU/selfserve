@@ -47,14 +47,19 @@ function FieldRow({ label, value, valueClassName }: FieldRowProps) {
 
 type CreateRequestDrawerProps = {
   onClose: () => void;
+  initialData?: {
+    name?: string;
+    description?: string;
+    priority?: Priority;
+  };
 };
 
-export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
+export function CreateRequestDrawer({ onClose, initialData }: CreateRequestDrawerProps) {
   const [showMore, setShowMore] = useState(false);
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<Priority>("medium");
+  const [name, setName] = useState(initialData?.name ?? "");
+  const [description, setDescription] = useState(initialData?.description ?? "");
+  const [priority, setPriority] = useState<Priority>(initialData?.priority ?? "medium");
   const [assignee, setAssignee] = useState<User | undefined>();
 
   const queryClient = useQueryClient();

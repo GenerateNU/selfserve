@@ -9,38 +9,29 @@ import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
 import { PLACEHOLDER_COLUMNS } from "@/mock-data/home";
-import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
 });
 
 function HomePage() {
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
-    null,
-  );
-  const [createRequestOpen, setCreateTaskOpen] = useState(false);
-
-  const drawerOpen = createRequestOpen || generatedRequest !== null;
+  const [drawerData, setDrawerData] = useState<{
+    name?: string;
+    description?: string;
+    priority?: "low" | "medium" | "high";
+  } | null>(null);
 
   function handleCreateRequest() {
-    setGeneratedRequest(null);
-    setCreateTaskOpen(true);
+    setDrawerData({});
   }
 
   function handleRequestGenerated(request: Request) {
-    setCreateTaskOpen(false);
-    setGeneratedRequest(request);
+    setDrawerData({
+      name: request.name,
+      description: request.description,
+      priority: request.priority as "low" | "medium" | "high" | undefined,
+    });
   }
-
-  const drawer = createRequestOpen ? (
-    <CreateRequestDrawer onClose={() => setCreateTaskOpen(false)} />
-  ) : (
-    <GeneratedRequestDrawer
-      request={generatedRequest}
-      onClose={() => setGeneratedRequest(null)}
-    />
-  );
 
   return (
     <PageShell
@@ -48,8 +39,15 @@ function HomePage() {
         title: "Home",
         description: "Overview of all tasks currently at play",
       }}
-      drawerOpen={drawerOpen}
-      drawer={drawer}
+      drawerOpen={drawerData !== null}
+      drawer={
+        drawerData !== null ? (
+          <CreateRequestDrawer
+            initialData={drawerData}
+            onClose={() => setDrawerData(null)}
+          />
+        ) : null
+      }
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
       <HomeToolbar className="mt-2" onCreateRequest={handleCreateRequest} />
@@ -65,7 +63,7 @@ function HomePage() {
           ))}
         </div>
       </div>
-      {!createRequestOpen && generatedRequest === null && (
+      {drawerData === null && (
         <GlobalTaskInput onRequestGenerated={handleRequestGenerated} />
       )}
     </PageShell>

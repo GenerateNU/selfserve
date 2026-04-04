@@ -8,7 +8,7 @@ import { PageShell } from "@/components/ui/PageShell";
 import { RoomsToolbar } from "@/components/rooms/RoomsToolbar";
 import { RoomsList } from "@/components/rooms/RoomsList";
 import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
-import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
+import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { RoomsOverview } from "@/components/rooms/RoomsOverview";
 
 export const Route = createFileRoute("/_protected/rooms/")({
@@ -21,9 +21,11 @@ function RoomsPage() {
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
   const [ascending, setAscending] = useState(true);
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
-    null,
-  );
+  const [generatedData, setGeneratedData] = useState<{
+    name?: string;
+    description?: string;
+    priority?: "low" | "medium" | "high";
+  } | null>(null);
 
   const postRooms = usePostRoomsHook();
 
@@ -36,10 +38,10 @@ function RoomsPage() {
       }),
   });
 
-  const drawerContent = generatedRequest ? (
-    <GeneratedRequestDrawer
-      request={generatedRequest}
-      onClose={() => setGeneratedRequest(null)}
+  const drawerContent = generatedData !== null ? (
+    <CreateRequestDrawer
+      initialData={generatedData}
+      onClose={() => setGeneratedData(null)}
     />
   ) : (
     <RoomDetailsDrawer
@@ -55,7 +57,7 @@ function RoomsPage() {
         description:
           "Find any room and access essential details like availability, occupancy, and status at a glance.",
       }}
-      drawerOpen={generatedRequest !== null || selectedRoom !== null}
+      drawerOpen={generatedData !== null || selectedRoom !== null}
       drawer={drawerContent}
       bodyClassName="overflow-hidden"
       contentClassName={"h-full"}
@@ -73,7 +75,7 @@ function RoomsPage() {
           rooms={rooms?.items ?? []}
           ascending={ascending}
           onRoomSelect={(room) => {
-            setGeneratedRequest(null);
+            setGeneratedData(null);
             setSelectedRoom(room);
           }}
           selectedRoomNumber={selectedRoom?.room_number ?? null}
@@ -81,9 +83,13 @@ function RoomsPage() {
         <RoomsOverview rooms={rooms?.items ?? []} />
       </div>
       <GlobalTaskInput
-        onRequestGenerated={(r) => {
+        onRequestGenerated={(r: Request) => {
           setSelectedRoom(null);
-          setGeneratedRequest(r);
+          setGeneratedData({
+            name: r.name,
+            description: r.description,
+            priority: r.priority as "low" | "medium" | "high" | undefined,
+          });
         }}
       />
     </PageShell>
