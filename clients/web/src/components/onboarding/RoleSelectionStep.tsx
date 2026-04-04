@@ -26,88 +26,27 @@ export function RoleSelectionStep({
   onNext,
 }: RoleSelectionStepProps) {
   return (
-    <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
+    <div className="flex w-screen h-screen">
       <LeftPanel />
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          paddingTop: "clamp(80px, 19.45vh, 191px)",
-          paddingLeft: "clamp(40px, 9.6vw, 132px)",
-          paddingRight: "clamp(40px, 9.6vw, 132px)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "643px",
-            height: "clamp(400px, 50.1vh, 492px)",
-            overflow: "hidden",
-            border: "1px solid #000000",
-            borderRadius: "24px",
-            backgroundColor: "#FFFFFF",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            padding: "clamp(24px, 4.9vh, 48px) 38px",
-            gap: "16px",
-            boxSizing: "border-box",
-          }}
-        >
+      <div className="flex-1 flex justify-center items-start pt-[clamp(80px,19.45vh,191px)] px-[clamp(40px,9.6vw,132px)] overflow-hidden">
+        <div className="w-full max-w-[643px] h-[clamp(400px,50.1vh,492px)] overflow-hidden border border-black rounded-[24px] bg-[var(--color-bg-primary)] flex flex-col items-center py-[clamp(24px,4.9vh,48px)] px-[38px] gap-4 box-border">
           {/* Logo */}
-          <div
-            style={{
-              width: "80px",
-              height: "80px",
-              border: "1px solid #000000",
-              borderRadius: "8px",
-              backgroundColor: "#FFFFFF",
-              flexShrink: 0,
-            }}
-          />
+          <div className="w-20 h-20 border border-black rounded-lg bg-[var(--color-bg-primary)] shrink-0" />
 
           {/* Title */}
-          <span
-            style={{
-              fontFamily: "Satoshi Variable, sans-serif",
-              fontWeight: 400,
-              fontSize: "clamp(20px, 2.5vw, 24px)",
-              lineHeight: "32px",
-              color: "#0F172B",
-              textAlign: "center",
-            }}
-          >
+          {/* TODO: #0F172B has no design token — flag to Dylan */}
+          <span className="font-normal text-[clamp(20px,2.5vw,24px)] leading-8 text-[#0F172B] text-center">
             Role
           </span>
 
           {/* Subtitle */}
-          <span
-            style={{
-              fontFamily: "Satoshi Variable, sans-serif",
-              fontWeight: 400,
-              fontSize: "clamp(13px, 1.6vw, 16px)",
-              lineHeight: "24px",
-              color: "#62748E",
-              textAlign: "center",
-              marginTop: "-8px",
-            }}
-          >
+          {/* TODO: #62748E has no design token — flag to Dylan */}
+          <span className="font-normal text-[clamp(13px,1.6vw,16px)] leading-6 text-[#62748E] text-center -mt-2">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit.
           </span>
 
           {/* Role cards grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "16px",
-              width: "100%",
-              flex: 1,
-            }}
-          >
+          <div className="grid grid-cols-2 gap-4 w-full flex-1">
             {ROLES.map((role) => (
               <RoleCard
                 key={role.id}
