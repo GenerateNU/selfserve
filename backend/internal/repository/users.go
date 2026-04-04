@@ -112,7 +112,7 @@ func (r *UsersRepository) CompleteOnboarding(ctx context.Context, id string, dat
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	var hotelID *string
 
