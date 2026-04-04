@@ -59,7 +59,11 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
   if (!room) return null;
 
   return (
-    <DrawerShell title={`Room ${room.room_number}`} onClose={onClose}>
+    <DrawerShell
+      title={`Room ${room.room_number}`}
+      onClose={onClose}
+      className="px-2 py-0"
+    >
       <RoomTabBar />
       <RoomAccordion
         items={roomAccordionItems}
