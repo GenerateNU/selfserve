@@ -33,7 +33,7 @@ function FieldRow({ label, value, valueClassName }: FieldRowProps) {
         <GripHorizontal className="size-4.5 text-text-subtle" />
         <span className="text-sm text-text-subtle">{label}</span>
       </div>
-      <span className={cn("text-sm text-text-default", valueClassName)}>
+      <span className={cn("rounded-md px-2 py-1 text-sm text-text-subtle", valueClassName)}>
         {value}
       </span>
     </div>
