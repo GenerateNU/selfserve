@@ -18,6 +18,12 @@ type UpdateProfilePictureRequest struct {
 	Key string `json:"key" validate:"notblank" example:"profile-pictures/user123/1706540000.jpg"`
 }
 
+type SearchUsersQuery struct {
+	HotelID string `validate:"notblank"`
+	Cursor  string
+	Query   string
+}
+
 const defaultUsersPageSize = 20
 
 type UsersHandler struct {
@@ -72,16 +78,18 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Router       /users [get]
 func (h *UsersHandler) SearchUsers(c *fiber.Ctx) error {
-	hotelID := c.Query("hotel_id")
-	if hotelID == "" {
-		return errs.BadRequest("hotel_id is required")
+	q := SearchUsersQuery{
+		HotelID: c.Query("hotel_id"),
+		Cursor:  c.Query("cursor"),
+		Query:   c.Query("q"),
 	}
-	cursor := c.Query("cursor")
-	query := c.Query("q")
+	if err := httpx.Validate(&q); err != nil {
+		return err
+	}
 
-	users, nextCursor, err := h.UsersRepository.SearchUsersByHotel(c.Context(), hotelID, cursor, query, defaultUsersPageSize)
+	users, nextCursor, err := h.UsersRepository.SearchUsersByHotel(c.Context(), q.HotelID, q.Cursor, q.Query, defaultUsersPageSize)
 	if err != nil {
-		slog.Error("failed to search users", "hotel_id", hotelID, "err", err)
+		slog.Error("failed to search users", "hotel_id", q.HotelID, "err", err)
 		return errs.InternalServerError()
 	}
 
