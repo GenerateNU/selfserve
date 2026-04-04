@@ -58,8 +58,8 @@ type MakeRequest struct {
 } //@name MakeRequest
 
 type GetRequestsByStatusInput struct {
-	HotelID    string  `json:"-"           validate:"notblank,uuid"`
-	Status     string  `json:"status"      validate:"oneof='pending' 'assigned' 'in progress' 'completed'"`
+	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank,uuid"`
+	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'assigned' 'in progress' 'completed'"`
 	CursorTime *int64  `json:"cursor_time"`
 	CursorID   *string `json:"cursor_id"`
 } //@name GetRequestsByStatusInput
