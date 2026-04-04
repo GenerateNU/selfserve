@@ -1,31 +1,44 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 const defaultPageSize = 20
 
+const msgTaskAssigned = "New task assigned to you"
+
+// NotificationSender is implemented by the notifications service.
+// It is nilable - if nil, notification triggering is skipped.
+type NotificationSender interface {
+	Notify(ctx context.Context, userID string, notifType models.NotificationType, title, body string) error
+}
+
 type RequestsHandler struct {
 	RequestRepository      storage.RequestsRepository
 	GenerateRequestService aiflows.GenerateRequestService
+	NotificationSender     NotificationSender
 }
 
-func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService aiflows.GenerateRequestService) *RequestsHandler {
+func NewRequestsHandler(repo storage.RequestsRepository, generateRequestService aiflows.GenerateRequestService, notificationSender NotificationSender) *RequestsHandler {
 	return &RequestsHandler{
 		RequestRepository:      repo,
 		GenerateRequestService: generateRequestService,
+		NotificationSender:     notificationSender,
 	}
 }
 
@@ -50,6 +63,12 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: uuid.New().String(), MakeRequest: requestBody})
 	if err != nil {
 		return errs.InternalServerError()
+	}
+
+	if r.NotificationSender != nil && requestBody.UserID != nil {
+		if err := r.NotificationSender.Notify(c.Context(), *requestBody.UserID, models.TypeTaskAssigned, msgTaskAssigned, res.Name); err != nil {
+			slog.Error("failed to send task assigned notification", "err", err)
+		}
 	}
 
 	return c.JSON(res)
@@ -181,7 +200,7 @@ func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Param  request  body  models.GenerateRequestInput  true  "Request data with raw text"
-// @Success      200   {object}  models.Request
+// @Success      200   {object}  models.GenerateRequestResponse
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Security     BearerAuth
@@ -198,10 +217,21 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 
 	parsed, err := r.GenerateRequestService.RunGenerateRequest(c.Context(), aiflows.GenerateRequestInput{
 		RawText: input.RawText,
+		HotelID: input.HotelID,
 	})
 	if err != nil {
 		slog.Error("genkit failed to generate a request", "error", err)
 		return errs.InternalServerError()
+	}
+	if err := httpx.Validate(&parsed); err != nil {
+		slog.Error("generated request failed validation", "error", err)
+		return errs.InternalServerError()
+	}
+
+	notes := parsed.Notes
+	if notes == nil {
+		empty := ""
+		notes = &empty
 	}
 
 	req := models.Request{ID: uuid.New().String(), MakeRequest: models.MakeRequest{
@@ -220,13 +250,90 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		EstimatedCompletionTime: parsed.EstimatedCompletionTime,
 		ScheduledTime:           nil, // TODO: Potentially add schedule time from user input / auto-scheduling
 		CompletedAt:             nil,
-		Notes:                   parsed.Notes,
+		Notes:                   notes,
 	}}
 
 	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
 	if err != nil {
+		slog.Error("failed to insert generated request", "error", err)
+		return errs.InternalServerError()
+	}
+	if r.NotificationSender != nil && req.UserID != nil {
+		if err := r.NotificationSender.Notify(c.Context(), *req.UserID, models.TypeTaskAssigned, msgTaskAssigned, res.Name); err != nil {
+			slog.Error("failed to send task assigned notification", "err", err)
+		}
+	}
+
+	return c.JSON(models.GenerateRequestResponse{
+		Request: *res,
+		Warning: warningFromAI(parsed.Warning),
+	})
+}
+
+func warningFromAI(w *aiflows.GenerateRequestWarning) *models.GenerateRequestWarning {
+	if w == nil {
+		return nil
+	}
+
+	return &models.GenerateRequestWarning{
+		Code:    w.Code,
+		Message: w.Message,
+	}
+}
+
+// GetRequestsByGuest godoc
+// @Summary      Get requests by guest
+// @Description  Retrieves all requests for a given guest
+// @Tags         requests
+// @Produce      json
+// @Param        id  path  string  true  "Guest ID (UUID)"
+// @Success      200  {object}  []models.GuestRequest
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /request/guest/{id} [get]
+func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
+	input := models.GetRequestsByGuestInput{
+		GuestID: c.Params("id"),
+		HotelID: c.Get("X-Hotel-ID"),
+		Cursor:  c.Query("cursor"),
+		Limit:   c.QueryInt("limit"),
+	}
+	if err := httpx.Validate(&input); err != nil {
+		return err
+	}
+
+	cursorID, cursorVersion, err := parseRequestCursor(input.Cursor)
+	if err != nil {
+		return errs.BadRequest("invalid cursor")
+	}
+
+	limit := utils.ResolveLimit(input.Limit)
+	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), input.GuestID, input.HotelID, cursorID, cursorVersion, limit+1)
+	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	return c.JSON(res)
+	page := utils.BuildCursorPage(requests, limit, func(req *models.GuestRequest) string {
+		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
+	})
+
+	return c.JSON(page)
+}
+
+// parseRequestCursor splits a "id|request_version" cursor string.
+// Returns zero values and nil error when cursor is empty (first page).
+func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
+	if cursor == "" {
+		return "", time.Time{}, nil
+	}
+	parts := strings.SplitN(cursor, "|", 2)
+	if len(parts) != 2 {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	version, err = time.Parse(time.RFC3339Nano, parts[1])
+	if err != nil {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	return parts[0], version, nil
 }

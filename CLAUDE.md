@@ -325,6 +325,54 @@ type Config struct {
 
 Use `slog` package for structured logging. No `fmt.Println` in production paths.
 
+### CLI Commands (`backend/cmd/cli`)
+
+Commands are registered in `main.go` and implemented in per-topic files (e.g. `guests.go`).
+
+**Registering a command:**
+```go
+// main.go
+var commands = map[string]command{
+  "reindex-guests": {
+    description: "Fetch all guests from the database and reindex them in OpenSearch",
+    run:         runReindexGuests,
+  },
+}
+```
+
+**Backfill/reindex pattern** — paginated DB read via `iter.Seq2`, batched writes to the sink:
+
+```go
+// repository: paginated generator using cursor pagination
+func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*models.GuestDocument, error] {
+  return func(yield func(*models.GuestDocument, error) bool) {
+    var cursorName, cursorID string
+    for {
+      // fetch page using (cursorName, cursorID) as cursor
+      // yield each doc; return on last page or if yield returns false
+    }
+  }
+}
+
+// cli: accumulate into batches, flush when full
+batch := make([]*models.GuestDocument, 0, batchSize)
+for doc, err := range repo.AllGuestDocuments(ctx) {
+  if err != nil { return err }
+  batch = append(batch, doc)
+  if len(batch) == batchSize {
+    if err := sink.BulkIndex(ctx, batch); err != nil { return err }
+    batch = batch[:0]
+  }
+}
+if len(batch) > 0 {
+  if err := sink.BulkIndex(ctx, batch); err != nil { return err }
+}
+```
+
+- DB is read in pages, sink is written in batches — neither loaded fully into memory
+- `iter.Seq2` is used so the caller drives iteration with a plain `for range`
+- No semaphore needed unless batches are indexed concurrently
+
 ---
 
 ## Testing (Frontend)

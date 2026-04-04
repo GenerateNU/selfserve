@@ -2,9 +2,19 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	"github.com/generate/selfserve/internal/models"
 )
+
+type NotificationsRepository interface {
+	InsertNotification(ctx context.Context, userID string, notifType models.NotificationType, title, body string) (*models.Notification, error)
+	FindByUserID(ctx context.Context, userID string) ([]*models.Notification, error)
+	MarkRead(ctx context.Context, id, userID string) error
+	MarkAllRead(ctx context.Context, userID string) error
+	UpsertDeviceToken(ctx context.Context, userID, token, platform string) error
+	FindDeviceTokensByUserID(ctx context.Context, userID string) ([]string, error)
+}
 
 type UsersRepository interface {
 	FindUser(ctx context.Context, id string) (*models.User, error)
@@ -37,6 +47,7 @@ type RequestsRepository interface {
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
 	FindRequests(ctx context.Context) ([]models.Request, error)
 	FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
+	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
 type HotelsRepository interface {
@@ -53,4 +64,5 @@ type S3Storage interface {
 type RoomsRepository interface {
 	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
 	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
+	FindRoomByNumber(ctx context.Context, hotelID string, roomReference string) (*models.Room, error)
 }

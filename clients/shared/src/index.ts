@@ -13,6 +13,8 @@ export type {
   Request,
   MakeRequest,
   GenerateRequestInput,
+  GenerateRequestResponse,
+  GenerateRequestWarning,
   Hotel,
   Guest,
   GuestPage,
@@ -48,7 +50,12 @@ export {
   usePutApiV1GuestsId,
 } from "./api/generated/endpoints/guests/guests";
 
-export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
+export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
+
+export {
+  usePostRooms,
+  useGetRoomsFloors,
+} from "./api/generated/endpoints/rooms/rooms";
 
 export type {
   RoomWithOptionalGuestBooking,

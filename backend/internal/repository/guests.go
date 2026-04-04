@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"iter"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -83,39 +84,44 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 }
 
 func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
+	guest := &models.GuestWithStays{}
+
+	err := r.db.QueryRow(ctx, `
+		SELECT
+			g.id, g.first_name, g.last_name, g.phone, g.email,
+			g.preferences, g.notes, g.pronouns, g.do_not_disturb_start,
+			g.do_not_disturb_end, g.housekeeping_cadence, g.assistance
+		FROM public.guests g
+		WHERE g.id = $1
+	`, id).Scan(
+		&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email,
+		&guest.Preferences, &guest.Notes, &guest.Pronouns, &guest.DoNotDisturbStart,
+		&guest.DoNotDisturbEnd, &guest.HousekeepingCadence, &guest.Assistance,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
 
 	rows, err := r.db.Query(ctx, `
-		SELECT guests.id, guests.first_name, guests.last_name, guests.phone, guests.email,
-			guests.preferences, guests.notes, guest_bookings.arrival_date, guest_bookings.departure_date,
-			rooms.room_number, guest_bookings.status
-		FROM public.guests
-		LEFT JOIN guest_bookings ON guests.id = guest_bookings.guest_id
-		LEFT JOIN rooms ON rooms.id = guest_bookings.room_id
-		WHERE guests.id = $1
+		SELECT gb.arrival_date, gb.departure_date, rm.room_number, gb.status, gb.group_size
+		FROM guest_bookings gb
+		LEFT JOIN rooms rm ON rm.id = gb.room_id
+		WHERE gb.guest_id = $1
 	`, id)
-
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var guest *models.GuestWithStays
 	for rows.Next() {
-		var stay models.Stay
-		var arrivalDate *time.Time
-		var departureDate *time.Time
-		var roomNumber *int
+		var arrivalDate, departureDate *time.Time
+		var roomNumber, groupSize *int
 		var status *models.BookingStatus
 
-		if guest == nil {
-			guest = &models.GuestWithStays{}
-		}
-
-		err := rows.Scan(
-			&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email, &guest.Preferences, &guest.Notes,
-			&arrivalDate, &departureDate, &roomNumber, &status,
-		)
-		if err != nil {
+		if err := rows.Scan(&arrivalDate, &departureDate, &roomNumber, &status, &groupSize); err != nil {
 			return nil, err
 		}
 
@@ -123,30 +129,34 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 			continue
 		}
 
-		stay.ArrivalDate = *arrivalDate
-		stay.DepartureDate = *departureDate
-		stay.RoomNumber = *roomNumber
-		stay.Status = *status
-
-		switch *status {
-		case models.BookingStatusActive:
-			guest.CurrentStays = append(guest.CurrentStays, stay)
-		case models.BookingStatusInactive:
-			guest.PastStays = append(guest.PastStays, stay)
-		default:
-			return nil, errs.InternalServerError()
-		}
+		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, status)
+		guest = appendStay(guest, stay, *status)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
+	return guest, rows.Err()
+}
 
-	if guest == nil {
-		return nil, errs.ErrNotFoundInDB
+func buildStay(arrival, departure *time.Time, roomNumber, groupSize *int, status *models.BookingStatus) models.Stay {
+	stay := models.Stay{
+		ArrivalDate:   *arrival,
+		DepartureDate: *departure,
+		RoomNumber:    *roomNumber,
+		Status:        *status,
 	}
+	if groupSize != nil {
+		stay.GroupSize = groupSize
+	}
+	return stay
+}
 
-	return guest, nil
+func appendStay(guest *models.GuestWithStays, stay models.Stay, status models.BookingStatus) *models.GuestWithStays {
+	switch status {
+	case models.BookingStatusActive:
+		guest.CurrentStays = append(guest.CurrentStays, stay)
+	default:
+		guest.PastStays = append(guest.PastStays, stay)
+	}
+	return guest
 }
 
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
@@ -155,20 +165,22 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	row := r.db.QueryRow(ctx, `
 		UPDATE guests
 		SET
-			first_name = $2,
-			last_name = $3,
-			profile_picture = $4,
-			timezone = $5,
+			first_name = COALESCE($2, first_name),
+			last_name = COALESCE($3, last_name),
+			profile_picture = COALESCE($4, profile_picture),
+			timezone = COALESCE($5, timezone),
+			notes = COALESCE($6, notes),
 			updated_at = NOW()
 		WHERE id = $1
 		RETURNING
 			id, created_at, updated_at,
-			first_name, last_name, profile_picture, timezone`,
+			first_name, last_name, profile_picture, timezone, notes`,
 		id,
 		update.FirstName,
 		update.LastName,
 		update.ProfilePicture,
 		update.Timezone,
+		update.Notes,
 	)
 
 	err := row.Scan(
@@ -179,6 +191,7 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 		&guest.LastName,
 		&guest.ProfilePicture,
 		&guest.Timezone,
+		&guest.Notes,
 	)
 
 	if err != nil {
@@ -189,6 +202,91 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	}
 
 	return &guest, nil
+}
+
+const fetchAllGuestDocumentsPageSize = 100
+
+// AllGuestDocuments returns a paginated iterator over every guest document in the
+// database. It yields one *models.GuestDocument at a time, fetching the next page
+// only when the previous one is exhausted. Stop iterating early by returning false
+// from the yield function; the first non-nil error stops iteration and is yielded
+// as the second value.
+func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*models.GuestDocument, error] {
+	return func(yield func(*models.GuestDocument, error) bool) {
+		var cursorName, cursorID string
+
+		for {
+			rows, err := r.db.Query(ctx, `
+				SELECT
+					g.id,
+					gb.hotel_id,
+					CONCAT_WS(' ', g.first_name, g.last_name) AS full_name,
+					g.first_name,
+					g.last_name,
+					COALESCE(g.preferences, g.first_name) AS preferred_name,
+					g.email,
+					g.phone,
+					g.preferences,
+					g.notes,
+					r.floor,
+					r.room_number,
+					gb.group_size,
+					gb.status,
+					gb.arrival_date,
+					gb.departure_date
+				FROM guest_bookings gb
+				JOIN guests g ON g.id = gb.guest_id
+				JOIN rooms r ON r.id = gb.room_id
+				WHERE (
+					$1::text = ''
+					OR (CONCAT_WS(' ', g.first_name, g.last_name), g.id::text) > ($1::text, $2::text)
+				)
+				ORDER BY CONCAT_WS(' ', g.first_name, g.last_name) ASC, g.id ASC
+				LIMIT $3
+			`, cursorName, cursorID, fetchAllGuestDocumentsPageSize)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			var page []*models.GuestDocument
+			for rows.Next() {
+				var doc models.GuestDocument
+				if err := rows.Scan(
+					&doc.ID, &doc.HotelID, &doc.FullName,
+					&doc.FirstName, &doc.LastName, &doc.PreferredName,
+					&doc.Email, &doc.Phone, &doc.Preferences, &doc.Notes,
+					&doc.Floor, &doc.RoomNumber, &doc.GroupSize,
+					&doc.BookingStatus, &doc.ArrivalDate, &doc.DepartureDate,
+				); err != nil {
+					rows.Close()
+					yield(nil, err)
+					return
+				}
+				page = append(page, &doc)
+			}
+			rows.Close()
+
+			if err := rows.Err(); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			for _, doc := range page {
+				if !yield(doc, nil) {
+					return
+				}
+			}
+
+			if len(page) < fetchAllGuestDocumentsPageSize {
+				return // last page
+			}
+
+			last := page[len(page)-1]
+			cursorName = last.FullName
+			cursorID = last.ID
+		}
+	}
 }
 
 func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {

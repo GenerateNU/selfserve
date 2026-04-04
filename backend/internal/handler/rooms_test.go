@@ -42,7 +42,13 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return []*models.RoomWithOptionalGuestBooking{
 					{
-						Room:   models.Room{RoomNumber: 101, Floor: 1, SuiteType: "standard", RoomStatus: "available"},
+						Room: models.Room{
+							ID:         "530e8400-e458-41d4-a716-446655440111",
+							RoomNumber: 101,
+							Floor:      1,
+							SuiteType:  "standard",
+							RoomStatus: "available",
+						},
 						Guests: nil,
 					},
 				}, nil
@@ -63,6 +69,7 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), `"items"`)
+		assert.Contains(t, string(body), "530e8400-e458-41d4-a716-446655440111")
 		assert.Contains(t, string(body), "101")
 		assert.Contains(t, string(body), "standard")
 		assert.Contains(t, string(body), `"has_more":false`)

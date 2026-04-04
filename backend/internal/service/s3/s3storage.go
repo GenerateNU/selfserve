@@ -41,7 +41,7 @@ func NewS3Storage(cfg config.S3) (*Storage, error) {
 }
 
 func (s *Storage) GeneratePresignedUploadURL(ctx context.Context, in models.PresignedURLInput) (string, error) {
-	if err := httpx.ValidateStruct(in); err != nil {
+	if err := httpx.Validate(&in); err != nil {
 		return "", err
 	}
 
@@ -58,7 +58,7 @@ func (s *Storage) GeneratePresignedUploadURL(ctx context.Context, in models.Pres
 }
 
 func (s *Storage) GeneratePresignedGetURL(ctx context.Context, in models.PresignedURLInput) (string, error) {
-	if err := httpx.ValidateStruct(in); err != nil {
+	if err := httpx.Validate(&in); err != nil {
 		return "", err
 	}
 

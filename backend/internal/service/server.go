@@ -16,6 +16,7 @@ import (
 	"github.com/generate/selfserve/internal/repository"
 
 	"github.com/generate/selfserve/internal/service/clerk"
+	notificationssvc "github.com/generate/selfserve/internal/service/notifications"
 	"github.com/generate/selfserve/internal/storage/redis"
 
 	s3storage "github.com/generate/selfserve/internal/service/s3"
@@ -62,8 +63,8 @@ func InitApp(cfg *config.Config) (*App, error) {
 
 	openSearchRepos := tryInitOpenSearchRepositories(cfg)
 
-	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
-
+	roomsRepo := repository.NewRoomsRepository(repo.DB)
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM, roomsRepo)
 	app := setupApp()
 	setupClerk(cfg)
 
@@ -128,15 +129,21 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// initialize users repo
 	usersRepo := repository.NewUsersRepository(repo.DB)
 
+	// initialize notifications
+	notifRepo := repository.NewNotificationsRepository(repo.DB)
+	notifService := notificationssvc.NewService(notifRepo)
+	notifHandler := handler.NewNotificationsHandler(notifRepo)
+
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB), s3Store)
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), openSearchRepos.Guests)
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
 	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
+	guestBookingsHandler := handler.NewGuestBookingsHandler(repository.NewGuestBookingsRepository(repo.DB))
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
@@ -192,6 +199,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Put("/:id", reqsHandler.UpdateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
 		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
+		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
 	})
 
 	// Hotel routes
@@ -211,6 +219,23 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/rooms", func(r fiber.Router) {
 		r.Post("/", roomsHandler.FilterRooms)
 		r.Get("/floors", roomsHandler.GetFloors)
+	})
+
+	// guest booking routes
+	api.Route("/guest_bookings", func(r fiber.Router) {
+		r.Get("/group_sizes", guestBookingsHandler.GetGroupSizeOptions)
+	})
+
+	// notification routes
+	api.Route("/notifications", func(r fiber.Router) {
+		r.Get("/", notifHandler.ListNotifications)
+		r.Put("/read-all", notifHandler.MarkAllRead)
+		r.Put("/:id/read", notifHandler.MarkRead)
+	})
+
+	// device token routes
+	api.Route("/device-tokens", func(r fiber.Router) {
+		r.Post("/", notifHandler.RegisterDeviceToken)
 	})
 
 	return nil
