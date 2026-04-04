@@ -5,6 +5,8 @@ export type { Config } from "./api/config";
 
 // config functions
 export { setConfig, getConfig } from "./api/config";
+export { API_ENDPOINTS } from "./api/endpoints";
+export { useAPIClient, getBaseUrl } from "./api/client";
 
 // Generated Types - Models
 export type {

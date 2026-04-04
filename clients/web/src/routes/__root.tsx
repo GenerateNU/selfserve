@@ -61,7 +61,13 @@ export const Route = createRootRoute({
 function AppConfigurator() {
   const { getToken } = useAuth();
   useEffect(() => {
-    setConfig({ API_BASE_URL: process.env.API_BASE_URL ?? "", getToken });
+    setConfig({
+      API_BASE_URL: process.env.API_BASE_URL ?? "",
+      getToken,
+      ROOMS_HOTEL_ID:
+        import.meta.env.VITE_ROOMS_HOTEL_ID ||
+        "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    });
   }, [getToken]);
 
   return null;

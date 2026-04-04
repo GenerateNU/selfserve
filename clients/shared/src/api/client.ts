@@ -8,7 +8,6 @@ export const createRequest = (
   getToken: () => Promise<string | null>,
   baseUrl: string,
 ) => {
-  const hardCodedHotelId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
     if (config.params && Object.keys(config.params).length > 0) {
@@ -18,15 +17,20 @@ export const createRequest = (
 
     try {
       const token = await getToken();
+      const { ROOMS_HOTEL_ID } = getConfig();
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...config.headers,
+      };
+      const hotel = ROOMS_HOTEL_ID?.trim();
+      if (hotel) {
+        headers["X-Hotel-ID"] = hotel;
+      }
 
       const response = await fetch(fullUrl, {
         method: config.method,
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-          "X-Hotel-ID": hardCodedHotelId,
-          ...config.headers,
-        },
+        headers,
         body: config.data ? JSON.stringify(config.data) : undefined,
         signal: config.signal,
       });
