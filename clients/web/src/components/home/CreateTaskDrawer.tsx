@@ -21,7 +21,7 @@ function FieldRow({ label, value, valueClassName }: FieldRowProps) {
   return (
     <div className="flex items-center gap-8">
       <div className="flex w-28 shrink-0 items-center gap-1">
-        <GripHorizontal className="size-[18px] text-text-subtle" />
+        <GripHorizontal className="size-4.5 text-text-subtle" />
         <span className="text-sm text-text-subtle">{label}</span>
       </div>
       <span className={cn("text-sm text-text-default", valueClassName)}>
