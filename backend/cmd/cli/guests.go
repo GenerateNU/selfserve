@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/models"
 	"github.com/generate/selfserve/internal/repository"
 	opensearchstorage "github.com/generate/selfserve/internal/service/storage/opensearch"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 )
+
+const reindexBatchSize = 100
 
 func runReindexGuests(ctx context.Context, cfg config.Config, _ []string) error {
 	pgRepo, err := storage.NewRepository(cfg.DB)
@@ -30,22 +32,36 @@ func runReindexGuests(ctx context.Context, cfg config.Config, _ []string) error 
 	guestsRepo := repository.NewGuestsRepository(pgRepo.DB)
 	osGuestsRepo := repository.NewOpenSearchGuestsRepository(osClient)
 
-	var indexed, failed int
+	var total int
+	batch := make([]*models.GuestDocument, 0, reindexBatchSize)
+
+	flush := func() error {
+		if err := osGuestsRepo.BulkIndexGuests(ctx, batch); err != nil {
+			return err
+		}
+		total += len(batch)
+		batch = batch[:0]
+		return nil
+	}
+
 	for doc, err := range guestsRepo.AllGuestDocuments(ctx) {
 		if err != nil {
 			return fmt.Errorf("failed to fetch guest documents: %w", err)
 		}
-		if err := osGuestsRepo.IndexGuest(ctx, doc); err != nil {
-			slog.Error("failed to index guest", "id", doc.ID, "error", err)
-			failed++
-			continue
+		batch = append(batch, doc)
+		if len(batch) == reindexBatchSize {
+			if err := flush(); err != nil {
+				return fmt.Errorf("failed to bulk index batch: %w", err)
+			}
 		}
-		indexed++
 	}
 
-	fmt.Printf("reindex-guests completed: %d indexed, %d failed\n", indexed, failed)
-	if failed > 0 {
-		return fmt.Errorf("%d guests failed to index", failed)
+	if len(batch) > 0 {
+		if err := flush(); err != nil {
+			return fmt.Errorf("failed to bulk index batch: %w", err)
+		}
 	}
+
+	fmt.Printf("reindex-guests completed: %d indexed\n", total)
 	return nil
 }
