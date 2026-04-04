@@ -4,10 +4,12 @@ type GuestNotesCardProps = {
   initialNotes?: string;
 };
 
-export function GuestNotesCard({ initialNotes }: GuestNotesCardProps) {
+export function GuestNotesCard({
+  initialNotes = "",
+}: GuestNotesCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [notes, setNotes] = useState(initialNotes ?? "");
-  const [draft, setDraft] = useState(initialNotes ?? "");
+  const [notes, setNotes] = useState(initialNotes);
+  const [draft, setDraft] = useState(initialNotes);
 
   const startEditing = () => {
     setDraft(notes);
@@ -33,7 +35,7 @@ export function GuestNotesCard({ initialNotes }: GuestNotesCardProps) {
             <button
               type="button"
               onClick={startEditing}
-              className="h-[3vh] min-h-[3vh] bg-[#004fc5] px-[1vw] text-[1vw] text-white"
+              className="h-[3vh] min-h-[3vh] bg-primary px-[1vw] text-[1vw] text-white hover:bg-primary-hover"
             >
               Edit
             </button>
@@ -61,7 +63,7 @@ export function GuestNotesCard({ initialNotes }: GuestNotesCardProps) {
             <button
               type="button"
               onClick={saveNotes}
-              className="h-[3vh] min-h-[3vh] bg-[#004fc5] px-[1vw] text-[1vw] text-white"
+              className="h-[3vh] min-h-[3vh] bg-primary px-[1vw] text-[1vw] text-white hover:bg-primary-hover"
             >
               Save
             </button>

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"sort"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -149,7 +150,19 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 		return nil, errs.ErrNotFoundInDB
 	}
 
+	sortGuestStays(guest)
+
 	return guest, nil
+}
+
+func sortGuestStays(guest *models.GuestWithStays) {
+	sort.Slice(guest.CurrentStays, func(i, j int) bool {
+		return guest.CurrentStays[i].ArrivalDate.After(guest.CurrentStays[j].ArrivalDate)
+	})
+
+	sort.Slice(guest.PastStays, func(i, j int) bool {
+		return guest.PastStays[i].DepartureDate.After(guest.PastStays[j].DepartureDate)
+	})
 }
 
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {

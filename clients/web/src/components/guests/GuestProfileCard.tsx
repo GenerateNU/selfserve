@@ -9,7 +9,7 @@ type GuestProfileCardProps = {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid grid-cols-[38%_1fr] items-center py-[1vh] text-[1vw]">
-      <p className="text-[#b6bac3]">{label}</p>
+      <p className="text-text-subtle">{label}</p>
       <p className="text-black">{value}</p>
     </div>
   );
@@ -46,7 +46,7 @@ export function GuestProfileCard({ guest }: GuestProfileCardProps) {
             />
           </>
         ) : (
-          <p className="text-[1vw] text-[#b6bac3]">No active stay.</p>
+          <p className="text-[1vw] text-text-subtle">No active stay.</p>
         )}
       </div>
     </section>

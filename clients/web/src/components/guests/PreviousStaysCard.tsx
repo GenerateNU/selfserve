@@ -25,7 +25,7 @@ export function PreviousStaysCard({ stays }: PreviousStaysCardProps) {
           </article>
         ))}
         {stays.length === 0 && (
-          <p className="text-[1vw] text-[#b6bac3]">No previous stays.</p>
+          <p className="text-[1vw] text-text-subtle">No previous stays.</p>
         )}
       </div>
     </section>

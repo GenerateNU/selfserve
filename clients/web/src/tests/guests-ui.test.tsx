@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageSkeleton";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
 import { formatDate } from "../utils/dates";
 
@@ -48,6 +49,16 @@ describe("guest UI helpers", () => {
           name: "5-20",
         }),
       ).not.toBe(null);
+    });
+  });
+
+  describe("GuestProfilePageSkeleton", () => {
+    it("renders multiple skeleton placeholders for the profile page", () => {
+      const { container } = render(<GuestProfilePageSkeleton />);
+
+      expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBe(
+        11,
+      );
     });
   });
 });

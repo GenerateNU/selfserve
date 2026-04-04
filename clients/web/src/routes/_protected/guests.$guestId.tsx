@@ -3,25 +3,12 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { GuestNotesCard } from "../../components/guests/GuestNotesCard";
 import { GuestPageShell } from "../../components/guests/GuestPageShell";
 import { GuestProfileCard } from "../../components/guests/GuestProfileCard";
-import { GuestSpecialNeedsCard } from "../../components/guests/GuestSpecialNeedsCard";
-import { HousekeepingPreferencesCard } from "../../components/guests/HousekeepingPreferencesCard";
+import { GuestProfilePageSkeleton } from "../../components/guests/GuestProfilePageSkeleton";
 import { PreviousStaysCard } from "../../components/guests/PreviousStaysCard";
 
 export const Route = createFileRoute("/_protected/guests/$guestId")({
   component: GuestProfilePage,
 });
-
-const emptySpecialNeeds = {
-  dietaryRestrictions: "",
-  accessibilityNeeds: "",
-  sensorySensitivities: "",
-  medicalConditions: "",
-};
-
-const emptyHousekeeping = {
-  frequency: "",
-  doNotDisturb: "",
-};
 
 function GuestProfilePage() {
   const { guestId } = Route.useParams();
@@ -30,9 +17,7 @@ function GuestProfilePage() {
   if (isLoading) {
     return (
       <GuestPageShell title="Guests / Guest Profile">
-        <div className="border border-black bg-white px-[1vw] py-[2vh] text-[1vw] text-neutral-600">
-          Loading guest profile...
-        </div>
+        <GuestProfilePageSkeleton />
       </GuestPageShell>
     );
   }
@@ -44,7 +29,7 @@ function GuestProfilePage() {
           <p className="text-[1vw] text-black">Guest not found.</p>
           <Link
             to="/guests"
-            className="mt-[1vh] inline-block text-[1vw] text-[#004fc5] underline"
+            className="mt-[1vh] inline-block text-[1vw] text-primary underline"
           >
             Return to guest list
           </Link>
@@ -61,9 +46,7 @@ function GuestProfilePage() {
           <GuestNotesCard initialNotes={guest.notes} />
         </div>
         <div className="flex flex-col gap-[2vh]">
-          <GuestSpecialNeedsCard specialNeeds={emptySpecialNeeds} />
           <PreviousStaysCard stays={guest.past_stays} />
-          <HousekeepingPreferencesCard housekeeping={emptyHousekeeping} />
         </div>
       </div>
     </GuestPageShell>

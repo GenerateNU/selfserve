@@ -51,6 +51,48 @@ function GuestsQuickListPage() {
     });
 
   const allGuests = data?.pages.flatMap((page) => page.data ?? []) ?? [];
+  const renderContent = () => {
+    if (isError) {
+      return (
+        <div className="border border-black bg-white px-[1vw] py-[2vh] text-[1vw] text-black">
+          Failed to load guests. Please try again.
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <GuestQuickListTable
+          guests={allGuests}
+          groupFilter={groupFilter}
+          floorFilter={floorFilter}
+          isLoading={isLoading}
+          onGroupFilterChange={setGroupFilter}
+          onFloorFilterChange={setFloorFilter}
+          onGuestClick={(guestId) =>
+            navigate({ to: "/guests/$guestId", params: { guestId } })
+          }
+        />
+
+        {isLoading && (
+          <div className="px-[1vw] py-[2vh] text-[1vw] text-text-subtle">
+            Loading guests...
+          </div>
+        )}
+
+        {hasNextPage && !isLoading && (
+          <button
+            type="button"
+            onClick={() => fetchNextPage()}
+            disabled={isFetching}
+            className="mt-[1vh] w-full border border-black bg-white py-[1vh] text-[1vw] text-black hover:bg-neutral-50 disabled:opacity-50"
+          >
+            {isFetching ? "Loading..." : "Load more"}
+          </button>
+        )}
+      </>
+    );
+  };
 
   return (
     <PageShell
@@ -68,43 +110,7 @@ function GuestsQuickListPage() {
       }
     >
       <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
-
-      {isError ? (
-        <div className="border border-black bg-white px-[1vw] py-[2vh] text-[1vw] text-black">
-          Failed to load guests. Please try again.
-        </div>
-      ) : (
-        <>
-          <GuestQuickListTable
-            guests={allGuests}
-            groupFilter={groupFilter}
-            floorFilter={floorFilter}
-            isLoading={isLoading}
-            onGroupFilterChange={setGroupFilter}
-            onFloorFilterChange={setFloorFilter}
-            onGuestClick={(guestId) =>
-              navigate({ to: "/guests/$guestId", params: { guestId } })
-            }
-          />
-
-          {isLoading && (
-            <div className="px-[1vw] py-[2vh] text-[1vw] text-neutral-600">
-              Loading guests...
-            </div>
-          )}
-
-          {hasNextPage && !isLoading && (
-            <button
-              type="button"
-              onClick={() => fetchNextPage()}
-              disabled={isFetching}
-              className="mt-[1vh] w-full border border-black bg-white py-[1vh] text-[1vw] text-black hover:bg-neutral-50 disabled:opacity-50"
-            >
-              {isFetching ? "Loading..." : "Load more"}
-            </button>
-          )}
-        </>
-      )}
+      {renderContent()}
 
       {generatedRequest === null && (
         <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />

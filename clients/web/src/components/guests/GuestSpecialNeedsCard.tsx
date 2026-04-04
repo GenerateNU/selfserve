@@ -13,8 +13,8 @@ function SpecialNeedsRow({ label, value }: { label: string; value: string }) {
   const displayValue = value.trim().length > 0 ? value : "-";
   return (
     <div className="grid grid-cols-[48%_1fr] py-[1vh] text-[1vw]">
-      <p className="text-[#b6bac3]">{label}</p>
-      <p className={displayValue === "-" ? "text-[#b6bac3]" : "text-black"}>
+      <p className="text-text-subtle">{label}</p>
+      <p className={displayValue === "-" ? "text-text-subtle" : "text-black"}>
         {displayValue}
       </p>
     </div>
