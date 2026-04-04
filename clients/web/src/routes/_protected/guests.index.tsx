@@ -22,6 +22,7 @@ function GuestsQuickListPage() {
     name?: string;
     description?: string;
     priority?: MakeRequestPriority;
+    room_id?: string;
   } | null>(null);
 
   const filteredGuests = useMemo(() => {
@@ -87,6 +88,7 @@ function GuestsQuickListPage() {
                 p && p in MakeRequestPriority
                   ? (p as MakeRequestPriority)
                   : undefined,
+              room_id: r.room_id,
             });
           }}
         />

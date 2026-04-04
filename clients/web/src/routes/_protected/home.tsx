@@ -76,6 +76,7 @@ function HomePage() {
     name?: string;
     description?: string;
     priority?: MakeRequestPriority;
+    room_id?: string;
   } | null>(null);
 
   function handleCreateRequest() {
@@ -89,6 +90,7 @@ function HomePage() {
       description: request.description,
       priority:
         p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
+      room_id: request.room_id,
     });
   }
 
