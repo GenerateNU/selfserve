@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useCustomInstance } from "@shared/api/orval-mutator";
 import type { User } from "@shared";
@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { SearchBar } from "@/components/ui/SearchBar";
-import { cn } from "@/lib/utils";
+import { cn, useDebounce } from "@/lib/utils";
 
 type SearchUsersResponse = {
   users: User[];
@@ -51,15 +51,10 @@ export function AssigneePicker({
 }: AssigneePickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const loadMoreRef = useRef<HTMLButtonElement>(null);
 
   const searchUsers = useCustomInstance<SearchUsersResponse>();
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
-    return () => clearTimeout(timer);
-  }, [search]);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteQuery({
@@ -89,17 +84,21 @@ export function AssigneePicker({
 
   const triggerLabel = selectedUser
     ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
-    : "Assign Someone";
+    : "Unassigned";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        className={cn(
-          "text-sm transition-colors",
-          selectedUser ? "text-text-default" : "text-primary hover:opacity-80",
-        )}
-      >
-        {triggerLabel}
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-bg-selected",
+            selectedUser ? "text-text-default" : "text-text-subtle",
+          )}
+        >
+          {selectedUser && <UserAvatar user={selectedUser} />}
+          {triggerLabel}
+        </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
