@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/generate/selfserve/internal/models"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,6 +24,33 @@ func (m *mockUsersRepositorySync) InsertUser(ctx context.Context, user *models.C
 func (m *mockUsersRepositorySync) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
 	return m.bulkInsertFunc(ctx, users)
 }
+
+func (m *mockUsersRepositorySync) FindUser(ctx context.Context, id string) (*models.User, error) {
+	return nil, nil
+}
+
+func (m *mockUsersRepositorySync) UpdateProfilePicture(ctx context.Context, userId string, key string) error {
+	return nil
+}
+
+func (m *mockUsersRepositorySync) DeleteProfilePicture(ctx context.Context, userId string) error {
+	return nil
+}
+
+func (m *mockUsersRepositorySync) GetKey(ctx context.Context, userId string) (string, error) {
+	return "", nil
+}
+
+func (m *mockUsersRepositorySync) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
+	return nil, nil
+}
+
+func (m *mockUsersRepositorySync) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
+	return nil, "", nil
+}
+
+// Makes the compiler verify the mock implements the interface
+var _ storage.UsersRepository = (*mockUsersRepositorySync)(nil)
 
 func TestSyncUsers(t *testing.T) {
 	t.Parallel()

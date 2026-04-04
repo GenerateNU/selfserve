@@ -50,3 +50,6 @@ echo "  curl -s -X POST -H \"Content-Type: application/json\" -H \"X-Hotel-ID: \
 echo ""
 echo "  # All guests:"
 echo "  curl -s -H \"X-Hotel-ID: \$HOTEL_ID\" 'http://localhost:${APP_PORT}/api/v1/guests' | jq"
+echo ""
+echo "  # Requests for room 102:"
+echo "  curl -s -X POST -H \"Content-Type: application/json\" -H \"X-Hotel-ID: \$HOTEL_ID\" -d '{\"room_id\":\"10000000-0000-0000-0000-000000000102\"}' 'http://localhost:${APP_PORT}/api/v1/requests/room' | jq"

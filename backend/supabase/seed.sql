@@ -200,6 +200,74 @@ SELECT
   '2026-03-03'::timestamptz + (i || ' hours')::interval,
   '2026-03-03'::timestamptz + (i || ' hours')::interval
 FROM generate_series(1, 100) AS i
+-- Requests
+--   Mix of statuses and priorities across occupied rooms (102, 202, 303)
+--   and unoccupied rooms to test filtering.
+-- -----------------------------------------------------------------------------
+INSERT INTO public.requests (id, request_version, hotel_id, guest_id, room_id, name, description, request_category, request_type, department, status, priority, estimated_completion_time, notes, created_at)
+VALUES
+  -- Room 102 (Alice, occupied) — pending towel request
+  ('c0000000-0000-0000-0000-000000000001', '2026-04-01 09:00:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000001',
+   '10000000-0000-0000-0000-000000000102',
+   'Extra towels', 'Guest requested 2 extra bath towels',
+   'Housekeeping', 'on demand', 'housekeeping',
+   'pending', 'medium', 15, '', '2026-04-01 09:00:00+00'),
+
+  -- Room 102 (Alice, occupied) — completed minibar restock
+  ('c0000000-0000-0000-0000-000000000002', '2026-04-01 10:30:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000001',
+   '10000000-0000-0000-0000-000000000102',
+   'Minibar restock', 'Please restock the minibar with water and sparkling water',
+   'Room Service', 'on demand', 'food & beverage',
+   'completed', 'low', 20, '', '2026-04-01 08:00:00+00'),
+
+  -- Room 202 (Bob, occupied) — in progress maintenance
+  ('c0000000-0000-0000-0000-000000000003', '2026-04-02 07:15:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000002',
+   '10000000-0000-0000-0000-000000000202',
+   'AC not cooling', 'Air conditioning unit is blowing warm air',
+   'Maintenance', 'on demand', 'maintenance',
+   'in progress', 'high', 45, 'Technician dispatched', '2026-04-02 07:00:00+00'),
+
+  -- Room 202 (Bob, occupied) — assigned wake-up call
+  ('c0000000-0000-0000-0000-000000000004', '2026-04-02 06:00:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000002',
+   '10000000-0000-0000-0000-000000000202',
+   'Wake-up call', 'Requested wake-up call at 7:00 AM',
+   'Concierge', 'scheduled', 'front desk',
+   'assigned', 'low', 5, '', '2026-04-01 22:00:00+00'),
+
+  -- Room 303 (Carol, occupied) — pending high-priority DND override
+  ('c0000000-0000-0000-0000-000000000005', '2026-04-02 08:45:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000003',
+   '10000000-0000-0000-0000-000000000303',
+   'Room cleaning', 'Guest requested full room cleaning and bed linen change',
+   'Housekeeping', 'on demand', 'housekeeping',
+   'pending', 'high', 40, 'Celebrating anniversary — use rose petal turndown', '2026-04-02 08:30:00+00'),
+
+  -- Room 303 (Carol, occupied) — completed spa booking assistance
+  ('c0000000-0000-0000-0000-000000000006', '2026-04-01 14:00:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000003',
+   '10000000-0000-0000-0000-000000000303',
+   'Spa booking', 'Guest requested a couples massage appointment for 3 PM',
+   'Concierge', 'on demand', 'concierge',
+   'completed', 'medium', 10, '', '2026-04-01 11:00:00+00'),
+
+  -- Unassigned (no guest, no room) — hotel-level pending request
+  ('c0000000-0000-0000-0000-000000000007', '2026-04-02 09:00:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   NULL, NULL,
+   'Pool area inspection', 'Routine safety inspection for pool deck',
+   'Maintenance', 'recurring', 'maintenance',
+   'pending', 'medium', 60, '', '2026-04-02 09:00:00+00')
+
 ON CONFLICT (id, request_version) DO NOTHING;
 
 COMMIT;
@@ -211,4 +279,6 @@ SELECT 'rooms',                      COUNT(*) FROM public.rooms         WHERE ho
 UNION ALL
 SELECT 'guests',                     COUNT(*) FROM public.guests        WHERE id::text LIKE 'a0000000%'
 UNION ALL
-SELECT 'guest_bookings',             COUNT(*) FROM public.guest_bookings WHERE id::text LIKE 'b0000000%';
+SELECT 'guest_bookings',             COUNT(*) FROM public.guest_bookings WHERE id::text LIKE 'b0000000%'
+UNION ALL
+SELECT 'requests',                   COUNT(*) FROM public.requests       WHERE id::text LIKE 'c0000000%';

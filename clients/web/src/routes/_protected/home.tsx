@@ -3,16 +3,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@clerk/clerk-react";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users";
+import { MakeRequestPriority } from "@shared";
 import type { Request } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
-import { HomeHeader } from "@/components/home/HomeHeader";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
 import { HomeFilterBar } from "@/components/home/HomeFilterBar";
+import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
 import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
 import { useKanbanRequests } from "@/hooks/use-kanban-requests";
+import { PLACEHOLDER_COLUMNS } from "@/mock-data/home";
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
@@ -72,9 +74,33 @@ function KanbanColumnData({
 }
 
 function HomePage() {
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
-    null,
-  );
+  const [drawerData, setDrawerData] = useState<{
+    name?: string;
+    description?: string;
+    priority?: MakeRequestPriority;
+  } | null>(null);
+
+  function handleCreateRequest() {
+    setDrawerData({});
+  }
+
+  function handleRequestGenerated(request: Request) {
+    const p = request.priority;
+    setDrawerData({
+      name: request.name,
+      description: request.description,
+      priority:
+        p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
+    });
+  }
+
+  const drawer =
+    drawerData !== null ? (
+      <CreateRequestDrawer
+        initialData={drawerData}
+        onClose={() => setDrawerData(null)}
+      />
+    ) : null;
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -89,33 +115,29 @@ function HomePage() {
 
   return (
     <PageShell
-      header={
-        <>
-          <HomeHeader />
-          <HomeToolbar className="mt-2" />
-          <HomeFilterBar />
-        </>
-      }
-      drawerOpen={generatedRequest !== null}
-      drawer={
-        <GeneratedRequestDrawer
-          request={generatedRequest}
-          onClose={() => setGeneratedRequest(null)}
-        />
-      }
+      header={{
+        title: "Home",
+        description: "Overview of all tasks currently at play",
+      }}
+      drawerOpen={drawerData !== null}
+      drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
-      <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
-        {KANBAN_COLUMNS.map((col) => (
-          <KanbanColumn key={col.status} title={col.title}>
-            {hotelId && (
-              <KanbanColumnData hotelId={hotelId} status={col.status} />
-            )}
-          </KanbanColumn>
-        ))}
+      <HomeToolbar className="mt-2" onCreateRequest={handleCreateRequest} />
+      <HomeFilterBar />
+      <div className="relative flex-1 min-h-0">
+        <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
+          {KANBAN_COLUMNS.map((col) => (
+            <KanbanColumn key={col.status} title={col.title}>
+              {hotelId && (
+                <KanbanColumnData hotelId={hotelId} status={col.status} />
+              )}
+            </KanbanColumn>
+          ))}
+        </div>
       </div>
-      {generatedRequest === null && (
-        <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      {drawerData === null && (
+        <GlobalTaskInput onRequestGenerated={handleRequestGenerated} />
       )}
     </PageShell>
   );

@@ -1,5 +1,6 @@
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { OverviewCard } from "@/components/rooms/OverviewCard";
+import { RoomRequestList } from "@/components/rooms/RoomRequestList";
 
 type RoomsOverviewProps = {
   rooms: Array<RoomWithOptionalGuestBooking>;
@@ -23,18 +24,27 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const vacantRooms = totalRooms - occupiedRooms;
 
   return (
-    <aside className="w-1/4 shrink-0 min-h-0 overflow-y-auto bg-white p-[2vw]">
-      <div className="flex flex-col gap-[2.2vh]">
+    <aside className="w-full max-w-[24.875rem] shrink-0 min-h-0 overflow-y-auto px-6">
+      <div className="flex flex-col">
         <OverviewCard
           title="Tasks"
           columns={[
-            { field: "Urgent", value: 0, description: "Tasks" },
+            {
+              field: "Urgent",
+              value: 0,
+              description: "Tasks",
+              urgent: true,
+            },
             {
               field: "Unassigned",
               value: cleaningOnlyRooms,
               description: "Tasks",
             },
-            { field: "Pending", value: cleaningRooms, description: "Tasks" },
+            {
+              field: "Pending",
+              value: cleaningRooms,
+              description: "Tasks",
+            },
           ]}
         />
 
@@ -43,8 +53,9 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
           columns={[
             {
               field: "Floor Occupancy",
-              value: vacantRooms,
-              description: "Rooms left",
+              value: occupiedRooms,
+              valueSecondary: totalRooms,
+              description: "Rooms occupied",
             },
             {
               field: "Expected Arrivals",
@@ -55,6 +66,25 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
               field: "Expected Departures",
               value: occupiedAndCleaningRooms,
               description: "Guests",
+            },
+          ]}
+        />
+        <RoomRequestList
+          title="Unassigned Tasks"
+          requests={[
+            {
+              id: "1",
+              name: "Room 101",
+              room_number: 101,
+              request_category: "Maintenance",
+              priority: "low",
+            },
+            {
+              id: "2",
+              name: "Room 102",
+              room_number: 102,
+              request_category: "Maintenance",
+              priority: "medium",
             },
           ]}
         />

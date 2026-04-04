@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type BookingStatus string
 
 const (
@@ -13,6 +15,6 @@ type GuestBooking struct {
 	Guest         Guest         `json:"guest"`
 	Room          Room          `json:"room"`
 	Status        BookingStatus `json:"status"`
-	ArrivalDate   string        `json:"arrival_date"`
-	DepartureDate string        `json:"departure_date"`
+	ArrivalDate   time.Time     `json:"arrival_date" example:"2024-01-02T00:00:00Z"`
+	DepartureDate time.Time     `json:"departure_date" example:"2024-01-05T00:00:00Z"`
 } //@name GuestBooking
