@@ -53,7 +53,7 @@ export {
 
 
 export {
-  useGetGuestBookingsGroupSizes
+  useGetGuestBookingsFloor
 } from "./api/generated/endpoints/guest-bookings/guest-bookings";
 
 export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";

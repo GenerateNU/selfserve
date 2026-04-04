@@ -32,7 +32,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
   const { mutate: generateRequest, isPending } = useMutation({
     mutationFn: (rawText: string) => {
       if (!hasValidHotelId) {
-        throw new Error("No valid hotel is associated with your user.");
+        throw new Error("Unable to create request right now.");
       }
 
       return postRequestGenerate({
@@ -61,10 +61,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
 
   const handleSubmit = () => {
     if (!value.trim() || isPending) return;
-    if (!hasValidHotelId) {
-      window.alert("Your user is missing a valid hotel ID.");
-      return;
-    }
+    if (!hasValidHotelId) return;
     generateRequest(value.trim());
   };
 

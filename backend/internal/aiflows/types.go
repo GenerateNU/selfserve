@@ -32,8 +32,8 @@ type GenerateRequestOutput struct {
 	RequestCategory         *string                 `json:"request_category,omitempty"`
 	RequestType             string                  `json:"request_type" validate:"notblank"`
 	Department              *string                 `json:"department,omitempty"`
-	Status                  string                  `json:"status" validate:"request_status"`
-	Priority                string                  `json:"priority" validate:"request_priority"`
+	Status                  string                  `json:"status" validate:"oneof='pending' 'assigned' 'in progress' 'completed'"`
+	Priority                string                  `json:"priority" validate:"oneof=low medium high"`
 	EstimatedCompletionTime *int                    `json:"estimated_completion_time,omitempty"`
 	Notes                   *string                 `json:"notes,omitempty"`
 	RoomMentioned           *bool                   `json:"room_mentioned,omitempty"`

@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/generate/selfserve/internal/models"
 	"github.com/go-playground/validator/v10"
 	nonstandard "github.com/go-playground/validator/v10/non-standard/validators"
 )
@@ -28,12 +27,6 @@ func Init() {
 	})
 
 	_ = validatorInstance.RegisterValidation("notblank", nonstandard.NotBlank)
-	_ = validatorInstance.RegisterValidation("request_status", func(fl validator.FieldLevel) bool {
-		return models.RequestStatus(fl.Field().String()).IsValid()
-	})
-	_ = validatorInstance.RegisterValidation("request_priority", func(fl validator.FieldLevel) bool {
-		return models.RequestPriority(fl.Field().String()).IsValid()
-	})
 
 	Validate = validatorInstance
 }
