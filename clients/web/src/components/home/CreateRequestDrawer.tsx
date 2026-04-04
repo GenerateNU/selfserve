@@ -91,15 +91,18 @@ export function CreateRequestDrawer({
     mutationFn: (data: MakeRequest) => postRequest(data),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["/request/cursor"] });
+      await queryClient.cancelQueries({ queryKey: ["requests", "kanban"] });
     },
     onError: () => {
       queryClient.invalidateQueries({ queryKey: ["/request/cursor"] });
+      queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
     },
     onSuccess: () => {
       onClose();
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/request/cursor"] });
+      queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
     },
   });
 
