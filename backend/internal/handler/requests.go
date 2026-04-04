@@ -5,12 +5,14 @@ import (
 	"log/slog"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -246,15 +248,37 @@ func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
 	input := models.GetRequestsByGuestInput{
 		GuestID: c.Params("id"),
 		HotelID: c.Get("X-Hotel-ID"),
+		Cursor:  c.Query("cursor"),
+		Limit:   c.QueryInt("limit"),
 	}
-	if err := httpx.BindAndValidate(c, &input); err != nil {
+	if err := httpx.Validate(&input); err != nil {
 		return err
 	}
 
-	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), input.GuestID, input.HotelID)
+	var cursorID string
+	var cursorVersion time.Time
+	if input.Cursor != "" {
+		parts := strings.SplitN(input.Cursor, "|", 2)
+		if len(parts) != 2 {
+			return errs.BadRequest("invalid cursor")
+		}
+		var err error
+		cursorID = parts[0]
+		cursorVersion, err = time.Parse(time.RFC3339Nano, parts[1])
+		if err != nil {
+			return errs.BadRequest("invalid cursor")
+		}
+	}
+
+	limit := utils.ResolveLimit(input.Limit)
+	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), input.GuestID, input.HotelID, cursorID, cursorVersion, limit+1)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	return c.JSON(requests)
+	page := utils.BuildCursorPage(requests, limit, func(req *models.GuestRequest) string {
+		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
+	})
+
+	return c.JSON(page)
 }

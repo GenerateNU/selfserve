@@ -22,7 +22,7 @@ type mockRequestRepository struct {
 	findRequestFunc           func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc          func(ctx context.Context) ([]models.Request, error)
 	findRequestsByCursorFunc  func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
-	findRequestsByGuestIDFunc func(ctx context.Context, guestID string, hotelID string) ([]*models.GuestRequest, error)
+	findRequestsByGuestIDFunc func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -49,8 +49,8 @@ func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input aiflows.G
 	return m.runGenerateRequestFunc(ctx, input)
 }
 
-func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guestID string, hotelID string) ([]*models.GuestRequest, error) {
-	return m.findRequestsByGuestIDFunc(ctx, guestID, hotelID)
+func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	return m.findRequestsByGuestIDFunc(ctx, guestID, hotelID, cursorID, cursorVersion, limit)
 }
 
 func TestRequestHandler_GetRequest(t *testing.T) {
@@ -983,16 +983,17 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 
 		description := "This is a very urgent request"
 		mock := &mockRequestRepository{
-			findRequestsByGuestIDFunc: func(ctx context.Context, guestID string, hotelID string) ([]*models.GuestRequest, error) {
+			findRequestsByGuestIDFunc: func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 				return []*models.GuestRequest{
 					{
-						ID:          "630e8400-e458-41d4-a716-446655440000",
-						Name:        "HELP HELP HELP",
-						Priority:    "high",
-						Status:      "pending",
-						Description: &description,
-						RequestType: "one-time",
-						CreatedAt:   time.Now(),
+						ID:             "630e8400-e458-41d4-a716-446655440000",
+						Name:           "HELP HELP HELP",
+						Priority:       "high",
+						Status:         "pending",
+						Description:    &description,
+						RequestType:    "one-time",
+						CreatedAt:      time.Now(),
+						RequestVersion: time.Now(),
 					},
 				}, nil
 			},
@@ -1019,7 +1020,7 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByGuestIDFunc: func(ctx context.Context, guestID string, hotelID string) ([]*models.GuestRequest, error) {
+			findRequestsByGuestIDFunc: func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 				return []*models.GuestRequest{}, nil
 			},
 		}
@@ -1043,7 +1044,7 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByGuestIDFunc: func(ctx context.Context, guestID string, hotelID string) ([]*models.GuestRequest, error) {
+			findRequestsByGuestIDFunc: func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 				assert.Equal(t, validGuestID, guestID)
 				assert.Equal(t, validHotelID, hotelID)
 				return []*models.GuestRequest{}, nil
@@ -1078,7 +1079,7 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 		assert.Equal(t, 400, resp.StatusCode)
 
 		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "guest id")
+		assert.Contains(t, string(body), "guest_id")
 	})
 
 	t.Run("returns 400 when X-Hotel-ID header is missing", func(t *testing.T) {
@@ -1096,7 +1097,7 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 		assert.Equal(t, 400, resp.StatusCode)
 
 		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "X-Hotel-ID")
+		assert.Contains(t, string(body), "hotel_id")
 	})
 
 	t.Run("returns 400 when X-Hotel-ID is invalid UUID", func(t *testing.T) {
@@ -1115,14 +1116,14 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 		assert.Equal(t, 400, resp.StatusCode)
 
 		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "X-Hotel-ID")
+		assert.Contains(t, string(body), "hotel_id")
 	})
 
 	t.Run("returns 500 on repository error", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByGuestIDFunc: func(ctx context.Context, guestID string, hotelID string) ([]*models.GuestRequest, error) {
+			findRequestsByGuestIDFunc: func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 				return nil, errors.New("db connection failed")
 			},
 		}

@@ -56,6 +56,8 @@ type Request struct {
 type GetRequestsByGuestInput struct {
 	GuestID string `json:"guest_id" validate:"required,uuid"`
 	HotelID string `json:"hotel_id" validate:"required,uuid"`
+	Cursor  string `json:"cursor"`
+	Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
 } //@name GetRequestsByGuestInput
 
 type GuestRequest struct {
@@ -69,4 +71,5 @@ type GuestRequest struct {
 	RequestType     string    `json:"request_type"`
 	RequestCategory *string   `json:"request_category,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
+	RequestVersion  time.Time `json:"request_version"`
 } //@name GuestRequest
