@@ -88,17 +88,14 @@ export function AssigneePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-bg-selected",
-            selectedUser ? "text-text-default" : "text-text-subtle",
-          )}
-        >
-          {selectedUser && <UserAvatar user={selectedUser} />}
-          {triggerLabel}
-        </button>
+      <PopoverTrigger
+        className={cn(
+          "flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-bg-selected",
+          selectedUser ? "text-text-default" : "text-text-subtle",
+        )}
+      >
+        {selectedUser && <UserAvatar user={selectedUser} />}
+        {triggerLabel}
       </PopoverTrigger>
       <PopoverContent
         align="start"
