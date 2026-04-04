@@ -57,6 +57,13 @@ type MakeRequest struct {
 	Notes                   *string    `json:"notes" example:"No special requests"`
 } //@name MakeRequest
 
+type GetRequestsByStatusInput struct {
+	HotelID    string  `json:"-"           validate:"notblank,uuid"`
+	Status     string  `json:"status"      validate:"oneof='pending' 'assigned' 'in progress' 'completed'"`
+	CursorTime *int64  `json:"cursor_time"`
+	CursorID   *string `json:"cursor_id"`
+} //@name GetRequestsByStatusInput
+
 type GenerateRequestInput struct {
 	RawText string `json:"raw_text" example:"Guest in room 504 needs extra towels urgently"`
 	HotelID string `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
