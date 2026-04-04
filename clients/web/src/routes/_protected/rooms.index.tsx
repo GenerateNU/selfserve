@@ -38,17 +38,18 @@ function RoomsPage() {
       }),
   });
 
-  const drawerContent = generatedData !== null ? (
-    <CreateRequestDrawer
-      initialData={generatedData}
-      onClose={() => setGeneratedData(null)}
-    />
-  ) : (
-    <RoomDetailsDrawer
-      room={selectedRoom}
-      onClose={() => setSelectedRoom(null)}
-    />
-  );
+  const drawerContent =
+    generatedData !== null ? (
+      <CreateRequestDrawer
+        initialData={generatedData}
+        onClose={() => setGeneratedData(null)}
+      />
+    ) : (
+      <RoomDetailsDrawer
+        room={selectedRoom}
+        onClose={() => setSelectedRoom(null)}
+      />
+    );
 
   return (
     <PageShell

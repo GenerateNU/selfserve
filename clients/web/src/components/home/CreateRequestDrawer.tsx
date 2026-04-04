@@ -54,12 +54,19 @@ type CreateRequestDrawerProps = {
   };
 };
 
-export function CreateRequestDrawer({ onClose, initialData }: CreateRequestDrawerProps) {
+export function CreateRequestDrawer({
+  onClose,
+  initialData,
+}: CreateRequestDrawerProps) {
   const [showMore, setShowMore] = useState(false);
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
   const [name, setName] = useState(initialData?.name ?? "");
-  const [description, setDescription] = useState(initialData?.description ?? "");
-  const [priority, setPriority] = useState<Priority>(initialData?.priority ?? "medium");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
+  const [priority, setPriority] = useState<Priority>(
+    initialData?.priority ?? "medium",
+  );
   const [assignee, setAssignee] = useState<User | undefined>();
 
   const queryClient = useQueryClient();
