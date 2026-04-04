@@ -3,8 +3,8 @@ services:
     build: .
     ports:
       - "${PORT:-8080}:8080"
-    env_file:
-      - config/.env
+    environment:
+      - DOPPLER_TOKEN
     depends_on:
       - opensearch
     restart: unless-stopped
