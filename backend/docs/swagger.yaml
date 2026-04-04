@@ -1362,6 +1362,46 @@ paths:
       tags:
       - s3
   /users:
+    get:
+      consumes:
+      - application/json
+      description: Returns a paginated list of users for a hotel, optionally filtered
+        by name
+      parameters:
+      - description: Hotel UUID
+        in: query
+        name: hotel_id
+        required: true
+        type: string
+      - description: Pagination cursor (last seen user ID)
+        in: query
+        name: cursor
+        type: string
+      - description: Name search query
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Search users by hotel
+      tags:
+      - users
     post:
       consumes:
       - application/json

@@ -58,6 +58,10 @@ func (m *mockUsersRepositoryClerk) UpdateUser(ctx context.Context, id string, up
 	return nil, nil
 }
 
+func (m *mockUsersRepositoryClerk) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
+	return nil, "", nil
+}
+
 // Makes the compiler verify the mock implements the interface
 var _ storage.UsersRepository = (*mockUsersRepositoryClerk)(nil)
 
