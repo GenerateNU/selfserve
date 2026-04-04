@@ -2,7 +2,10 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type PageShellProps = {
-  header: ReactNode;
+  header: {
+    title: string;
+    description: string;
+  };
   drawer?: ReactNode;
   drawerOpen?: boolean;
   children: ReactNode;
@@ -23,20 +26,22 @@ export function PageShell({
   return (
     <main className="relative flex h-screen w-full min-w-0 overflow-hidden">
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-        <header className="shrink-0 bg-bg-container">{header}</header>
+        <header className="shrink-0 bg-white border-b border-stroke-subtle px-6 py-4 flex flex-col gap-1.5">
+          <h1 className="text-2xl font-semibold text-text-default">
+            {header.title}
+          </h1>
+          <h2 className="text-sm font-medium text-text-subtle">
+            {header.description}
+          </h2>
+        </header>
 
         <section
           className={cn(
-            "flex-1 min-h-0 overflow-auto bg-bg-primary",
+            "flex-1 min-h-0 overflow-auto bg-neutral-10 px-6 py-4",
             bodyClassName,
           )}
         >
-          <div
-            className={cn(
-              "flex flex-col mx-auto w-full px-16",
-              contentClassName,
-            )}
-          >
+          <div className={cn("flex flex-col mx-auto w-full", contentClassName)}>
             {children}
           </div>
         </section>
