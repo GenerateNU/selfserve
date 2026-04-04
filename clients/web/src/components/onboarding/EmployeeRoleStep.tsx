@@ -16,31 +16,10 @@ export function EmployeeRoleStep({
   onNext,
 }: EmployeeRoleStepProps) {
   return (
-    <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
+    <div className="flex w-screen h-screen">
       <LeftPanel />
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          paddingTop: "clamp(80px, 19.45vh, 191px)",
-          paddingLeft: "clamp(40px, 9.6vw, 132px)",
-          paddingRight: "clamp(40px, 9.6vw, 132px)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "663px",
-            height: "clamp(400px, 66.4vh, 652px)",
-            overflow: "hidden",
-            borderRadius: "24px",
-            boxSizing: "border-box",
-          }}
-          className="border border-black bg-white flex flex-col items-center p-12 gap-12"
-        >
+      <div className="flex-1 flex justify-center items-start pt-[clamp(80px,19.45vh,191px)] px-[clamp(40px,9.6vw,132px)] overflow-hidden">
+        <div className="w-full max-w-[663px] h-[clamp(400px,66.4vh,652px)] overflow-hidden rounded-[24px] box-border border border-black bg-white flex flex-col items-center p-12 gap-12">
           {/* Header */}
           <div className="flex flex-col gap-2 text-center">
             <h1 className="text-gray-900 text-2xl font-normal leading-8 m-0">

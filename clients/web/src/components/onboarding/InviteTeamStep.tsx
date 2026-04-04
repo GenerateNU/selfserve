@@ -11,208 +11,65 @@ export function InviteTeamStep({ formData, updateForm }: InviteTeamStepProps) {
   const [invited, setInvited] = useState(false);
 
   return (
-    <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
+    <div className="flex w-screen h-screen">
       <LeftPanel />
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          paddingTop: "clamp(80px, 19.45vh, 191px)",
-          paddingLeft: "clamp(40px, 9.6vw, 132px)",
-          paddingRight: "clamp(40px, 9.6vw, 132px)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "663px",
-            height: "clamp(450px, 63.64vh, 625px)",
-            overflow: "hidden",
-            border: "1px solid #000000",
-            borderRadius: "24px",
-            backgroundColor: "#FFFFFF",
-            boxSizing: "border-box",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              width: "90%",
-              maxWidth: "567px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "24px",
-            }}
-          >
+      <div className="flex-1 flex justify-center items-start pt-[clamp(80px,19.45vh,191px)] px-[clamp(40px,9.6vw,132px)] overflow-hidden">
+        <div className="w-full max-w-[663px] h-[clamp(450px,63.64vh,625px)] overflow-hidden border border-black rounded-[24px] bg-[var(--color-bg-primary)] box-border flex items-center justify-center">
+          <div className="w-[90%] max-w-[567px] flex flex-col items-center gap-6">
             {/* Logo */}
-            <div
-              style={{
-                width: "80px",
-                height: "80px",
-                border: "1px solid #000000",
-                borderRadius: "8px",
-                backgroundColor: "#FFFFFF",
-                flexShrink: 0,
-              }}
-            />
+            <div className="w-20 h-20 border border-black rounded-lg bg-[var(--color-bg-primary)] shrink-0" />
 
             {/* Header */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "8px",
-                textAlign: "center",
-              }}
-            >
-              <h1
-                style={{
-                  fontFamily: "Satoshi Variable, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "clamp(20px, 2.5vw, 24px)",
-                  lineHeight: "32px",
-                  color: "#0F172B",
-                  margin: 0,
-                }}
-              >
+            {/* TODO: #0F172B and #62748E have no design tokens — flag to Dylan */}
+            <div className="flex flex-col items-center gap-2 text-center">
+              <h1 className="font-normal text-[clamp(20px,2.5vw,24px)] leading-8 text-[#0F172B] m-0">
                 Invite your team
               </h1>
-              <p
-                style={{
-                  fontFamily: "Satoshi Variable, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "clamp(13px, 1.6vw, 16px)",
-                  lineHeight: "24px",
-                  color: "#62748E",
-                  margin: 0,
-                }}
-              >
+              <p className="font-normal text-[clamp(13px,1.6vw,16px)] leading-6 text-[#62748E] m-0">
                 SelfServe is better when the whole staff is connected.
               </p>
             </div>
 
             {/* Email input */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-                width: "100%",
-              }}
-            >
-              <div
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  backgroundColor: "#F1F5F9",
-                  borderRadius: "8px",
-                  padding: "8px 12px",
-                  boxSizing: "border-box",
-                }}
-              >
-                <div
-                  style={{
-                    width: "24px",
-                    height: "24px",
-                    borderRadius: "50%",
-                    backgroundColor: "#CBD5E1",
-                    flexShrink: 0,
-                  }}
-                />
+            {/* TODO: bg-slate-100 (#F1F5F9) and bg-slate-300 (#CBD5E1) have no design tokens — flag to Dylan */}
+            <div className="flex flex-col gap-2 w-full">
+              <div className="w-full flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2 box-border">
+                <div className="w-6 h-6 rounded-full bg-slate-300 shrink-0" />
                 <input
                   type="email"
                   value={formData.inviteEmail}
                   onChange={(e) => updateForm({ inviteEmail: e.target.value })}
                   placeholder="Enter email address..."
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "none",
-                    outline: "none",
-                    fontSize: "14px",
-                  }}
+                  className="flex-1 bg-transparent border-none outline-none text-sm"
                 />
                 <button
                   onClick={() => setInvited(true)}
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    color: "#0F172B",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
+                  className="text-sm font-semibold text-[#0F172B] bg-transparent border-none"
                 >
                   Invite
                 </button>
               </div>
               {invited && (
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--color-success-stroke)",
-                    textAlign: "center",
-                    margin: 0,
-                  }}
-                >
+                <p className="text-xs text-[var(--color-success-stroke)] text-center m-0">
                   Invite sent!
                 </p>
               )}
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "#62748E",
-                  textAlign: "center",
-                  margin: 0,
-                }}
-              >
+              <p className="text-xs text-[#62748E] text-center m-0">
                 You can also do this later from your settings.
               </p>
             </div>
 
             {/* Actions */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-                alignItems: "center",
-                width: "100%",
-              }}
-            >
+            <div className="flex flex-col gap-3 items-center w-full">
               <button
                 onClick={() => console.log("Go to dashboard")}
-                style={{
-                  width: "100%",
-                  height: "56px",
-                  borderRadius: "14px",
-                  backgroundColor: "var(--color-primary)",
-                  color: "white",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "16px",
-                }}
+                className="w-full h-14 rounded-[14px] bg-[var(--color-primary)] text-white border-none text-base"
               >
                 Go to Dashboard
               </button>
               <button
                 onClick={() => console.log("Skip for now")}
-                style={{
-                  fontSize: "14px",
-                  color: "#62748E",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
+                className="text-sm text-[#62748E] bg-transparent border-none"
               >
                 Skip for now
               </button>

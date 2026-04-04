@@ -26,128 +26,36 @@ export function PropertyDetailsStep({
     formData.hotelName && formData.numberOfRooms && formData.propertyType;
 
   return (
-    <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
+    <div className="flex w-screen h-screen">
       <LeftPanel />
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          paddingTop: "clamp(80px, 19.45vh, 191px)",
-          paddingLeft: "clamp(40px, 9.6vw, 132px)",
-          paddingRight: "clamp(40px, 9.6vw, 132px)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "663px",
-            height: "clamp(500px, 71.79vh, 705px)",
-            overflow: "hidden",
-            border: "1px solid #000000",
-            borderRadius: "24px",
-            backgroundColor: "#FFFFFF",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "48px",
-            boxSizing: "border-box",
-          }}
-        >
-          <div
-            style={{
-              width: "256.68px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "32px",
-            }}
-          >
+      <div className="flex-1 flex justify-center items-start pt-[clamp(80px,19.45vh,191px)] px-[clamp(40px,9.6vw,132px)] overflow-hidden">
+        <div className="w-full max-w-[663px] h-[clamp(500px,71.79vh,705px)] overflow-hidden border border-black rounded-[24px] bg-[var(--color-bg-primary)] flex flex-col items-center justify-center p-12 box-border">
+          <div className="w-[256.68px] flex flex-col items-center gap-8">
             {/* Header */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px",
-                textAlign: "center",
-              }}
-            >
-              <h1
-                style={{
-                  fontFamily: "Satoshi Variable, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "clamp(20px, 2.5vw, 24px)",
-                  lineHeight: "32px",
-                  color: "#0F172B",
-                  margin: 0,
-                }}
-              >
+            {/* TODO: #0F172B and #62748E have no design tokens — flag to Dylan */}
+            <div className="flex flex-col gap-1 text-center">
+              <h1 className="font-normal text-[clamp(20px,2.5vw,24px)] leading-8 text-[#0F172B] m-0">
                 Property Details
               </h1>
-              <p
-                style={{
-                  fontFamily: "Satoshi Variable, sans-serif",
-                  fontWeight: 400,
-                  fontSize: "clamp(13px, 1.6vw, 16px)",
-                  lineHeight: "24px",
-                  color: "#62748E",
-                  margin: 0,
-                }}
-              >
+              <p className="font-normal text-[clamp(13px,1.6vw,16px)] leading-6 text-[#62748E] m-0">
                 Lorem ipsum dolor sit amet.
               </p>
             </div>
 
             {/* Form fields */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "16px",
-                width: "100%",
-              }}
-            >
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: "4px" }}
-              >
-                <label
-                  style={{
-                    fontFamily: "Satoshi Variable, sans-serif",
-                    fontSize: "14px",
-                    color: "#0F172B",
-                  }}
-                >
-                  Hotel Name
-                </label>
+            <div className="flex flex-col gap-4 w-full">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-[#0F172B]">Hotel Name</label>
                 <input
                   type="text"
                   value={formData.hotelName}
                   onChange={(e) => updateForm({ hotelName: e.target.value })}
                   placeholder="Lorem ipsum dolor sit amet"
-                  style={{
-                    border: "1px solid var(--color-stroke-subtle)",
-                    borderRadius: "8px",
-                    padding: "8px 12px",
-                    fontSize: "14px",
-                    outline: "none",
-                    width: "100%",
-                    boxSizing: "border-box",
-                  }}
+                  className="border border-[var(--color-stroke-subtle)] rounded-lg px-3 py-2 text-sm outline-none w-full box-border"
                 />
               </div>
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: "4px" }}
-              >
-                <label
-                  style={{
-                    fontFamily: "Satoshi Variable, sans-serif",
-                    fontSize: "14px",
-                    color: "#0F172B",
-                  }}
-                >
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-[#0F172B]">
                   Number of Rooms
                 </label>
                 <input
@@ -157,42 +65,15 @@ export function PropertyDetailsStep({
                     updateForm({ numberOfRooms: e.target.value })
                   }
                   placeholder="e.g. 150"
-                  style={{
-                    border: "1px solid var(--color-stroke-subtle)",
-                    borderRadius: "8px",
-                    padding: "8px 12px",
-                    fontSize: "14px",
-                    outline: "none",
-                    width: "100%",
-                    boxSizing: "border-box",
-                  }}
+                  className="border border-[var(--color-stroke-subtle)] rounded-lg px-3 py-2 text-sm outline-none w-full box-border"
                 />
               </div>
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: "4px" }}
-              >
-                <label
-                  style={{
-                    fontFamily: "Satoshi Variable, sans-serif",
-                    fontSize: "14px",
-                    color: "#0F172B",
-                  }}
-                >
-                  Property Type
-                </label>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-[#0F172B]">Property Type</label>
                 <select
                   value={formData.propertyType}
                   onChange={(e) => updateForm({ propertyType: e.target.value })}
-                  style={{
-                    border: "1px solid var(--color-stroke-subtle)",
-                    borderRadius: "8px",
-                    padding: "8px 12px",
-                    fontSize: "14px",
-                    outline: "none",
-                    backgroundColor: "white",
-                    width: "100%",
-                    boxSizing: "border-box",
-                  }}
+                  className="border border-[var(--color-stroke-subtle)] rounded-lg px-3 py-2 text-sm outline-none bg-white w-full box-border"
                 >
                   <option value="">Select a type</option>
                   {PROPERTY_TYPES.map((t) => (
@@ -205,42 +86,21 @@ export function PropertyDetailsStep({
             </div>
 
             {/* Actions */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-                alignItems: "center",
-                width: "100%",
-              }}
-            >
+            <div className="flex flex-col gap-3 items-center w-full">
               <button
                 onClick={onNext}
                 disabled={!isValid}
-                style={{
-                  width: "100%",
-                  height: "56px",
-                  borderRadius: "14px",
-                  backgroundColor: isValid
-                    ? "var(--color-primary)"
-                    : "var(--color-primary-hover)",
-                  color: "white",
-                  border: "none",
-                  cursor: isValid ? "pointer" : "not-allowed",
-                  fontSize: "16px",
-                }}
+                className={`w-full h-14 rounded-[14px] text-white border-none text-base ${
+                  isValid
+                    ? "bg-[var(--color-primary)] cursor-pointer"
+                    : "bg-[var(--color-primary-hover)] cursor-not-allowed"
+                }`}
               >
                 Continue
               </button>
               <button
                 onClick={onBack}
-                style={{
-                  fontSize: "14px",
-                  color: "#62748E",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
+                className="text-sm text-[#62748E] bg-transparent border-none"
               >
                 ‹ Back
               </button>
