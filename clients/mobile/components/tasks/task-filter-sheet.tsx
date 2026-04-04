@@ -53,8 +53,8 @@ function OptionChip({
 
 export const TaskFilterSheet = forwardRef<BottomSheetModal, TaskFilterSheetProps>(
   function TaskFilterSheet({ tab, draft, setDraft, viewMode, setViewMode, onApply }, ref) {
-    const snapPoints = useMemo(() => ["45%", "85%"], []);
-
+    // Tall first snap so filters + Apply are visible without dragging higher first.
+    const snapPoints = useMemo(() => ["90%", "95%"], []);
     const renderBackdrop = useCallback(
       (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
         <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} />
@@ -73,7 +73,10 @@ export const TaskFilterSheet = forwardRef<BottomSheetModal, TaskFilterSheetProps
         backdropComponent={renderBackdrop}
         handleIndicatorStyle={{ backgroundColor: "#ccc" }}
       >
-        <BottomSheetScrollView className="flex-1 px-5 pb-10">
+        <BottomSheetScrollView
+          className="px-5"
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
           <View className="flex-row items-center justify-between pt-2">
             <Text className="text-xl font-bold text-gray-900">Filters</Text>
             <Pressable onPress={() => setDraft({})}>

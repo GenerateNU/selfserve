@@ -90,15 +90,7 @@ export default function TasksScreen() {
   const filterSheetRef = useRef<BottomSheetModal>(null);
   const detailSheetRef = useRef<BottomSheetModal>(null);
 
-  const [activeTab, setActiveTab] = useState<TabName>(() => {
-    if (
-      __DEV__ &&
-      !(process.env.EXPO_PUBLIC_DEV_CLERK_USER_ID ?? "").trim()
-    ) {
-      return TAB.UNASSIGNED;
-    }
-    return TAB.MY_TASKS;
-  });
+  const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
 
   const [myTasksFilters, setMyTasksFilters] = useState<TasksFilterState>({});
   const [unassignedFilters, setUnassignedFilters] = useState<TasksFilterState>({});
@@ -281,14 +273,7 @@ export default function TasksScreen() {
     if (!isError) return "";
     if (error instanceof ApiError) {
       if (error.status === 401) {
-        if (activeTab === TAB.MY_TASKS) {
-          return (
-            "My Tasks needs a signed-in user or set EXPO_PUBLIC_DEV_CLERK_USER_ID in .env " +
-            "(e.g. user_dev_seed_tasks after running the dev tasks seed migration). " +
-            "Or open Unassigned Tasks."
-          );
-        }
-        return "Sign in required.";
+        return "Sign in with Clerk to load tasks.";
       }
       if (error.status === 400) return error.message;
       if (error.status === 0)

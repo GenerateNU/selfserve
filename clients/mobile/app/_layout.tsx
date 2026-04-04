@@ -43,7 +43,6 @@ function AppConfigurator() {
         process.env.EXPO_PUBLIC_API_URL ??
         "",
       getToken,
-      devClerkUserId: process.env.EXPO_PUBLIC_DEV_CLERK_USER_ID,
     });
   }, [getToken]);
 
