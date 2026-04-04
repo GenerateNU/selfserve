@@ -55,7 +55,7 @@ export function OverviewCard({
                 col.valueSecondary != null && "whitespace-nowrap",
               )}
             >
-              <span className="text-[32px] font-bold text-text-default">
+              <span className="text-2xl lg:text-[32px] font-bold text-text-default">
                 {col.value}
               </span>
               {col.valueSecondary != null && (

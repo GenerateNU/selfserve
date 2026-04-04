@@ -5,6 +5,7 @@ interface GuestCardProps {
   lastName: string;
   floor: number;
   room: number;
+  groupSize?: number;
   onPress: () => void;
 }
 
@@ -13,21 +14,37 @@ export function GuestCard({
   lastName,
   floor,
   room,
+  groupSize,
   onPress,
 }: GuestCardProps) {
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center p-[3vw] border border-stroke-subtle rounded-md "
+      className="flex-row items-center justify-between px-[4vw] py-[2vh] border-b border-stroke-subtle bg-white"
     >
-      <View className="flex-1">
-        <Text className="bg-card text-[4vw] font-semibold text-black">
-          {firstName + " " + lastName}
+      <View className="flex-1 gap-[1vh] pl-[2vw]">
+        <Text className="text-[4.5vw] font-semibold text-black">
+          {firstName} {lastName}
         </Text>
-
-        <Text className="bg-card text-[3.5vw] text-black">
-          Floor: {floor} Room: {room}
-        </Text>
+        <View className="flex-row gap-[2vw]">
+          <View className="bg-card rounded-md px-[2.5vw] py-[0.5vh]">
+            <Text className="text-primary text-[3vw] font-medium">
+              Floor {floor}
+            </Text>
+          </View>
+          <View className="bg-card rounded-md px-[2.5vw] py-[0.5vh]">
+            <Text className="text-primary text-[3vw] font-medium">
+              Room {room}
+            </Text>
+          </View>
+          {groupSize !== undefined && (
+            <View className="bg-card rounded-md px-[2.5vw] py-[0.5vh]">
+              <Text className="text-primary text-[3vw] font-medium">
+                Group {groupSize}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
     </Pressable>
   );
