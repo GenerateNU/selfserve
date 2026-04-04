@@ -48,11 +48,10 @@ function GuestsQuickListPage() {
 
   return (
     <PageShell
-      header={
-        <div className="px-6 py-5 border-b border-stroke-subtle">
-          <h1 className="text-2xl font-semibold text-text-default">Guests</h1>
-        </div>
-      }
+      header={{
+        title: "Guests",
+        description: "Description blah blah fries -> bag",
+      }}
       drawerOpen={generatedRequest !== null}
       drawer={
         <GeneratedRequestDrawer

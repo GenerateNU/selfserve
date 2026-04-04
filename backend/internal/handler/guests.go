@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"strings"
@@ -15,10 +16,18 @@ import (
 
 type GuestsHandler struct {
 	GuestsRepository storage.GuestsRepository
+	searchGuests     func(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error)
 }
 
-func NewGuestsHandler(repo storage.GuestsRepository) *GuestsHandler {
-	return &GuestsHandler{GuestsRepository: repo}
+func NewGuestsHandler(repo storage.GuestsRepository, searchRepo storage.GuestsSearchRepository) *GuestsHandler {
+	// TODO: once OpenSearch setup is complete —
+	// 1. enforce searchRepo as required (fail startup if nil)
+	// 2. remove the Postgres fallback below
+	search := repo.FindGuestsWithActiveBooking
+	if searchRepo != nil {
+		search = searchRepo.SearchGuests
+	}
+	return &GuestsHandler{GuestsRepository: repo, searchGuests: search}
 }
 
 // CreateGuest godoc
@@ -196,7 +205,7 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 		filters.CursorID = parts[1]
 	}
 
-	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), &filters)
+	guests, err := h.searchGuests(c.Context(), &filters)
 	if err != nil {
 		slog.Error("failed to get guests", "error", err)
 		return errs.InternalServerError()

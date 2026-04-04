@@ -2,11 +2,15 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type PageShellProps = {
-  header: ReactNode;
+  header?: {
+    title: string;
+    description: string;
+  };
   drawer?: ReactNode;
   drawerOpen?: boolean;
   children: ReactNode;
   contentClassName?: string;
+  bodyClassName?: string;
 };
 
 export function PageShell({
@@ -15,21 +19,31 @@ export function PageShell({
   drawerOpen = false,
   children,
   contentClassName,
+  bodyClassName,
 }: PageShellProps) {
   const hasDrawer = drawer !== undefined;
 
   return (
     <main className="relative flex h-screen w-full min-w-0 overflow-hidden">
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-        <header className="shrink-0 bg-bg-container">{header}</header>
+        {header ? (
+          <header className="shrink-0 bg-white border-b border-stroke-subtle px-6 py-4 flex flex-col gap-1.5">
+            <h1 className="text-2xl font-semibold text-text-default">
+              {header.title}
+            </h1>
+            <h2 className="text-sm font-medium text-text-subtle">
+              {header.description}
+            </h2>
+          </header>
+        ) : null}
 
-        <section className="flex-1 min-h-0 overflow-auto bg-bg-primary">
-          <div
-            className={cn(
-              "flex flex-col mx-auto w-full px-16",
-              contentClassName,
-            )}
-          >
+        <section
+          className={cn(
+            "flex-1 min-h-0 overflow-auto bg-neutral-10 px-6 py-4",
+            bodyClassName,
+          )}
+        >
+          <div className={cn("flex flex-col mx-auto w-full", contentClassName)}>
             {children}
           </div>
         </section>
@@ -38,11 +52,11 @@ export function PageShell({
       {hasDrawer && (
         <aside
           className={cn(
-            "absolute right-0 top-0 h-full overflow-hidden bg-white shadow-xl shadow-black/25 transition-[width] duration-300 ease-in-out",
-            drawerOpen ? "w-[45vw]" : "w-0",
+            "fixed inset-y-0 right-0 z-50 h-full w-153 overflow-hidden bg-white shadow-xl shadow-black/25 transition-transform duration-300 ease-in-out",
+            drawerOpen ? "translate-x-0" : "translate-x-full",
           )}
         >
-          <div className="h-full w-[45vw]">{drawer}</div>
+          <div className="h-full w-full">{drawer}</div>
         </aside>
       )}
     </main>
