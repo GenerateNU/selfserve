@@ -31,16 +31,16 @@ function FieldRow({ label, value, valueClassName }: FieldRowProps) {
   );
 }
 
-type CreateTaskDrawerProps = {
+type CreateRequestDrawerProps = {
   onClose: () => void;
 };
 
-export function CreateTaskDrawer({ onClose }: CreateTaskDrawerProps) {
+export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
   const [showMore, setShowMore] = useState(false);
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
 
   return (
-    <DrawerShell title="New Task" onClose={onClose}>
+    <DrawerShell title="New Request" onClose={onClose}>
       <div className="flex flex-col gap-4">
         <FieldRow
           label="Assignee"

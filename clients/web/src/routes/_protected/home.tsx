@@ -5,7 +5,7 @@ import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
 import { HomeFilterBar } from "@/components/home/HomeFilterBar";
-import { CreateTaskDrawer } from "@/components/home/CreateTaskDrawer";
+import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
 import { PLACEHOLDER_COLUMNS } from "@/mock-data/home";
@@ -17,11 +17,11 @@ export const Route = createFileRoute("/_protected/home")({
 
 function HomePage() {
   const [generatedRequest, setGeneratedRequest] = useState<Request | null>(null);
-  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [createRequestOpen, setCreateTaskOpen] = useState(false);
 
-  const drawerOpen = createTaskOpen || generatedRequest !== null;
+  const drawerOpen = createRequestOpen || generatedRequest !== null;
 
-  function handleCreateTask() {
+  function handleCreateRequest() {
     setGeneratedRequest(null);
     setCreateTaskOpen(true);
   }
@@ -31,8 +31,8 @@ function HomePage() {
     setGeneratedRequest(request);
   }
 
-  const drawer = createTaskOpen ? (
-    <CreateTaskDrawer onClose={() => setCreateTaskOpen(false)} />
+  const drawer = createRequestOpen ? (
+    <CreateRequestDrawer onClose={() => setCreateTaskOpen(false)} />
   ) : (
     <GeneratedRequestDrawer
       request={generatedRequest}
@@ -50,7 +50,7 @@ function HomePage() {
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
-      <HomeToolbar className="mt-2" onCreateTask={handleCreateTask} />
+      <HomeToolbar className="mt-2" onCreateRequest={handleCreateRequest} />
       <HomeFilterBar />
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
@@ -63,7 +63,7 @@ function HomePage() {
           ))}
         </div>
       </div>
-      {!createTaskOpen && generatedRequest === null && (
+      {!createRequestOpen && generatedRequest === null && (
         <GlobalTaskInput onRequestGenerated={handleRequestGenerated} />
       )}
     </PageShell>

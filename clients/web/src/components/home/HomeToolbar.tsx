@@ -3,12 +3,12 @@ import { cn } from "@/lib/utils";
 
 type HomeToolbarProps = {
   className?: string;
-  onCreateTask?: () => void;
+  onCreateRequest?: () => void;
 };
 
 const TABS = ["Departments", "View 2", "View 3"];
 
-export function HomeToolbar({ className, onCreateTask }: HomeToolbarProps) {
+export function HomeToolbar({ className, onCreateRequest }: HomeToolbarProps) {
   return (
     <div className={cn("px-6", className)}>
       <div className="flex items-center justify-between border-b border-stroke-subtle">
@@ -49,11 +49,11 @@ export function HomeToolbar({ className, onCreateTask }: HomeToolbarProps) {
           </button>
           <button
             type="button"
-            onClick={onCreateTask}
+            onClick={onCreateRequest}
             className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
           >
             <Plus className="size-4" />
-            Create Task
+            Create Request
           </button>
         </div>
       </div>
