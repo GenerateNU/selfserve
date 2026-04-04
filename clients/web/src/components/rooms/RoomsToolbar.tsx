@@ -1,8 +1,11 @@
+import { SearchBar } from "../ui/SearchBar";
 import { FloorDropdown } from "./FloorDropdown";
 import { OrderByDropdown } from "./OrderByDropdown";
 import { RoomsFilterPopover } from "@/components/rooms/RoomsFilterPopover";
 
 type RoomsToolbarProps = {
+  searchTerm: string;
+  onChangeSearchTerm: (value: string) => void;
   selectedFloors: Array<number>;
   onChangeSelectedFloors: (floors: Array<number>) => void;
   ascending: boolean;
@@ -10,6 +13,8 @@ type RoomsToolbarProps = {
 };
 
 export function RoomsToolbar({
+  searchTerm,
+  onChangeSearchTerm,
   selectedFloors,
   onChangeSelectedFloors,
   ascending,
@@ -17,6 +22,12 @@ export function RoomsToolbar({
 }: RoomsToolbarProps) {
   return (
     <div className="flex items-center gap-3">
+      <SearchBar
+        value={searchTerm}
+        onChange={onChangeSearchTerm}
+        placeholder="Search for a room..."
+        className="w-full max-w-[16rem]"
+      />
       <FloorDropdown
         selected={selectedFloors}
         onChangeSelectedFloors={onChangeSelectedFloors}

@@ -137,7 +137,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
 	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
-	roomsHandler := handler.NewRoomsHandler(roomsRepo)
+	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
+	guestBookingsHandler := handler.NewGuestBookingsHandler(repository.NewGuestBookingsRepository(repo.DB))
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
@@ -203,6 +204,11 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/rooms", func(r fiber.Router) {
 		r.Post("/", roomsHandler.FilterRooms)
 		r.Get("/floors", roomsHandler.GetFloors)
+	})
+
+	// guest booking routes
+	api.Route("/guest_bookings", func(r fiber.Router) {
+		r.Get("/group_sizes", guestBookingsHandler.GetGroupSizeOptions)
 	})
 
 	// s3 routes
