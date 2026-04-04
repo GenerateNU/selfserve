@@ -2,11 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
 import { useQuery } from "@tanstack/react-query";
-import type {
-  Request,
-  RequestPriority,
-  RoomWithOptionalGuestBooking,
-} from "@shared";
+import { MakeRequestPriority } from "@shared";
+import type { Request, RoomWithOptionalGuestBooking } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { RoomsToolbar } from "@/components/rooms/RoomsToolbar";
@@ -28,7 +25,7 @@ function RoomsPage() {
   const [generatedData, setGeneratedData] = useState<{
     name?: string;
     description?: string;
-    priority?: RequestPriority;
+    priority?: MakeRequestPriority;
   } | null>(null);
 
   const postRooms = usePostRoomsHook();
@@ -89,11 +86,12 @@ function RoomsPage() {
       </div>
       <GlobalTaskInput
         onRequestGenerated={(r: Request) => {
+          const p = r.priority;
           setSelectedRoom(null);
           setGeneratedData({
             name: r.name,
             description: r.description,
-            priority: r.priority,
+            priority: p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
           });
         }}
       />

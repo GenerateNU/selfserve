@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import type { Request, RequestPriority } from "@shared";
+import { MakeRequestPriority } from "@shared";
+import type { Request } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
@@ -18,7 +19,7 @@ function HomePage() {
   const [drawerData, setDrawerData] = useState<{
     name?: string;
     description?: string;
-    priority?: RequestPriority;
+    priority?: MakeRequestPriority;
   } | null>(null);
 
   function handleCreateRequest() {
@@ -26,10 +27,11 @@ function HomePage() {
   }
 
   function handleRequestGenerated(request: Request) {
+    const p = request.priority;
     setDrawerData({
       name: request.name,
       description: request.description,
-      priority: request.priority,
+      priority: p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
     });
   }
 

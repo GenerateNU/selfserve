@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { guestListItems } from "../../components/guests/guest-mocks";
-import type { Request, RequestPriority } from "@shared";
+import { MakeRequestPriority } from "@shared";
+import type { Request } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
@@ -20,7 +21,7 @@ function GuestsQuickListPage() {
   const [generatedData, setGeneratedData] = useState<{
     name?: string;
     description?: string;
-    priority?: RequestPriority;
+    priority?: MakeRequestPriority;
   } | null>(null);
 
   const filteredGuests = useMemo(() => {
@@ -77,13 +78,14 @@ function GuestsQuickListPage() {
       />
       {generatedData === null && (
         <GlobalTaskInput
-          onRequestGenerated={(r: Request) =>
+          onRequestGenerated={(r: Request) => {
+            const p = r.priority;
             setGeneratedData({
               name: r.name,
               description: r.description,
-              priority: r.priority,
-            })
-          }
+              priority: p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
+            });
+          }}
         />
       )}
     </PageShell>
