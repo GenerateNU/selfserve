@@ -1,8 +1,8 @@
-import type { RoomRequestCardData } from "@/components/rooms/RoomRequestCard";
+import type { GuestRequest } from "@shared";
 import { cn } from "@/lib/utils";
 import { RoomRequestCard } from "@/components/rooms/RoomRequestCard";
 
-export type RoomRequestItem = RoomRequestCardData & { id: string };
+export type RoomRequestItem = GuestRequest & { isAssigned?: boolean };
 
 type RoomRequestListProps = {
   title?: string;
@@ -33,14 +33,14 @@ export function RoomRequestList({
       ) : null}
 
       <div className={cn("flex flex-col gap-2", showHeader && "mt-3")}>
-        {requests.map(({ id, ...request }) => (
+        {requests.map((item) => (
           <RoomRequestCard
-            key={id}
-            {...request}
+            key={item.id}
+            {...item}
             onAssignToSelf={
-              onAssignToSelf ? () => onAssignToSelf(id) : undefined
+              onAssignToSelf ? () => onAssignToSelf(item.id ?? "") : undefined
             }
-            onExpand={onExpand ? () => onExpand(id) : undefined}
+            onExpand={onExpand ? () => onExpand(item.id ?? "") : undefined}
           />
         ))}
       </div>

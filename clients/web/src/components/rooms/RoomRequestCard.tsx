@@ -1,6 +1,7 @@
 import { FlagIcon, MapPinIcon, Maximize2Icon, StoreIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import type { GuestRequest } from "@shared";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
@@ -28,33 +29,26 @@ const priorityConfig: Record<Exclude<Priority, "low">, PriorityConfig> = {
   },
 };
 
-export type RoomRequestCardData = {
-  title: string;
-  floor?: number;
-  roomNumber?: number;
-  department?: string;
-  priority?: Priority;
-  assignedTo?: string | null;
-};
-
-export type RoomRequestCardProps = RoomRequestCardData & {
+export type RoomRequestCardProps = GuestRequest & {
+  isAssigned?: boolean;
   onAssignToSelf?: () => void;
   onExpand?: () => void;
   className?: string;
 };
 
 export function RoomRequestCard({
-  title,
-  floor,
-  roomNumber,
-  department,
+  name,
+  room_number,
+  request_category,
+  request_type,
   priority,
-  assignedTo,
+  isAssigned,
   onAssignToSelf,
   onExpand,
   className = "",
 }: RoomRequestCardProps) {
-  const hasLocation = floor != null || roomNumber != null;
+  const department = request_category ?? request_type;
+  const p = priority as Priority | undefined;
 
   return (
     <div
@@ -66,7 +60,7 @@ export function RoomRequestCard({
       <div className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <span className="text-base font-medium leading-snug tracking-tight text-text-default">
-            {title}
+            {name}
           </span>
           <button
             type="button"
@@ -78,26 +72,23 @@ export function RoomRequestCard({
           </button>
         </div>
 
-        {hasLocation && (
+        {room_number != null && (
           <div className="flex items-center gap-1">
             <MapPinIcon
               className="size-3 shrink-0 text-text-subtle"
               strokeWidth={1.5}
             />
             <span className="text-xs text-text-subtle">
-              {floor != null && `Floor ${floor}`}
-              {floor != null && roomNumber != null && ", "}
-              {roomNumber != null && `Room ${roomNumber}`}
+              {`Room ${room_number}`}
             </span>
           </div>
         )}
 
         <div className="flex flex-wrap items-center gap-3">
-          {priority &&
-            (priority == "medium" || priority == "high") &&
+          {(p === "medium" || p === "high") &&
             (() => {
               const { label, Icon, containerClass, contentClass } =
-                priorityConfig[priority];
+                priorityConfig[p];
               return (
                 <div
                   className={cn(
@@ -125,7 +116,7 @@ export function RoomRequestCard({
         </div>
       </div>
 
-      {!assignedTo && (
+      {!isAssigned && (
         <Button variant="primary" className="w-full" onClick={onAssignToSelf}>
           Assign to Self
         </Button>
