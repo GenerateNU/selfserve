@@ -16,7 +16,7 @@ const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
   { key: "history", label: "History" },
 ];
 
-const PRIORITIES = ["low", "medium", "normal", "high", "urgent"] as const;
+const PRIORITIES = ["low", "medium", "high"] as const;
 type Priority = (typeof PRIORITIES)[number];
 
 type FieldRowProps = {
@@ -48,7 +48,7 @@ export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<Priority>("normal");
+  const [priority, setPriority] = useState<Priority>("medium");
 
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
