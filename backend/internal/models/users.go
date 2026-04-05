@@ -46,6 +46,11 @@ type OrgMembershipData struct {
 
 type ClerkOrganization struct {
 	ID string `json:"id"`
+	Name string `json:"name"`
+}
+
+type CreateOrgWebhook struct {
+	Data ClerkOrganization `json:"data"`
 }
 
 // OrgMembershipUserData is the limited user snapshot Clerk includes in org membership events.

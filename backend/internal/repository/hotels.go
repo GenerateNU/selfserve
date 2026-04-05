@@ -78,3 +78,23 @@ func (r *HotelsRepository) FindByClerkOrgID(ctx context.Context, clerkOrgID stri
 
 	return &hotel, nil
 }
+
+func (r *HotelsRepository) InsertHotelFromClerkOrg(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error) {
+	var hotel models.Hotel
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO hotels (name, clerk_org_id)
+		VALUES ($1, $2)
+		ON CONFLICT (clerk_org_id) DO NOTHING
+		RETURNING id, name, floors, clerk_org_id, created_at, updated_at
+	`, name, clerkOrgID).Scan(
+		&hotel.ID, &hotel.Name, &hotel.Floors,
+		&hotel.ClerkOrgID, &hotel.CreatedAt, &hotel.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrAlreadyExistsInDB
+		}
+		return nil, err
+	}
+	return &hotel, nil
+}

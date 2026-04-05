@@ -30,6 +30,14 @@ func (m *mockHotelsRepository) InsertHotel(ctx context.Context, hotel *models.Cr
 	return m.insertHotelFunc(ctx, hotel)
 }
 
+func (m *mockHotelsRepository) FindByClerkOrgID(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
+    return nil, nil
+}
+
+func (m *mockHotelsRepository) InsertHotelFromClerkOrg(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error) {
+    return nil, nil
+}
+
 func TestHotelHandler_GetHotelByID(t *testing.T) {
 	t.Parallel()
 
@@ -107,7 +115,8 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 	t.Parallel()
 	validBody := `{
 		"name": "The Grand Budapest Hotel",
-		"floors": 10
+		"floors": 10,
+		"clerk_org_id": "org_123"
 	}`
 
 	t.Run("returns 201 on success", func(t *testing.T) {
@@ -187,8 +196,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		app.Post("/hotels", h.CreateHotel)
 
 		missingNameBody := `{
-			"floors": 10
-		}`
+    "floors": 10,
+    "clerk_org_id": "org_123"
+}`
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(missingNameBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -220,9 +230,10 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		app.Post("/hotels", h.CreateHotel)
 
 		emptyNameBody := `{
-			"name": "",
-			"floors": 10
-		}`
+    "name": "",
+    "floors": 10,
+    "clerk_org_id": "org_123"
+}`
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(emptyNameBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -254,8 +265,9 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		app.Post("/hotels", h.CreateHotel)
 
 		missingFloorsBody := `{
-			"name": "The Grand Budapest Hotel"
-		}`
+    "name": "The Grand Budapest Hotel",
+    "clerk_org_id": "org_123"
+}`
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(missingFloorsBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -287,9 +299,10 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		app.Post("/hotels", h.CreateHotel)
 
 		zeroFloorsBody := `{
-			"name": "The Grand Budapest Hotel",
-			"floors": 0
-		}`
+    "name": "The Grand Budapest Hotel",
+    "floors": 0,
+    "clerk_org_id": "org_123"
+}`
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(zeroFloorsBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -321,9 +334,10 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		app.Post("/hotels", h.CreateHotel)
 
 		negativeFloorsBody := `{
-			"name": "The Grand Budapest Hotel",
-			"floors": -1
-		}`
+    "name": "The Grand Budapest Hotel",
+    "floors": -1,
+    "clerk_org_id": "org_123"
+}`
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(negativeFloorsBody))
 		req.Header.Set("Content-Type", "application/json")

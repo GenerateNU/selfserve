@@ -45,9 +45,6 @@ func (h *ClerkWebHookHandler) verifySvix(c *fiber.Ctx) error {
 	return nil
 }
 
-// OrgMembershipCreated handles Clerk's organizationMembership.created webhook.
-// This is the canonical user creation point for hotel staff — the org ID in the
-// payload maps to a hotel, so we can create the user with hotel_id in one step.
 func (h *ClerkWebHookHandler) CreateOrgMembership(c *fiber.Ctx) error {
 	if err := h.verifySvix(c); err != nil {
 		return err
@@ -61,16 +58,39 @@ func (h *ClerkWebHookHandler) CreateOrgMembership(c *fiber.Ctx) error {
 	hotel, err := h.HotelsRepository.FindByClerkOrgID(c.Context(), payload.Data.Organization.ID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
-			return errs.BadRequest("organization is not associated with a hotel")
+			return c.SendStatus(fiber.StatusServiceUnavailable)
 		}
 		return errs.InternalServerError()
 	}
 
 	userData := &payload.Data.PublicUserData
-	user, err := h.UsersRepository.InsertUser(c.Context(), ReformatOrgMembershipUserData(userData, hotel.ID))
+	_, err = h.UsersRepository.InsertUser(c.Context(), ReformatOrgMembershipUserData(userData, hotel.ID))
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	return c.JSON(user)
+	return c.SendStatus(fiber.StatusOK)
+}
+
+
+// When a new org is created in Clerk, we create a corresponding hotel in our DB
+func (h *ClerkWebHookHandler) OrgCreated(c *fiber.Ctx) error {
+	if err := h.verifySvix(c); err != nil {
+		return err
+	}
+
+	var payload models.CreateOrgWebhook
+	if err := c.BodyParser(&payload); err != nil {
+		return errs.InvalidJSON()
+	}
+
+	_, err := h.HotelsRepository.InsertHotelFromClerkOrg(c.Context(), payload.Data.ID, payload.Data.Name)
+	if err != nil {
+		if errors.Is(err, errs.ErrAlreadyExistsInDB) {
+			return c.SendStatus(fiber.StatusOK)
+		}
+		return errs.InternalServerError()
+	}
+
+	return c.SendStatus(fiber.StatusOK)
 }

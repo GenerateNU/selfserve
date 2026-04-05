@@ -245,7 +245,8 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		"id": "user_123",
 		"first_name": "John",
 		"last_name": "Doe",
-		"role": "Receptionist"
+		"role": "Receptionist",
+		"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 	}`
 
 	t.Run("returns 200 on valid user creation", func(t *testing.T) {
@@ -303,7 +304,8 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"role": "Manager",
 			"employee_id": "EMP-67",
 			"department": "Front Desk",
-			"timezone": "America/New_York"
+			"timezone": "America/New_York",
+			"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(bodyWithOptionals))
@@ -374,9 +376,10 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"first_name": "John",
 			"last_name": "Doe",
 			"role": "Receptionist",
-			"timezone": "Invalid/Not_A_Timezone"
+			"timezone": "Invalid/Not_A_Timezone",
+			"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 		}`
-
+		
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(invalidTimezoneBody))
 		req.Header.Set("Content-Type", "application/json")
 

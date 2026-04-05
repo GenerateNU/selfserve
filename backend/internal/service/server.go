@@ -158,6 +158,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// clerk webhook routes
 	api.Route("/clerk", func(r fiber.Router) {
 		r.Post("/org-membership", clerkWebhookHandler.CreateOrgMembership)
+		r.Post("/org", clerkWebhookHandler.OrgCreated)
 	})
 
 	verifier := clerk.NewClerkJWTVerifier()
