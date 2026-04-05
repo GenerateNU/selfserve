@@ -1,5 +1,20 @@
 basePath: /api/v1
 definitions:
+  Assistance:
+    properties:
+      accessibility:
+        items:
+          type: string
+        type: array
+      dietary:
+        items:
+          type: string
+        type: array
+      medical:
+        items:
+          type: string
+        type: array
+    type: object
   CreateGuest:
     properties:
       first_name:
@@ -26,11 +41,20 @@ definitions:
       first_name:
         example: John
         type: string
+      hotel_id:
+        example: hotel_123
+        type: string
       id:
         example: user_123
         type: string
       last_name:
         example: Doe
+        type: string
+      phone_number:
+        example: "+11234567890"
+        type: string
+      primary_email:
+        example: john@example.com
         type: string
       profile_picture:
         example: https://example.com/john.jpg
@@ -54,6 +78,18 @@ definitions:
         example: Dao Ho
         type: string
     type: object
+  FilterRoomsRequest:
+    properties:
+      cursor:
+        type: string
+      floors:
+        items:
+          type: integer
+        type: array
+      limit:
+        minimum: 0
+        type: integer
+    type: object
   GenerateRequestInput:
     properties:
       hotel_id:
@@ -61,6 +97,36 @@ definitions:
         type: string
       raw_text:
         example: Guest in room 504 needs extra towels urgently
+        type: string
+    type: object
+  GenerateRequestResponse:
+    properties:
+      request:
+        $ref: '#/definitions/Request'
+      warning:
+        $ref: '#/definitions/GenerateRequestWarning'
+    type: object
+  GenerateRequestWarning:
+    properties:
+      code:
+        example: room_not_found
+        type: string
+      message:
+        example: Room 301 could not be resolved for this hotel.
+        type: string
+    type: object
+  GetRequestsByStatusInput:
+    properties:
+      cursor_id:
+        type: string
+      cursor_time:
+        type: integer
+      status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
         type: string
     type: object
   Guest:
@@ -77,6 +143,9 @@ definitions:
       last_name:
         example: Doe
         type: string
+      notes:
+        example: VIP guest
+        type: string
       profile_picture:
         example: https://example.com/john.jpg
         type: string
@@ -87,6 +156,139 @@ definitions:
         example: "2024-01-02T00:00:00Z"
         type: string
     type: object
+  GuestFilters:
+    properties:
+      cursor:
+        type: string
+      floors:
+        items:
+          type: integer
+        type: array
+      group_size:
+        items:
+          type: integer
+        type: array
+      hotel_id:
+        type: string
+      limit:
+        maximum: 100
+        minimum: 1
+        type: integer
+      search:
+        type: string
+    required:
+    - hotel_id
+    type: object
+  GuestPage:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/GuestWithBooking'
+        type: array
+      next_cursor:
+        type: string
+    type: object
+  GuestRequest:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      priority:
+        type: string
+      request_category:
+        type: string
+      request_type:
+        type: string
+      request_version:
+        type: string
+      room_number:
+        type: integer
+      status:
+        type: string
+    type: object
+  GuestWithBooking:
+    properties:
+      first_name:
+        type: string
+      floor:
+        type: integer
+      group_size:
+        type: integer
+      id:
+        type: string
+      last_name:
+        type: string
+      preferred_name:
+        type: string
+      room_number:
+        type: integer
+    required:
+    - first_name
+    - floor
+    - group_size
+    - id
+    - last_name
+    - room_number
+    type: object
+  GuestWithStays:
+    properties:
+      assistance:
+        $ref: '#/definitions/Assistance'
+      current_stays:
+        items:
+          $ref: '#/definitions/Stay'
+        type: array
+      do_not_disturb_end:
+        example: "07:00:00"
+        type: string
+      do_not_disturb_start:
+        example: "17:00:00"
+        type: string
+      email:
+        example: jane.doe@example.com
+        type: string
+      first_name:
+        example: Jane
+        type: string
+      housekeeping_cadence:
+        example: daily
+        type: string
+      id:
+        example: 530e8400-e458-41d4-a716-446655440000
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      notes:
+        example: VIP
+        type: string
+      past_stays:
+        items:
+          $ref: '#/definitions/Stay'
+        type: array
+      phone:
+        example: +1 (617) 012-3456
+        type: string
+      preferences:
+        example: extra pillows
+        type: string
+      pronouns:
+        example: she/her
+        type: string
+    required:
+    - current_stays
+    - first_name
+    - id
+    - last_name
+    - past_stays
+    type: object
   Hotel:
     properties:
       created_at:
@@ -94,6 +296,7 @@ definitions:
         type: string
       floors:
         example: 10
+        minimum: 1
         type: integer
       id:
         example: "550e8400-e29b-41d4-a\t716-446655440000"
@@ -132,7 +335,11 @@ definitions:
         example: No special requests
         type: string
       priority:
-        example: urgent
+        enum:
+        - low
+        - medium
+        - high
+        example: high
         type: string
       request_category:
         example: Cleaning
@@ -150,10 +357,46 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
         example: assigned
         type: string
       user_id:
         example: 521ee400-e458-41d4-a716-446655440000
+        type: string
+    type: object
+  Notification:
+    properties:
+      body:
+        type: string
+      created_at:
+        type: string
+      data:
+        items:
+          type: integer
+        type: array
+      id:
+        type: string
+      read_at:
+        type: string
+      title:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.NotificationType'
+      user_id:
+        type: string
+    type: object
+  RegisterDeviceTokenInput:
+    properties:
+      platform:
+        enum:
+        - ios
+        - android
+        type: string
+      token:
         type: string
     type: object
   Request:
@@ -189,13 +432,20 @@ definitions:
         example: No special requests
         type: string
       priority:
-        example: urgent
+        enum:
+        - low
+        - medium
+        - high
+        example: high
         type: string
       request_category:
         example: Cleaning
         type: string
       request_type:
         example: recurring
+        type: string
+      request_version:
+        example: "2024-01-02T00:00:00Z"
         type: string
       reservation_id:
         example: 521e8400-e458-41d4-a716-498655440000
@@ -207,14 +457,67 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
         example: assigned
-        type: string
-      updated_at:
-        example: "2024-01-02T00:00:00Z"
         type: string
       user_id:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
+    type: object
+  RoomRequestsResponse:
+    properties:
+      assigned:
+        items:
+          $ref: '#/definitions/GuestRequest'
+        type: array
+      unassigned:
+        items:
+          $ref: '#/definitions/GuestRequest'
+        type: array
+    type: object
+  RoomWithOptionalGuestBooking:
+    properties:
+      booking_status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+      floor:
+        type: integer
+      guests:
+        items:
+          $ref: '#/definitions/Guest'
+        type: array
+      id:
+        type: string
+      room_number:
+        type: integer
+      room_status:
+        type: string
+      suite_type:
+        type: string
+    type: object
+  Stay:
+    properties:
+      arrival_date:
+        example: "2024-01-02"
+        type: string
+      departure_date:
+        example: "2024-01-05"
+        type: string
+      group_size:
+        type: integer
+      room_number:
+        example: 101
+        type: integer
+      status:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+    required:
+    - arrival_date
+    - departure_date
+    - room_number
+    - status
     type: object
   UpdateGuest:
     properties:
@@ -224,11 +527,21 @@ definitions:
       last_name:
         example: Doe
         type: string
+      notes:
+        example: VIP guest
+        maxLength: 1000
+        type: string
       profile_picture:
         example: https://example.com/john.jpg
         type: string
       timezone:
         example: America/New_York
+        type: string
+    type: object
+  UpdateUser:
+    properties:
+      phone_number:
+        example: "+11234567890"
         type: string
     type: object
   User:
@@ -245,11 +558,20 @@ definitions:
       first_name:
         example: John
         type: string
+      hotel_id:
+        example: hotel_123
+        type: string
       id:
         example: user_123
         type: string
       last_name:
         example: Doe
+        type: string
+      phone_number:
+        example: "+11234567890"
+        type: string
+      primary_email:
+        example: john@example.com
         type: string
       profile_picture:
         example: https://example.com/john.jpg
@@ -270,6 +592,41 @@ definitions:
         type: integer
       message: {}
     type: object
+  github_com_generate_selfserve_internal_models.BookingStatus:
+    enum:
+    - active
+    - inactive
+    type: string
+    x-enum-varnames:
+    - BookingStatusActive
+    - BookingStatusInactive
+  github_com_generate_selfserve_internal_models.NotificationType:
+    enum:
+    - task_assigned
+    - high_priority_task
+    type: string
+    x-enum-varnames:
+    - TypeTaskAssigned
+    - TypeHighPriorityTask
+  github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
+    properties:
+      has_more:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/RoomWithOptionalGuestBooking'
+        type: array
+      next_cursor:
+        description: nil when no more pages
+        type: string
+    type: object
+  internal_handler.UpdateProfilePictureRequest:
+    description: Request body containing the S3 key after uploading
+    properties:
+      key:
+        example: profile-pictures/user123/1706540000.jpg
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -287,34 +644,41 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates a guest with the given data
+      description: Retrieves guests optionally filtered by floor
       parameters:
-      - description: Guest data
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Guest filters
         in: body
-        name: request
+        name: body
         required: true
         schema:
-          $ref: '#/definitions/CreateGuest'
+          $ref: '#/definitions/GuestFilters'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Guest'
+            $ref: '#/definitions/GuestPage'
         "400":
-          description: Invalid guest body format
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Creates a guest
+      security:
+      - BearerAuth: []
+      summary: Get Guests
       tags:
       - guests
   /api/v1/guests/{id}:
@@ -351,6 +715,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Gets a guest
       tags:
       - guests
@@ -395,6 +761,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Updates a guest
       tags:
       - guests
@@ -429,6 +797,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create hotel
       tags:
       - hotels
@@ -458,9 +828,39 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
       summary: Get hotel by ID
       tags:
       - hotels
+  /device-tokens:
+    post:
+      consumes:
+      - application/json
+      description: Registers an Expo push token so the user receives mobile push notifications
+      parameters:
+      - description: Device token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/RegisterDeviceTokenInput'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Register device token
+      tags:
+      - notifications
   /devs/{name}:
     get:
       consumes:
@@ -491,9 +891,71 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get developer member
       tags:
       - devs
+  /guest_bookings/group_sizes:
+    get:
+      description: Retrieves all distinct group sizes across guest bookings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get available group size options
+      tags:
+      - guest-bookings
+  /guests/stays/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single guest with previous stays given an id
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GuestWithStays'
+        "400":
+          description: Invalid guest ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Guest not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Gets a guest with previous stays
+      tags:
+      - guests
   /hello:
     get:
       consumes:
@@ -506,6 +968,8 @@ paths:
           description: 'Yogurt. Gurt: Yo!'
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get hello message
       tags:
       - hello
@@ -527,9 +991,72 @@ paths:
           description: Yo, {name}!
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get personalized hello message
       tags:
       - hello
+  /notifications:
+    get:
+      description: Returns the most recent notifications for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Notification'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List notifications
+      tags:
+      - notifications
+  /notifications/{id}/read:
+    put:
+      description: Marks a single notification as read for the authenticated user
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Mark notification as read
+      tags:
+      - notifications
+  /notifications/read-all:
+    put:
+      description: Marks all unread notifications as read for the authenticated user
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Mark all notifications as read
+      tags:
+      - notifications
   /request:
     post:
       consumes:
@@ -561,7 +1088,51 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: creates a request
+      tags:
+      - requests
+  /request/cursor:
+    post:
+      consumes:
+      - application/json
+      description: Gets 20 requests starting after the cursor position, filtered by
+        status
+      parameters:
+      - description: Hotel UUID
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Cursor position and status filter
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/GetRequestsByStatusInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns requests array, next_cursor_time, and next_cursor_id
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get requests by cursor
       tags:
       - requests
   /request/generate:
@@ -582,7 +1153,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Request'
+            $ref: '#/definitions/GenerateRequestResponse'
         "400":
           description: Bad Request
           schema:
@@ -595,10 +1166,302 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: generates a request
       tags:
       - requests
+  /request/guest/{id}:
+    get:
+      description: Retrieves all requests for a given guest
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/GuestRequest'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get requests by guest
+      tags:
+      - requests
+  /request/room/{id}:
+    get:
+      description: 'Returns two lists for the given room and hotel: requests assigned
+        to the caller and unassigned requests'
+      parameters:
+      - description: Room ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/RoomRequestsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get requests by room
+      tags:
+      - requests
+  /rooms:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves rooms with optional floor filters and cursor pagination,
+        including any active guest bookings
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Filters and pagination
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/FilterRoomsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List rooms with filters
+      tags:
+      - rooms
+  /rooms/floors:
+    get:
+      description: Retrieves all distinct floor numbers
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Floors
+      tags:
+      - rooms
+  /s3/presigned-get-url/{key}:
+    get:
+      consumes:
+      - application/json
+      description: Generates a presigned URL for a file. The key is the full S3 path
+        (e.g., profile-pictures/user123/image.jpg)
+      parameters:
+      - description: File key (full path after /presigned-url/)
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Presigned URL
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate a presigned URL for a file
+      tags:
+      - s3
+  /s3/presigned-url/{key}:
+    get:
+      consumes:
+      - application/json
+      description: Generates a presigned URL for a file. The key is the full S3 path
+        (e.g., profile-pictures/user123/image.jpg)
+      parameters:
+      - description: File key (full path after /presigned-url/)
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Presigned URL
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate a presigned URL for a file
+      tags:
+      - s3
+  /s3/upload-url/{userId}:
+    get:
+      description: Generates a presigned S3 URL and unique key for uploading a profile
+        picture. After uploading to S3, use PUT /users/{userId}/profile-picture to
+        save the key.
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - default: jpg
+        description: File extension (jpg, jpeg, png, webp)
+        in: query
+        name: ext
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns presigned_url and key
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get presigned URL for profile picture upload
+      tags:
+      - s3
   /users:
+    get:
+      consumes:
+      - application/json
+      description: Returns a paginated list of users for a hotel, optionally filtered
+        by name
+      parameters:
+      - description: Hotel UUID
+        in: query
+        name: hotel_id
+        required: true
+        type: string
+      - description: Pagination cursor (last seen user ID)
+        in: query
+        name: cursor
+        type: string
+      - description: Name search query
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Search users by hotel
+      tags:
+      - users
     post:
       consumes:
       - application/json
@@ -629,6 +1492,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Creates a user
       tags:
       - users
@@ -662,10 +1527,181 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates allowed fields on a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - users
+  /users/{userId}/profile-picture:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes the user's profile picture from the database
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete user's profile picture
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the user's profile picture key and returns a presigned
+        URL for display
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns key and presigned_url if profile picture exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: No profile picture found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user's profile picture
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Saves the S3 key to the user's profile after the image has been
+        uploaded to S3
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: S3 key from upload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.UpdateProfilePictureRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update user's profile picture
       tags:
       - users
 schemes:
 - http
 - https
+securityDefinitions:
+  BearerAuth:
+    description: Your Clerk JWT token (prefixed with "Bearer ")
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

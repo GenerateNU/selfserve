@@ -12,7 +12,18 @@ type CreateUser struct {
 	Role           *string `json:"role,omitempty" validate:"omitempty" example:"Receptionist"`
 	Department     *string `json:"department,omitempty" validate:"omitempty" example:"Housekeeping"`
 	Timezone       *string `json:"timezone,omitempty" validate:"omitempty,timezone" example:"America/New_York"`
+	PhoneNumber    *string `json:"phone_number,omitempty" validate:"omitempty" example:"+11234567890"`
+	PrimaryEmail   *string `json:"primary_email,omitempty" validate:"omitempty,email" example:"john@example.com"`
 } //@name CreateUser
+
+// UpdateUser is the request body for PATCH/PUT user updates (partial fields).
+type UpdateUser struct {
+	PhoneNumber *string `json:"phone_number,omitempty" validate:"omitempty" example:"+11234567890"`
+} //@name UpdateUser
+
+type CreateUserWebhook struct {
+	ClerkUser `json:"data"`
+}
 
 type ClerkUser struct {
 	ID        string  `json:"id" example:"user123402"`

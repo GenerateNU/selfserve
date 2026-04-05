@@ -2,10 +2,15 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type PageShellProps = {
-  header: ReactNode;
+  header?: {
+    title: string;
+    description: string;
+  };
   drawer?: ReactNode;
   drawerOpen?: boolean;
   children: ReactNode;
+  contentClassName?: string;
+  bodyClassName?: string;
 };
 
 export function PageShell({
@@ -13,23 +18,32 @@ export function PageShell({
   drawer,
   drawerOpen = false,
   children,
+  contentClassName,
+  bodyClassName,
 }: PageShellProps) {
-  const hasDrawer = !!drawer;
+  const hasDrawer = drawer !== undefined;
 
   return (
-    <main className="flex h-screen overflow-hidden">
-      <div
-        className={cn(
-          "shrink-0 flex flex-col overflow-hidden transition-[flex-basis] duration-300 ease-in-out",
-          hasDrawer && drawerOpen ? "basis-2/5" : "basis-full",
-        )}
-      >
-        <header className="shrink-0 bg-gray-100 h-[10vh] px-[4vw]">
-          {header}
-        </header>
+    <main className="relative flex h-screen w-full min-w-0 overflow-hidden">
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+        {header ? (
+          <header className="shrink-0 bg-white border-b border-stroke-subtle px-6 py-4 flex flex-col gap-1.5">
+            <h1 className="text-2xl font-semibold text-text-default">
+              {header.title}
+            </h1>
+            <h2 className="text-sm font-medium text-text-subtle">
+              {header.description}
+            </h2>
+          </header>
+        ) : null}
 
-        <section className="flex-1 min-h-0 overflow-auto bg-white-100 px-[4vw] py-[2vh]">
-          <div className="mx-auto flex w-full max-w-[94vw] flex-col">
+        <section
+          className={cn(
+            "flex-1 min-h-0 overflow-auto bg-neutral-10 px-6 py-4",
+            bodyClassName,
+          )}
+        >
+          <div className={cn("flex flex-col mx-auto w-full", contentClassName)}>
             {children}
           </div>
         </section>
@@ -38,12 +52,11 @@ export function PageShell({
       {hasDrawer && (
         <aside
           className={cn(
-            "shrink-0 overflow-hidden transition-[flex-basis] duration-300 ease-in-out shadow-xl shadow-black/25 px-[4vw] py-[3vh]",
-            drawerOpen ? "basis-3/5" : "basis-0",
+            "fixed inset-y-0 right-0 z-50 h-full w-153 overflow-hidden bg-white shadow-xl shadow-black/25 transition-transform duration-300 ease-in-out",
+            drawerOpen ? "translate-x-0" : "translate-x-full",
           )}
         >
-          {/* Nested div to a fixed width to avoid animation issues */}
-          <div className="h-full w-[60vw]">{drawer}</div>
+          <div className="h-full w-full">{drawer}</div>
         </aside>
       )}
     </main>

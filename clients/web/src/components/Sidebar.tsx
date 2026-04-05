@@ -1,13 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { SignOutButton, UserButton, useUser } from "@clerk/clerk-react";
-import {
-  Home,
-  LayoutGrid,
-  LogOut,
-  Octagon,
-  Settings,
-  UserRound,
-} from "lucide-react";
+import { UserButton, useUser } from "@clerk/clerk-react";
+import { Home, LayoutGrid, Octagon, Settings, UserRound } from "lucide-react";
+import { LogoutButton } from "./LogoutButton";
 
 function NavLink({
   to,
@@ -25,12 +19,39 @@ function NavLink({
       to={to}
       className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
         isActive
-          ? "bg-primary/10 font-semibold text-gray-900"
+          ? "bg-bg-selected font-semibold text-subtle"
           : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
       }`}
     >
       <Icon className="size-5 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
       {children}
+    </Link>
+  );
+}
+
+function ProfileLink({ displayName }: { displayName: string | undefined }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isActive = pathname === "/profile";
+  return (
+    <Link
+      to="/profile"
+      className={`flex items-center gap-3 rounded-lg p-3 transition-colors ${
+        isActive ? "bg-bg-selected" : "hover:bg-bg-selected"
+      }`}
+    >
+      <UserButton
+        appearance={{
+          elements: {
+            avatarBox: "size-10",
+          },
+        }}
+      />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-text-subtle">
+          {displayName || "User"}
+        </p>
+        <p className="truncate text-xs text-primary">Hotel Chain</p>
+      </div>
     </Link>
   );
 }
@@ -74,30 +95,8 @@ export function Sidebar() {
         <NavLink to="/settings" icon={Settings}>
           Settings
         </NavLink>
-        <SignOutButton>
-          <button
-            type="button"
-            className="flex w-full hover:cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-          >
-            <LogOut className="size-5 shrink-0" />
-            Logout
-          </button>
-        </SignOutButton>
-        <div className="flex items-center gap-3 pt-4">
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "size-10",
-              },
-            }}
-          />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-gray-700">
-              {displayName || "User"}
-            </p>
-            <p className="truncate text-xs text-gray-500">Hotel Chain</p>
-          </div>
-        </div>
+        <LogoutButton />
+        <ProfileLink displayName={displayName} />
       </div>
     </aside>
   );
