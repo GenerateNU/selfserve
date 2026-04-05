@@ -61,7 +61,7 @@ export const Route = createRootRoute({
 function AppConfigurator() {
   const { getToken } = useAuth();
   const { organization } = useOrganization();
-  const hotelId = organization?.publicMetadata?.hotel_id as string;
+  const hotelId = organization?.publicMetadata.hotel_id as string;
 
   useEffect(() => {
     setConfig({
