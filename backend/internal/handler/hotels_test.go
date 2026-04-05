@@ -31,11 +31,11 @@ func (m *mockHotelsRepository) InsertHotel(ctx context.Context, hotel *models.Cr
 }
 
 func (m *mockHotelsRepository) FindByClerkOrgID(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
-    return nil, nil
+	return nil, nil
 }
 
 func (m *mockHotelsRepository) InsertHotelFromClerkOrg(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error) {
-    return nil, nil
+	return nil, nil
 }
 
 func TestHotelHandler_GetHotelByID(t *testing.T) {

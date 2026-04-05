@@ -18,9 +18,9 @@ func CreateClerkOrg(ctx context.Context, name string, createdByUserID string, ho
 
 	raw := json.RawMessage(metadata)
 	org, err := organization.Create(ctx, &organization.CreateParams{
-		Name:            clerksdk.String(name),
-		CreatedBy:       clerksdk.String(createdByUserID),
-		PublicMetadata:  &raw,
+		Name:           clerksdk.String(name),
+		CreatedBy:      clerksdk.String(createdByUserID),
+		PublicMetadata: &raw,
 	})
 	if err != nil {
 		return "", err

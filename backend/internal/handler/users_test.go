@@ -379,7 +379,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"timezone": "Invalid/Not_A_Timezone",
 			"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 		}`
-		
+
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(invalidTimezoneBody))
 		req.Header.Set("Content-Type", "application/json")
 

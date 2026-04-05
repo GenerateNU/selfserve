@@ -72,7 +72,6 @@ func (h *ClerkWebHookHandler) CreateOrgMembership(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-
 // When a new org is created in Clerk, we create a corresponding hotel in our DB
 func (h *ClerkWebHookHandler) OrgCreated(c *fiber.Ctx) error {
 	if err := h.verifySvix(c); err != nil {

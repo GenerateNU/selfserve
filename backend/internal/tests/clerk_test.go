@@ -18,7 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 type mockWebhookVerifier struct {
 	verifyFunc func(payload []byte, headers http.Header) error
 }
@@ -59,7 +58,7 @@ func (m *mockUsersRepositoryClerk) SearchUsersByHotel(ctx context.Context, hotel
 var _ storage.UsersRepository = (*mockUsersRepositoryClerk)(nil)
 
 type mockHotelsRepositoryClerk struct {
-	findByClerkOrgIDFunc       func(ctx context.Context, clerkOrgID string) (*models.Hotel, error)
+	findByClerkOrgIDFunc        func(ctx context.Context, clerkOrgID string) (*models.Hotel, error)
 	insertHotelFromClerkOrgFunc func(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error)
 }
 
@@ -83,7 +82,6 @@ func (m *mockHotelsRepositoryClerk) InsertHotelFromClerkOrg(ctx context.Context,
 }
 
 var _ storage.HotelsRepository = (*mockHotelsRepositoryClerk)(nil)
-
 
 func validVerifier() *mockWebhookVerifier {
 	return &mockWebhookVerifier{
@@ -259,7 +257,7 @@ func TestClerkHandler_CreateOrgMembership(t *testing.T) {
 		hotelMock := &mockHotelsRepositoryClerk{
 			findByClerkOrgIDFunc: func(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID: hotelID,
+					ID:                 hotelID,
 					CreateHotelRequest: models.CreateHotelRequest{Name: "Hotel California"},
 				}, nil
 			},
