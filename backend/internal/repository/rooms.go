@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/generate/selfserve/internal/utils"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -102,6 +104,44 @@ func (r *RoomsRepository) FindAllFloors(ctx context.Context, hotelID string) ([]
 	}
 
 	return floors, nil
+}
+
+func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id string) (*models.RoomWithOptionalGuestBooking, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT
+			r.id, r.room_number, r.floor, r.suite_type, r.room_status,
+			json_agg(
+				json_build_object(
+					'id',              g.id,
+					'first_name',      g.first_name,
+					'last_name',       g.last_name,
+					'profile_picture', g.profile_picture
+				)
+			) FILTER (WHERE g.id IS NOT NULL) AS guests
+		FROM rooms r
+		LEFT JOIN guest_bookings gb ON r.id = gb.room_id
+			AND gb.status = 'active'
+			AND gb.hotel_id = $2
+		LEFT JOIN guests g ON g.id = gb.guest_id
+		WHERE r.id = $1 AND r.hotel_id = $2
+		GROUP BY r.id, r.room_number, r.floor, r.suite_type, r.room_status`,
+		id, hotelID)
+
+	var rb models.RoomWithOptionalGuestBooking
+	var guestsJSON json.RawMessage
+	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &guestsJSON)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+	if guestsJSON != nil {
+		if err := json.Unmarshal(guestsJSON, &rb.Guests); err != nil {
+			return nil, err
+		}
+	}
+	return &rb, nil
 }
 
 func (r *RoomsRepository) FindRoomByNumber(ctx context.Context, hotelID string, roomReference string) (*models.Room, error) {

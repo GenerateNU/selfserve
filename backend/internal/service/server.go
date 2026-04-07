@@ -199,8 +199,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Put("/:id", reqsHandler.UpdateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
-		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
+		r.Post("/cursor", reqsHandler.GetRequestByCursor)
 		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
+		r.Get("/room/:id", reqsHandler.GetRequestsByRoomID)
 	})
 
 	// Hotel routes
@@ -220,6 +221,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/rooms", func(r fiber.Router) {
 		r.Post("/", roomsHandler.FilterRooms)
 		r.Get("/floors", roomsHandler.GetFloors)
+		r.Get("/:id", roomsHandler.GetRoomByID)
 	})
 
 	// guest booking routes

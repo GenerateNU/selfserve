@@ -14,6 +14,10 @@ func Init() {
 	validatorInstance := validator.New(validator.WithRequiredStructEnabled())
 
 	validatorInstance.RegisterTagNameFunc(func(field reflect.StructField) string {
+		if label := field.Tag.Get("label"); label != "" {
+			return label
+		}
+
 		jsonTag := field.Tag.Get("json")
 		jsonName := strings.SplitN(jsonTag, ",", 2)[0]
 
@@ -21,7 +25,7 @@ func Init() {
 			return field.Name
 		}
 		if jsonName == "-" {
-			return ""
+			return field.Name
 		}
 		return jsonName
 	})

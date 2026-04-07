@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log/slog"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -19,11 +18,13 @@ import (
 )
 
 type mockRequestRepository struct {
-	makeRequestFunc           func(ctx context.Context, req *models.Request) (*models.Request, error)
-	findRequestFunc           func(ctx context.Context, id string) (*models.Request, error)
-	findRequestsFunc          func(ctx context.Context) ([]models.Request, error)
-	findRequestsByCursorFunc  func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
-	findRequestsByGuestIDFunc func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	makeRequestFunc                    func(ctx context.Context, req *models.Request) (*models.Request, error)
+	findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
+	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
+	findRequestsByCursorFunc           func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error)
+	findRequestsByGuestIDFunc          func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	findMyRequestsByRoomIDFunc         func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	findUnassignedRequestsByRoomIDFunc func(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -38,8 +39,20 @@ func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Requ
 	return m.findRequestsFunc(ctx)
 }
 
-func (m *mockRequestRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
-	return m.findRequestsByCursorFunc(ctx, cursor, status, hotelID, pageSize)
+func (m *mockRequestRepository) FindRequestsByStatusPaginated(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
+	return m.findRequestsByCursorFunc(ctx, cursorTime, cursorID, status, hotelID, pageSize)
+}
+
+func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	return m.findRequestsByGuestIDFunc(ctx, guestID, hotelID, cursorID, cursorVersion, limit)
+}
+
+func (m *mockRequestRepository) FindMyRequestsByRoomID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	return m.findMyRequestsByRoomIDFunc(ctx, roomID, hotelID, userID, cursorID, cursorVersion, limit)
+}
+
+func (m *mockRequestRepository) FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	return m.findUnassignedRequestsByRoomIDFunc(ctx, roomID, hotelID, cursorID, cursorVersion, limit)
 }
 
 type mockLLMService struct {
@@ -48,10 +61,6 @@ type mockLLMService struct {
 
 func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
 	return m.runGenerateRequestFunc(ctx, input)
-}
-
-func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
-	return m.findRequestsByGuestIDFunc(ctx, guestID, hotelID, cursorID, cursorVersion, limit)
 }
 
 func TestRequestHandler_GetRequest(t *testing.T) {
@@ -583,13 +592,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		t.Parallel()
 
 		description := "Guest requested extra towels for their room"
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				req.ID = "generated-uuid"
-				req.CreatedAt = time.Now()
-				return req, nil
-			},
-		}
 
 		llmMock := &mockLLMService{
 			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
@@ -604,7 +606,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(repoMock, llmMock, nil)
+		h := NewRequestsHandler(&mockRequestRepository{}, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
@@ -616,7 +618,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), `"request"`)
-		assert.Contains(t, string(body), "generated-uuid")
 		assert.Contains(t, string(body), "Extra Towels Request")
 		assert.Contains(t, string(body), "high")
 	})
@@ -629,13 +630,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		category := "Cleaning"
 		notes := "Guest prefers eco-friendly products"
 		estimatedTime := 30
-
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				req.ID = "generated-uuid"
-				return req, nil
-			},
-		}
 
 		llmMock := &mockLLMService{
 			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
@@ -654,7 +648,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(repoMock, llmMock, nil)
+		h := NewRequestsHandler(&mockRequestRepository{}, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
@@ -766,47 +760,8 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		assert.Equal(t, 500, resp.StatusCode)
 	})
 
-	t.Run("returns 500 on db error", func(t *testing.T) {
-		t.Parallel()
-
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				return nil, errors.New("db connection failed")
-			},
-		}
-
-		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				return aiflows.GenerateRequestOutput{
-					Name:        "Towel Request",
-					RequestType: "one-time",
-					Status:      "pending",
-					Priority:    "medium",
-				}, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock, nil)
-		app.Post("/request/generate", h.GenerateRequest)
-
-		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 500, resp.StatusCode)
-	})
-
 	t.Run("returns 500 when LLM output fails validation", func(t *testing.T) {
 		t.Parallel()
-
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				t.Fatal("request should not be inserted when LLM output is invalid")
-				return nil, nil
-			},
-		}
 
 		llmMock := &mockLLMService{
 			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
@@ -820,7 +775,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock, nil)
+		h := NewRequestsHandler(&mockRequestRepository{}, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
@@ -836,13 +791,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 
 		var capturedInput aiflows.GenerateRequestInput
 
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				req.ID = "generated-uuid"
-				return req, nil
-			},
-		}
-
 		llmMock := &mockLLMService{
 			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
 				capturedInput = input
@@ -856,7 +804,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(repoMock, llmMock, nil)
+		h := NewRequestsHandler(&mockRequestRepository{}, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		customBody := `{
@@ -876,16 +824,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 	t.Run("uses hotel_id from request body not LLM", func(t *testing.T) {
 		t.Parallel()
 
-		var capturedRequest *models.Request
-
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				capturedRequest = req
-				req.ID = "generated-uuid"
-				return req, nil
-			},
-		}
-
 		llmMock := &mockLLMService{
 			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
 				return aiflows.GenerateRequestOutput{
@@ -898,7 +836,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(repoMock, llmMock, nil)
+		h := NewRequestsHandler(&mockRequestRepository{}, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
@@ -907,21 +845,12 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, 200, resp.StatusCode)
-		assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", capturedRequest.HotelID)
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "550e8400-e29b-41d4-a716-446655440000")
 	})
 
 	t.Run("defaults notes to empty string when LLM omits notes", func(t *testing.T) {
 		t.Parallel()
-
-		var capturedRequest *models.Request
-
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				capturedRequest = req
-				req.ID = "generated-uuid"
-				return req, nil
-			},
-		}
 
 		llmMock := &mockLLMService{
 			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
@@ -936,7 +865,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(repoMock, llmMock, nil)
+		h := NewRequestsHandler(&mockRequestRepository{}, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
@@ -945,22 +874,14 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, 200, resp.StatusCode)
-		require.NotNil(t, capturedRequest)
-		require.NotNil(t, capturedRequest.Notes)
-		assert.Equal(t, "", *capturedRequest.Notes)
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"notes":""`)
 	})
 
 	t.Run("returns warning metadata when room lookup warning exists", func(t *testing.T) {
 		t.Parallel()
 
 		warningMessage := "Room 301 could not be resolved for this hotel."
-
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				req.ID = "generated-uuid"
-				return req, nil
-			},
-		}
 
 		llmMock := &mockLLMService{
 			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
@@ -978,7 +899,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		}
 
 		app := fiber.New()
-		h := NewRequestsHandler(repoMock, llmMock, nil)
+		h := NewRequestsHandler(&mockRequestRepository{}, llmMock, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
@@ -994,45 +915,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		assert.Contains(t, string(body), warningMessage)
 	})
 
-	t.Run("logs repository insert failures before returning 500", func(t *testing.T) {
-		t.Parallel()
-
-		var logBuffer bytes.Buffer
-		previousLogger := slog.Default()
-		logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
-		slog.SetDefault(logger)
-		t.Cleanup(func() { slog.SetDefault(previousLogger) })
-
-		repoMock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				return nil, errors.New("db connection failed")
-			},
-		}
-
-		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				return aiflows.GenerateRequestOutput{
-					Name:        "Towel Request",
-					RequestType: "one-time",
-					Status:      "pending",
-					Priority:    "medium",
-				}, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(repoMock, llmMock, nil)
-		app.Post("/request/generate", h.GenerateRequest)
-
-		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(validBody))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 500, resp.StatusCode)
-		assert.Contains(t, logBuffer.String(), "failed to insert generated request")
-		assert.Contains(t, logBuffer.String(), "db connection failed")
-	})
 }
 
 func TestRequestHandler_GetRequestByCursor(t *testing.T) {
@@ -1041,8 +923,9 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 	t.Run("returns 200 with requests and next cursor", func(t *testing.T) {
 		t.Parallel()
 
+		nextTime := time.Date(2026, 3, 31, 1, 0, 0, 0, time.UTC)
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
+			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
 				return []*models.Request{
 					{
 						ID:             "530e8400-e458-41d4-a716-446655440001",
@@ -1068,109 +951,120 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 							Priority:    "normal",
 						},
 					},
-				}, "530e8400-e458-41d4-a716-446655440002", nil
+				}, nextTime, "530e8400-e458-41d4-a716-446655440002", nil
 			},
 		}
 
 		app := fiber.New()
 		h := NewRequestsHandler(mock, nil, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/530e8400-e458-41d4-a716-446655440000?status=pending&hotel_id=521e8400-e458-41d4-a716-446655440000", nil)
+		body := `{"status":"pending"}`
+		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 200, resp.StatusCode)
 
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "530e8400-e458-41d4-a716-446655440001")
-		assert.Contains(t, string(body), "530e8400-e458-41d4-a716-446655440002")
-		assert.Contains(t, string(body), "next_cursor")
+		respBody, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(respBody), "530e8400-e458-41d4-a716-446655440001")
+		assert.Contains(t, string(respBody), "530e8400-e458-41d4-a716-446655440002")
+		assert.Contains(t, string(respBody), "next_cursor_time")
 	})
 
-	t.Run("returns 400 when cursor is not a valid UUID", func(t *testing.T) {
+	t.Run("returns 400 when X-Hotel-ID header is missing", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
-				return nil, "", errors.New("should not be called")
+			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
+				return nil, time.Time{}, "", errors.New("should not be called")
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/notaUUID?status=pending", nil)
+		body := `{"status":"pending"}`
+		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "cursor")
 	})
 
 	t.Run("returns 400 when status is invalid", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
-				return nil, "", errors.New("should not be called")
+			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
+				return nil, time.Time{}, "", errors.New("should not be called")
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/530e8400-e458-41d4-a716-446655440000?status=invalid&hotel_id=521e8400-e458-41d4-a716-446655440000", nil)
+		body := `{"status":"invalid"}`
+		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 400, resp.StatusCode)
 
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "Status")
+		respBody, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(respBody), "Status")
 	})
 
-	t.Run("returns 400 when hotel_id is invalid", func(t *testing.T) {
+	t.Run("returns 400 when X-Hotel-ID is invalid UUID", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
-				return nil, "", errors.New("should not be called")
+			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
+				return nil, time.Time{}, "", errors.New("should not be called")
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/530e8400-e458-41d4-a716-446655440000?status=pending&hotel_id=notaUUID", nil)
+		body := `{"status":"pending"}`
+		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "notaUUID")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 400, resp.StatusCode)
 
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "hotel_id")
+		respBody, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(respBody), "X-Hotel-ID")
 	})
 
 	t.Run("returns 404 when not found in db", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
-				return nil, "", errs.ErrNotFoundInDB
+			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
+				return nil, time.Time{}, "", errs.ErrNotFoundInDB
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/530e8400-e458-41d4-a716-446655440000?status=pending&hotel_id=521e8400-e458-41d4-a716-446655440000", nil)
+		body := `{"status":"pending"}`
+		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -1181,16 +1075,19 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
-				return nil, "", errors.New("db connection failed")
+			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
+				return nil, time.Time{}, "", errors.New("db connection failed")
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRequestsHandler(mock, nil, nil)
-		app.Get("/request/cursor/:cursor", h.GetRequestByCursor)
+		app.Post("/request/cursor", h.GetRequestByCursor)
 
-		req := httptest.NewRequest("GET", "/request/cursor/530e8400-e458-41d4-a716-446655440000?status=pending&hotel_id=521e8400-e458-41d4-a716-446655440000", nil)
+		body := `{"status":"pending"}`
+		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -1359,6 +1256,261 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 		app.Get("/request/guest/:id", h.GetRequestsByGuest)
 
 		req := httptest.NewRequest("GET", "/request/guest/"+validGuestID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+}
+
+func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
+	t.Parallel()
+
+	const (
+		validRoomID  = "630e8400-e458-41d4-a716-446655440000"
+		validHotelID = "521e8400-e458-41d4-a716-446655440000"
+		validUserID  = "user_abc123"
+	)
+
+	// withAuth injects a userId local so the handler passes the auth check.
+	withAuth := func(app *fiber.App, userID string) {
+		app.Use(func(c *fiber.Ctx) error {
+			c.Locals("userId", userID)
+			return c.Next()
+		})
+	}
+
+	t.Run("returns 200 with mine and unassigned lists", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return []*models.GuestRequest{
+					{ID: "aaa00000-e458-41d4-a716-446655440000", Name: "Fix AC", Priority: "high", Status: "assigned", RequestType: "one-time", CreatedAt: time.Now(), RequestVersion: time.Now()},
+				}, nil
+			},
+			findUnassignedRequestsByRoomIDFunc: func(_ context.Context, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return []*models.GuestRequest{
+					{ID: "bbb00000-e458-41d4-a716-446655440000", Name: "Extra towels", Priority: "low", Status: "pending", RequestType: "one-time", CreatedAt: time.Now(), RequestVersion: time.Now()},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		withAuth(app, validUserID)
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"assigned"`)
+		assert.Contains(t, string(body), `"unassigned"`)
+		assert.Contains(t, string(body), "Fix AC")
+		assert.Contains(t, string(body), "Extra towels")
+	})
+
+	t.Run("returns 200 with empty lists when no requests exist", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return []*models.GuestRequest{}, nil
+			},
+			findUnassignedRequestsByRoomIDFunc: func(_ context.Context, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return []*models.GuestRequest{}, nil
+			},
+		}
+
+		app := fiber.New()
+		withAuth(app, validUserID)
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"assigned":[]`)
+		assert.Contains(t, string(body), `"unassigned":[]`)
+	})
+
+	t.Run("passes correct room_id, hotel_id, and user_id to mine query", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findMyRequestsByRoomIDFunc: func(_ context.Context, roomID, hotelID, userID, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				assert.Equal(t, validRoomID, roomID)
+				assert.Equal(t, validHotelID, hotelID)
+				assert.Equal(t, validUserID, userID)
+				return []*models.GuestRequest{}, nil
+			},
+			findUnassignedRequestsByRoomIDFunc: func(_ context.Context, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return []*models.GuestRequest{}, nil
+			},
+		}
+
+		app := fiber.New()
+		withAuth(app, validUserID)
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+	})
+
+	t.Run("passes correct room_id and hotel_id to unassigned query", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return []*models.GuestRequest{}, nil
+			},
+			findUnassignedRequestsByRoomIDFunc: func(_ context.Context, roomID, hotelID, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				assert.Equal(t, validRoomID, roomID)
+				assert.Equal(t, validHotelID, hotelID)
+				return []*models.GuestRequest{}, nil
+			},
+		}
+
+		app := fiber.New()
+		withAuth(app, validUserID)
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+	})
+
+	t.Run("returns 401 when user is not authenticated", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 401, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when room_id is not a valid UUID", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		withAuth(app, validUserID)
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/not-a-uuid", nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "room_id")
+	})
+
+	t.Run("returns 400 when X-Hotel-ID header is missing", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		withAuth(app, validUserID)
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "hotel_id")
+	})
+
+	t.Run("returns 400 when X-Hotel-ID is not a valid UUID", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		withAuth(app, validUserID)
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
+		req.Header.Set("X-Hotel-ID", "not-a-uuid")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "hotel_id")
+	})
+
+	t.Run("returns 500 when mine query fails", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return nil, errors.New("db connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		withAuth(app, validUserID)
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+
+	t.Run("returns 500 when unassigned query fails", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return []*models.GuestRequest{}, nil
+			},
+			findUnassignedRequestsByRoomIDFunc: func(_ context.Context, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return nil, errors.New("db connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		withAuth(app, validUserID)
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Get("/request/room/:id", h.GetRequestsByRoomID)
+
+		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
 		req.Header.Set("X-Hotel-ID", validHotelID)
 
 		resp, err := app.Test(req)
