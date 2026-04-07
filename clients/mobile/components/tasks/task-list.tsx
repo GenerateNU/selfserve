@@ -66,7 +66,7 @@ export function TaskList({
       data={tasks}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
-      contentContainerClassName="px-[5vw] py-4 gap-4"
+      contentContainerClassName="px-5 py-4 gap-4"
       showsVerticalScrollIndicator={false}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.35}

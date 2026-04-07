@@ -15,13 +15,13 @@ export function TaskCompletionModal({
         <View className="bg-white rounded-2xl p-6 w-full max-w-sm">
           <Text className="text-xl font-bold text-center">Task completed</Text>
           <Text className="text-sm text-gray-600 text-center mt-2">
-            Nice work. Manager notes are not synced yet.
+            TODO: Add manager notes and confetti.
           </Text>
           <Pressable
             onPress={onClose}
-            className="bg-blue-600 rounded-xl py-3 mt-6 items-center"
+            className="bg-blue-600 rounded-lg h-10 px-6 mt-6 items-center justify-center"
           >
-            <Text className="text-white font-semibold">Done</Text>
+            <Text className="text-sm text-white font-normal leading-5">Done</Text>
           </Pressable>
         </View>
       </View>

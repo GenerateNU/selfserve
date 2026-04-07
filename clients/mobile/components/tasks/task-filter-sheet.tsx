@@ -4,7 +4,7 @@ import {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import React, { useCallback, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 
 import {
   TASK_FILTER_DEPARTMENTS,
@@ -15,6 +15,9 @@ import {
   type TabName,
 } from "@/constants/tasks";
 import type { TasksFilterState } from "@/types/tasks";
+
+/** Sheet height = window height × this (smaller = sits lower on screen). */
+const FILTER_SHEET_HEIGHT_FRACTION = 0.82;
 
 type TaskFilterSheetProps = {
   sheetRef: React.RefObject<BottomSheetModal | null>;
@@ -54,6 +57,7 @@ export function TaskFilterSheet({
   applied,
   onApply,
 }: TaskFilterSheetProps) {
+  const { height: windowHeight } = useWindowDimensions();
   const [draft, setDraft] = useState<TasksFilterState>(applied);
 
   const statusOptions = useMemo(
@@ -77,10 +81,16 @@ export function TaskFilterSheet({
 
   const openSync = () => setDraft({ ...applied });
 
+  const snapPoints = useMemo(
+    () => [Math.round(windowHeight * FILTER_SHEET_HEIGHT_FRACTION)],
+    [windowHeight, FILTER_SHEET_HEIGHT_FRACTION],
+  );
+
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={["75%"]}
+      snapPoints={snapPoints}
+      enableDynamicSizing={false}
       enablePanDownToClose
       backdropComponent={renderBackdrop}
       onChange={(i) => {

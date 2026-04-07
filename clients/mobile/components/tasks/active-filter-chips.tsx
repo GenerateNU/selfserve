@@ -18,7 +18,7 @@ export function ActiveFilterChips({
   onClearAll,
 }: ActiveFilterChipsProps) {
   return (
-    <View className="flex-row items-center gap-3 px-[5vw] py-2">
+    <View className="flex-row items-center gap-3 px-5 py-2">
       {filters.map((filter) => (
         <View
           key={`${filter.field}-${filter.label}`}

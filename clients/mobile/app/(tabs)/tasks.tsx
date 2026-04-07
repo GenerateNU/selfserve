@@ -165,12 +165,12 @@ export default function TasksScreen() {
       ) : null}
       <View className="flex-1">
         {error ? (
-          <Text className="text-red-600 px-[5vw] py-2">
+          <Text className="text-red-600 px-5 py-2">
             {(error as Error).message || "Failed to load tasks"}
           </Text>
         ) : null}
         {isPending && !flatTasks.length ? (
-          <Text className="text-gray-500 px-[5vw] py-4">Loading…</Text>
+          <Text className="text-gray-500 px-5 py-4">Loading…</Text>
         ) : (
           <TaskList
             tasks={displayed}

@@ -17,7 +17,7 @@ export function TasksHeader({
   onOpenFilters,
 }: TasksHeaderProps) {
   return (
-    <View className="px-[5vw] py-3">
+    <View className="px-5 py-3">
       <View className="flex-row justify-between items-center">
         <Text className="text-2xl font-bold">Tasks</Text>
         <View className="flex-row items-center gap-4">
