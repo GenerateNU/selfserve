@@ -5,6 +5,8 @@ export type { Config } from "./api/config";
 
 // config functions
 export { setConfig, getConfig } from "./api/config";
+export { API_ENDPOINTS } from "./api/endpoints";
+export { useAPIClient, getBaseUrl } from "./api/client";
 
 // Generated Types - Models
 export { MakeRequestPriority } from "./api/generated/models";
@@ -59,6 +61,13 @@ export {
   usePostRooms,
   useGetRoomsFloors,
 } from "./api/generated/endpoints/rooms/rooms";
+
+export {
+  usePostTasks,
+  usePatchTasksId,
+  usePostTasksIdClaim,
+  usePostTasksIdDrop,
+} from "./api/generated/endpoints/tasks/tasks";
 
 export type {
   RoomWithOptionalGuestBooking,

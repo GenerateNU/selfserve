@@ -83,14 +83,13 @@ func TestHotelHandler_GetHotelByID(t *testing.T) {
 func TestHotelsHandler_CreateHotel(t *testing.T) {
 	t.Parallel()
 
-	floors := 10
 	validBody := `{
 		"id": "org_2abc123",
 		"name": "The Grand Budapest Hotel",
 		"floors": 10
 	}`
 
-	newMock := func(returnFloors *int) *mockHotelsRepository {
+	newMock := func() *mockHotelsRepository {
 		return &mockHotelsRepository{
 			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return &models.Hotel{
@@ -106,7 +105,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		app := fiber.New()
-		h := NewHotelsHandler(newMock(&floors))
+		h := NewHotelsHandler(newMock())
 		app.Post("/hotels", h.CreateHotel)
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(validBody))
@@ -126,7 +125,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewHotelsHandler(newMock(nil))
+		h := NewHotelsHandler(newMock())
 		app.Post("/hotels", h.CreateHotel)
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(`{invalid json`))
@@ -141,7 +140,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewHotelsHandler(newMock(nil))
+		h := NewHotelsHandler(newMock())
 		app.Post("/hotels", h.CreateHotel)
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(`{
@@ -162,7 +161,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewHotelsHandler(newMock(nil))
+		h := NewHotelsHandler(newMock())
 		app.Post("/hotels", h.CreateHotel)
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(`{
@@ -184,7 +183,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewHotelsHandler(newMock(nil))
+		h := NewHotelsHandler(newMock())
 		app.Post("/hotels", h.CreateHotel)
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(`{
@@ -205,7 +204,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewHotelsHandler(newMock(nil))
+		h := NewHotelsHandler(newMock())
 		app.Post("/hotels", h.CreateHotel)
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(`{
@@ -227,7 +226,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewHotelsHandler(newMock(nil))
+		h := NewHotelsHandler(newMock())
 		app.Post("/hotels", h.CreateHotel)
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(`{
@@ -249,7 +248,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewHotelsHandler(newMock(nil))
+		h := NewHotelsHandler(newMock())
 		app.Post("/hotels", h.CreateHotel)
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(`{
@@ -271,7 +270,7 @@ func TestHotelsHandler_CreateHotel(t *testing.T) {
 		t.Parallel()
 
 		app := fiber.New()
-		h := NewHotelsHandler(newMock(nil))
+		h := NewHotelsHandler(newMock())
 		app.Post("/hotels", h.CreateHotel)
 
 		req := httptest.NewRequest("POST", "/hotels", bytes.NewBufferString(`{

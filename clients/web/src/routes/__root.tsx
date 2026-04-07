@@ -70,17 +70,18 @@ function AppConfigurator() {
 
   const navigate = useNavigate();
 
-  if (!hotelId) {
-    navigate({ to: "/no-org" });
-  }
-
   useEffect(() => {
+    if (!hotelId) {
+      navigate({ to: "/no-org" });
+      return;
+    }
+
     setConfig({
       API_BASE_URL: process.env.API_BASE_URL ?? "",
       getToken,
       hotelId: hotelId as string,
     });
-  }, [getToken]);
+  }, [getToken, hotelId, navigate]);
 
   return null;
 }

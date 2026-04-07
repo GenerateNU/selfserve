@@ -17,6 +17,7 @@
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.23",
     "@expo/vector-icons": "^15.0.3",
+    "@gorhom/bottom-sheet": "^5.2.8",
     "@react-native-picker/picker": "^2.11.4",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
@@ -58,9 +59,9 @@
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
-    "prettier": "^3.5.3",
     "jest": "~29.7.0",
     "jest-expo": "^54.0.16",
+    "prettier": "^3.5.3",
     "react-native-dotenv": "^3.4.11",
     "react-test-renderer": "^19.1.0",
     "tailwindcss": "^3.4.19",

@@ -42,7 +42,7 @@ definitions:
         example: John
         type: string
       hotel_id:
-        example: hotel_123
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       id:
         example: user_123
@@ -299,7 +299,7 @@ definitions:
         minimum: 1
         type: integer
       id:
-        example: "550e8400-e29b-41d4-a\t716-446655440000"
+        example: org_2abc123
         type: string
       name:
         example: Hotel California
@@ -327,6 +327,9 @@ definitions:
         type: string
       hotel_id:
         example: 521e8400-e458-41d4-a716-446655440000
+        type: string
+      location_display:
+        example: North wing, 12B
         type: string
       name:
         example: room cleaning
@@ -424,6 +427,9 @@ definitions:
         type: string
       id:
         example: 530e8400-e458-41d4-a716-446655440000
+        type: string
+      location_display:
+        example: North wing, 12B
         type: string
       name:
         example: room cleaning
@@ -559,7 +565,7 @@ definitions:
         example: John
         type: string
       hotel_id:
-        example: hotel_123
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       id:
         example: user_123
@@ -600,6 +606,25 @@ definitions:
     x-enum-varnames:
     - BookingStatusActive
     - BookingStatusInactive
+  github_com_generate_selfserve_internal_models.CreateTaskBody:
+    properties:
+      assign_to_me:
+        type: boolean
+      department:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      priority:
+        enum:
+        - low
+        - medium
+        - high
+        type: string
+    required:
+    - name
+    type: object
   github_com_generate_selfserve_internal_models.NotificationType:
     enum:
     - task_assigned
@@ -608,6 +633,39 @@ definitions:
     x-enum-varnames:
     - TypeTaskAssigned
     - TypeHighPriorityTask
+  github_com_generate_selfserve_internal_models.PatchTaskBody:
+    properties:
+      status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
+        type: string
+    required:
+    - status
+    type: object
+  github_com_generate_selfserve_internal_models.Task:
+    properties:
+      department:
+        type: string
+      description:
+        type: string
+      due_time:
+        type: string
+      id:
+        type: string
+      is_assigned:
+        type: boolean
+      location:
+        type: string
+      priority:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
   github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
     properties:
       has_more:
@@ -615,6 +673,18 @@ definitions:
       items:
         items:
           $ref: '#/definitions/RoomWithOptionalGuestBooking'
+        type: array
+      next_cursor:
+        description: nil when no more pages
+        type: string
+    type: object
+  github_com_generate_selfserve_internal_utils.CursorPage-github_com_generate_selfserve_internal_models_Task:
+    properties:
+      has_more:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.Task'
         type: array
       next_cursor:
         description: nil when no more pages
@@ -1286,6 +1356,44 @@ paths:
       summary: List rooms with filters
       tags:
       - rooms
+  /rooms/{id}:
+    get:
+      description: Retrieves a single room by its UUID
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Room ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/RoomWithOptionalGuestBooking'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get room by ID
+      tags:
+      - rooms
   /rooms/floors:
     get:
       description: Retrieves all distinct floor numbers
@@ -1421,6 +1529,179 @@ paths:
       summary: Get presigned URL for profile picture upload
       tags:
       - s3
+  /tasks:
+    get:
+      description: Cursor-paginated tasks for my work or the unassigned pool
+      parameters:
+      - description: my or unassigned
+        in: query
+        name: tab
+        required: true
+        type: string
+      - description: Page size (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Opaque cursor
+        in: query
+        name: cursor
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by department (case-insensitive)
+        in: query
+        name: department
+        type: string
+      - description: Filter by priority
+        in: query
+        name: priority
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-github_com_generate_selfserve_internal_models_Task'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List staff tasks
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Creates a lightweight adhoc request for the authenticated user's
+        hotel
+      parameters:
+      - description: Task
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.CreateTaskBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Request'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create adhoc staff task
+      tags:
+      - tasks
+  /tasks/{id}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Request id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Patch
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.PatchTaskBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Request'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update task status
+      tags:
+      - tasks
+  /tasks/{id}/claim:
+    post:
+      parameters:
+      - description: Request id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Request'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Claim unassigned task
+      tags:
+      - tasks
+  /tasks/{id}/drop:
+    post:
+      parameters:
+      - description: Request id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Request'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Drop claimed task back to pool
+      tags:
+      - tasks
   /users:
     get:
       consumes:
