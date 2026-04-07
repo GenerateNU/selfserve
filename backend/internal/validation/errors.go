@@ -34,11 +34,11 @@ func ToFieldErrors(err error) map[string]string {
 		case "timezone":
 			fieldErrors[fieldName] = "invalid IANA timezone"
 		case "oneof":
-			if fieldName == "priority" {
+			if strings.EqualFold(fieldName, "priority") {
 				fieldErrors[fieldName] = "must be one of: low, medium, high"
 				continue
 			}
-			if fieldName == "status" {
+			if strings.EqualFold(fieldName, "status") {
 				fieldErrors[fieldName] = "must be one of: pending, assigned, in progress, completed"
 				continue
 			}

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as NoOrgRouteImport } from './routes/no-org'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedTestApiRouteImport } from './routes/_protected/test-api'
@@ -30,6 +31,11 @@ const SignUpRoute = SignUpRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoOrgRoute = NoOrgRouteImport.update({
+  id: '/no-org',
+  path: '/no-org',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedRoute = ProtectedRouteImport.update({
@@ -84,6 +90,7 @@ const ProtectedGuestsGuestIdRoute = ProtectedGuestsGuestIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/no-org': typeof NoOrgRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/home': typeof ProtectedHomeRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/no-org': typeof NoOrgRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/home': typeof ProtectedHomeRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteWithChildren
+  '/no-org': typeof NoOrgRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/_protected/home': typeof ProtectedHomeRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/no-org'
     | '/sign-in'
     | '/sign-up'
     | '/home'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/no-org'
     | '/sign-in'
     | '/sign-up'
     | '/home'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_protected'
+    | '/no-org'
     | '/sign-in'
     | '/sign-up'
     | '/_protected/home'
@@ -167,6 +179,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRoute: typeof ProtectedRouteWithChildren
+  NoOrgRoute: typeof NoOrgRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
 }
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/no-org': {
+      id: '/no-org'
+      path: '/no-org'
+      fullPath: '/no-org'
+      preLoaderRoute: typeof NoOrgRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected': {
@@ -299,6 +319,7 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
+  NoOrgRoute: NoOrgRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
 }

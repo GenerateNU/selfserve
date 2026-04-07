@@ -42,7 +42,7 @@ definitions:
         example: John
         type: string
       hotel_id:
-        example: hotel_123
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       id:
         example: user_123
@@ -113,6 +113,20 @@ definitions:
         type: string
       message:
         example: Room 301 could not be resolved for this hotel.
+        type: string
+    type: object
+  GetRequestsByStatusInput:
+    properties:
+      cursor_id:
+        type: string
+      cursor_time:
+        type: integer
+      status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
         type: string
     type: object
   Guest:
@@ -285,7 +299,7 @@ definitions:
         minimum: 1
         type: integer
       id:
-        example: "550e8400-e29b-41d4-a\t716-446655440000"
+        example: org_2abc123
         type: string
       name:
         example: Hotel California
@@ -587,7 +601,7 @@ definitions:
         example: John
         type: string
       hotel_id:
-        example: hotel_123
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       id:
         example: user_123
@@ -1163,32 +1177,28 @@ paths:
       summary: Update a request
       tags:
       - requests
-  /request/cursor/{cursor}:
-    get:
+  /request/cursor:
+    post:
       consumes:
       - application/json
-      description: Gets 20 requests starting after the cursor ID, filtered by status
+      description: Gets 20 requests starting after the cursor position, filtered by
+        status
       parameters:
-      - description: Cursor UUID
-        in: path
-        name: cursor
-        required: true
-        type: string
-      - description: 'Status filter: pending, assigned, in progress, completed'
-        in: query
-        name: status
-        required: true
-        type: string
       - description: Hotel UUID
-        in: query
-        name: hotel_id
+        in: header
+        name: X-Hotel-ID
         required: true
         type: string
+      - description: Cursor position and status filter
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/GetRequestsByStatusInput'
       produces:
       - application/json
       responses:
         "200":
-          description: Returns requests array and next_cursor
+          description: Returns requests array, next_cursor_time, and next_cursor_id
           schema:
             additionalProperties: true
             type: object
@@ -1358,6 +1368,44 @@ paths:
       security:
       - BearerAuth: []
       summary: List rooms with filters
+      tags:
+      - rooms
+  /rooms/{id}:
+    get:
+      description: Retrieves a single room by its UUID
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Room ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/RoomWithOptionalGuestBooking'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get room by ID
       tags:
       - rooms
   /rooms/floors:
