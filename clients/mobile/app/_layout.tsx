@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, Redirect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -39,12 +39,16 @@ export const unstable_settings = {
 function AppConfigurator() {
   const { getToken } = useAuth();
   const { organization } = useOrganization();
-  const hotelId = organization?.publicMetadata?.hotel_id as string;
+  const hotelId = organization?.publicMetadata?.hotel_id;
+
+  if (!hotelId) {
+      return <Redirect href="/no-org" />;
+  }
 
   setConfig({
     API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
     getToken,
-    hotelId,
+    hotelId: hotelId as string,
   });
   return null;
 }

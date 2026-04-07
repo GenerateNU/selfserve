@@ -1,4 +1,4 @@
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
+import { HeadContent, Scripts, createRootRoute, useNavigate } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { ClerkProvider, useAuth, useOrganization } from "@clerk/clerk-react";
@@ -61,13 +61,19 @@ export const Route = createRootRoute({
 function AppConfigurator() {
   const { getToken } = useAuth();
   const { organization } = useOrganization();
-  const hotelId = organization?.publicMetadata.hotel_id as string;
+  const hotelId = organization?.publicMetadata.hotel_id;
+  
+  const navigate = useNavigate();
+
+  if (!hotelId) {
+      navigate({ to: "/no-org" });
+  }
 
   useEffect(() => {
     setConfig({
       API_BASE_URL: process.env.API_BASE_URL ?? "",
       getToken,
-      hotelId,
+      hotelId: hotelId as string,
     });
   }, [getToken]);
 
