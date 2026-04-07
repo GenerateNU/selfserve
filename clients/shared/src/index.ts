@@ -62,6 +62,13 @@ export {
   useGetRoomsFloors,
 } from "./api/generated/endpoints/rooms/rooms";
 
+export {
+  usePostTasks,
+  usePatchTasksId,
+  usePostTasksIdClaim,
+  usePostTasksIdDrop,
+} from "./api/generated/endpoints/tasks/tasks";
+
 export type {
   RoomWithOptionalGuestBooking,
   FilterRoomsRequest,

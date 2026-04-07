@@ -1,9 +1,14 @@
 import {
   useInfiniteQuery,
-  useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { API_ENDPOINTS, useAPIClient } from "@shared";
+import {
+  API_ENDPOINTS,
+  useAPIClient,
+  usePatchTasksId,
+  usePostTasksIdClaim,
+  usePostTasksIdDrop,
+} from "@shared";
 
 import { TAB, type TabName, tabToApi } from "@/constants/tasks";
 import type {
@@ -51,31 +56,69 @@ export function useTasksFeed(tab: TabName, filters: TasksFilterState) {
 }
 
 export function useTaskMutations() {
-  const client = useAPIClient();
   const qc = useQueryClient();
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["tasks-feed"] });
 
-  const patchStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      await client.patch(API_ENDPOINTS.task(id), { status });
+  const patchStatusMutation = usePatchTasksId({
+    mutation: {
+      onSettled: invalidate,
     },
-    onSettled: invalidate,
   });
+  type PatchStatusInput = {
+    id: string;
+    status: Parameters<typeof patchStatusMutation.mutateAsync>[0]["data"]["status"];
+  };
+  const patchStatus = {
+    ...patchStatusMutation,
+    mutate: (
+      vars: PatchStatusInput,
+      ...args: Parameters<typeof patchStatusMutation.mutate> extends [any, ...infer R]
+        ? R
+        : never
+    ) =>
+      patchStatusMutation.mutate(
+        { id: vars.id, data: { status: vars.status } },
+        ...args,
+      ),
+    mutateAsync: (vars: PatchStatusInput) =>
+      patchStatusMutation.mutateAsync({
+        id: vars.id,
+        data: { status: vars.status },
+      }),
+  };
 
-  const claimTask = useMutation({
-    mutationFn: async (id: string) => {
-      await client.post(API_ENDPOINTS.taskClaim(id), {});
+  const claimTaskMutation = usePostTasksIdClaim({
+    mutation: {
+      onSettled: invalidate,
     },
-    onSettled: invalidate,
   });
+  const claimTask = {
+    ...claimTaskMutation,
+    mutate: (
+      id: string,
+      ...args: Parameters<typeof claimTaskMutation.mutate> extends [any, ...infer R]
+        ? R
+        : never
+    ) => claimTaskMutation.mutate({ id }, ...args),
+    mutateAsync: (id: string) => claimTaskMutation.mutateAsync({ id }),
+  };
 
-  const dropTask = useMutation({
-    mutationFn: async (id: string) => {
-      await client.post(API_ENDPOINTS.taskDrop(id), {});
+  const dropTaskMutation = usePostTasksIdDrop({
+    mutation: {
+      onSettled: invalidate,
     },
-    onSettled: invalidate,
   });
+  const dropTask = {
+    ...dropTaskMutation,
+    mutate: (
+      id: string,
+      ...args: Parameters<typeof dropTaskMutation.mutate> extends [any, ...infer R]
+        ? R
+        : never
+    ) => dropTaskMutation.mutate({ id }, ...args),
+    mutateAsync: (id: string) => dropTaskMutation.mutateAsync({ id }),
+  };
 
   return { patchStatus, claimTask, dropTask };
 }
