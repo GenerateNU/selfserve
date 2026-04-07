@@ -1,4 +1,9 @@
-import { HeadContent, Scripts, createRootRoute, useNavigate } from "@tanstack/react-router";
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  useNavigate,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { ClerkProvider, useAuth, useOrganization } from "@clerk/clerk-react";
@@ -62,11 +67,11 @@ function AppConfigurator() {
   const { getToken } = useAuth();
   const { organization } = useOrganization();
   const hotelId = organization?.publicMetadata.hotel_id;
-  
+
   const navigate = useNavigate();
 
   if (!hotelId) {
-      navigate({ to: "/no-org" });
+    navigate({ to: "/no-org" });
   }
 
   useEffect(() => {

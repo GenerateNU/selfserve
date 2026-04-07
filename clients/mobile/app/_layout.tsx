@@ -42,7 +42,7 @@ function AppConfigurator() {
   const hotelId = organization?.publicMetadata?.hotel_id;
 
   if (!hotelId) {
-      return <Redirect href="/no-org" />;
+    return <Redirect href="/no-org" />;
   }
 
   setConfig({
