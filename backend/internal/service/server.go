@@ -126,8 +126,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		return c.SendStatus(http.StatusOK)
 	})
 
-	// initialize users repo
+	// initialize users and hotels repos for clerk webhook handler
 	usersRepo := repository.NewUsersRepository(repo.DB)
+	hotelsRepo := repository.NewHotelsRepository(repo.DB)
 
 	// initialize notifications
 	notifRepo := repository.NewNotificationsRepository(repo.DB)
@@ -151,14 +152,15 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	if err != nil {
 		return err
 	}
-	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
+	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, hotelsRepo, clerkWhSignatureVerifier)
 
 	// API v1 routes
 	api := app.Group("/api/v1")
 
-	// clerk webhook route
+	// clerk webhook routes
 	api.Route("/clerk", func(r fiber.Router) {
-		r.Post("/user", clerkWebhookHandler.CreateUser)
+		r.Post("/org-membership", clerkWebhookHandler.CreateOrgMembership)
+		r.Post("/org", clerkWebhookHandler.OrgCreated)
 	})
 
 	verifier := clerk.NewClerkJWTVerifier()

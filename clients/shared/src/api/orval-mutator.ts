@@ -11,8 +11,8 @@ export const useCustomInstance = <T>(): ((
   config: RequestConfig,
 ) => Promise<T>) => {
   return async (config: RequestConfig): Promise<T> => {
-    const { getToken } = getConfig();
-    const request = createRequest(getToken, getBaseUrl());
+    const { getToken, hotelId } = getConfig();
+    const request = createRequest(getToken, getBaseUrl(), hotelId);
     const response = await request<T>(config);
     return response;
   };

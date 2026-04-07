@@ -1,7 +1,12 @@
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  useNavigate,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import { ClerkProvider, useAuth } from "@clerk/clerk-react";
+import { ClerkProvider, useAuth, useOrganization } from "@clerk/clerk-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { setConfig } from "@shared";
@@ -60,15 +65,23 @@ export const Route = createRootRoute({
 // Component to configure auth provider and the api base url
 function AppConfigurator() {
   const { getToken } = useAuth();
+  const { organization } = useOrganization();
+  const hotelId = organization?.publicMetadata.hotel_id;
+
+  const navigate = useNavigate();
+
   useEffect(() => {
+    if (!hotelId) {
+      navigate({ to: "/no-org" });
+      return;
+    }
+
     setConfig({
       API_BASE_URL: process.env.API_BASE_URL ?? "",
       getToken,
-      ROOMS_HOTEL_ID:
-        import.meta.env.VITE_ROOMS_HOTEL_ID ||
-        "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      hotelId: hotelId as string,
     });
-  }, [getToken]);
+  }, [getToken, hotelId, navigate]);
 
   return null;
 }

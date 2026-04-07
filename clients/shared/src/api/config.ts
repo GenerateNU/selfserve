@@ -8,10 +8,7 @@
 export type Config = {
   API_BASE_URL: string
   getToken: () => Promise<string | null>
-  /**
-   * When set, sent as X-Hotel-ID (required by /rooms). Staff /tasks uses JWT + user hotel only.
-   */
-  ROOMS_HOTEL_ID?: string
+  hotelId: string
 }
 
 let config: Config | null = null

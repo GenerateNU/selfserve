@@ -7,6 +7,7 @@ import { getConfig } from "./config";
 export const createRequest = (
   getToken: () => Promise<string | null>,
   baseUrl: string,
+  hotelId: string,
 ) => {
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
@@ -17,13 +18,12 @@ export const createRequest = (
 
     try {
       const token = await getToken();
-      const { ROOMS_HOTEL_ID } = getConfig();
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
         ...config.headers,
       };
-      const hotel = ROOMS_HOTEL_ID?.trim();
+      const hotel = hotelId?.trim();
       if (hotel) {
         headers["X-Hotel-ID"] = hotel;
       }
@@ -78,9 +78,9 @@ export const useAPIClient = (): HttpClient => {
   // can be called during app startup (e.g. in a useEffect)
   // before any API calls are executed.
   const request = async <T>(config: RequestConfig): Promise<T> => {
-    const { getToken } = getConfig();
+    const { getToken, hotelId } = getConfig();
     const baseUrl = getBaseUrl();
-    const doRequest = createRequest(getToken, baseUrl);
+    const doRequest = createRequest(getToken, baseUrl, hotelId);
     return doRequest<T>(config);
   };
 
