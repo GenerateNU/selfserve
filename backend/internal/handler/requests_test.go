@@ -19,7 +19,6 @@ import (
 
 type mockRequestRepository struct {
 	makeRequestFunc                    func(ctx context.Context, req *models.Request) (*models.Request, error)
-	patchRequestFunc                   func(ctx context.Context, id string, patch *models.PatchRequest) (*models.Request, error)
 	findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
 	findRequestsByCursorFunc           func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error)
@@ -30,10 +29,6 @@ type mockRequestRepository struct {
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
 	return m.makeRequestFunc(ctx, req)
-}
-
-func (m *mockRequestRepository) PatchRequest(ctx context.Context, id string, patch *models.PatchRequest) (*models.Request, error) {
-	return m.patchRequestFunc(ctx, id, patch)
 }
 
 func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
@@ -1277,10 +1272,9 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 	t.Run("returns 200 when body is empty object (no fields to patch)", func(t *testing.T) {
 		t.Parallel()
 
-		var capturedPatch *models.PatchRequest
+		var inserted *models.Request
 		mock := &mockRequestRepository{
-			patchRequestFunc: func(_ context.Context, id string, patch *models.PatchRequest) (*models.Request, error) {
-				capturedPatch = patch
+			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return &models.Request{
 					ID:             id,
 					CreatedAt:      time.Now(),
@@ -1294,6 +1288,10 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 					},
 				}, nil
 			},
+			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
+				inserted = req
+				return req, nil
+			},
 		}
 
 		app := fiber.New()
@@ -1306,30 +1304,16 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
 
-		require.NotNil(t, capturedPatch)
-		assert.Nil(t, capturedPatch.UserID)
-		assert.Nil(t, capturedPatch.GuestID)
-		assert.Nil(t, capturedPatch.ReservationID)
-		assert.Nil(t, capturedPatch.Name)
-		assert.Nil(t, capturedPatch.Description)
-		assert.Nil(t, capturedPatch.RoomID)
-		assert.Nil(t, capturedPatch.RequestCategory)
-		assert.Nil(t, capturedPatch.RequestType)
-		assert.Nil(t, capturedPatch.Department)
-		assert.Nil(t, capturedPatch.Status)
-		assert.Nil(t, capturedPatch.Priority)
-		assert.Nil(t, capturedPatch.EstimatedCompletionTime)
-		assert.Nil(t, capturedPatch.ScheduledTime)
-		assert.Nil(t, capturedPatch.CompletedAt)
-		assert.Nil(t, capturedPatch.Notes)
+		require.NotNil(t, inserted)
 	})
 
 	t.Run("returns 200 and updated request on success", func(t *testing.T) {
 		t.Parallel()
 
 		updated := "assigned"
+		insertedStatus := ""
 		mock := &mockRequestRepository{
-			patchRequestFunc: func(_ context.Context, id string, patch *models.PatchRequest) (*models.Request, error) {
+			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return &models.Request{
 					ID:             id,
 					CreatedAt:      time.Now(),
@@ -1338,10 +1322,14 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 						HotelID:     "521e8400-e458-41d4-a716-446655440000",
 						Name:        "room cleaning",
 						RequestType: "recurring",
-						Status:      *patch.Status,
+						Status:      "pending",
 						Priority:    "high",
 					},
 				}, nil
+			},
+			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
+				insertedStatus = req.Status
+				return req, nil
 			},
 		}
 
@@ -1359,25 +1347,30 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 
 		b, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(b), validID)
-		assert.Contains(t, string(b), updated)
+		assert.Equal(t, updated, insertedStatus)
 	})
 
 	t.Run("passes only provided fields to patch", func(t *testing.T) {
 		t.Parallel()
 
-		var capturedPatch *models.PatchRequest
+		var inserted *models.Request
 
 		mock := &mockRequestRepository{
-			patchRequestFunc: func(_ context.Context, _ string, patch *models.PatchRequest) (*models.Request, error) {
-				capturedPatch = patch
-				name := "new name"
+			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return &models.Request{
-					ID: validID,
+					ID: id,
 					MakeRequest: models.MakeRequest{
-						HotelID: "521e8400-e458-41d4-a716-446655440000", Name: name,
-						RequestType: "one-time", Status: "pending", Priority: "low",
+						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						Name:        "old name",
+						Status:      "pending",
+						Priority:    "low",
+						RequestType: "one-time",
 					},
 				}, nil
+			},
+			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
+				inserted = req
+				return req, nil
 			},
 		}
 
@@ -1391,11 +1384,10 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
 
-		require.NotNil(t, capturedPatch)
-		require.NotNil(t, capturedPatch.Name)
-		assert.Equal(t, "new name", *capturedPatch.Name)
-		assert.Nil(t, capturedPatch.Status)
-		assert.Nil(t, capturedPatch.Priority)
+		require.NotNil(t, inserted)
+		assert.Equal(t, "new name", inserted.Name)
+		assert.Equal(t, "pending", inserted.Status)
+		assert.Equal(t, "low", inserted.Priority)
 	})
 
 	t.Run("returns 400 when id is not a valid UUID", func(t *testing.T) {
@@ -1447,9 +1439,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			patchRequestFunc: func(_ context.Context, id string, patch *models.PatchRequest) (*models.Request, error) {
-				require.NotNil(t, patch.Status)
-				assert.Equal(t, "in progress", *patch.Status)
+			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return &models.Request{
 					ID:             id,
 					CreatedAt:      time.Now(),
@@ -1458,10 +1448,14 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 						HotelID:     "521e8400-e458-41d4-a716-446655440000",
 						Name:        "room cleaning",
 						RequestType: "recurring",
-						Status:      *patch.Status,
+						Status:      "pending",
 						Priority:    "high",
 					},
 				}, nil
+			},
+			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
+				require.Equal(t, "in progress", req.Status)
+				return req, nil
 			},
 		}
 
@@ -1531,7 +1525,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			patchRequestFunc: func(_ context.Context, _ string, _ *models.PatchRequest) (*models.Request, error) {
+			findRequestFunc: func(_ context.Context, _ string) (*models.Request, error) {
 				return nil, errs.ErrNotFoundInDB
 			},
 		}
@@ -1551,7 +1545,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			patchRequestFunc: func(_ context.Context, _ string, _ *models.PatchRequest) (*models.Request, error) {
+			findRequestFunc: func(_ context.Context, _ string) (*models.Request, error) {
 				return nil, errors.New("db connection failed")
 			},
 		}

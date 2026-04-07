@@ -230,18 +230,6 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomID(ctx context.Context,
 	return scanGuestRequests(rows)
 }
 
-// PatchRequest reads the latest version, merges non-nil patch fields, and inserts a new version.
-func (r *RequestsRepository) PatchRequest(ctx context.Context, id string, patch *models.PatchRequest) (*models.Request, error) {
-	current, err := r.FindRequest(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	current.ApplyPatch(patch)
-
-	return r.InsertRequest(ctx, current)
-}
-
 func scanGuestRequests(rows pgx.Rows) ([]*models.GuestRequest, error) {
 	requests := make([]*models.GuestRequest, 0)
 	for rows.Next() {

@@ -81,7 +81,7 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Param        id       path  string              true  "Request ID (UUID)"
-// @Param        request  body  models.PatchRequest  true  "Fields to update"
+// @Param        request  body  models.RequestPatchInput  true  "Fields to update"
 // @Success      200  {object}  models.Request
 // @Failure      400  {object}  errs.HTTPError
 // @Failure      404  {object}  errs.HTTPError
@@ -94,17 +94,25 @@ func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
 		return errs.BadRequest("request id is not a valid UUID")
 	}
 
-	var patch models.PatchRequest
-	if err := httpx.BindAndValidate(c, &patch); err != nil {
+	var patchInput models.RequestPatchInput
+	if err := httpx.BindAndValidate(c, &patchInput); err != nil {
 		return err
 	}
 
-	res, err := r.RequestRepository.PatchRequest(c.Context(), id, &patch)
+	request, err := r.RequestRepository.FindRequest(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("Request", "id", id)
 		}
-		slog.Error("failed to patch request", "err", err, "requestID", id)
+		slog.Error("failed to get request for update", "err", err, "requestID", id)
+		return errs.InternalServerError()
+	}
+
+	request.ApplyPatch(&patchInput)
+
+	res, err := r.RequestRepository.InsertRequest(c.Context(), request)
+	if err != nil {
+		slog.Error("failed to insert updated request version", "err", err, "requestID", id)
 		return errs.InternalServerError()
 	}
 

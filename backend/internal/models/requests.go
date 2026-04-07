@@ -61,9 +61,9 @@ type MakeRequest struct {
 	Notes                   *string    `json:"notes" example:"No special requests"`
 } //@name MakeRequest
 
-// PatchRequest is the body for PUT /request/:id — all fields are optional.
+// RequestPatchInput is the body for PUT /request/:id — all fields are optional.
 // Only non-nil fields are applied; the rest are copied from the current version.
-type PatchRequest struct {
+type RequestPatchInput struct {
 	UserID                  *string    `json:"user_id"`
 	GuestID                 *string    `json:"guest_id"`
 	ReservationID           *string    `json:"reservation_id"`
@@ -79,9 +79,9 @@ type PatchRequest struct {
 	ScheduledTime           *time.Time `json:"scheduled_time"`
 	CompletedAt             *time.Time `json:"completed_at"`
 	Notes                   *string    `json:"notes"`
-} //@name PatchRequest
+} //@name RequestPatchInput
 
-func (r *Request) ApplyPatch(patch *PatchRequest) {
+func (r *Request) ApplyPatch(patch *RequestPatchInput) {
 	utils.ApplyPtr(&r.UserID, patch.UserID)
 	utils.ApplyPtr(&r.GuestID, patch.GuestID)
 	utils.ApplyPtr(&r.ReservationID, patch.ReservationID)

@@ -389,7 +389,7 @@ definitions:
       user_id:
         type: string
     type: object
-  PatchRequest:
+  RequestPatchInput:
     properties:
       completed_at:
         type: string
@@ -1152,7 +1152,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/PatchRequest'
+          $ref: '#/definitions/RequestPatchInput'
       produces:
       - application/json
       responses:
