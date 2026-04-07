@@ -20,13 +20,13 @@ func NewHotelsRepository(db *pgxpool.Pool) *HotelsRepository {
 
 func (r *HotelsRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
 	row := r.db.QueryRow(ctx, `
-		SELECT id, name, floors, clerk_org_id, created_at, updated_at
+		SELECT id, name, floors, created_at, updated_at
 		FROM hotels
 		WHERE id = $1
 	`, id)
 
 	var hotel models.Hotel
-	err := row.Scan(&hotel.ID, &hotel.Name, &hotel.Floors, &hotel.ClerkOrgID, &hotel.CreatedAt, &hotel.UpdatedAt)
+	err := row.Scan(&hotel.ID, &hotel.Name, &hotel.Floors, &hotel.CreatedAt, &hotel.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
@@ -39,56 +39,13 @@ func (r *HotelsRepository) FindByID(ctx context.Context, id string) (*models.Hot
 
 func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 	createdHotel := &models.Hotel{CreateHotelRequest: *hotel}
-
 	err := r.db.QueryRow(ctx, `
-		INSERT INTO hotels (
-			name, floors, clerk_org_id
-		) VALUES (
-			$1, $2, $3
-		)
-		RETURNING id, created_at, updated_at
-	`,
-		hotel.Name,
-		hotel.Floors,
-		hotel.ClerkOrgID,
-	).Scan(&createdHotel.ID, &createdHotel.CreatedAt, &createdHotel.UpdatedAt)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return createdHotel, nil
-}
-
-func (r *HotelsRepository) FindByClerkOrgID(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
-	row := r.db.QueryRow(ctx, `
-		SELECT id, name, floors, clerk_org_id, created_at, updated_at
-		FROM hotels
-		WHERE clerk_org_id = $1
-	`, clerkOrgID)
-
-	var hotel models.Hotel
-	err := row.Scan(&hotel.ID, &hotel.Name, &hotel.Floors, &hotel.ClerkOrgID, &hotel.CreatedAt, &hotel.UpdatedAt)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errs.ErrNotFoundInDB
-		}
-		return nil, err
-	}
-
-	return &hotel, nil
-}
-
-func (r *HotelsRepository) InsertHotelFromClerkOrg(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error) {
-	var hotel models.Hotel
-	err := r.db.QueryRow(ctx, `
-		INSERT INTO hotels (name, clerk_org_id)
-		VALUES ($1, $2)
-		ON CONFLICT (clerk_org_id) DO NOTHING
-		RETURNING id, name, floors, clerk_org_id, created_at, updated_at
-	`, name, clerkOrgID).Scan(
-		&hotel.ID, &hotel.Name, &hotel.Floors,
-		&hotel.ClerkOrgID, &hotel.CreatedAt, &hotel.UpdatedAt,
+        INSERT INTO hotels (id, name, floors)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (id) DO NOTHING
+        RETURNING created_at, updated_at
+    `, hotel.ID, hotel.Name, hotel.Floors).Scan(
+		&createdHotel.CreatedAt, &createdHotel.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -96,5 +53,5 @@ func (r *HotelsRepository) InsertHotelFromClerkOrg(ctx context.Context, clerkOrg
 		}
 		return nil, err
 	}
-	return &hotel, nil
+	return createdHotel, nil
 }

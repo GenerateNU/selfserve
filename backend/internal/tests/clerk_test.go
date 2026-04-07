@@ -58,25 +58,19 @@ func (m *mockUsersRepositoryClerk) SearchUsersByHotel(ctx context.Context, hotel
 var _ storage.UsersRepository = (*mockUsersRepositoryClerk)(nil)
 
 type mockHotelsRepositoryClerk struct {
-	findByClerkOrgIDFunc        func(ctx context.Context, clerkOrgID string) (*models.Hotel, error)
-	insertHotelFromClerkOrgFunc func(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error)
+	findByIDFunc    func(ctx context.Context, id string) (*models.Hotel, error)
+	insertHotelFunc func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
 }
 
 func (m *mockHotelsRepositoryClerk) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
-	return nil, nil
-}
-func (m *mockHotelsRepositoryClerk) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
-	return nil, nil
-}
-func (m *mockHotelsRepositoryClerk) FindByClerkOrgID(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
-	if m.findByClerkOrgIDFunc != nil {
-		return m.findByClerkOrgIDFunc(ctx, clerkOrgID)
+	if m.findByIDFunc != nil {
+		return m.findByIDFunc(ctx, id)
 	}
 	return nil, nil
 }
-func (m *mockHotelsRepositoryClerk) InsertHotelFromClerkOrg(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error) {
-	if m.insertHotelFromClerkOrgFunc != nil {
-		return m.insertHotelFromClerkOrgFunc(ctx, clerkOrgID, name)
+func (m *mockHotelsRepositoryClerk) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+	if m.insertHotelFunc != nil {
+		return m.insertHotelFunc(ctx, hotel)
 	}
 	return nil, nil
 }
@@ -132,12 +126,11 @@ func TestClerkHandler_OrgCreated(t *testing.T) {
 	t.Run("returns 200 and creates hotel when org is created", func(t *testing.T) {
 		t.Parallel()
 
-		var capturedOrgID, capturedName string
+		var capturedReq *models.CreateHotelRequest
 		hotelMock := &mockHotelsRepositoryClerk{
-			insertHotelFromClerkOrgFunc: func(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error) {
-				capturedOrgID = clerkOrgID
-				capturedName = name
-				return &models.Hotel{}, nil
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+				capturedReq = hotel
+				return &models.Hotel{CreateHotelRequest: *hotel}, nil
 			},
 		}
 
@@ -151,15 +144,15 @@ func TestClerkHandler_OrgCreated(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
-		assert.Equal(t, "org_123", capturedOrgID)
-		assert.Equal(t, "Hotel California", capturedName)
+		assert.Equal(t, "org_123", capturedReq.ID)
+		assert.Equal(t, "Hotel California", capturedReq.Name)
 	})
 
 	t.Run("returns 200 when hotel already exists (idempotent)", func(t *testing.T) {
 		t.Parallel()
 
 		hotelMock := &mockHotelsRepositoryClerk{
-			insertHotelFromClerkOrgFunc: func(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error) {
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return nil, errs.ErrAlreadyExistsInDB
 			},
 		}
@@ -195,7 +188,7 @@ func TestClerkHandler_OrgCreated(t *testing.T) {
 		t.Parallel()
 
 		hotelMock := &mockHotelsRepositoryClerk{
-			insertHotelFromClerkOrgFunc: func(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error) {
+			insertHotelFunc: func(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 				return nil, errors.New("db error")
 			},
 		}
@@ -232,7 +225,7 @@ func TestClerkHandler_CreateOrgMembership(t *testing.T) {
 		}
 	}`
 
-	hotelID := "550e8400-e29b-41d4-a716-446655440000"
+	hotelID := "org_123"
 
 	t.Run("returns 401 when signature verification fails", func(t *testing.T) {
 		t.Parallel()
@@ -255,10 +248,12 @@ func TestClerkHandler_CreateOrgMembership(t *testing.T) {
 		var capturedUser *models.CreateUser
 
 		hotelMock := &mockHotelsRepositoryClerk{
-			findByClerkOrgIDFunc: func(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
+			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return &models.Hotel{
-					ID:                 hotelID,
-					CreateHotelRequest: models.CreateHotelRequest{Name: "Hotel California"},
+					CreateHotelRequest: models.CreateHotelRequest{
+						ID:   hotelID,
+						Name: "Hotel California",
+					},
 				}, nil
 			},
 		}
@@ -290,11 +285,11 @@ func TestClerkHandler_CreateOrgMembership(t *testing.T) {
 		assert.Equal(t, hotelID, capturedUser.HotelID)
 	})
 
-	t.Run("returns 503 when hotel not found so clerk retries", func(t *testing.T) {
+	t.Run("returns 404 when hotel not found", func(t *testing.T) {
 		t.Parallel()
 
 		hotelMock := &mockHotelsRepositoryClerk{
-			findByClerkOrgIDFunc: func(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
+			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
 				return nil, errs.ErrNotFoundInDB
 			},
 		}
@@ -308,7 +303,7 @@ func TestClerkHandler_CreateOrgMembership(t *testing.T) {
 
 		resp, err := app.Test(req)
 		require.NoError(t, err)
-		assert.Equal(t, 503, resp.StatusCode)
+		assert.Equal(t, 404, resp.StatusCode)
 	})
 
 	t.Run("returns 400 when payload is invalid JSON", func(t *testing.T) {
@@ -330,8 +325,8 @@ func TestClerkHandler_CreateOrgMembership(t *testing.T) {
 		t.Parallel()
 
 		hotelMock := &mockHotelsRepositoryClerk{
-			findByClerkOrgIDFunc: func(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
-				return &models.Hotel{ID: hotelID}, nil
+			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
+				return &models.Hotel{CreateHotelRequest: models.CreateHotelRequest{ID: hotelID}}, nil
 			},
 		}
 
@@ -359,8 +354,8 @@ func TestClerkHandler_CreateOrgMembership(t *testing.T) {
 		var capturedUser *models.CreateUser
 
 		hotelMock := &mockHotelsRepositoryClerk{
-			findByClerkOrgIDFunc: func(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
-				return &models.Hotel{ID: hotelID}, nil
+			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
+				return &models.Hotel{CreateHotelRequest: models.CreateHotelRequest{ID: hotelID}}, nil
 			},
 		}
 
@@ -412,8 +407,8 @@ func TestClerkHandler_CreateOrgMembership(t *testing.T) {
 		}
 
 		hotelMock := &mockHotelsRepositoryClerk{
-			findByClerkOrgIDFunc: func(ctx context.Context, clerkOrgID string) (*models.Hotel, error) {
-				return &models.Hotel{ID: hotelID}, nil
+			findByIDFunc: func(ctx context.Context, id string) (*models.Hotel, error) {
+				return &models.Hotel{CreateHotelRequest: models.CreateHotelRequest{ID: hotelID}}, nil
 			},
 		}
 

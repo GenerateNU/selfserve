@@ -57,10 +57,10 @@ func (h *ClerkWebHookHandler) CreateOrgMembership(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
-	hotel, err := h.HotelsRepository.FindByClerkOrgID(c.Context(), payload.Data.Organization.ID)
+	hotel, err := h.HotelsRepository.FindByID(c.Context(), payload.Data.Organization.ID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
-			return c.SendStatus(fiber.StatusServiceUnavailable)
+			return errs.NotFound("hotel", "id", payload.Data.Organization.ID)
 		}
 		return errs.InternalServerError()
 	}
@@ -85,7 +85,10 @@ func (h *ClerkWebHookHandler) OrgCreated(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
-	hotel, err := h.HotelsRepository.InsertHotelFromClerkOrg(c.Context(), payload.Data.ID, payload.Data.Name)
+	hotel, err := h.HotelsRepository.InsertHotel(c.Context(), &models.CreateHotelRequest{
+		ID:   payload.Data.ID,
+		Name: payload.Data.Name,
+	})
 	if err != nil {
 		if errors.Is(err, errs.ErrAlreadyExistsInDB) {
 			return c.SendStatus(fiber.StatusOK)

@@ -56,8 +56,6 @@ type RequestsRepository interface {
 type HotelsRepository interface {
 	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
-	FindByClerkOrgID(ctx context.Context, clerkOrgID string) (*models.Hotel, error)
-	InsertHotelFromClerkOrg(ctx context.Context, clerkOrgID string, name string) (*models.Hotel, error)
 }
 
 // S3Storage defines the interface for S3 operations
