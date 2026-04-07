@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/generate/selfserve/internal/utils"
+)
 
 type RequestStatus string
 
@@ -76,6 +80,24 @@ type PatchRequest struct {
 	CompletedAt             *time.Time `json:"completed_at"`
 	Notes                   *string    `json:"notes"`
 } //@name PatchRequest
+
+func (r *Request) ApplyPatch(patch *PatchRequest) {
+	utils.ApplyPtr(&r.UserID, patch.UserID)
+	utils.ApplyPtr(&r.GuestID, patch.GuestID)
+	utils.ApplyPtr(&r.ReservationID, patch.ReservationID)
+	utils.Apply(&r.Name, patch.Name)
+	utils.ApplyPtr(&r.Description, patch.Description)
+	utils.ApplyPtr(&r.RoomID, patch.RoomID)
+	utils.ApplyPtr(&r.RequestCategory, patch.RequestCategory)
+	utils.Apply(&r.RequestType, patch.RequestType)
+	utils.ApplyPtr(&r.Department, patch.Department)
+	utils.Apply(&r.Status, patch.Status)
+	utils.Apply(&r.Priority, patch.Priority)
+	utils.ApplyPtr(&r.EstimatedCompletionTime, patch.EstimatedCompletionTime)
+	utils.ApplyPtr(&r.ScheduledTime, patch.ScheduledTime)
+	utils.ApplyPtr(&r.CompletedAt, patch.CompletedAt)
+	utils.ApplyPtr(&r.Notes, patch.Notes)
+}
 
 type GetRequestsByStatusInput struct {
 	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank,uuid"`

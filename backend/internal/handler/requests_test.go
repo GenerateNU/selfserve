@@ -1274,6 +1274,56 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 
 	const validID = "530e8400-e458-41d4-a716-446655440000"
 
+	t.Run("returns 200 when body is empty object (no fields to patch)", func(t *testing.T) {
+		t.Parallel()
+
+		var capturedPatch *models.PatchRequest
+		mock := &mockRequestRepository{
+			patchRequestFunc: func(_ context.Context, id string, patch *models.PatchRequest) (*models.Request, error) {
+				capturedPatch = patch
+				return &models.Request{
+					ID:             id,
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						Name:        "room cleaning",
+						RequestType: "recurring",
+						Status:      "pending",
+						Priority:    "high",
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		require.NotNil(t, capturedPatch)
+		assert.Nil(t, capturedPatch.UserID)
+		assert.Nil(t, capturedPatch.GuestID)
+		assert.Nil(t, capturedPatch.ReservationID)
+		assert.Nil(t, capturedPatch.Name)
+		assert.Nil(t, capturedPatch.Description)
+		assert.Nil(t, capturedPatch.RoomID)
+		assert.Nil(t, capturedPatch.RequestCategory)
+		assert.Nil(t, capturedPatch.RequestType)
+		assert.Nil(t, capturedPatch.Department)
+		assert.Nil(t, capturedPatch.Status)
+		assert.Nil(t, capturedPatch.Priority)
+		assert.Nil(t, capturedPatch.EstimatedCompletionTime)
+		assert.Nil(t, capturedPatch.ScheduledTime)
+		assert.Nil(t, capturedPatch.CompletedAt)
+		assert.Nil(t, capturedPatch.Notes)
+	})
+
 	t.Run("returns 200 and updated request on success", func(t *testing.T) {
 		t.Parallel()
 
@@ -1393,6 +1443,39 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		assert.Contains(t, string(b), "status")
 	})
 
+	t.Run("accepts in progress status enum", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			patchRequestFunc: func(_ context.Context, id string, patch *models.PatchRequest) (*models.Request, error) {
+				require.NotNil(t, patch.Status)
+				assert.Equal(t, "in progress", *patch.Status)
+				return &models.Request{
+					ID:             id,
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						Name:        "room cleaning",
+						RequestType: "recurring",
+						Status:      *patch.Status,
+						Priority:    "high",
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"status":"in progress"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+	})
+
 	t.Run("returns 400 on invalid priority enum", func(t *testing.T) {
 		t.Parallel()
 
@@ -1425,6 +1508,23 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 
 		b, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(b), "name")
+	})
+
+	t.Run("returns 400 when request_type is blank", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"request_type":"   "}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		b, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(b), "request_type")
 	})
 
 	t.Run("returns 404 when request not found", func(t *testing.T) {
