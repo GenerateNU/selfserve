@@ -8,6 +8,7 @@
 export type Config = {
   API_BASE_URL: string
   getToken: () => Promise<string | null>
+  hotelId: string
 }
 
 let config: Config | null = null

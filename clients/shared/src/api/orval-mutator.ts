@@ -10,8 +10,8 @@ import { RequestConfig } from "../types/api.types";
 export const useCustomInstance = <T>(): ((
   config: RequestConfig,
 ) => Promise<T>) => {
-  const { getToken } = getConfig();
-  const request = createRequest(getToken, getBaseUrl());
+  const { getToken, hotelId } = getConfig();
+  const request = createRequest(getToken, getBaseUrl(), hotelId);
 
   return async (config: RequestConfig): Promise<T> => {
     const response = await request<T>(config);
