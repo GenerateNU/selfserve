@@ -21,7 +21,9 @@ export function TaskCompletionModal({
             onPress={onClose}
             className="bg-blue-600 rounded-lg h-10 px-6 mt-6 items-center justify-center"
           >
-            <Text className="text-sm text-white font-normal leading-5">Done</Text>
+            <Text className="text-sm text-white font-normal leading-5">
+              Done
+            </Text>
           </Pressable>
         </View>
       </View>

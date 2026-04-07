@@ -97,9 +97,7 @@ export function TaskDetailSheet({
   }, []);
 
   const deadlineDisplay =
-    task?.dueTime?.trim() && task.dueTime !== "—"
-      ? task.dueTime
-      : "Not set";
+    task?.dueTime?.trim() && task.dueTime !== "—" ? task.dueTime : "Not set";
 
   return (
     <BottomSheetModal

@@ -1,7 +1,4 @@
-import {
-  useInfiniteQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import {
   API_ENDPOINTS,
   useAPIClient,
@@ -67,13 +64,18 @@ export function useTaskMutations() {
   });
   type PatchStatusInput = {
     id: string;
-    status: Parameters<typeof patchStatusMutation.mutateAsync>[0]["data"]["status"];
+    status: Parameters<
+      typeof patchStatusMutation.mutateAsync
+    >[0]["data"]["status"];
   };
   const patchStatus = {
     ...patchStatusMutation,
     mutate: (
       vars: PatchStatusInput,
-      ...args: Parameters<typeof patchStatusMutation.mutate> extends [any, ...infer R]
+      ...args: Parameters<typeof patchStatusMutation.mutate> extends [
+        any,
+        ...infer R,
+      ]
         ? R
         : never
     ) =>
@@ -97,7 +99,10 @@ export function useTaskMutations() {
     ...claimTaskMutation,
     mutate: (
       id: string,
-      ...args: Parameters<typeof claimTaskMutation.mutate> extends [any, ...infer R]
+      ...args: Parameters<typeof claimTaskMutation.mutate> extends [
+        any,
+        ...infer R,
+      ]
         ? R
         : never
     ) => claimTaskMutation.mutate({ id }, ...args),
@@ -113,7 +118,10 @@ export function useTaskMutations() {
     ...dropTaskMutation,
     mutate: (
       id: string,
-      ...args: Parameters<typeof dropTaskMutation.mutate> extends [any, ...infer R]
+      ...args: Parameters<typeof dropTaskMutation.mutate> extends [
+        any,
+        ...infer R,
+      ]
         ? R
         : never
     ) => dropTaskMutation.mutate({ id }, ...args),
