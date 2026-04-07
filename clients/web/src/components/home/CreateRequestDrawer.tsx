@@ -4,8 +4,15 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
-import type { MakeRequest } from "@shared";
+import type {
+  MakeRequest,
+  MakeRequestPriority,
+  RoomWithOptionalGuestBooking,
+  User,
+} from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
+import { AssigneePicker } from "@/components/ui/AssigneePicker";
+import { RoomPicker } from "@/components/ui/RoomPicker";
 import { cn } from "@/lib/utils";
 
 type ActivityTab = "all" | "comments" | "history";
@@ -16,8 +23,7 @@ const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
   { key: "history", label: "History" },
 ];
 
-const PRIORITIES = ["low", "medium", "high"] as const;
-type Priority = (typeof PRIORITIES)[number];
+const PRIORITIES: Array<MakeRequestPriority> = ["low", "medium", "high"];
 
 type FieldRowProps = {
   label: string;
@@ -32,7 +38,12 @@ function FieldRow({ label, value, valueClassName }: FieldRowProps) {
         <GripHorizontal className="size-4.5 text-text-subtle" />
         <span className="text-sm text-text-subtle">{label}</span>
       </div>
-      <span className={cn("text-sm text-text-default", valueClassName)}>
+      <span
+        className={cn(
+          "rounded-md px-2 py-1 text-sm text-text-subtle",
+          valueClassName,
+        )}
+      >
         {value}
       </span>
     </div>
@@ -41,14 +52,29 @@ function FieldRow({ label, value, valueClassName }: FieldRowProps) {
 
 type CreateRequestDrawerProps = {
   onClose: () => void;
+  initialData?: {
+    name?: string;
+    description?: string;
+    priority?: MakeRequestPriority;
+    room_id?: string;
+  };
 };
 
-export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
+export function CreateRequestDrawer({
+  onClose,
+  initialData,
+}: CreateRequestDrawerProps) {
   const [showMore, setShowMore] = useState(false);
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<Priority>("medium");
+  const [name, setName] = useState(initialData?.name ?? "");
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
+  const [priority, setPriority] = useState<MakeRequestPriority>(
+    initialData?.priority ?? "medium",
+  );
+  const [assignee, setAssignee] = useState<User | undefined>();
+  const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>();
 
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
@@ -65,15 +91,18 @@ export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
     mutationFn: (data: MakeRequest) => postRequest(data),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["/request/cursor"] });
+      await queryClient.cancelQueries({ queryKey: ["requests", "kanban"] });
     },
     onError: () => {
       queryClient.invalidateQueries({ queryKey: ["/request/cursor"] });
+      queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
     },
     onSuccess: () => {
       onClose();
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/request/cursor"] });
+      queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
     },
   });
 
@@ -86,6 +115,8 @@ export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
       status: "pending",
       request_type: "general",
       description: description.trim() || undefined,
+      user_id: assignee?.id,
+      room_id: room?.id ?? initialData?.room_id,
     });
   }
 
@@ -128,18 +159,36 @@ export function CreateRequestDrawer({ onClose }: CreateRequestDrawerProps) {
           </div>
         </div>
 
-        <FieldRow
-          label="Assignee"
-          value="Assign Someone"
-          valueClassName="text-primary"
-        />
+        <div className="flex items-center gap-8">
+          <div className="flex w-28 shrink-0 items-center gap-1">
+            <GripHorizontal className="size-4.5 text-text-subtle" />
+            <span className="text-sm text-text-subtle">Assignee</span>
+          </div>
+          {backendUser?.hotel_id && (
+            <AssigneePicker
+              hotelId={backendUser.hotel_id}
+              selectedUser={assignee}
+              onSelect={setAssignee}
+            />
+          )}
+        </div>
+        <div className="flex items-center gap-8">
+          <div className="flex w-28 shrink-0 items-center gap-1">
+            <GripHorizontal className="size-4.5 text-text-subtle" />
+            <span className="text-sm text-text-subtle">Room</span>
+          </div>
+          <RoomPicker
+            selectedRoom={room}
+            initialRoomId={initialData?.room_id}
+            onSelect={setRoom}
+          />
+        </div>
         <FieldRow label="Deadline" value="Empty" />
         <FieldRow label="Department" value="Empty" />
         <FieldRow label="Location" value="Empty" />
 
         {showMore && (
           <>
-            <FieldRow label="Room" value="Empty" />
             <FieldRow label="Tags" value="Empty" />
           </>
         )}

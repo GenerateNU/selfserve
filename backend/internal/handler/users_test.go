@@ -18,12 +18,13 @@ import (
 )
 
 type mockUsersRepository struct {
-	findUserByIdFunc     func(ctx context.Context, id string) (*models.User, error)
-	insertUserFunc       func(ctx context.Context, user *models.CreateUser) (*models.User, error)
-	updateProfilePicFunc func(ctx context.Context, userId string, key string) error
-	deleteProfilePicFunc func(ctx context.Context, userId string) error
-	getKeyFunc           func(ctx context.Context, userId string) (string, error)
-	bulkInsertUsersFunc  func(ctx context.Context, users []*models.CreateUser) error
+	findUserByIdFunc       func(ctx context.Context, id string) (*models.User, error)
+	insertUserFunc         func(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	searchUsersByHotelFunc func(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
+	updateProfilePicFunc   func(ctx context.Context, userId string, key string) error
+	deleteProfilePicFunc   func(ctx context.Context, userId string) error
+	getKeyFunc             func(ctx context.Context, userId string) (string, error)
+	bulkInsertUsersFunc    func(ctx context.Context, users []*models.CreateUser) error
 }
 
 func (m *mockUsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {
@@ -86,6 +87,13 @@ func (m *mockUsersRepository) BulkInsertUsers(
 
 func (m *mockUsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
 	return nil, nil
+}
+
+func (m *mockUsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
+	if m.searchUsersByHotelFunc != nil {
+		return m.searchUsersByHotelFunc(ctx, hotelID, cursor, query, limit)
+	}
+	return nil, "", nil
 }
 
 // Makes the compiler verify the mock

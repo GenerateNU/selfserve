@@ -58,6 +58,13 @@ type MakeRequest struct {
 	Notes                   *string    `json:"notes" example:"No special requests"`
 } //@name MakeRequest
 
+type GetRequestsByStatusInput struct {
+	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank,uuid"`
+	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'assigned' 'in progress' 'completed'"`
+	CursorTime *int64  `json:"cursor_time"`
+	CursorID   *string `json:"cursor_id"`
+} //@name GetRequestsByStatusInput
+
 type GenerateRequestInput struct {
 	RawText string `json:"raw_text" example:"Guest in room 504 needs extra towels urgently"`
 	HotelID string `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
@@ -86,6 +93,16 @@ type GetRequestsByGuestInput struct {
 	Cursor  string `json:"cursor"`
 	Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
 } //@name GetRequestsByGuestInput
+
+type GetRequestsByRoomInput struct {
+	RoomID  string `json:"room_id" validate:"required,uuid"`
+	HotelID string `json:"hotel_id" validate:"required,uuid"`
+} //@name GetRequestsByRoomInput
+
+type RoomRequestsResponse struct {
+	Assigned   []*GuestRequest `json:"assigned"`
+	Unassigned []*GuestRequest `json:"unassigned"`
+} //@name RoomRequestsResponse
 
 type GuestRequest struct {
 	ID              string    `json:"id"`

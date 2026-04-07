@@ -18,6 +18,14 @@ type UpdateProfilePictureRequest struct {
 	Key string `json:"key" validate:"notblank" example:"profile-pictures/user123/1706540000.jpg"`
 }
 
+type SearchUsersQuery struct {
+	HotelID string `validate:"notblank"`
+	Cursor  string
+	Query   string
+}
+
+const defaultUsersPageSize = 20
+
 type UsersHandler struct {
 	UsersRepository storage.UsersRepository
 	S3Storage       storage.S3Storage
@@ -53,6 +61,42 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 		return errs.InternalServerError()
 	}
 	return c.JSON(user)
+}
+
+// SearchUsers godoc
+// @Summary      Search users by hotel
+// @Description  Returns a paginated list of users for a hotel, optionally filtered by name
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        hotel_id  query     string  true   "Hotel UUID"
+// @Param        cursor    query     string  false  "Pagination cursor (last seen user ID)"
+// @Param        q         query     string  false  "Name search query"
+// @Success      200   {object}  map[string]interface{}
+// @Failure      400   {object}  errs.HTTPError
+// @Failure      500   {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /users [get]
+func (h *UsersHandler) SearchUsers(c *fiber.Ctx) error {
+	q := SearchUsersQuery{
+		HotelID: c.Query("hotel_id"),
+		Cursor:  c.Query("cursor"),
+		Query:   c.Query("q"),
+	}
+	if err := httpx.Validate(&q); err != nil {
+		return err
+	}
+
+	users, nextCursor, err := h.UsersRepository.SearchUsersByHotel(c.Context(), q.HotelID, q.Cursor, q.Query, defaultUsersPageSize)
+	if err != nil {
+		slog.Error("failed to search users", "hotel_id", q.HotelID, "err", err)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(fiber.Map{
+		"users":       users,
+		"next_cursor": nextCursor,
+	})
 }
 
 // CreateUser godoc

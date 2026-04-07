@@ -15,6 +15,7 @@ const timestampVariants = cva(
     variants: {
       status: {
         pending: "bg-request-pending-secondary text-request-pending",
+        assigned: "bg-request-assigned-secondary text-request-assigned",
         completed: "bg-request-completed-secondary text-request-completed",
       },
     },

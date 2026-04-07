@@ -15,8 +15,8 @@ function TestApi() {
     submittedName,
   );
 
-  const handleSubmitName = (name: string) => {
-    setSubmittedName(name);
+  const handleSubmitName = (value: string) => {
+    setSubmittedName(value);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

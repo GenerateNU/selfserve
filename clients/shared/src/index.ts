@@ -9,6 +9,8 @@ export { API_ENDPOINTS } from "./api/endpoints";
 export { useAPIClient, getBaseUrl } from "./api/client";
 
 // Generated Types - Models
+export { MakeRequestPriority } from "./api/generated/models";
+
 export type {
   User,
   CreateUser,
@@ -32,6 +34,7 @@ export {
 export {
   usePostRequest,
   usePostRequestGenerate,
+  useGetRequestRoomId,
 } from "./api/generated/endpoints/requests/requests";
 
 export {
@@ -62,4 +65,6 @@ export {
 export type {
   RoomWithOptionalGuestBooking,
   FilterRoomsRequest,
+  GuestRequest,
+  RoomRequestsResponse,
 } from "./api/generated/models";

@@ -1,3 +1,4 @@
+import { useGetRequestRoomId } from "@shared";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { RoomAccordion } from "@/components/rooms/RoomAccordion";
@@ -9,54 +10,31 @@ type RoomDetailsDrawerProps = {
   onClose: () => void;
 };
 
-const roomAccordionItems = [
-  {
-    value: "Open Issues",
-    trigger: "Open Issues",
-    content:
-      "Manage how you receive notifications. You can enable email alerts for updates or push notifications for mobile devices.",
-  },
-  {
-    value: "Your Tasks",
-    trigger: "Your Tasks",
-    content: (
-      <RoomRequestList
-        requests={[
-          {
-            id: "1",
-            title: "Task 1",
-            roomNumber: 101,
-            floor: 1,
-            department: "Maintenance",
-            priority: "high",
-            assignedTo: "Eric",
-          },
-        ]}
-      />
-    ),
-  },
-  {
-    value: "Unassigned Tasks",
-    trigger: "Unassigned Tasks",
-    content: (
-      <RoomRequestList
-        requests={[
-          {
-            id: "2",
-            title: "Task 2",
-            roomNumber: 102,
-            floor: 1,
-            department: "Maintenance",
-            priority: "medium",
-          },
-        ]}
-      />
-    ),
-  },
-];
-
 export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
+  const { data } = useGetRequestRoomId(room?.id ?? "", {
+    query: { enabled: room?.id != null },
+  });
+
   if (!room) return null;
+
+  const assignedItems = (data?.assigned ?? []).map((r) => ({
+    ...r,
+    isAssigned: true,
+  }));
+  const unassignedItems = data?.unassigned ?? [];
+
+  const roomAccordionItems = [
+    {
+      value: "Your Tasks",
+      trigger: "Your Tasks",
+      content: <RoomRequestList requests={assignedItems} />,
+    },
+    {
+      value: "Unassigned Tasks",
+      trigger: "Unassigned Tasks",
+      content: <RoomRequestList requests={unassignedItems} />,
+    },
+  ];
 
   return (
     <DrawerShell
@@ -67,7 +45,7 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
       <RoomTabBar />
       <RoomAccordion
         items={roomAccordionItems}
-        defaultValue={["Open Issues", "Your Tasks", "billing"]}
+        defaultValue={["Your Tasks", "Unassigned Tasks"]}
       />
     </DrawerShell>
   );
