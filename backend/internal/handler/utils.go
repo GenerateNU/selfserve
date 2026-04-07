@@ -75,3 +75,16 @@ func ReformatUserData(CreateUserRequest *models.ClerkUser) *models.CreateUser {
 	}
 	return result
 }
+
+func ReformatOrgMembershipUserData(userData *models.OrgMembershipUserData, hotelID string) *models.CreateUser {
+	result := &models.CreateUser{
+		ID:        userData.UserID,
+		FirstName: userData.FirstName,
+		LastName:  userData.LastName,
+		HotelID:   hotelID,
+	}
+	if userData.HasImage {
+		result.ProfilePicture = userData.ImageUrl
+	}
+	return result
+}
