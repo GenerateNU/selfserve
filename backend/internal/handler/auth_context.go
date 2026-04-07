@@ -30,9 +30,9 @@ func userIDAndHotelFromAuth(c *fiber.Ctx, users authUserLookup) (clerkID, hotelI
 		return "", "", errs.InternalServerError()
 	}
 
-	if u.HotelID == nil || strings.TrimSpace(*u.HotelID) == "" {
+	if strings.TrimSpace(u.HotelID) == "" {
 		return "", "", errs.BadRequest("user has no hotel assigned")
 	}
 
-	return clerkID, *u.HotelID, nil
+	return clerkID, u.HotelID, nil
 }

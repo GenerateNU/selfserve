@@ -42,7 +42,7 @@ definitions:
         example: John
         type: string
       hotel_id:
-        example: hotel_123
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       id:
         example: user_123
@@ -299,7 +299,7 @@ definitions:
         minimum: 1
         type: integer
       id:
-        example: "550e8400-e29b-41d4-a\t716-446655440000"
+        example: org_2abc123
         type: string
       name:
         example: Hotel California
@@ -565,7 +565,7 @@ definitions:
         example: John
         type: string
       hotel_id:
-        example: hotel_123
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       id:
         example: user_123

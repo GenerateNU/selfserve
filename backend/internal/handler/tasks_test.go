@@ -24,7 +24,7 @@ type mockAuthUsers struct {
 func (m *mockAuthUsers) FindUser(ctx context.Context, id string) (*models.User, error) {
 	if m.findUser == nil {
 		h := "521e8400-e458-41d4-a716-446655440000"
-		return &models.User{CreateUser: models.CreateUser{ID: id, HotelID: &h}}, nil
+		return &models.User{CreateUser: models.CreateUser{ID: id, HotelID: h}}, nil
 	}
 	return m.findUser(ctx, id)
 }
@@ -63,7 +63,7 @@ func TestTasksHandler_GetTasks(t *testing.T) {
 		t.Parallel()
 		app := testTasksApp(t, &mockRequestRepository{}, &mockAuthUsers{
 			findUser: func(ctx context.Context, id string) (*models.User, error) {
-				return &models.User{CreateUser: models.CreateUser{ID: id, HotelID: nil}}, nil
+				return &models.User{CreateUser: models.CreateUser{ID: id, HotelID: ""}}, nil
 			},
 		}, "user_clerk_1")
 		req := httptest.NewRequest("GET", "/tasks?tab=my", nil)
