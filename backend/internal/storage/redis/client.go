@@ -3,18 +3,14 @@ package redis
 import (
 	"context"
 	"fmt"
-	"os"
 
+	"github.com/generate/selfserve/config"
 	"github.com/redis/go-redis/v9"
 )
 
 // InitRedis initializes and returns a Redis client
-func InitRedis() (*redis.Client, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     getRedisAddr(),
-		Password: getRedisPassword(),
-		DB:       0,
-	})
+func InitRedis(cfg config.Redis) (*redis.Client, error) {
+	client := redis.NewClient(newOptions(cfg))
 
 	ctx := context.Background()
 	if err := client.Ping(ctx).Err(); err != nil {
@@ -32,14 +28,10 @@ func Close(client *redis.Client) error {
 	return nil
 }
 
-func getRedisAddr() string {
-	addr := os.Getenv("REDIS_ADDR")
-	if addr == "" {
-		return "localhost:6379"
+func newOptions(cfg config.Redis) *redis.Options {
+	return &redis.Options{
+		Addr:     cfg.Addr,
+		Password: cfg.Password,
+		DB:       0,
 	}
-	return addr
-}
-
-func getRedisPassword() string {
-	return os.Getenv("REDIS_PASSWORD")
 }

@@ -50,8 +50,8 @@ func main() {
 	}
 
 	defer func() {
-		if err := app.Repo.Close(); err != nil {
-			panic(fmt.Sprintf("failed to close repo: %v", err))
+		if err := app.Close(); err != nil {
+			panic(fmt.Sprintf("failed to close app resources: %v", err))
 		}
 	}()
 
