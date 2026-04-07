@@ -13,9 +13,7 @@ import {
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import {
   ClerkProvider,
-  ClerkLoaded,
   useAuth,
-  useOrganization,
 } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { setConfig } from "@shared";
@@ -36,21 +34,23 @@ export const unstable_settings = {
 };
 
 // Component to configure auth provider and the api base url
-function AppConfigurator() {
-  const { getToken } = useAuth();
-  const { organization } = useOrganization();
-  const hotelId = organization?.publicMetadata?.hotel_id;
+function AppConfigurator({ children }: { children: React.ReactNode }) {
+  const { getToken, isLoaded, isSignedIn, orgId } = useAuth();
 
-  if (!hotelId) {
-    return <Redirect href="/no-org" />;
+  if (!isLoaded) return null;
+
+  if (isSignedIn && orgId) {
+    setConfig({
+      API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
+      getToken,
+      hotelId: orgId,
+    });
+    return <>{children}</>;
   }
+  
+  if (isSignedIn && !orgId) return null;
 
-  setConfig({
-    API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
-    getToken,
-    hotelId: hotelId as string,
-  });
-  return null;
+  return <>{children}</>;
 }
 
 export default function RootLayout() {
@@ -61,8 +61,7 @@ export default function RootLayout() {
       publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       tokenCache={tokenCache}
     >
-      <ClerkLoaded>
-        <AppConfigurator />
+        <AppConfigurator>
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
             <ThemeProvider
@@ -79,7 +78,7 @@ export default function RootLayout() {
             </ThemeProvider>
           </SafeAreaProvider>
         </QueryClientProvider>
-      </ClerkLoaded>
+        </AppConfigurator>
     </ClerkProvider>
   );
 }
