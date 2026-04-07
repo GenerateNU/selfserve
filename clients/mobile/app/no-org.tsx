@@ -6,10 +6,6 @@ export default function NoOrg() {
       <Text className="text-[5vw] font-semibold text-black text-center mb-[2vh]">
         No Organization Found
       </Text>
-      <Text className="text-[3.5vw] text-center text-shadow-strong">
-        You are not part of a hotel organization yet. Please contact your manager
-        for an invitation.
-      </Text>
     </View>
   );
 }
