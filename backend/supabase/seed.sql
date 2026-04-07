@@ -21,6 +21,13 @@ VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Grand Hotel', 5)
 ON CONFLICT (id) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
+-- Users
+-- -----------------------------------------------------------------------------
+INSERT INTO public.users (id, first_name, last_name, role, hotel_id)
+VALUES ('user_3BgSkSK6KDYGD1VJRZvyO4MVF7L', 'Dev', 'User', 'admin', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
+ON CONFLICT (id) DO NOTHING;
+
+-- -----------------------------------------------------------------------------
 -- Rooms  (3 per floor, floors 1–3)
 -- -----------------------------------------------------------------------------
 INSERT INTO public.rooms (id, room_number, floor, suite_type, room_status, features, hotel_id)
@@ -108,6 +115,161 @@ VALUES
    '2026-03-01', '2026-03-07', NULL, 'inactive')
 ON CONFLICT (id) DO NOTHING;
 
+-- -----------------------------------------------------------------------------
+-- Requests — 5 versions of the same request (composite PK: id + request_version)
+-- All share the same created_at (original creation time) and scheduled_time 06:00.
+-- The latest request_version is what FindRequestsByStatusPaginated will surface.
+-- -----------------------------------------------------------------------------
+INSERT INTO public.requests (id, hotel_id, user_id, name, request_type, status, priority, room_id, department, scheduled_time, created_at, request_version)
+VALUES
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+   'room cleaning', 'recurring', 'pending', 'normal', '102', 'Housekeeping',
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T01:00:00Z'),
+
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+   'room cleaning', 'recurring', 'pending', 'normal', '102', 'Housekeeping',
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T02:00:00Z'),
+
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+   'room cleaning', 'recurring', 'pending', 'high', '102', 'Housekeeping',
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T03:00:00Z'),
+
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+   'room cleaning', 'recurring', 'pending', 'high', '102', 'Housekeeping',
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T04:00:00Z'),
+
+  ('c0000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+   'room cleaning', 'recurring', 'pending', 'urgent', '102', 'Housekeeping',
+   '2026-03-31T06:00:00Z', '2026-03-31T01:00:00Z', '2026-03-31T05:00:00Z')
+ON CONFLICT (id, request_version) DO NOTHING;
+
+-- -----------------------------------------------------------------------------
+-- Requests — 300 bulk rows: 100 pending · 100 assigned · 100 completed
+-- UUIDs are deterministic (md5 of status+index) so the seed is idempotent.
+-- scheduled_time cycles through 08:00–19:00 (never below 8AM).
+-- -----------------------------------------------------------------------------
+INSERT INTO public.requests (id, hotel_id, user_id, name, request_type, status, priority, room_id, department, scheduled_time, created_at, request_version)
+SELECT
+  md5('pending' || i::text)::uuid,
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+  (ARRAY['room cleaning','towel replacement','minibar refill','maintenance repair','extra pillows',
+         'wake-up call','laundry pickup','concierge request','turndown service','luggage assistance'])[((i-1) % 10) + 1],
+  (ARRAY['recurring','one-time'])[((i-1) % 2) + 1],
+  'pending',
+  (ARRAY['low','medium','normal','high','urgent'])[((i-1) % 5) + 1],
+  (ARRAY['101','102','103','201','202','203','301','302','303'])[((i-1) % 9) + 1],
+  (ARRAY['Housekeeping','Maintenance','Concierge','Food & Beverage','Front Desk'])[((i-1) % 5) + 1],
+  '2026-03-31'::date + '08:00:00'::interval + (((i-1) % 12) || ' hours')::interval,
+  '2026-03-01'::timestamptz + (i || ' hours')::interval,
+  '2026-03-01'::timestamptz + (i || ' hours')::interval
+FROM generate_series(1, 100) AS i
+ON CONFLICT (id, request_version) DO NOTHING;
+
+INSERT INTO public.requests (id, hotel_id, user_id, name, request_type, status, priority, room_id, department, scheduled_time, created_at, request_version)
+SELECT
+  md5('assigned' || i::text)::uuid,
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+  (ARRAY['room cleaning','towel replacement','minibar refill','maintenance repair','extra pillows',
+         'wake-up call','laundry pickup','concierge request','turndown service','luggage assistance'])[((i-1) % 10) + 1],
+  (ARRAY['recurring','one-time'])[((i-1) % 2) + 1],
+  'assigned',
+  (ARRAY['low','medium','normal','high','urgent'])[((i-1) % 5) + 1],
+  (ARRAY['101','102','103','201','202','203','301','302','303'])[((i-1) % 9) + 1],
+  (ARRAY['Housekeeping','Maintenance','Concierge','Food & Beverage','Front Desk'])[((i-1) % 5) + 1],
+  '2026-03-31'::date + '08:00:00'::interval + (((i-1) % 12) || ' hours')::interval,
+  '2026-03-02'::timestamptz + (i || ' hours')::interval,
+  '2026-03-02'::timestamptz + (i || ' hours')::interval
+FROM generate_series(1, 100) AS i
+ON CONFLICT (id, request_version) DO NOTHING;
+
+INSERT INTO public.requests (id, hotel_id, user_id, name, request_type, status, priority, room_id, department, scheduled_time, created_at, request_version)
+SELECT
+  md5('completed' || i::text)::uuid,
+  'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  'user_3BgSkSK6KDYGD1VJRZvyO4MVF7L',
+  (ARRAY['room cleaning','towel replacement','minibar refill','maintenance repair','extra pillows',
+         'wake-up call','laundry pickup','concierge request','turndown service','luggage assistance'])[((i-1) % 10) + 1],
+  (ARRAY['recurring','one-time'])[((i-1) % 2) + 1],
+  'completed',
+  (ARRAY['low','medium','normal','high','urgent'])[((i-1) % 5) + 1],
+  (ARRAY['101','102','103','201','202','203','301','302','303'])[((i-1) % 9) + 1],
+  (ARRAY['Housekeeping','Maintenance','Concierge','Food & Beverage','Front Desk'])[((i-1) % 5) + 1],
+  '2026-03-31'::date + '08:00:00'::interval + (((i-1) % 12) || ' hours')::interval,
+  '2026-03-03'::timestamptz + (i || ' hours')::interval,
+  '2026-03-03'::timestamptz + (i || ' hours')::interval
+FROM generate_series(1, 100) AS i
+-- Requests
+--   Mix of statuses and priorities across occupied rooms (102, 202, 303)
+--   and unoccupied rooms to test filtering.
+-- -----------------------------------------------------------------------------
+INSERT INTO public.requests (id, request_version, hotel_id, guest_id, room_id, name, description, request_category, request_type, department, status, priority, estimated_completion_time, notes, created_at)
+VALUES
+  -- Room 102 (Alice, occupied) — pending towel request
+  ('c0000000-0000-0000-0000-000000000001', '2026-04-01 09:00:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000001',
+   '10000000-0000-0000-0000-000000000102',
+   'Extra towels', 'Guest requested 2 extra bath towels',
+   'Housekeeping', 'on demand', 'housekeeping',
+   'pending', 'medium', 15, '', '2026-04-01 09:00:00+00'),
+
+  -- Room 102 (Alice, occupied) — completed minibar restock
+  ('c0000000-0000-0000-0000-000000000002', '2026-04-01 10:30:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000001',
+   '10000000-0000-0000-0000-000000000102',
+   'Minibar restock', 'Please restock the minibar with water and sparkling water',
+   'Room Service', 'on demand', 'food & beverage',
+   'completed', 'low', 20, '', '2026-04-01 08:00:00+00'),
+
+  -- Room 202 (Bob, occupied) — in progress maintenance
+  ('c0000000-0000-0000-0000-000000000003', '2026-04-02 07:15:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000002',
+   '10000000-0000-0000-0000-000000000202',
+   'AC not cooling', 'Air conditioning unit is blowing warm air',
+   'Maintenance', 'on demand', 'maintenance',
+   'in progress', 'high', 45, 'Technician dispatched', '2026-04-02 07:00:00+00'),
+
+  -- Room 202 (Bob, occupied) — assigned wake-up call
+  ('c0000000-0000-0000-0000-000000000004', '2026-04-02 06:00:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000002',
+   '10000000-0000-0000-0000-000000000202',
+   'Wake-up call', 'Requested wake-up call at 7:00 AM',
+   'Concierge', 'scheduled', 'front desk',
+   'assigned', 'low', 5, '', '2026-04-01 22:00:00+00'),
+
+  -- Room 303 (Carol, occupied) — pending high-priority DND override
+  ('c0000000-0000-0000-0000-000000000005', '2026-04-02 08:45:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000003',
+   '10000000-0000-0000-0000-000000000303',
+   'Room cleaning', 'Guest requested full room cleaning and bed linen change',
+   'Housekeeping', 'on demand', 'housekeeping',
+   'pending', 'high', 40, 'Celebrating anniversary — use rose petal turndown', '2026-04-02 08:30:00+00'),
+
+  -- Room 303 (Carol, occupied) — completed spa booking assistance
+  ('c0000000-0000-0000-0000-000000000006', '2026-04-01 14:00:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   'a0000000-0000-0000-0000-000000000003',
+   '10000000-0000-0000-0000-000000000303',
+   'Spa booking', 'Guest requested a couples massage appointment for 3 PM',
+   'Concierge', 'on demand', 'concierge',
+   'completed', 'medium', 10, '', '2026-04-01 11:00:00+00'),
+
+  -- Unassigned (no guest, no room) — hotel-level pending request
+  ('c0000000-0000-0000-0000-000000000007', '2026-04-02 09:00:00+00',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   NULL, NULL,
+   'Pool area inspection', 'Routine safety inspection for pool deck',
+   'Maintenance', 'recurring', 'maintenance',
+   'pending', 'medium', 60, '', '2026-04-02 09:00:00+00')
+
+ON CONFLICT (id, request_version) DO NOTHING;
+
 COMMIT;
 
 -- Quick sanity-check (printed after the transaction commits)
@@ -117,4 +279,6 @@ SELECT 'rooms',                      COUNT(*) FROM public.rooms         WHERE ho
 UNION ALL
 SELECT 'guests',                     COUNT(*) FROM public.guests        WHERE id::text LIKE 'a0000000%'
 UNION ALL
-SELECT 'guest_bookings',             COUNT(*) FROM public.guest_bookings WHERE id::text LIKE 'b0000000%';
+SELECT 'guest_bookings',             COUNT(*) FROM public.guest_bookings WHERE id::text LIKE 'b0000000%'
+UNION ALL
+SELECT 'requests',                   COUNT(*) FROM public.requests       WHERE id::text LIKE 'c0000000%';

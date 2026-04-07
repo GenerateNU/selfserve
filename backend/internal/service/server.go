@@ -126,8 +126,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		return c.SendStatus(http.StatusOK)
 	})
 
-	// initialize users repo
+	// initialize users and hotels repos for clerk webhook handler
 	usersRepo := repository.NewUsersRepository(repo.DB)
+	hotelsRepo := repository.NewHotelsRepository(repo.DB)
 
 	// initialize notifications
 	notifRepo := repository.NewNotificationsRepository(repo.DB)
@@ -149,14 +150,15 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	if err != nil {
 		return err
 	}
-	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
+	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, hotelsRepo, clerkWhSignatureVerifier)
 
 	// API v1 routes
 	api := app.Group("/api/v1")
 
-	// clerk webhook route
+	// clerk webhook routes
 	api.Route("/clerk", func(r fiber.Router) {
-		r.Post("/user", clerkWebhookHandler.CreateUser)
+		r.Post("/org-membership", clerkWebhookHandler.CreateOrgMembership)
+		r.Post("/org", clerkWebhookHandler.OrgCreated)
 	})
 
 	verifier := clerk.NewClerkJWTVerifier()
@@ -175,6 +177,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// users routes
 	api.Route("/users", func(r fiber.Router) {
+		r.Get("/", usersHandler.SearchUsers)
 		r.Get("/:id", usersHandler.GetUserByID)
 		r.Post("/", usersHandler.CreateUser)
 		r.Get("/:userId/profile-picture", usersHandler.GetProfilePicture)
@@ -198,8 +201,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Put("/:id", reqsHandler.UpdateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
-		r.Get("/cursor/:cursor", reqsHandler.GetRequestByCursor)
+		r.Post("/cursor", reqsHandler.GetRequestByCursor)
 		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
+		r.Get("/room/:id", reqsHandler.GetRequestsByRoomID)
 	})
 
 	// Hotel routes
@@ -219,6 +223,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/rooms", func(r fiber.Router) {
 		r.Post("/", roomsHandler.FilterRooms)
 		r.Get("/floors", roomsHandler.GetFloors)
+		r.Get("/:id", roomsHandler.GetRoomByID)
 	})
 
 	// guest booking routes

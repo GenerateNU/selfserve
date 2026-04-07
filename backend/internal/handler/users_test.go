@@ -18,12 +18,13 @@ import (
 )
 
 type mockUsersRepository struct {
-	findUserByIdFunc     func(ctx context.Context, id string) (*models.User, error)
-	insertUserFunc       func(ctx context.Context, user *models.CreateUser) (*models.User, error)
-	updateProfilePicFunc func(ctx context.Context, userId string, key string) error
-	deleteProfilePicFunc func(ctx context.Context, userId string) error
-	getKeyFunc           func(ctx context.Context, userId string) (string, error)
-	bulkInsertUsersFunc  func(ctx context.Context, users []*models.CreateUser) error
+	findUserByIdFunc       func(ctx context.Context, id string) (*models.User, error)
+	insertUserFunc         func(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	searchUsersByHotelFunc func(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
+	updateProfilePicFunc   func(ctx context.Context, userId string, key string) error
+	deleteProfilePicFunc   func(ctx context.Context, userId string) error
+	getKeyFunc             func(ctx context.Context, userId string) (string, error)
+	bulkInsertUsersFunc    func(ctx context.Context, users []*models.CreateUser) error
 }
 
 func (m *mockUsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {
@@ -86,6 +87,13 @@ func (m *mockUsersRepository) BulkInsertUsers(
 
 func (m *mockUsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
 	return nil, nil
+}
+
+func (m *mockUsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
+	if m.searchUsersByHotelFunc != nil {
+		return m.searchUsersByHotelFunc(ctx, hotelID, cursor, query, limit)
+	}
+	return nil, "", nil
 }
 
 // Makes the compiler verify the mock
@@ -237,7 +245,8 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		"id": "user_123",
 		"first_name": "John",
 		"last_name": "Doe",
-		"role": "Receptionist"
+		"role": "Receptionist",
+		"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 	}`
 
 	t.Run("returns 200 on valid user creation", func(t *testing.T) {
@@ -295,7 +304,8 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"role": "Manager",
 			"employee_id": "EMP-67",
 			"department": "Front Desk",
-			"timezone": "America/New_York"
+			"timezone": "America/New_York",
+			"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(bodyWithOptionals))
@@ -366,7 +376,8 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 			"first_name": "John",
 			"last_name": "Doe",
 			"role": "Receptionist",
-			"timezone": "Invalid/Not_A_Timezone"
+			"timezone": "Invalid/Not_A_Timezone",
+			"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(invalidTimezoneBody))

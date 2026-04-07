@@ -1,5 +1,18 @@
-import { ChefHat, MoreHorizontal, Plus } from "lucide-react";
-import type { ReactNode } from "react";
+import {
+  CheckCircle,
+  Clock,
+  MoreHorizontal,
+  Plus,
+  UserCheck,
+} from "lucide-react";
+import type { LucideProps } from "lucide-react";
+import type { ComponentType, ReactNode } from "react";
+
+const COLUMN_ICONS: Record<string, ComponentType<LucideProps>> = {
+  Pending: Clock,
+  Assigned: UserCheck,
+  Completed: CheckCircle,
+};
 
 type KanbanColumnProps = {
   title: string;
@@ -7,11 +20,12 @@ type KanbanColumnProps = {
 };
 
 export function KanbanColumn({ title, children }: KanbanColumnProps) {
+  const Icon = COLUMN_ICONS[title] ?? Clock;
   return (
-    <div className="flex h-full min-h-0 w-max shrink-0 flex-col gap-3 rounded-t-2xl border border-b-0 border-stroke-subtle bg-white p-4">
+    <div className="flex flex-col gap-3 rounded-t-2xl border border-b-0 border-stroke-subtle bg-white p-4 h-full min-w-[22rem]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ChefHat className="size-5 text-text-default" />
+          <Icon className="size-5 text-text-default" />
           <span className="text-base font-semibold text-text-default">
             {title}
           </span>
@@ -31,8 +45,8 @@ export function KanbanColumn({ title, children }: KanbanColumnProps) {
           </button>
         </div>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto *:shrink-0">
-        {children}
+      <div className="overflow-y-auto flex-1 min-h-0">
+        <div className="flex flex-col gap-3">{children}</div>
       </div>
     </div>
   );

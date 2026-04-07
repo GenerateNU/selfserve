@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 // HotelRepository defines methods for hotel data access
@@ -40,10 +40,8 @@ func NewHotelsHandler(repo HotelsRepository) *HotelsHandler {
 func (h *HotelsHandler) GetHotelByID(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	// Validate UUID
-	_, err := uuid.Parse(idParam)
-	if err != nil {
-		return errs.BadRequest("invalid hotel id format")
+	if strings.TrimSpace(idParam) == "" {
+		return errs.BadRequest("hotel id is required")
 	}
 
 	// Fetch hotel

@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { MakeRequestPriority } from "@shared";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { guestListItems } from "../../components/guests/guest-mocks";
 import type { Request } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
-import { GeneratedRequestDrawer } from "@/components/requests/GeneratedRequestDrawer";
+import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 
 export const Route = createFileRoute("/_protected/guests/")({
   component: GuestsQuickListPage,
@@ -17,9 +18,12 @@ function GuestsQuickListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [groupFilter, setGroupFilter] = useState("all");
   const [floorFilter, setFloorFilter] = useState("all");
-  const [generatedRequest, setGeneratedRequest] = useState<Request | null>(
-    null,
-  );
+  const [generatedData, setGeneratedData] = useState<{
+    name?: string;
+    description?: string;
+    priority?: MakeRequestPriority;
+    room_id?: string;
+  } | null>(null);
 
   const filteredGuests = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -52,12 +56,14 @@ function GuestsQuickListPage() {
         title: "Guests",
         description: "Description blah blah fries -> bag",
       }}
-      drawerOpen={generatedRequest !== null}
+      drawerOpen={generatedData !== null}
       drawer={
-        <GeneratedRequestDrawer
-          request={generatedRequest}
-          onClose={() => setGeneratedRequest(null)}
-        />
+        generatedData !== null ? (
+          <CreateRequestDrawer
+            initialData={generatedData}
+            onClose={() => setGeneratedData(null)}
+          />
+        ) : null
       }
     >
       <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
@@ -71,8 +77,21 @@ function GuestsQuickListPage() {
           navigate({ to: "/guests/$guestId", params: { guestId } })
         }
       />
-      {generatedRequest === null && (
-        <GlobalTaskInput onRequestGenerated={setGeneratedRequest} />
+      {generatedData === null && (
+        <GlobalTaskInput
+          onRequestGenerated={(r: Request) => {
+            const p = r.priority;
+            setGeneratedData({
+              name: r.name,
+              description: r.description,
+              priority:
+                p && p in MakeRequestPriority
+                  ? (p as MakeRequestPriority)
+                  : undefined,
+              room_id: r.room_id,
+            });
+          }}
+        />
       )}
     </PageShell>
   );
