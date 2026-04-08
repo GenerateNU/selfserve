@@ -17,6 +17,7 @@ import {
 } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { setConfig } from "@shared";
+import { useEffect, useState } from "react";
 
 // Client explicity created outside component to avoid recreation
 const queryClient = new QueryClient({
@@ -35,20 +36,47 @@ export const unstable_settings = {
 
 // Component to configure auth provider and the api base url
 function AppConfigurator({ children }: { children: React.ReactNode }) {
-  const { getToken, isLoaded, isSignedIn, orgId } = useAuth();
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(false);
 
-  if (!isLoaded) return null;
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !userId) return;
 
-  if (isSignedIn && orgId) {
-    setConfig({
-      API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
-      getToken,
-      hotelId: orgId,
-    });
-    return <>{children}</>;
-  }
-  
-  if (isSignedIn && !orgId) return null;
+    const init = async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          setError(true);
+          return;
+        }
+        const user = await res.json();
+        if (!user.hotel_id) {
+          setError(true);
+          return;
+        }
+
+        setConfig({
+          API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
+          getToken,
+          hotelId: user.hotel_id,
+        });
+
+        setReady(true);
+      } catch (e) {
+        setError(true);
+      }
+    };
+
+    init();
+  }, [isLoaded, isSignedIn, userId]);
+
+  if (!isLoaded || !isSignedIn) return <>{children}</>;
+  if (error) return <Redirect href="/no-org" />;
+  if (!ready) return null;
 
   return <>{children}</>;
 }

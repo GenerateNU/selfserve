@@ -1,16 +1,17 @@
 import {
   HeadContent,
+  Navigate,
   Scripts,
   createRootRoute,
   useNavigate,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import { ClerkProvider, useAuth, useOrganization } from "@clerk/clerk-react";
+import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { setConfig } from "@shared";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import appCss from "../styles.css?url";
 
 // Client explicity created outside the component to avoid recreation
@@ -62,28 +63,55 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
-// Component to configure auth provider and the api base url
-function AppConfigurator() {
-  const { getToken } = useAuth();
-  const { organization } = useOrganization();
-  const hotelId = organization?.publicMetadata.hotel_id;
-
+function AppConfigurator({ children }: { children: React.ReactNode }) {
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
   const navigate = useNavigate();
-
-  if (!hotelId) {
-    navigate({ to: "/no-org" });
-  }
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    setConfig({
-      API_BASE_URL: process.env.API_BASE_URL ?? "",
-      getToken,
-      hotelId: hotelId as string,
-    });
-  }, [getToken]);
+    if (!isLoaded || !isSignedIn || !userId) return;
 
-  return null;
+    const init = async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch(`${process.env.API_BASE_URL}/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          setError(true);
+          return;
+        }
+        const user = await res.json();
+
+        if (!user.hotel_id) {
+          setError(true);
+          return;
+        }
+
+        setConfig({
+          API_BASE_URL: process.env.API_BASE_URL ?? "",
+          getToken,
+          hotelId: user.hotel_id,
+        });
+
+        setReady(true);
+      } catch (e) {
+        setError(true);
+      }
+    };
+
+    init();
+  }, [isLoaded, isSignedIn, userId]);
+
+  if (error) return <Navigate to="/no-org" />;
+
+  if (!isLoaded || !isSignedIn) return <>{children}</>; 
+  if (!ready) return null; 
+
+  return <>{children}</>;
 }
+
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
@@ -107,11 +135,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             import.meta.env.VITE_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL ?? "/home"
           }
         >
-          <AppConfigurator />
+          <AppConfigurator>
           <QueryClientProvider client={queryClient}>
             {children}
             <ReactQueryDevtools initialIsOpen={false} />
           </QueryClientProvider>
+          </AppConfigurator>
         </ClerkProvider>
         <TanStackDevtools
           config={{

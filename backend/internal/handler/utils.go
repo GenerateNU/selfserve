@@ -22,9 +22,6 @@ func hotelIDFromHeader(c *fiber.Ctx) (string, error) {
 	if hotelID == "" {
 		return "", errs.BadRequest("hotel_id header is required")
 	}
-	if !validUUID(hotelID) {
-		return "", errs.BadRequest("hotel_id header must be a valid uuid")
-	}
 	return hotelID, nil
 }
 

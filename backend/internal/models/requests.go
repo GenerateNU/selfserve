@@ -39,7 +39,7 @@ func (p RequestPriority) IsValid() bool {
 
 // for post because the ID and timestamps should always be generated
 type MakeRequest struct {
-	HotelID                 string     `json:"hotel_id" validate:"notblank,uuid" example:"521e8400-e458-41d4-a716-446655440000"`
+	HotelID                 string     `json:"hotel_id" validate:"notblank" example:"521e8400-e458-41d4-a716-446655440000"`
 	GuestID                 *string    `json:"guest_id" validate:"omitempty,uuid" example:"521e8417-e458-41d4-a716-446655440990"`
 	UserID                  *string    `json:"user_id" example:"521ee400-e458-41d4-a716-446655440000"`
 	ReservationID           *string    `json:"reservation_id" example:"521e8400-e458-41d4-a716-498655440000"`
@@ -58,7 +58,7 @@ type MakeRequest struct {
 } //@name MakeRequest
 
 type GetRequestsByStatusInput struct {
-	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank,uuid"`
+	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank"`
 	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'assigned' 'in progress' 'completed'"`
 	CursorTime *int64  `json:"cursor_time"`
 	CursorID   *string `json:"cursor_id"`
@@ -88,14 +88,14 @@ type Request struct {
 
 type GetRequestsByGuestInput struct {
 	GuestID string `json:"guest_id" validate:"required,uuid"`
-	HotelID string `json:"hotel_id" validate:"required,uuid"`
+	HotelID string `json:"hotel_id" validate:"required"`
 	Cursor  string `json:"cursor"`
 	Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
 } //@name GetRequestsByGuestInput
 
 type GetRequestsByRoomInput struct {
 	RoomID  string `json:"room_id" validate:"required,uuid"`
-	HotelID string `json:"hotel_id" validate:"required,uuid"`
+	HotelID string `json:"hotel_id" validate:"required"`
 } //@name GetRequestsByRoomInput
 
 type RoomRequestsResponse struct {
