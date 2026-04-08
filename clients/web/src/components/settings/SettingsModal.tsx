@@ -1,8 +1,21 @@
 import { X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { SettingsNav } from "./SettingsNav";
 import { DialogTitle } from "@/components/ui/dialog";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ProfileHero,
+  ProfileHeroSkeleton,
+} from "@/components/profile/ProfileHero";
+import {
+  ProfileInfoCard,
+  ProfileInfoCardSkeleton,
+} from "@/components/profile/ProfileInfoCard";
+import { NotesFromManagerCard } from "@/components/profile/NotesFromManagerCard";
+import { LogoutButton } from "@/components/LogoutButton";
 
 type SettingsModalProps = {
   open: boolean;
@@ -10,15 +23,19 @@ type SettingsModalProps = {
 };
 
 export function SettingsModal({ open, onClose }: SettingsModalProps) {
-  const { user } = useUser();
+  const { user: clerkUser } = useUser();
+  const getUsersId = useGetUsersIdHook();
 
-  const displayName =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ");
-  const initials = [user?.firstName?.[0], user?.lastName?.[0]]
-    .filter(Boolean)
-    .join("")
-    .toUpperCase();
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["user", clerkUser?.id],
+    queryFn: () => getUsersId(clerkUser!.id),
+    enabled: !!clerkUser?.id,
+  });
+
+  const firstName = user?.first_name ?? "";
+  const lastName = user?.last_name ?? "";
+  const displayName = [firstName, lastName].filter(Boolean).join(" ") || "User";
+  const avatarUrl = user?.profile_picture || clerkUser?.imageUrl;
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={(o) => !o && onClose()}>
@@ -40,26 +57,48 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
 
             <div className="mb-8">
               <DialogTitle className="text-3xl font-bold text-text-default">
-                My profile
+                {displayName}
               </DialogTitle>
             </div>
 
-            <div className="flex items-center gap-4">
-              {user?.imageUrl ? (
-                <img
-                  src={user.imageUrl}
-                  alt={displayName}
-                  className="size-16 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-bg-selected text-2xl font-semibold text-text-default">
-                  {initials || "?"}
+            {isLoading ? (
+              <>
+                <ProfileHeroSkeleton />
+                <div className="flex items-stretch gap-4">
+                  <div className="flex-1">
+                    <ProfileInfoCardSkeleton />
+                  </div>
+                  <div className="flex-1">
+                    <Skeleton className="h-56 rounded-lg" />
+                  </div>
                 </div>
-              )}
-              <p className="text-lg font-semibold text-text-default">
-                {user?.firstName} {user?.lastName}
-              </p>
-            </div>
+              </>
+            ) : (
+              <>
+                <ProfileHero
+                  firstName={firstName}
+                  lastName={lastName}
+                  avatarUrl={avatarUrl}
+                />
+                <div className="flex items-stretch gap-4">
+                  <div className="flex-1">
+                    <ProfileInfoCard
+                      userId={clerkUser!.id}
+                      governmentName={displayName}
+                      email={user?.primary_email ?? "—"}
+                      phoneNumber={user?.phone_number ?? "—"}
+                      department={user?.department ?? "—"}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <NotesFromManagerCard />
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <LogoutButton />
+                </div>
+              </>
+            )}
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

@@ -11,14 +11,14 @@ export function LogoutButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full hover:cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        className="flex items-center gap-2 rounded-lg border border-stroke-subtle px-4 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/5 hover:border-danger/30 hover:cursor-pointer"
       >
-        <LogOut className="size-5 shrink-0" />
-        Logout
+        <LogOut className="size-4 shrink-0" />
+        Log out
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30">
           <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
             <button
               type="button"
