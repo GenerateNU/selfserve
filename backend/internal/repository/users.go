@@ -116,8 +116,10 @@ func (r *UsersRepository) CompleteOnboarding(ctx context.Context, id string, dat
 
 	var hotelID *string
 
-	// if manager, create the hotel first and get back its ID
-	if data.Role == "manager" && data.HotelName != nil {
+	if data.Role == "manager" {
+		if data.HotelName == nil {
+			return nil, errs.BadRequest("hotel_name is required for managers")
+		}
 		var newHotelID string
 		err = tx.QueryRow(ctx, `
             INSERT INTO hotels (name) VALUES ($1) RETURNING id
@@ -139,7 +141,7 @@ func (r *UsersRepository) CompleteOnboarding(ctx context.Context, id string, dat
             updated_at   = NOW()
         WHERE id = $1
         RETURNING id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, is_onboarded, created_at, updated_at
-    `, id, data.Role, data.EmployeeRole, hotelID).Scan(
+    `, id, data.Role, data.Department, hotelID).Scan(
 		&user.ID, &user.FirstName, &user.LastName, &user.HotelID, &user.EmployeeID,
 		&user.ProfilePicture, &user.Role, &user.Department, &user.Timezone,
 		&user.PhoneNumber, &user.PrimaryEmail, &user.IsOnboarded, &user.CreatedAt, &user.UpdatedAt,
@@ -160,7 +162,7 @@ func (r *UsersRepository) CompleteOnboarding(ctx context.Context, id string, dat
 
 func (r *UsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, created_at, updated_at
+		SELECT id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, is_onboarded, created_at, updated_at
 		FROM users
 		WHERE hotel_id = $1
 		  AND ($2 = '' OR LOWER(first_name || ' ' || last_name) LIKE '%' || LOWER($2) || '%')
@@ -176,7 +178,7 @@ func (r *UsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, curso
 	var users []*models.User
 	for rows.Next() {
 		var u models.User
-		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.HotelID, &u.EmployeeID, &u.ProfilePicture, &u.Role, &u.Department, &u.Timezone, &u.PhoneNumber, &u.PrimaryEmail, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.HotelID, &u.EmployeeID, &u.ProfilePicture, &u.Role, &u.Department, &u.Timezone, &u.PhoneNumber, &u.PrimaryEmail, &u.IsOnboarded, &u.CreatedAt, &u.UpdatedAt); err != nil {
 			return nil, "", err
 		}
 		users = append(users, &u)

@@ -22,9 +22,9 @@ type UpdateUser struct {
 } //@name UpdateUser
 
 type OnboardUser struct {
-	Role         string  `json:"role" validate:"notblank" example:"manager"`
-	EmployeeRole *string `json:"employee_role,omitempty" example:"front_desk"`
-	HotelName    *string `json:"hotel_name,omitempty" example:"Hotel California"`
+	Role       string  `json:"role" validate:"notblank" example:"manager"`
+	Department *string `json:"department,omitempty" example:"front_desk"`
+	HotelName  *string `json:"hotel_name,omitempty" example:"Hotel California"`
 } //@name OnboardUser
 
 type CreateUserWebhook struct {

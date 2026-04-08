@@ -389,7 +389,6 @@ definitions:
       user_id:
         type: string
     type: object
-  # --- NEW: OnboardUser definition ---
   OnboardUser:
     properties:
       role:
@@ -559,7 +558,6 @@ definitions:
         example: "+11234567890"
         type: string
     type: object
-  # --- UPDATED: is_onboarded added to User ---
   User:
     properties:
       created_at:
@@ -1714,7 +1712,6 @@ paths:
       summary: Update user's profile picture
       tags:
       - users
-  # --- NEW: Complete onboarding endpoint ---
   /users/{id}/onboard:
     put:
       consumes:
