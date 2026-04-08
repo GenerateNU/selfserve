@@ -177,13 +177,13 @@ definitions:
       search:
         type: string
     required:
-    - hotel_id
+      - hotel_id
     type: object
   GuestPage:
     properties:
       data:
         items:
-          $ref: '#/definitions/GuestWithBooking'
+          $ref: "#/definitions/GuestWithBooking"
         type: array
       next_cursor:
         type: string
@@ -243,7 +243,7 @@ definitions:
         $ref: '#/definitions/Assistance'
       current_stays:
         items:
-          $ref: '#/definitions/Stay'
+          $ref: "#/definitions/Stay"
         type: array
       do_not_disturb_end:
         example: "07:00:00"
@@ -271,7 +271,7 @@ definitions:
         type: string
       past_stays:
         items:
-          $ref: '#/definitions/Stay'
+          $ref: "#/definitions/Stay"
         type: array
       phone:
         example: +1 (617) 012-3456
@@ -283,11 +283,11 @@ definitions:
         example: she/her
         type: string
     required:
-    - current_stays
-    - first_name
-    - id
-    - last_name
-    - past_stays
+      - current_stays
+      - first_name
+      - id
+      - last_name
+      - past_stays
     type: object
   Hotel:
     properties:
@@ -482,12 +482,12 @@ definitions:
   RoomWithOptionalGuestBooking:
     properties:
       booking_status:
-        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+        $ref: "#/definitions/github_com_generate_selfserve_internal_models.BookingStatus"
       floor:
         type: integer
       guests:
         items:
-          $ref: '#/definitions/Guest'
+          $ref: "#/definitions/Guest"
         type: array
       id:
         type: string
@@ -512,12 +512,12 @@ definitions:
         example: 101
         type: integer
       status:
-        $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+        $ref: "#/definitions/github_com_generate_selfserve_internal_models.BookingStatus"
     required:
-    - arrival_date
-    - departure_date
-    - room_number
-    - status
+      - arrival_date
+      - departure_date
+      - room_number
+      - status
     type: object
   UpdateGuest:
     properties:
@@ -594,8 +594,8 @@ definitions:
     type: object
   github_com_generate_selfserve_internal_models.BookingStatus:
     enum:
-    - active
-    - inactive
+      - active
+      - inactive
     type: string
     x-enum-varnames:
     - BookingStatusActive
@@ -614,7 +614,7 @@ definitions:
         type: boolean
       items:
         items:
-          $ref: '#/definitions/RoomWithOptionalGuestBooking'
+          $ref: "#/definitions/RoomWithOptionalGuestBooking"
         type: array
       next_cursor:
         description: nil when no more pages
@@ -643,27 +643,27 @@ paths:
   /api/v1/guests:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Retrieves guests optionally filtered by floor
       parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
-      - description: Guest filters
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/GuestFilters'
+        - description: Hotel ID (UUID)
+          in: header
+          name: X-Hotel-ID
+          required: true
+          type: string
+        - description: Guest filters
+          in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/GuestFilters"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/GuestPage'
+            $ref: "#/definitions/GuestPage"
         "400":
           description: Bad Request
           schema:
@@ -677,28 +677,28 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get Guests
       tags:
-      - guests
+        - guests
   /api/v1/guests/{id}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Retrieves a single guest given an id
       parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: Guest ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Guest'
+            $ref: "#/definitions/Guest"
         "400":
           description: Invalid guest ID format
           schema:
@@ -708,7 +708,7 @@ paths:
         "404":
           description: Guest not found
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+            $ref: "#/definitions/github_com_generate_selfserve_internal_errs.HTTPError"
         "500":
           description: Internal server error
           schema:
@@ -716,13 +716,13 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Gets a guest
       tags:
-      - guests
+        - guests
     put:
       consumes:
-      - application/json
+        - application/json
       description: Updates fields on a guest
       parameters:
       - description: Guest ID (UUID)
@@ -737,12 +737,12 @@ paths:
         schema:
           $ref: '#/definitions/UpdateGuest'
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Guest'
+            $ref: "#/definitions/Guest"
         "400":
           description: Bad Request
           schema:
@@ -762,29 +762,29 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Updates a guest
       tags:
       - guests
   /api/v1/hotels:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new hotel with the given data
       parameters:
-      - description: Hotel data
-        in: body
-        name: hotel
-        required: true
-        schema:
-          $ref: '#/definitions/Hotel'
+        - description: Hotel data
+          in: body
+          name: hotel
+          required: true
+          schema:
+            $ref: "#/definitions/Hotel"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/Hotel'
+            $ref: "#/definitions/Hotel"
         "400":
           description: Bad Request
           schema:
@@ -798,38 +798,38 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Create hotel
       tags:
-      - hotels
+        - hotels
   /api/v1/hotels/{id}:
     get:
       description: Retrieve a hotel's details using its UUID
       parameters:
-      - description: Hotel ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: Hotel ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Hotel'
+            $ref: "#/definitions/Hotel"
         "400":
           description: Invalid hotel ID format
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+            $ref: "#/definitions/github_com_generate_selfserve_internal_errs.HTTPError"
         "404":
           description: Hotel not found
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+            $ref: "#/definitions/github_com_generate_selfserve_internal_errs.HTTPError"
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+            $ref: "#/definitions/github_com_generate_selfserve_internal_errs.HTTPError"
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get hotel by ID
       tags:
       - hotels
@@ -864,21 +864,21 @@ paths:
   /devs/{name}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Retrieves a developer member by name
       parameters:
-      - description: Developer name
-        in: path
-        name: name
-        required: true
-        type: string
+        - description: Developer name
+          in: path
+          name: name
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Dev'
+            $ref: "#/definitions/Dev"
         "400":
           description: Bad Request
           schema:
@@ -892,7 +892,7 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get developer member
       tags:
       - devs
@@ -929,7 +929,7 @@ paths:
         required: true
         type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -959,40 +959,40 @@ paths:
   /hello:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Returns a simple hello message
       produces:
-      - text/plain
+        - text/plain
       responses:
         "200":
-          description: 'Yogurt. Gurt: Yo!'
+          description: "Yogurt. Gurt: Yo!"
           schema:
             type: string
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get hello message
       tags:
-      - hello
+        - hello
   /hello/{name}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Returns a hello message with the provided name
       parameters:
-      - description: Name to greet
-        in: path
-        name: name
-        required: true
-        type: string
+        - description: Name to greet
+          in: path
+          name: name
+          required: true
+          type: string
       produces:
-      - text/plain
+        - text/plain
       responses:
         "200":
           description: Yo, {name}!
           schema:
             type: string
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get personalized hello message
       tags:
       - hello
@@ -1060,22 +1060,22 @@ paths:
   /request:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a request with the given data
       parameters:
-      - description: Request data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/MakeRequest'
+        - description: Request data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/MakeRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Request'
+            $ref: "#/definitions/Request"
         "400":
           description: Bad Request
           schema:
@@ -1089,7 +1089,7 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: creates a request
       tags:
       - requests
@@ -1111,7 +1111,7 @@ paths:
         schema:
           $ref: '#/definitions/GetRequestsByStatusInput'
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Returns requests array, next_cursor_time, and next_cursor_id
@@ -1131,24 +1131,24 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get requests by cursor
       tags:
-      - requests
+        - requests
   /request/generate:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Generates a request using AI
       parameters:
-      - description: Request data with raw text
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/GenerateRequestInput'
+        - description: Request data with raw text
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/GenerateRequestInput"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1167,7 +1167,7 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: generates a request
       tags:
       - requests
@@ -1248,27 +1248,28 @@ paths:
   /rooms:
     post:
       consumes:
-      - application/json
-      description: Retrieves rooms with optional floor filters and cursor pagination,
+        - application/json
+      description:
+        Retrieves rooms with optional floor filters and cursor pagination,
         including any active guest bookings
       parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
-      - description: Filters and pagination
-        in: body
-        name: body
-        schema:
-          $ref: '#/definitions/FilterRoomsRequest'
+        - description: Hotel ID (UUID)
+          in: header
+          name: X-Hotel-ID
+          required: true
+          type: string
+        - description: Filters and pagination
+          in: body
+          name: body
+          schema:
+            $ref: "#/definitions/FilterRoomsRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking'
+            $ref: "#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking"
         "400":
           description: Bad Request
           schema:
@@ -1282,21 +1283,21 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: List rooms with filters
       tags:
-      - rooms
+        - rooms
   /rooms/floors:
     get:
       description: Retrieves all distinct floor numbers
       parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
+        - description: Hotel ID (UUID)
+          in: header
+          name: X-Hotel-ID
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1464,22 +1465,22 @@ paths:
       - users
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a user with the given data
       parameters:
-      - description: User data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/CreateUser'
+        - description: User data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/CreateUser"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/User'
+            $ref: "#/definitions/User"
         "400":
           description: Bad Request
           schema:
@@ -1493,28 +1494,28 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Creates a user
       tags:
-      - users
+        - users
   /users/{id}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Retrieves a user by their unique app ID
       parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/User'
+            $ref: "#/definitions/User"
         "400":
           description: Bad Request
           schema:
@@ -1528,10 +1529,10 @@ paths:
               type: string
             type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get user by ID
       tags:
-      - users
+        - users
     put:
       consumes:
       - application/json
@@ -1549,12 +1550,12 @@ paths:
         schema:
           $ref: '#/definitions/UpdateUser'
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/User'
+            $ref: "#/definitions/User"
         "400":
           description: Bad Request
           schema:
@@ -1694,10 +1695,10 @@ paths:
             type: object
       summary: Update user's profile picture
       tags:
-      - users
+        - users
 schemes:
-- http
-- https
+  - http
+  - https
 securityDefinitions:
   BearerAuth:
     description: Your Clerk JWT token (prefixed with "Bearer ")
