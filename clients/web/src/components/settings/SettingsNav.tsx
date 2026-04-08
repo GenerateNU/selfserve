@@ -1,15 +1,7 @@
 import { UserRound } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { cn } from "@/lib/utils";
 
-type Tab = "profile";
-
-type SettingsNavProps = {
-  activeTab: Tab;
-  onTabChange: (tab: Tab) => void;
-};
-
-export function SettingsNav({ activeTab, onTabChange }: SettingsNavProps) {
+export function SettingsNav() {
   const { user } = useUser();
 
   const displayName =
@@ -31,7 +23,7 @@ export function SettingsNav({ activeTab, onTabChange }: SettingsNavProps) {
         {user?.imageUrl ? (
           <img
             src={user.imageUrl}
-            alt={displayName ?? ""}
+            alt={displayName}
             className="size-6 rounded-sm object-cover"
           />
         ) : (
@@ -47,13 +39,8 @@ export function SettingsNav({ activeTab, onTabChange }: SettingsNavProps) {
       {/* Profile tab */}
       <button
         type="button"
-        onClick={() => onTabChange("profile")}
-        className={cn(
-          "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",
-          activeTab === "profile"
-            ? "bg-bg-selected font-medium text-text-default"
-            : "text-text-subtle hover:bg-bg-selected hover:text-text-default",
-        )}
+        onClick={() => {}}
+        className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors bg-bg-selected font-medium text-text-default"
       >
         <UserRound className="size-4 shrink-0 text-text-subtle" />
         My profile
