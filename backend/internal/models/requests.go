@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/generate/selfserve/internal/utils"
+)
 
 type RequestStatus string
 
@@ -56,6 +60,44 @@ type MakeRequest struct {
 	CompletedAt             *time.Time `json:"completed_at" example:"2024-01-01T00:30:00Z"`
 	Notes                   *string    `json:"notes" example:"No special requests"`
 } //@name MakeRequest
+
+// RequestPatchInput is the body for PUT /request/:id — all fields are optional.
+// Only non-nil fields are applied; the rest are copied from the current version.
+type RequestPatchInput struct {
+	UserID                  *string    `json:"user_id"`
+	GuestID                 *string    `json:"guest_id"`
+	ReservationID           *string    `json:"reservation_id"`
+	Name                    *string    `json:"name" validate:"omitempty,notblank"`
+	Description             *string    `json:"description"`
+	RoomID                  *string    `json:"room_id"`
+	RequestCategory         *string    `json:"request_category"`
+	RequestType             *string    `json:"request_type" validate:"omitempty,notblank"`
+	Department              *string    `json:"department"`
+	Status                  *string    `json:"status" validate:"omitempty,oneof='pending' 'assigned' 'in progress' 'completed'"`
+	Priority                *string    `json:"priority" validate:"omitempty,oneof=low medium high"`
+	EstimatedCompletionTime *int       `json:"estimated_completion_time"`
+	ScheduledTime           *time.Time `json:"scheduled_time"`
+	CompletedAt             *time.Time `json:"completed_at"`
+	Notes                   *string    `json:"notes"`
+} //@name RequestPatchInput
+
+func (r *Request) ApplyPatch(patch *RequestPatchInput) {
+	utils.ApplyPtr(&r.UserID, patch.UserID)
+	utils.ApplyPtr(&r.GuestID, patch.GuestID)
+	utils.ApplyPtr(&r.ReservationID, patch.ReservationID)
+	utils.Apply(&r.Name, patch.Name)
+	utils.ApplyPtr(&r.Description, patch.Description)
+	utils.ApplyPtr(&r.RoomID, patch.RoomID)
+	utils.ApplyPtr(&r.RequestCategory, patch.RequestCategory)
+	utils.Apply(&r.RequestType, patch.RequestType)
+	utils.ApplyPtr(&r.Department, patch.Department)
+	utils.Apply(&r.Status, patch.Status)
+	utils.Apply(&r.Priority, patch.Priority)
+	utils.ApplyPtr(&r.EstimatedCompletionTime, patch.EstimatedCompletionTime)
+	utils.ApplyPtr(&r.ScheduledTime, patch.ScheduledTime)
+	utils.ApplyPtr(&r.CompletedAt, patch.CompletedAt)
+	utils.ApplyPtr(&r.Notes, patch.Notes)
+}
 
 type GetRequestsByStatusInput struct {
 	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank,uuid"`

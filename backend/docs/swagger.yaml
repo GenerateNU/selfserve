@@ -389,6 +389,48 @@ definitions:
       user_id:
         type: string
     type: object
+  RequestPatchInput:
+    properties:
+      completed_at:
+        type: string
+      department:
+        type: string
+      description:
+        type: string
+      estimated_completion_time:
+        type: integer
+      guest_id:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      priority:
+        enum:
+        - low
+        - medium
+        - high
+        type: string
+      request_category:
+        type: string
+      request_type:
+        type: string
+      reservation_id:
+        type: string
+      room_id:
+        type: string
+      scheduled_time:
+        type: string
+      status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
+        type: string
+      user_id:
+        type: string
+    type: object
   RegisterDeviceTokenInput:
     properties:
       platform:
@@ -1091,6 +1133,48 @@ paths:
       security:
       - BearerAuth: []
       summary: creates a request
+      tags:
+      - requests
+  /request/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Partially updates a request — only fields present in the body are
+        applied; omitted fields keep their current values
+      parameters:
+      - description: Request ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/RequestPatchInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Request'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update a request
       tags:
       - requests
   /request/cursor:

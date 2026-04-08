@@ -1264,6 +1264,304 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 	})
 }
 
+func TestRequestHandler_UpdateRequest(t *testing.T) {
+	t.Parallel()
+
+	const validID = "530e8400-e458-41d4-a716-446655440000"
+
+	t.Run("returns 200 when body is empty object (no fields to patch)", func(t *testing.T) {
+		t.Parallel()
+
+		var inserted *models.Request
+		mock := &mockRequestRepository{
+			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
+				return &models.Request{
+					ID:             id,
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						Name:        "room cleaning",
+						RequestType: "recurring",
+						Status:      "pending",
+						Priority:    "high",
+					},
+				}, nil
+			},
+			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
+				inserted = req
+				return req, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		require.NotNil(t, inserted)
+	})
+
+	t.Run("returns 200 and updated request on success", func(t *testing.T) {
+		t.Parallel()
+
+		updated := "assigned"
+		insertedStatus := ""
+		mock := &mockRequestRepository{
+			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
+				return &models.Request{
+					ID:             id,
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						Name:        "room cleaning",
+						RequestType: "recurring",
+						Status:      "pending",
+						Priority:    "high",
+					},
+				}, nil
+			},
+			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
+				insertedStatus = req.Status
+				return req, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		body := `{"status": "` + updated + `"}`
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 200, resp.StatusCode)
+
+		b, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(b), validID)
+		assert.Equal(t, updated, insertedStatus)
+	})
+
+	t.Run("passes only provided fields to patch", func(t *testing.T) {
+		t.Parallel()
+
+		var inserted *models.Request
+
+		mock := &mockRequestRepository{
+			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
+				return &models.Request{
+					ID: id,
+					MakeRequest: models.MakeRequest{
+						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						Name:        "old name",
+						Status:      "pending",
+						Priority:    "low",
+						RequestType: "one-time",
+					},
+				}, nil
+			},
+			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
+				inserted = req
+				return req, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"name": "new name"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		require.NotNil(t, inserted)
+		assert.Equal(t, "new name", inserted.Name)
+		assert.Equal(t, "pending", inserted.Status)
+		assert.Equal(t, "low", inserted.Priority)
+	})
+
+	t.Run("returns 400 when id is not a valid UUID", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/not-a-uuid", bytes.NewBufferString(`{"status": "pending"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("returns 400 on invalid JSON", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{invalid`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("returns 400 on invalid status enum", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"status": "invalid-status"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		b, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(b), "status")
+	})
+
+	t.Run("accepts in progress status enum", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
+				return &models.Request{
+					ID:             id,
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						Name:        "room cleaning",
+						RequestType: "recurring",
+						Status:      "pending",
+						Priority:    "high",
+					},
+				}, nil
+			},
+			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
+				require.Equal(t, "in progress", req.Status)
+				return req, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"status":"in progress"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+	})
+
+	t.Run("returns 400 on invalid priority enum", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"priority": "urgent"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		b, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(b), "priority")
+	})
+
+	t.Run("returns 400 when name is blank", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"name": "   "}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		b, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(b), "name")
+	})
+
+	t.Run("returns 400 when request_type is blank", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"request_type":"   "}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		b, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(b), "request_type")
+	})
+
+	t.Run("returns 404 when request not found", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestFunc: func(_ context.Context, _ string) (*models.Request, error) {
+				return nil, errs.ErrNotFoundInDB
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"status": "pending"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 404, resp.StatusCode)
+	})
+
+	t.Run("returns 500 on db error", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findRequestFunc: func(_ context.Context, _ string) (*models.Request, error) {
+				return nil, errors.New("db connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Put("/request/:id", h.UpdateRequest)
+
+		req := httptest.NewRequest("PUT", "/request/"+validID, bytes.NewBufferString(`{"status": "pending"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 500, resp.StatusCode)
+	})
+}
+
 func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 	t.Parallel()
 
