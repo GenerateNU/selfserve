@@ -10,7 +10,7 @@ import (
 	"github.com/generate/selfserve/internal/aiflows/prompts"
 )
 
-func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *ai.GenerationCommonConfig) *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}] {
+func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *ai.GenerationCommonConfig, roomLookupRepo RoomLookupRepository) *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}] {
 	generateRequestFlow := genkit.DefineFlow(genkitInstance, "generateRequestFlow",
 		func(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error) {
 			prompt := fmt.Sprintf(prompts.GenerateRequestPrompt, input.RawText)
@@ -19,9 +19,37 @@ func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, genera
 				return GenerateRequestOutput{}, err
 			}
 
-			return *resp, nil
+			return enrichWithRoomLookup(ctx, roomLookupRepo, input.HotelID, *resp)
 		},
 	)
 
 	return generateRequestFlow
+}
+
+func enrichWithRoomLookup(ctx context.Context, roomLookupRepo RoomLookupRepository, hotelID string, output GenerateRequestOutput) (GenerateRequestOutput, error) {
+	if output.RoomMentioned == nil || !*output.RoomMentioned || output.RoomReference == nil {
+		return output, nil
+	}
+
+	roomResult, err := LookupRoom(ctx, roomLookupRepo, RoomLookupInput{
+		HotelID:       hotelID,
+		RoomReference: *output.RoomReference,
+	})
+	if err != nil {
+		return GenerateRequestOutput{}, err
+	}
+
+	output.RoomID = roomResult.RoomID
+	if roomResult.Message != nil {
+		code := "room_not_found"
+		if roomResult.Ambiguous {
+			code = "room_ambiguous"
+		}
+		output.Warning = &GenerateRequestWarning{
+			Code:    code,
+			Message: *roomResult.Message,
+		}
+	}
+
+	return output, nil
 }

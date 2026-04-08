@@ -3,10 +3,10 @@ package handler
 import (
 	"errors"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
@@ -15,8 +15,16 @@ import (
 // UpdateProfilePictureRequest represents the request body for updating a profile picture
 // @Description Request body containing the S3 key after uploading
 type UpdateProfilePictureRequest struct {
-	Key string `json:"key" example:"profile-pictures/user123/1706540000.jpg"`
+	Key string `json:"key" validate:"notblank" example:"profile-pictures/user123/1706540000.jpg"`
 }
+
+type SearchUsersQuery struct {
+	HotelID string `validate:"notblank"`
+	Cursor  string
+	Query   string
+}
+
+const defaultUsersPageSize = 20
 
 type UsersHandler struct {
 	UsersRepository storage.UsersRepository
@@ -37,6 +45,7 @@ func NewUsersHandler(repo storage.UsersRepository, s3 storage.S3Storage) *UsersH
 // @Success      200   {object}  models.User
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users/{id} [get]
 func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -54,6 +63,42 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+// SearchUsers godoc
+// @Summary      Search users by hotel
+// @Description  Returns a paginated list of users for a hotel, optionally filtered by name
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        hotel_id  query     string  true   "Hotel UUID"
+// @Param        cursor    query     string  false  "Pagination cursor (last seen user ID)"
+// @Param        q         query     string  false  "Name search query"
+// @Success      200   {object}  map[string]interface{}
+// @Failure      400   {object}  errs.HTTPError
+// @Failure      500   {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /users [get]
+func (h *UsersHandler) SearchUsers(c *fiber.Ctx) error {
+	q := SearchUsersQuery{
+		HotelID: c.Query("hotel_id"),
+		Cursor:  c.Query("cursor"),
+		Query:   c.Query("q"),
+	}
+	if err := httpx.Validate(&q); err != nil {
+		return err
+	}
+
+	users, nextCursor, err := h.UsersRepository.SearchUsersByHotel(c.Context(), q.HotelID, q.Cursor, q.Query, defaultUsersPageSize)
+	if err != nil {
+		slog.Error("failed to search users", "hotel_id", q.HotelID, "err", err)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(fiber.Map{
+		"users":       users,
+		"next_cursor": nextCursor,
+	})
+}
+
 // CreateUser godoc
 // @Summary      Creates a user
 // @Description  Creates a user with the given data
@@ -64,14 +109,11 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 // @Success      200   {object}  models.User
 // @Failure      400   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
 // @Router       /users [post]
 func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 	var CreateUserRequest models.CreateUser
-	if err := c.BodyParser(&CreateUserRequest); err != nil {
-		return errs.InvalidJSON()
-	}
-
-	if err := validateCreateUser(&CreateUserRequest); err != nil {
+	if err := httpx.BindAndValidate(c, &CreateUserRequest); err != nil {
 		return err
 	}
 
@@ -83,30 +125,38 @@ func (h *UsersHandler) CreateUser(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func validateCreateUser(user *models.CreateUser) error {
-	errors := make(map[string]string)
-
-	if strings.TrimSpace(user.FirstName) == "" {
-		errors["first_name"] = "must not be an empty string"
+// UpdateUser godoc
+// @Summary      Update user
+// @Description  Updates allowed fields on a user
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string              true  "User ID"
+// @Param        request  body      models.UpdateUser   true  "Fields to update"
+// @Success      200      {object}  models.User
+// @Failure      400      {object}  map[string]string
+// @Failure      404      {object}  map[string]string
+// @Failure      500      {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /users/{id} [put]
+func (h *UsersHandler) UpdateUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return errs.BadRequest("id is required")
 	}
-
-	if strings.TrimSpace(user.LastName) == "" {
-		errors["last_name"] = "must not be an empty string"
+	var req models.UpdateUser
+	if err := httpx.BindAndValidate(c, &req); err != nil {
+		return err
 	}
-
-	if user.Timezone != nil {
-		_, err := time.LoadLocation(*user.Timezone)
-		if err != nil || !strings.Contains(*user.Timezone, "/") {
-			errors["timezone"] = "invalid IANA timezone"
+	user, err := h.UsersRepository.UpdateUser(c.Context(), id, &req)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("user", "id", id)
 		}
+		slog.Error(err.Error())
+		return errs.InternalServerError()
 	}
-
-	if strings.TrimSpace(user.ClerkID) == "" {
-		errors["clerk_id"] = "must not be an empty string"
-	}
-
-	// Aggregates errors deterministically
-	return AggregateErrors(errors)
+	return c.JSON(user)
 }
 
 // GetProfilePicture godoc
@@ -139,9 +189,12 @@ func (h *UsersHandler) GetProfilePicture(c *fiber.Ctx) error {
 	}
 
 	// Generate presigned URL for displaying the image
-	presignedURL, err := h.S3Storage.GeneratePresignedGetURL(c.Context(), key, 5*time.Minute)
+	presignedURL, err := h.S3Storage.GeneratePresignedGetURL(c.Context(), models.PresignedURLInput{
+		Key:        key,
+		Expiration: 5 * time.Minute,
+	})
 	if err != nil {
-		return errs.InternalServerError()
+		return err
 	}
 
 	return c.JSON(fiber.Map{
@@ -168,11 +221,8 @@ func (h *UsersHandler) UpdateProfilePicture(c *fiber.Ctx) error {
 		return errs.BadRequest("userId is required")
 	}
 	var req UpdateProfilePictureRequest
-	if err := c.BodyParser(&req); err != nil {
-		return errs.InvalidJSON()
-	}
-	if req.Key == "" {
-		return errs.BadRequest("key is required")
+	if err := httpx.BindAndValidate(c, &req); err != nil {
+		return err
 	}
 	if err := h.UsersRepository.UpdateProfilePicture(c.Context(), userId, req.Key); err != nil {
 		return errs.InternalServerError()

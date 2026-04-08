@@ -10,18 +10,18 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type HotelRepository struct {
+type HotelsRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewHotelRepository(db *pgxpool.Pool) *HotelRepository {
-	return &HotelRepository{db: db}
+func NewHotelsRepository(db *pgxpool.Pool) *HotelsRepository {
+	return &HotelsRepository{db: db}
 }
 
-func (r *HotelRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
+func (r *HotelsRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
 	row := r.db.QueryRow(ctx, `
 		SELECT id, name, floors, created_at, updated_at
-		FROM hotels 
+		FROM hotels
 		WHERE id = $1
 	`, id)
 
@@ -37,32 +37,21 @@ func (r *HotelRepository) FindByID(ctx context.Context, id string) (*models.Hote
 	return &hotel, nil
 }
 
-type HotelsRepository struct {
-	db *pgxpool.Pool
-}
-
-func NewHotelsRepo(db *pgxpool.Pool) *HotelsRepository {
-	return &HotelsRepository{db: db}
-}
-
 func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 	createdHotel := &models.Hotel{CreateHotelRequest: *hotel}
-
 	err := r.db.QueryRow(ctx, `
-		INSERT INTO hotels (
-			name, floors
-		) VALUES (
-			$1, $2
-		)
-		RETURNING id, created_at, updated_at
-	`,
-		hotel.Name,
-		hotel.Floors,
-	).Scan(&createdHotel.ID, &createdHotel.CreatedAt, &createdHotel.UpdatedAt)
-
+        INSERT INTO hotels (id, name, floors)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (id) DO NOTHING
+        RETURNING created_at, updated_at
+    `, hotel.ID, hotel.Name, hotel.Floors).Scan(
+		&createdHotel.CreatedAt, &createdHotel.UpdatedAt,
+	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrAlreadyExistsInDB
+		}
 		return nil, err
 	}
-
 	return createdHotel, nil
 }

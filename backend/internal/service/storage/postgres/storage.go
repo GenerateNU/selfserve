@@ -20,7 +20,6 @@ type Repository struct {
 	UsersRepository   UsersRepository
 	GuestsRepository  GuestsRepository
 	RequestRepository RequestsRepository
-	HotelRepository   HotelRepository
 	HotelsRepository  HotelsRepository
 }
 
@@ -33,7 +32,10 @@ func ConnectDatabase(ctx context.Context, config config.DB) (*pgxpool.Pool, erro
 
 	// Apply connection pool configuration from config
 	dbConfig.MaxConns = config.MaxConns
+	dbConfig.MinConns = config.MinConns
 	dbConfig.MaxConnLifetime = config.MaxConnLifetime
+	dbConfig.MaxConnIdleTime = config.MaxConnIdleTime
+	dbConfig.HealthCheckPeriod = config.HealthCheckPeriod
 
 	conn, err := pgxpool.NewWithConfig(ctx, dbConfig)
 	if err != nil {
@@ -67,7 +69,6 @@ func NewRepository(config config.DB) (*Repository, error) {
 		UsersRepository:   repository.NewUsersRepository(db),
 		GuestsRepository:  repository.NewGuestsRepository(db),
 		RequestRepository: repository.NewRequestsRepo(db),
-		HotelRepository:   repository.NewHotelRepository(db),
-		HotelsRepository:  repository.NewHotelsRepo(db),
+		HotelsRepository:  repository.NewHotelsRepository(db),
 	}, nil
 }

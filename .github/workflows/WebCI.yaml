@@ -2,7 +2,7 @@ name: Web Frontend CI
 on:
   push:
     branches:
-      - "**"
+      - main
     paths:
       - "clients/web/**"
       - "clients/shared/**"
@@ -21,6 +21,17 @@ permissions:
   checks: write
   pull-requests: write
 jobs:
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: TruffleHog secrets scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
   web-lint:
     name: Lint & Format Check
     runs-on: ubuntu-latest
@@ -73,6 +84,8 @@ jobs:
         working-directory: ./clients/web
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version-file: "./clients/web/package.json"
@@ -84,8 +97,14 @@ jobs:
         run: cd ../shared && npm ci
       - name: Generate API types
         run: cd ../shared && npm run generate:api
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: npx vitest run --coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: web
   web-build:
     name: Build
     runs-on: ubuntu-latest
@@ -109,7 +128,12 @@ jobs:
         run: |
           npm install --package-lock-only
           git diff --exit-code package-lock.json
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
       - name: Build application
+        # Not needed currently, just for builds and deployment using doppler run command
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_WEB }}
         run: npm run build
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

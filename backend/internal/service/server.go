@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -13,9 +14,14 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
+
 	"github.com/generate/selfserve/internal/service/clerk"
+	notificationssvc "github.com/generate/selfserve/internal/service/notifications"
+	s3storage "github.com/generate/selfserve/internal/service/s3"
+	opensearchstorage "github.com/generate/selfserve/internal/service/storage/opensearch"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
-	s3storage "github.com/generate/selfserve/internal/service/storage/postgres/s3"
+	"github.com/generate/selfserve/internal/storage/redis"
+	"github.com/generate/selfserve/internal/validation"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -24,33 +30,42 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 type App struct {
-	Server    *fiber.App
-	Repo      *storage.Repository
-	S3Storage *s3storage.Storage
+	Server      *fiber.App
+	Repo        *storage.Repository
+	S3Storage   *s3storage.Storage
+	RedisClient *goredis.Client
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
-	// Init DB/repository(ies)
+	validation.Init()
 
 	repo, err := storage.NewRepository(cfg.DB)
 	if err != nil {
 		return nil, err
 	}
 
+	redisClient := tryInitRedis()
+
 	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
+		if e := repo.Close(); e != nil {
+			return nil, errors.Join(err, e)
+		}
 		return nil, err
 	}
 
-	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM)
+	openSearchRepos := tryInitOpenSearchRepositories(cfg)
 
+	roomsRepo := repository.NewRoomsRepository(repo.DB)
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM, roomsRepo)
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, s3Store, genkitInstance, cfg); err != nil {
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, openSearchRepos); err != nil {
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}
@@ -58,13 +73,43 @@ func InitApp(cfg *config.Config) (*App, error) {
 	}
 
 	return &App{
-		Server:    app,
-		Repo:      repo,
-		S3Storage: s3Store,
+		Server:      app,
+		Repo:        repo,
+		RedisClient: redisClient,
+		S3Storage:   s3Store,
 	}, nil
 }
 
-func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.Storage, genkitInstance *aiflows.GenkitService, cfg *config.Config) error {
+type openSearchRepositories struct {
+	Guests storage.GuestsSearchRepository
+}
+
+func tryInitOpenSearchRepositories(cfg *config.Config) openSearchRepositories {
+	client, err := opensearchstorage.NewClient(cfg.OpenSearch)
+	if err != nil {
+		log.Printf("Warning: OpenSearch not available: %v", err)
+		return openSearchRepositories{}
+	}
+	if err := opensearchstorage.EnsureGuestsIndex(context.Background(), client); err != nil {
+		log.Printf("Warning: failed to ensure OpenSearch guests index: %v", err)
+		return openSearchRepositories{}
+	}
+	return openSearchRepositories{
+		Guests: repository.NewOpenSearchGuestsRepository(client),
+	}
+}
+
+func tryInitRedis() *goredis.Client {
+	redisClient, err := redis.InitRedis()
+	if err != nil {
+		log.Printf("Warning: Redis not available: %v", err)
+		return nil
+	}
+	return redisClient
+}
+
+func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
+	cfg *config.Config, s3Store *s3storage.Storage, openSearchRepos openSearchRepositories) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -78,30 +123,39 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 		return c.SendStatus(http.StatusOK)
 	})
 
-	// initialize users repo
+	// initialize users and hotels repos for clerk webhook handler
 	usersRepo := repository.NewUsersRepository(repo.DB)
+	hotelsRepo := repository.NewHotelsRepository(repo.DB)
+
+	// initialize notifications
+	notifRepo := repository.NewNotificationsRepository(repo.DB)
+	notifService := notificationssvc.NewService(notifRepo)
+	notifHandler := handler.NewNotificationsHandler(notifRepo)
 
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB), s3Store)
-	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB))
-	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance)
-	hotelHandler := handler.NewHotelHandler(repository.NewHotelRepository(repo.DB))
-	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepo(repo.DB))
+	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), openSearchRepos.Guests)
+	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
+	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
+	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
+	guestBookingsHandler := handler.NewGuestBookingsHandler(repository.NewGuestBookingsRepository(repo.DB))
+
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
 	if err != nil {
 		return err
 	}
-	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, clerkWhSignatureVerifier)
+	clerkWebhookHandler := handler.NewClerkWebHookHandler(usersRepo, hotelsRepo, clerkWhSignatureVerifier)
 
 	// API v1 routes
 	api := app.Group("/api/v1")
 
-	// clerk webhook route
+	// clerk webhook routes
 	api.Route("/clerk", func(r fiber.Router) {
-		r.Post("/user", clerkWebhookHandler.CreateUser)
+		r.Post("/org-membership", clerkWebhookHandler.CreateOrgMembership)
+		r.Post("/org", clerkWebhookHandler.OrgCreated)
 	})
 
 	verifier := clerk.NewClerkJWTVerifier()
@@ -120,11 +174,13 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 
 	// users routes
 	api.Route("/users", func(r fiber.Router) {
+		r.Get("/", usersHandler.SearchUsers)
 		r.Get("/:id", usersHandler.GetUserByID)
 		r.Post("/", usersHandler.CreateUser)
 		r.Get("/:userId/profile-picture", usersHandler.GetProfilePicture)
 		r.Put("/:userId/profile-picture", usersHandler.UpdateProfilePicture)
 		r.Delete("/:userId/profile-picture", usersHandler.DeleteProfilePicture)
+		r.Put("/:id", usersHandler.UpdateUser)
 	})
 
 	// Guest Routes
@@ -132,29 +188,56 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 		r.Post("/", guestsHandler.CreateGuest)
 		r.Get("/:id", guestsHandler.GetGuest)
 		r.Put("/:id", guestsHandler.UpdateGuest)
+		r.Post("/search", guestsHandler.GetGuests)
+		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
 	})
 
 	// Request routes
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
+		r.Put("/:id", reqsHandler.UpdateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
+		r.Post("/cursor", reqsHandler.GetRequestByCursor)
+		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
+		r.Get("/room/:id", reqsHandler.GetRequestsByRoomID)
 	})
 
 	// Hotel routes
 	api.Route("/hotels", func(r fiber.Router) {
-		r.Get("/:id", hotelHandler.GetHotelByID)
-	})
-
-	api.Route("/hotel", func(r fiber.Router) {
+		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
 	})
 
 	// s3 routes
 	api.Route("/s3", func(r fiber.Router) {
-		r.Get("/presigned-url/*", s3Handler.GeneratePresignedURL)
+		r.Get("/presigned-url/*", s3Handler.GeneratePresignedUploadURL)
 		r.Get("/upload-url/:userId", s3Handler.GetUploadURL)
 		r.Get("/presigned-get-url/*", s3Handler.GeneratePresignedGetURL)
+	})
+
+	// rooms routes
+	api.Route("/rooms", func(r fiber.Router) {
+		r.Post("/", roomsHandler.FilterRooms)
+		r.Get("/floors", roomsHandler.GetFloors)
+		r.Get("/:id", roomsHandler.GetRoomByID)
+	})
+
+	// guest booking routes
+	api.Route("/guest_bookings", func(r fiber.Router) {
+		r.Get("/group_sizes", guestBookingsHandler.GetGroupSizeOptions)
+	})
+
+	// notification routes
+	api.Route("/notifications", func(r fiber.Router) {
+		r.Get("/", notifHandler.ListNotifications)
+		r.Put("/read-all", notifHandler.MarkAllRead)
+		r.Put("/:id/read", notifHandler.MarkRead)
+	})
+
+	// device token routes
+	api.Route("/device-tokens", func(r fiber.Router) {
+		r.Post("/", notifHandler.RegisterDeviceToken)
 	})
 
 	return nil
@@ -163,9 +246,10 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, s3Store *s3storage.St
 // Initialize Fiber app with middlewares / configs
 func setupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		JSONEncoder:  json.Marshal,
-		JSONDecoder:  json.Unmarshal,
-		ErrorHandler: errs.ErrorHandler,
+		JSONEncoder:    json.Marshal,
+		JSONDecoder:    json.Unmarshal,
+		ErrorHandler:   errs.ErrorHandler,
+		ReadBufferSize: 16 * 1024, // 16KB to accommodate Clerk JWTs
 	})
 	app.Use(recover.New())
 	app.Use(requestid.New())
@@ -177,9 +261,12 @@ func setupApp() *fiber.App {
 		Level: compress.LevelBestSpeed,
 	}))
 
+	allowedOrigins := os.Getenv("APP_CORS_ORIGINS")
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,PUT,DELETE",
+		AllowOrigins:     allowedOrigins,
+		AllowMethods:     "GET,POST,PUT,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Authorization, X-Hotel-ID",
+		AllowCredentials: true,
 	}))
 
 	return app

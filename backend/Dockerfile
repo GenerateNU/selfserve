@@ -26,6 +26,10 @@ FROM alpine:latest
 
 WORKDIR /app
 
+# Install Doppler CLI
+RUN apk add --no-cache curl gnupg && \
+    curl -Ls https://cli.doppler.com/install.sh | sh
+
 # Copy the binary from the builder stage
 # Makefile builds to bin/selfserve
 COPY --from=builder /app/bin/selfserve .
@@ -33,5 +37,5 @@ COPY --from=builder /app/bin/selfserve .
 # Expose port 8080
 EXPOSE 8080
 
-# Command to run the executable
-CMD ["./selfserve"]
+# Doppler fetches secrets at runtime — DOPPLER_TOKEN must be set
+CMD ["doppler", "run", "--", "./selfserve"]

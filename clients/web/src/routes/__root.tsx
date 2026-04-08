@@ -1,12 +1,17 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-
-import Header from '../components/Header'
-
-import appCss from '../styles.css?url'
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  useNavigate,
+} from "@tanstack/react-router";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { ClerkProvider, useAuth, useOrganization } from "@clerk/clerk-react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { setConfig } from "@shared";
+import { useEffect } from "react";
+import appCss from "../styles.css?url";
 
 // Client explicity created outside the component to avoid recreation
 const queryClient = new QueryClient({
@@ -17,32 +22,68 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
     },
   },
-})
+});
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       {
-        charSet: 'utf-8',
+        charSet: "utf-8",
       },
       {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        name: "viewport",
+        content: "width=device-width, initial-scale=1",
       },
       {
-        title: 'SelfServe',
+        title: "SelfServe",
       },
     ],
     links: [
       {
-        rel: 'stylesheet',
+        rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap",
       },
     ],
   }),
 
   shellComponent: RootDocument,
-})
+});
+
+// Component to configure auth provider and the api base url
+function AppConfigurator() {
+  const { getToken } = useAuth();
+  const { organization } = useOrganization();
+  const hotelId = organization?.publicMetadata.hotel_id;
+
+  const navigate = useNavigate();
+
+  if (!hotelId) {
+    navigate({ to: "/no-org" });
+  }
+
+  useEffect(() => {
+    setConfig({
+      API_BASE_URL: process.env.API_BASE_URL ?? "",
+      getToken,
+      hotelId: hotelId as string,
+    });
+  }, [getToken]);
+
+  return null;
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
@@ -51,24 +92,40 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <QueryClientProvider client={queryClient}>
-          <Header />
-          {children}
-          <ReactQueryDevtools initialIsOpen={false} />
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
-          <Scripts />
-        </QueryClientProvider>
+        <ClerkProvider
+          publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}
+          signInForceRedirectUrl={
+            import.meta.env.VITE_CLERK_SIGN_IN_FORCE_REDIRECT_URL ?? "/home"
+          }
+          signUpForceRedirectUrl={
+            import.meta.env.VITE_CLERK_SIGN_UP_FORCE_REDIRECT_URL ?? "/home"
+          }
+          signInFallbackRedirectUrl={
+            import.meta.env.VITE_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL ?? "/home"
+          }
+          signUpFallbackRedirectUrl={
+            import.meta.env.VITE_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL ?? "/home"
+          }
+        >
+          <AppConfigurator />
+          <QueryClientProvider client={queryClient}>
+            {children}
+            <ReactQueryDevtools initialIsOpen={false} />
+          </QueryClientProvider>
+        </ClerkProvider>
+        <TanStackDevtools
+          config={{
+            position: "bottom-right",
+          }}
+          plugins={[
+            {
+              name: "Tanstack Router",
+              render: <TanStackRouterDevtoolsPanel />,
+            },
+          ]}
+        />
+        <Scripts />
       </body>
     </html>
-  )
+  );
 }

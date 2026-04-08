@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -40,6 +39,14 @@ func (m *mockUsersRepositorySync) DeleteProfilePicture(ctx context.Context, user
 
 func (m *mockUsersRepositorySync) GetKey(ctx context.Context, userId string) (string, error) {
 	return "", nil
+}
+
+func (m *mockUsersRepositorySync) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
+	return nil, nil
+}
+
+func (m *mockUsersRepositorySync) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
+	return nil, "", nil
 }
 
 // Makes the compiler verify the mock implements the interface
@@ -87,11 +94,11 @@ func TestSyncUsers(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Len(t, capturedUsers, 2)
-		assert.Equal(t, "user_123", capturedUsers[0].ClerkID)
+		assert.Equal(t, "user_123", capturedUsers[0].ID)
 		assert.Equal(t, "John", capturedUsers[0].FirstName)
 		assert.Equal(t, "Doe", capturedUsers[0].LastName)
 		assert.Nil(t, capturedUsers[0].ProfilePicture)
-		assert.Equal(t, "user_456", capturedUsers[1].ClerkID)
+		assert.Equal(t, "user_456", capturedUsers[1].ID)
 		assert.Equal(t, "Jane", capturedUsers[1].FirstName)
 		assert.Equal(t, "Smith", capturedUsers[1].LastName)
 		assert.Equal(t, "https://example.com/jane.jpg", *capturedUsers[1].ProfilePicture)

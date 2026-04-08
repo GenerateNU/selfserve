@@ -18,12 +18,13 @@ import (
 )
 
 type mockUsersRepository struct {
-	findUserByIdFunc     func(ctx context.Context, id string) (*models.User, error)
-	insertUserFunc       func(ctx context.Context, user *models.CreateUser) (*models.User, error)
-	updateProfilePicFunc func(ctx context.Context, userId string, key string) error
-	deleteProfilePicFunc func(ctx context.Context, userId string) error
-	getKeyFunc           func(ctx context.Context, userId string) (string, error)
-	bulkInsertUsersFunc  func(ctx context.Context, users []*models.CreateUser) error
+	findUserByIdFunc       func(ctx context.Context, id string) (*models.User, error)
+	insertUserFunc         func(ctx context.Context, user *models.CreateUser) (*models.User, error)
+	searchUsersByHotelFunc func(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
+	updateProfilePicFunc   func(ctx context.Context, userId string, key string) error
+	deleteProfilePicFunc   func(ctx context.Context, userId string) error
+	getKeyFunc             func(ctx context.Context, userId string) (string, error)
+	bulkInsertUsersFunc    func(ctx context.Context, users []*models.CreateUser) error
 }
 
 func (m *mockUsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {
@@ -84,6 +85,17 @@ func (m *mockUsersRepository) BulkInsertUsers(
 	return nil
 }
 
+func (m *mockUsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
+	return nil, nil
+}
+
+func (m *mockUsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
+	if m.searchUsersByHotelFunc != nil {
+		return m.searchUsersByHotelFunc(ctx, hotelID, cursor, query, limit)
+	}
+	return nil, "", nil
+}
+
 // Makes the compiler verify the mock
 var _ storage.UsersRepository = (*mockUsersRepository)(nil)
 
@@ -92,11 +104,11 @@ type mockS3Storage struct {
 	deleteFileFunc func(ctx context.Context, key string) error
 }
 
-func (m *mockS3Storage) GeneratePresignedURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
+func (m *mockS3Storage) GeneratePresignedUploadURL(ctx context.Context, in models.PresignedURLInput) (string, error) {
 	return "", nil
 }
 
-func (m *mockS3Storage) GeneratePresignedGetURL(ctx context.Context, key string, expiration time.Duration) (string, error) {
+func (m *mockS3Storage) GeneratePresignedGetURL(ctx context.Context, in models.PresignedURLInput) (string, error) {
 	return "", nil
 }
 
@@ -124,8 +136,8 @@ func TestUsersHandler_GetUserByID(t *testing.T) {
 						FirstName: "John",
 						LastName:  "Doe",
 						Role:      &role,
+						ID:        "550e8400-e29b-41d4-a716-446655440000",
 					},
-					ID: "550e8400-e29b-41d4-a716-446655440000",
 				}, nil
 			},
 		}
@@ -194,8 +206,8 @@ func TestUsersHandler_GetUserByID_InvalidMethods(t *testing.T) {
 			return &models.User{
 				CreateUser: models.CreateUser{
 					FirstName: "John",
+					ID:        "123",
 				},
-				ID: "123",
 			}, nil
 		},
 	}
@@ -230,10 +242,11 @@ func TestUsersHandler_GetUserByID_InvalidMethods(t *testing.T) {
 func TestUsersHandler_CreateUser(t *testing.T) {
 	t.Parallel()
 	validBody := `{
+		"id": "user_123",
 		"first_name": "John",
 		"last_name": "Doe",
 		"role": "Receptionist",
-		"clerk_id": "user_123"
+		"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 	}`
 
 	t.Run("returns 200 on valid user creation", func(t *testing.T) {
@@ -242,7 +255,6 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		mock := &mockUsersRepository{
 			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 				return &models.User{
-					ID:         "generated-uuid",
 					CreatedAt:  time.Now(),
 					UpdatedAt:  time.Now(),
 					CreateUser: *user,
@@ -263,7 +275,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		assert.Equal(t, 200, resp.StatusCode)
 
 		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "generated-uuid")
+		assert.Contains(t, string(body), "user_123")
 		assert.Contains(t, string(body), "John")
 		assert.Contains(t, string(body), "Receptionist")
 	})
@@ -274,7 +286,6 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		mock := &mockUsersRepository{
 			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
 				return &models.User{
-					ID:         "generated-uuid",
 					CreatedAt:  time.Now(),
 					UpdatedAt:  time.Now(),
 					CreateUser: *user,
@@ -287,13 +298,14 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		app.Post("/users", h.CreateUser)
 
 		bodyWithOptionals := `{
+			"id": "user_456",
 			"first_name": "Jane",
 			"last_name": "Dow",
 			"role": "Manager",
 			"employee_id": "EMP-67",
 			"department": "Front Desk",
 			"timezone": "America/New_York",
-			"clerk_id": "user_123"
+			"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(bodyWithOptionals))
@@ -347,7 +359,7 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), "first_name")
 		assert.Contains(t, string(body), "last_name")
-		assert.Contains(t, string(body), "clerk_id")
+		assert.Contains(t, string(body), "id")
 	})
 
 	t.Run("returns 400 on invalid timezone", func(t *testing.T) {
@@ -360,11 +372,12 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 		app.Post("/users", h.CreateUser)
 
 		invalidTimezoneBody := `{
+			"id": "user_789",
 			"first_name": "John",
 			"last_name": "Doe",
 			"role": "Receptionist",
-			"clerk_id": "user_123",
-			"timezone": "Invalid/Not_A_Timezone"
+			"timezone": "Invalid/Not_A_Timezone",
+			"hotel_id": "550e8400-e29b-41d4-a716-446655440000"
 		}`
 
 		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(invalidTimezoneBody))
@@ -400,35 +413,6 @@ func TestUsersHandler_CreateUser(t *testing.T) {
 
 		assert.Equal(t, 500, resp.StatusCode)
 	})
-
-	t.Run("returns_400_when_clerk_id_is_missing", func(t *testing.T) {
-		body := `{
-		"first_name": "John",
-		"last_name": "Doe",
-		"role": "Receptionist"
-	}`
-
-		mock := &mockUsersRepository{
-			insertUserFunc: func(ctx context.Context, user *models.CreateUser) (*models.User, error) {
-				return nil, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewUsersHandler(mock, &mockS3Storage{})
-		app.Post("/users", h.CreateUser)
-
-		req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "clerk_id")
-	})
 }
 
 func TestUsersHandler_UpdateProfilePicture(t *testing.T) {
@@ -443,7 +427,7 @@ func TestUsersHandler_UpdateProfilePicture(t *testing.T) {
 			},
 		}
 
-		app := fiber.New()
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Put("/users/:userId/profile-picture", h.UpdateProfilePicture)
 

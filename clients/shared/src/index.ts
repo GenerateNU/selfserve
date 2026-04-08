@@ -1,54 +1,83 @@
-// API Client
-export { apiClient } from './api/client'
-
-// Hooks
-export { useGetHello, useGetHelloName } from './hooks/use-hello'
-
 // Custom Types (non-generated)
-export { ApiError } from './types/api.types'
-export type { ApiConfig } from './types/api.types'
+export { ApiError } from "./types/api.types";
+export type { ApiConfig } from "./types/api.types";
+export type { Config } from "./api/config";
+
+// config functions
+export { setConfig, getConfig } from "./api/config";
 
 // Generated Types - Models
+export { MakeRequestPriority } from "./api/generated/models";
+
 export type {
   User,
   CreateUser,
   Request,
   MakeRequest,
   GenerateRequestInput,
+  GenerateRequestResponse,
+  GenerateRequestWarning,
   Hotel,
-  CreateGuest,
-  UpdateGuest,
   Guest,
+  GuestPage,
   Dev,
-} from './api/generated/models'
+} from "./api/generated/models";
 
 // Generated API Functions
 export {
-  getHello,
-  getHelloName,
-} from './api/generated/endpoints/hello/hello'
+  useGetHello,
+  useGetHelloName,
+} from "./api/generated/endpoints/hello/hello";
 
 export {
-  postRequest,
-  postRequestGenerate,
-} from './api/generated/endpoints/requests/requests'
+  usePostRequest,
+  usePostRequestGenerate,
+  useGetRequestRoomId,
+} from "./api/generated/endpoints/requests/requests";
 
 export {
-  postUsers,
-  getUsersId,
-} from './api/generated/endpoints/users/users'
+  usePostUsers,
+  useGetUsersId,
+} from "./api/generated/endpoints/users/users";
 
 export {
-  postHotel,
-  getApiV1HotelsId,
-} from './api/generated/endpoints/hotels/hotels'
+  usePostApiV1Hotels,
+  useGetApiV1HotelsId,
+} from "./api/generated/endpoints/hotels/hotels";
+
+export { useGetDevsName } from "./api/generated/endpoints/devs/devs";
 
 export {
-  getDevsName,
-} from './api/generated/endpoints/devs/devs'
+  usePostApiV1Guests,
+  useGetApiV1GuestsId,
+  usePutApiV1GuestsId,
+} from "./api/generated/endpoints/guests/guests";
+
+export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
 
 export {
-  postApiV1Guests,
-  getApiV1GuestsId,
-  putApiV1GuestsId,
-} from './api/generated/endpoints/guests/guests'
+  usePostRooms,
+  useGetRoomsFloors,
+} from "./api/generated/endpoints/rooms/rooms";
+
+export type {
+  RoomWithOptionalGuestBooking,
+  FilterRoomsRequest,
+  GuestRequest,
+  RoomRequestsResponse,
+} from "./api/generated/models";
+
+// Notification types and hooks
+export type {
+  Notification,
+  NotificationType,
+  RegisterDeviceTokenInput,
+} from "./types/notifications";
+
+export {
+  NOTIFICATIONS_QUERY_KEY,
+  useGetNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+  usePostDeviceToken,
+} from "./api/notifications";

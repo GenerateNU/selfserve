@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
+	"iter"
+	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
@@ -81,26 +83,104 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 	return &guest, nil
 }
 
+func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
+	guest := &models.GuestWithStays{}
+
+	err := r.db.QueryRow(ctx, `
+		SELECT
+			g.id, g.first_name, g.last_name, g.phone, g.email,
+			g.preferences, g.notes, g.pronouns, g.do_not_disturb_start,
+			g.do_not_disturb_end, g.housekeeping_cadence, g.assistance
+		FROM public.guests g
+		WHERE g.id = $1
+	`, id).Scan(
+		&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email,
+		&guest.Preferences, &guest.Notes, &guest.Pronouns, &guest.DoNotDisturbStart,
+		&guest.DoNotDisturbEnd, &guest.HousekeepingCadence, &guest.Assistance,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT gb.arrival_date, gb.departure_date, rm.room_number, gb.status, gb.group_size
+		FROM guest_bookings gb
+		LEFT JOIN rooms rm ON rm.id = gb.room_id
+		WHERE gb.guest_id = $1
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var arrivalDate, departureDate *time.Time
+		var roomNumber, groupSize *int
+		var status *models.BookingStatus
+
+		if err := rows.Scan(&arrivalDate, &departureDate, &roomNumber, &status, &groupSize); err != nil {
+			return nil, err
+		}
+
+		if arrivalDate == nil {
+			continue
+		}
+
+		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, status)
+		guest = appendStay(guest, stay, *status)
+	}
+
+	return guest, rows.Err()
+}
+
+func buildStay(arrival, departure *time.Time, roomNumber, groupSize *int, status *models.BookingStatus) models.Stay {
+	stay := models.Stay{
+		ArrivalDate:   *arrival,
+		DepartureDate: *departure,
+		RoomNumber:    *roomNumber,
+		Status:        *status,
+	}
+	if groupSize != nil {
+		stay.GroupSize = groupSize
+	}
+	return stay
+}
+
+func appendStay(guest *models.GuestWithStays, stay models.Stay, status models.BookingStatus) *models.GuestWithStays {
+	switch status {
+	case models.BookingStatusActive:
+		guest.CurrentStays = append(guest.CurrentStays, stay)
+	default:
+		guest.PastStays = append(guest.PastStays, stay)
+	}
+	return guest
+}
+
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
 	var guest models.Guest
 
 	row := r.db.QueryRow(ctx, `
 		UPDATE guests
 		SET
-			first_name = $2,
-			last_name = $3,
-			profile_picture = $4,
-			timezone = $5,
+			first_name = COALESCE($2, first_name),
+			last_name = COALESCE($3, last_name),
+			profile_picture = COALESCE($4, profile_picture),
+			timezone = COALESCE($5, timezone),
+			notes = COALESCE($6, notes),
 			updated_at = NOW()
 		WHERE id = $1
 		RETURNING
 			id, created_at, updated_at,
-			first_name, last_name, profile_picture, timezone`,
+			first_name, last_name, profile_picture, timezone, notes`,
 		id,
 		update.FirstName,
 		update.LastName,
 		update.ProfilePicture,
 		update.Timezone,
+		update.Notes,
 	)
 
 	err := row.Scan(
@@ -111,6 +191,7 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 		&guest.LastName,
 		&guest.ProfilePicture,
 		&guest.Timezone,
+		&guest.Notes,
 	)
 
 	if err != nil {
@@ -121,5 +202,162 @@ func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *m
 	}
 
 	return &guest, nil
+}
 
+const fetchAllGuestDocumentsPageSize = 100
+
+// AllGuestDocuments returns a paginated iterator over every guest document in the
+// database. It yields one *models.GuestDocument at a time, fetching the next page
+// only when the previous one is exhausted. Stop iterating early by returning false
+// from the yield function; the first non-nil error stops iteration and is yielded
+// as the second value.
+func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*models.GuestDocument, error] {
+	return func(yield func(*models.GuestDocument, error) bool) {
+		var cursorName, cursorID string
+
+		for {
+			rows, err := r.db.Query(ctx, `
+				SELECT
+					g.id,
+					gb.hotel_id,
+					CONCAT_WS(' ', g.first_name, g.last_name) AS full_name,
+					g.first_name,
+					g.last_name,
+					COALESCE(g.preferences, g.first_name) AS preferred_name,
+					g.email,
+					g.phone,
+					g.preferences,
+					g.notes,
+					r.floor,
+					r.room_number,
+					gb.group_size,
+					gb.status,
+					gb.arrival_date,
+					gb.departure_date
+				FROM guest_bookings gb
+				JOIN guests g ON g.id = gb.guest_id
+				JOIN rooms r ON r.id = gb.room_id
+				WHERE (
+					$1::text = ''
+					OR (CONCAT_WS(' ', g.first_name, g.last_name), g.id::text) > ($1::text, $2::text)
+				)
+				ORDER BY CONCAT_WS(' ', g.first_name, g.last_name) ASC, g.id ASC
+				LIMIT $3
+			`, cursorName, cursorID, fetchAllGuestDocumentsPageSize)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			var page []*models.GuestDocument
+			for rows.Next() {
+				var doc models.GuestDocument
+				if err := rows.Scan(
+					&doc.ID, &doc.HotelID, &doc.FullName,
+					&doc.FirstName, &doc.LastName, &doc.PreferredName,
+					&doc.Email, &doc.Phone, &doc.Preferences, &doc.Notes,
+					&doc.Floor, &doc.RoomNumber, &doc.GroupSize,
+					&doc.BookingStatus, &doc.ArrivalDate, &doc.DepartureDate,
+				); err != nil {
+					rows.Close()
+					yield(nil, err)
+					return
+				}
+				page = append(page, &doc)
+			}
+			rows.Close()
+
+			if err := rows.Err(); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			for _, doc := range page {
+				if !yield(doc, nil) {
+					return
+				}
+			}
+
+			if len(page) < fetchAllGuestDocumentsPageSize {
+				return // last page
+			}
+
+			last := page[len(page)-1]
+			cursorName = last.FullName
+			cursorID = last.ID
+		}
+	}
+}
+
+func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
+	floorsFilter := filters.Floors
+	groupSizesFilter := filters.GroupSize
+
+	rows, err := r.db.Query(ctx, `
+	WITH guest_data AS (
+		SELECT
+			g.id,
+			g.first_name,
+			g.last_name,
+			CONCAT_WS(' ', g.first_name, g.last_name) AS full_name,
+			COALESCE(g.preferences, g.first_name) AS preferred_name,
+			r.floor,
+			r.room_number,
+			gb.group_size,
+			gb.hotel_id,
+			gb.status
+		FROM guest_bookings gb
+		JOIN guests g ON g.id = gb.guest_id
+		JOIN rooms r ON r.id = gb.room_id
+	)
+	SELECT id, first_name, last_name, preferred_name, floor, room_number, group_size
+	FROM guest_data
+	WHERE hotel_id = $1
+		AND status = 'active'
+		AND ($2::int[] IS NULL OR floor = ANY($2))
+		AND ($3::int[] IS NULL OR group_size = ANY($3))
+		AND (
+			$4::text = ''
+			OR full_name ILIKE '%' || $4 || '%'
+			OR room_number::text ILIKE '%' || $4 || '%'
+		)
+		AND (
+			$5::text = ''
+			OR (full_name, id::text) > ($5::text, $6::text)
+		)
+	ORDER BY full_name ASC, id ASC
+	LIMIT $7`,
+		filters.HotelID, floorsFilter, groupSizesFilter, filters.Search, filters.CursorName, filters.CursorID, filters.Limit+1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var guests []*models.GuestWithBooking
+	for rows.Next() {
+		var g models.GuestWithBooking
+		err := rows.Scan(&g.ID, &g.FirstName, &g.LastName, &g.PreferredName, &g.Floor, &g.RoomNumber, &g.GroupSize)
+		if err != nil {
+			return nil, err
+		}
+		guests = append(guests, &g)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	var nextCursor *string
+	if len(guests) == filters.Limit+1 {
+		guests = guests[:filters.Limit]
+		last := guests[filters.Limit-1]
+		encoded := last.FirstName + " " + last.LastName + "|" + last.ID
+		nextCursor = &encoded
+	}
+
+	return &models.GuestPage{
+		Data:       guests,
+		NextCursor: nextCursor,
+	}, nil
 }

@@ -4,32 +4,22 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
+	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 // HotelRepository defines methods for hotel data access
-type HotelRepository interface {
-	FindByID(ctx context.Context, id string) (*models.Hotel, error)
-}
-
 type HotelsRepository interface {
+	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
-}
-
-type HotelHandler struct {
-	repo HotelRepository
 }
 
 type HotelsHandler struct {
 	repo HotelsRepository
-}
-
-func NewHotelHandler(repo HotelRepository) *HotelHandler {
-	return &HotelHandler{repo: repo}
 }
 
 func NewHotelsHandler(repo HotelsRepository) *HotelsHandler {
@@ -45,14 +35,13 @@ func NewHotelsHandler(repo HotelsRepository) *HotelsHandler {
 // @Failure      400  {object}  errs.HTTPError  "Invalid hotel ID format"
 // @Failure      404  {object}  errs.HTTPError  "Hotel not found"
 // @Failure      500  {object}  errs.HTTPError  "Internal server error"
+// @Security     BearerAuth
 // @Router       /api/v1/hotels/{id} [get]
-func (h *HotelHandler) GetHotelByID(c *fiber.Ctx) error {
+func (h *HotelsHandler) GetHotelByID(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
-	// Validate UUID
-	_, err := uuid.Parse(idParam)
-	if err != nil {
-		return errs.BadRequest("invalid hotel id format")
+	if strings.TrimSpace(idParam) == "" {
+		return errs.BadRequest("hotel id is required")
 	}
 
 	// Fetch hotel
@@ -77,7 +66,8 @@ func (h *HotelHandler) GetHotelByID(c *fiber.Ctx) error {
 // @Success      201    {object}  models.Hotel
 // @Failure      400    {object}  map[string]string
 // @Failure      500    {object}  map[string]string
-// @Router       /hotel [post]
+// @Security     BearerAuth
+// @Router       /api/v1/hotels [post]
 func (h *HotelsHandler) CreateHotel(c *fiber.Ctx) error {
 	var hotelRequest models.CreateHotelRequest
 
@@ -85,13 +75,8 @@ func (h *HotelsHandler) CreateHotel(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
-	// Validate required fields
-	if hotelRequest.Name == "" {
-		return errs.BadRequest("hotel name is required")
-	}
-
-	if hotelRequest.Floors <= 0 {
-		return errs.BadRequest("hotel floors must be greater than 0")
+	if err := httpx.BindAndValidate(c, &hotelRequest); err != nil {
+		return err
 	}
 
 	createdHotel, err := h.repo.InsertHotel(c.Context(), &hotelRequest)
