@@ -389,6 +389,20 @@ definitions:
       user_id:
         type: string
     type: object
+  OnboardUser:
+    properties:
+      role:
+        example: manager
+        type: string
+      employee_role:
+        example: front_desk
+        type: string
+      hotel_name:
+        example: Hotel California
+        type: string
+    required:
+    - role
+    type: object
   RegisterDeviceTokenInput:
     properties:
       platform:
@@ -564,6 +578,9 @@ definitions:
       id:
         example: user_123
         type: string
+      is_onboarded:
+        example: false
+        type: boolean
       last_name:
         example: Doe
         type: string
@@ -1693,6 +1710,53 @@ paths:
               type: string
             type: object
       summary: Update user's profile picture
+      tags:
+      - users
+  /users/{id}/onboard:
+    put:
+      consumes:
+      - application/json
+      description: Saves onboarding data and marks a user as onboarded
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Onboarding data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/OnboardUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Complete user onboarding
       tags:
       - users
 schemes:

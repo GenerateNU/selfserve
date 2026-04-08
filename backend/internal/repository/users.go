@@ -20,11 +20,16 @@ func NewUsersRepository(db *pgxpool.Pool) *UsersRepository {
 
 func (r *UsersRepository) FindUser(ctx context.Context, id string) (*models.User, error) {
 	row := r.db.QueryRow(ctx, `
-		SELECT id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, created_at, updated_at FROM users where id = $1
-		`, id)
+        SELECT id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, is_onboarded, created_at, updated_at
+        FROM users WHERE id = $1
+        `, id)
 
 	var user models.User
-	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.HotelID, &user.EmployeeID, &user.ProfilePicture, &user.Role, &user.Department, &user.Timezone, &user.PhoneNumber, &user.PrimaryEmail, &user.CreatedAt, &user.UpdatedAt)
+	err := row.Scan(
+		&user.ID, &user.FirstName, &user.LastName, &user.HotelID, &user.EmployeeID,
+		&user.ProfilePicture, &user.Role, &user.Department, &user.Timezone,
+		&user.PhoneNumber, &user.PrimaryEmail, &user.IsOnboarded, &user.CreatedAt, &user.UpdatedAt,
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
@@ -38,32 +43,21 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 	createdUser := &models.User{
 		CreateUser: *user,
 	}
-
 	err := r.db.QueryRow(ctx, `
-		INSERT INTO public.users (
-			id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email
-		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, 'UTC'), $10, $11
-		)
-		RETURNING id, created_at, updated_at
-	`,
-		user.ID,
-		user.FirstName,
-		user.LastName,
-		user.HotelID,
-		user.EmployeeID,
-		user.ProfilePicture,
-		user.Role,
-		user.Department,
-		user.Timezone,
-		user.PhoneNumber,
-		user.PrimaryEmail,
-	).Scan(&createdUser.ID, &createdUser.CreatedAt, &createdUser.UpdatedAt)
-
+        INSERT INTO public.users (
+            id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email
+        ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, 'UTC'), $10, $11
+        )
+        RETURNING id, is_onboarded, created_at, updated_at
+    `,
+		user.ID, user.FirstName, user.LastName, user.HotelID, user.EmployeeID,
+		user.ProfilePicture, user.Role, user.Department, user.Timezone,
+		user.PhoneNumber, user.PrimaryEmail,
+	).Scan(&createdUser.ID, &createdUser.IsOnboarded, &createdUser.CreatedAt, &createdUser.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
-
 	return createdUser, nil
 }
 
@@ -90,21 +84,76 @@ func (r *UsersRepository) DeleteProfilePicture(ctx context.Context, userId strin
 
 func (r *UsersRepository) UpdateUser(ctx context.Context, id string, update *models.UpdateUser) (*models.User, error) {
 	var user models.User
-
 	row := r.db.QueryRow(ctx, `
-		UPDATE users
-		SET
-			phone_number = COALESCE($2, phone_number),
-			updated_at = NOW()
-		WHERE id = $1
-		RETURNING id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, created_at, updated_at
-	`, id, update.PhoneNumber)
+        UPDATE users
+        SET
+            phone_number = COALESCE($2, phone_number),
+            updated_at = NOW()
+        WHERE id = $1
+        RETURNING id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, is_onboarded, created_at, updated_at
+    `, id, update.PhoneNumber)
 
-	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.HotelID, &user.EmployeeID, &user.ProfilePicture, &user.Role, &user.Department, &user.Timezone, &user.PhoneNumber, &user.PrimaryEmail, &user.CreatedAt, &user.UpdatedAt)
+	err := row.Scan(
+		&user.ID, &user.FirstName, &user.LastName, &user.HotelID, &user.EmployeeID,
+		&user.ProfilePicture, &user.Role, &user.Department, &user.Timezone,
+		&user.PhoneNumber, &user.PrimaryEmail, &user.IsOnboarded, &user.CreatedAt, &user.UpdatedAt,
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
 		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UsersRepository) CompleteOnboarding(ctx context.Context, id string, data *models.OnboardUser) (*models.User, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var hotelID *string
+
+	if data.Role == "manager" {
+		if data.HotelName == nil {
+			return nil, errs.BadRequest("hotel_name is required for managers")
+		}
+		var newHotelID string
+		err = tx.QueryRow(ctx, `
+            INSERT INTO hotels (name) VALUES ($1) RETURNING id
+        `, data.HotelName).Scan(&newHotelID)
+		if err != nil {
+			return nil, err
+		}
+		hotelID = &newHotelID
+	}
+
+	var user models.User
+	err = tx.QueryRow(ctx, `
+        UPDATE users
+        SET
+            role         = $2,
+            department   = $3,
+            hotel_id     = COALESCE($4, hotel_id),
+            is_onboarded = TRUE,
+            updated_at   = NOW()
+        WHERE id = $1
+        RETURNING id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, is_onboarded, created_at, updated_at
+    `, id, data.Role, data.Department, hotelID).Scan(
+		&user.ID, &user.FirstName, &user.LastName, &user.HotelID, &user.EmployeeID,
+		&user.ProfilePicture, &user.Role, &user.Department, &user.Timezone,
+		&user.PhoneNumber, &user.PrimaryEmail, &user.IsOnboarded, &user.CreatedAt, &user.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
@@ -113,7 +162,7 @@ func (r *UsersRepository) UpdateUser(ctx context.Context, id string, update *mod
 
 func (r *UsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, created_at, updated_at
+		SELECT id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, is_onboarded, created_at, updated_at
 		FROM users
 		WHERE hotel_id = $1
 		  AND ($2 = '' OR LOWER(first_name || ' ' || last_name) LIKE '%' || LOWER($2) || '%')
@@ -129,7 +178,7 @@ func (r *UsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, curso
 	var users []*models.User
 	for rows.Next() {
 		var u models.User
-		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.HotelID, &u.EmployeeID, &u.ProfilePicture, &u.Role, &u.Department, &u.Timezone, &u.PhoneNumber, &u.PrimaryEmail, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.HotelID, &u.EmployeeID, &u.ProfilePicture, &u.Role, &u.Department, &u.Timezone, &u.PhoneNumber, &u.PrimaryEmail, &u.IsOnboarded, &u.CreatedAt, &u.UpdatedAt); err != nil {
 			return nil, "", err
 		}
 		users = append(users, &u)
@@ -146,7 +195,6 @@ func (r *UsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, curso
 
 func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
 	batch := &pgx.Batch{}
-
 	for _, u := range users {
 		batch.Queue(`
             INSERT INTO users (id, first_name, last_name, profile_picture)
@@ -157,6 +205,5 @@ func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.C
                 profile_picture = EXCLUDED.profile_picture
         `, u.ID, u.FirstName, u.LastName, u.ProfilePicture)
 	}
-
 	return r.db.SendBatch(ctx, batch).Close()
 }

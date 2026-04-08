@@ -25,6 +25,7 @@ type UsersRepository interface {
 	GetKey(ctx context.Context, userId string) (string, error)
 	BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error
 	SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
+	CompleteOnboarding(ctx context.Context, id string, data *models.OnboardUser) (*models.User, error)
 }
 
 type GuestsRepository interface {
