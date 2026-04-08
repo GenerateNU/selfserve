@@ -25,7 +25,8 @@ export function FloorDropdown({
   selected = [],
   onChangeSelectedFloors,
 }: FloorDropdownProps) {
-  const { data: floors = [] } = useGetRoomsFloors();
+  const { data: floors } = useGetRoomsFloors();
+  const floorList = floors ?? [];
 
   const {
     open,
@@ -41,7 +42,7 @@ export function FloorDropdown({
     onChangeSelectedItems: onChangeSelectedFloors,
   });
 
-  const filtered = floors.filter((f) =>
+  const filtered = floorList.filter((f) =>
     `floor ${f}`.includes(search.trim().toLowerCase()),
   );
 
