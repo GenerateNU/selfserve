@@ -1,21 +1,9 @@
 import { X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useQuery } from "@tanstack/react-query";
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { SettingsNav } from "./SettingsNav";
 import { DialogTitle } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  ProfileHero,
-  ProfileHeroSkeleton,
-} from "@/components/profile/ProfileHero";
-import {
-  ProfileInfoCard,
-  ProfileInfoCardSkeleton,
-} from "@/components/profile/ProfileInfoCard";
-import { NotesFromManagerCard } from "@/components/profile/NotesFromManagerCard";
-import { LogoutButton } from "@/components/LogoutButton";
+import { ProfileTab } from "./ProfileTab";
 
 type SettingsModalProps = {
   open: boolean;
@@ -23,19 +11,11 @@ type SettingsModalProps = {
 };
 
 export function SettingsModal({ open, onClose }: SettingsModalProps) {
-  const { user: clerkUser } = useUser();
-  const getUsersId = useGetUsersIdHook();
+  const { user } = useUser();
 
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["user", clerkUser?.id],
-    queryFn: () => getUsersId(clerkUser!.id),
-    enabled: !!clerkUser?.id,
-  });
-
-  const firstName = user?.first_name ?? "";
-  const lastName = user?.last_name ?? "";
-  const displayName = [firstName, lastName].filter(Boolean).join(" ") || "User";
-  const avatarUrl = user?.profile_picture || clerkUser?.imageUrl;
+  const displayName =
+    user?.fullName ??
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ");
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={(o) => !o && onClose()}>
@@ -57,48 +37,11 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
 
             <div className="mb-8">
               <DialogTitle className="text-3xl font-bold text-text-default">
-                {displayName}
+                {displayName || "User"}
               </DialogTitle>
             </div>
 
-            {isLoading ? (
-              <>
-                <ProfileHeroSkeleton />
-                <div className="flex items-stretch gap-4">
-                  <div className="flex-1">
-                    <ProfileInfoCardSkeleton />
-                  </div>
-                  <div className="flex-1">
-                    <Skeleton className="h-56 rounded-lg" />
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <ProfileHero
-                  firstName={firstName}
-                  lastName={lastName}
-                  avatarUrl={avatarUrl}
-                />
-                <div className="flex items-stretch gap-4">
-                  <div className="flex-1">
-                    <ProfileInfoCard
-                      userId={clerkUser!.id}
-                      governmentName={displayName}
-                      email={user?.primary_email ?? "—"}
-                      phoneNumber={user?.phone_number ?? "—"}
-                      department={user?.department ?? "—"}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <NotesFromManagerCard />
-                  </div>
-                </div>
-                <div className="mt-6">
-                  <LogoutButton />
-                </div>
-              </>
-            )}
+            <ProfileTab />
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
