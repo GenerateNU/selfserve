@@ -386,7 +386,7 @@ func TestUsersHandler_CompleteOnboarding(t *testing.T) {
 					CreateUser: models.CreateUser{
 						ID:      id,
 						Role:    &role,
-						HotelID: &hotelName,
+						HotelID: hotelName,
 					},
 				}, nil
 			},
@@ -422,7 +422,7 @@ func TestUsersHandler_CompleteOnboarding(t *testing.T) {
 					CreateUser: models.CreateUser{
 						ID:         id,
 						Role:       &role,
-						Department: data.EmployeeRole,
+						Department: data.Department,
 					},
 				}, nil
 			},
