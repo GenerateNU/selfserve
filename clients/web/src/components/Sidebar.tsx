@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { UserButton, useUser } from "@clerk/clerk-react";
 import { Home, LayoutGrid, Octagon, Settings, UserRound } from "lucide-react";
-import { LogoutButton } from "./LogoutButton";
 import { SettingsModal } from "./settings/SettingsModal";
 
 function NavLink({
@@ -31,40 +29,8 @@ function NavLink({
   );
 }
 
-function ProfileLink({ displayName }: { displayName: string | undefined }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isActive = pathname === "/profile";
-  return (
-    <Link
-      to="/profile"
-      className={`flex items-center gap-3 rounded-lg p-3 transition-colors ${
-        isActive ? "bg-bg-selected" : "hover:bg-bg-selected"
-      }`}
-    >
-      <UserButton
-        appearance={{
-          elements: {
-            avatarBox: "size-10",
-          },
-        }}
-      />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-text-subtle">
-          {displayName || "User"}
-        </p>
-        <p className="truncate text-xs text-primary">Hotel Chain</p>
-      </div>
-    </Link>
-  );
-}
-
 export function Sidebar() {
-  const { user } = useUser();
   const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const displayName =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ");
 
   return (
     <>
@@ -104,8 +70,6 @@ export function Sidebar() {
             <Settings className="size-5 shrink-0" strokeWidth={2} />
             Settings
           </button>
-          <LogoutButton />
-          <ProfileLink displayName={displayName} />
         </div>
       </aside>
 

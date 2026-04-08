@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { SettingsNav } from "./SettingsNav";
+import { ProfileTab } from "./ProfileTab";
 import { DialogTitle } from "@/components/ui/dialog";
 
 type SettingsModalProps = {
@@ -15,10 +16,6 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   const displayName =
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ");
-  const initials = [user?.firstName?.[0], user?.lastName?.[0]]
-    .filter(Boolean)
-    .join("")
-    .toUpperCase();
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={(o) => !o && onClose()}>
@@ -40,26 +37,11 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
 
             <div className="mb-8">
               <DialogTitle className="text-3xl font-bold text-text-default">
-                My profile
+                {displayName || "User"}
               </DialogTitle>
             </div>
 
-            <div className="flex items-center gap-4">
-              {user?.imageUrl ? (
-                <img
-                  src={user.imageUrl}
-                  alt={displayName}
-                  className="size-16 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-bg-selected text-2xl font-semibold text-text-default">
-                  {initials || "?"}
-                </div>
-              )}
-              <p className="text-lg font-semibold text-text-default">
-                {user?.firstName} {user?.lastName}
-              </p>
-            </div>
+            <ProfileTab />
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

@@ -1,4 +1,3 @@
-import { UserRound } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 
 export function SettingsNav() {
@@ -18,8 +17,12 @@ export function SettingsNav() {
         Account
       </p>
 
-      {/* User identity row */}
-      <div className="mb-0.5 flex items-center gap-2.5 rounded-md px-2 py-1.5">
+      {/* User identity row — clickable */}
+      <button
+        type="button"
+        onClick={() => {}}
+        className="mb-0.5 flex w-full items-center gap-2.5 rounded-md px-2 py-1.5"
+      >
         {user?.imageUrl ? (
           <img
             src={user.imageUrl}
@@ -34,16 +37,6 @@ export function SettingsNav() {
         <span className="truncate text-sm text-text-default">
           {displayName || "User"}
         </span>
-      </div>
-
-      {/* Profile tab */}
-      <button
-        type="button"
-        onClick={() => {}}
-        className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors bg-bg-selected font-medium text-text-default"
-      >
-        <UserRound className="size-4 shrink-0 text-text-subtle" />
-        My profile
       </button>
     </div>
   );
