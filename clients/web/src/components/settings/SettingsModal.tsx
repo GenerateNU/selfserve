@@ -2,8 +2,8 @@ import { X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { SettingsNav } from "./SettingsNav";
-import { DialogTitle } from "@/components/ui/dialog";
 import { ProfileTab } from "./ProfileTab";
+import { DialogTitle } from "@/components/ui/dialog";
 
 type SettingsModalProps = {
   open: boolean;
