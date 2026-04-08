@@ -176,7 +176,7 @@ func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID,
 	return scanGuestRequests(rows)
 }
 
-func (r *RequestsRepository) FindMyRequestsByRoomID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+func (r *RequestsRepository) FindRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
@@ -203,7 +203,7 @@ func (r *RequestsRepository) FindMyRequestsByRoomID(ctx context.Context, roomID,
 	return scanGuestRequests(rows)
 }
 
-func (r *RequestsRepository) FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+func (r *RequestsRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)

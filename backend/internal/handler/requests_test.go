@@ -23,7 +23,7 @@ type mockRequestRepository struct {
 	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
 	findRequestsByCursorFunc           func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error)
 	findRequestsByGuestIDFunc          func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
-	findMyRequestsByRoomIDFunc         func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	findRequestsByRoomIDAndUserIDFunc  func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findUnassignedRequestsByRoomIDFunc func(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
@@ -47,11 +47,11 @@ func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guest
 	return m.findRequestsByGuestIDFunc(ctx, guestID, hotelID, cursorID, cursorVersion, limit)
 }
 
-func (m *mockRequestRepository) FindMyRequestsByRoomID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
-	return m.findMyRequestsByRoomIDFunc(ctx, roomID, hotelID, userID, cursorID, cursorVersion, limit)
+func (m *mockRequestRepository) FindRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	return m.findRequestsByRoomIDAndUserIDFunc(ctx, roomID, hotelID, userID, cursorID, cursorVersion, limit)
 }
 
-func (m *mockRequestRepository) FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+func (m *mockRequestRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	return m.findUnassignedRequestsByRoomIDFunc(ctx, roomID, hotelID, cursorID, cursorVersion, limit)
 }
 
@@ -1285,7 +1285,7 @@ func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+			findRequestsByRoomIDAndUserIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
 				return []*models.GuestRequest{
 					{ID: "aaa00000-e458-41d4-a716-446655440000", Name: "Fix AC", Priority: "high", Status: "assigned", RequestType: "one-time", CreatedAt: time.Now(), RequestVersion: time.Now()},
 				}, nil
@@ -1320,7 +1320,7 @@ func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+			findRequestsByRoomIDAndUserIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
 				return []*models.GuestRequest{}, nil
 			},
 			findUnassignedRequestsByRoomIDFunc: func(_ context.Context, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
@@ -1349,7 +1349,7 @@ func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findMyRequestsByRoomIDFunc: func(_ context.Context, roomID, hotelID, userID, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+			findRequestsByRoomIDAndUserIDFunc: func(_ context.Context, roomID, hotelID, userID, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
 				assert.Equal(t, validRoomID, roomID)
 				assert.Equal(t, validHotelID, hotelID)
 				assert.Equal(t, validUserID, userID)
@@ -1377,7 +1377,7 @@ func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+			findRequestsByRoomIDAndUserIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
 				return []*models.GuestRequest{}, nil
 			},
 			findUnassignedRequestsByRoomIDFunc: func(_ context.Context, roomID, hotelID, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
@@ -1475,7 +1475,7 @@ func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+			findRequestsByRoomIDAndUserIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
 				return nil, errors.New("db connection failed")
 			},
 		}
@@ -1497,7 +1497,7 @@ func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findMyRequestsByRoomIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+			findRequestsByRoomIDAndUserIDFunc: func(_ context.Context, _, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
 				return []*models.GuestRequest{}, nil
 			},
 			findUnassignedRequestsByRoomIDFunc: func(_ context.Context, _, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
