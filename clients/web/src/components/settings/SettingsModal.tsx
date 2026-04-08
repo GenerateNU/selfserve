@@ -2,9 +2,9 @@ import { X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog as DialogPrimitive } from "radix-ui";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { SettingsNav } from "./SettingsNav";
 import { DialogTitle } from "@/components/ui/dialog";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ProfileHero,
