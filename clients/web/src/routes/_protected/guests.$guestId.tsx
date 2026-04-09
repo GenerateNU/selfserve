@@ -1,5 +1,7 @@
 import { ApiError, useGetGuestsStaysId, usePutApiV1GuestsId } from "@shared";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { getGuestNotesSaveErrorMessage } from "../../components/guests/guest-note-errors";
 import { GuestNotesCard } from "../../components/guests/GuestNotesCard";
 import { GuestPageShell } from "../../components/guests/GuestPageShell";
 import { GuestProfileCard } from "../../components/guests/GuestProfileCard";
@@ -22,14 +24,39 @@ function GuestProfilePage() {
     refetch,
   } = useGetGuestsStaysId(guestId);
   const updateGuest = usePutApiV1GuestsId();
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [draftNotes, setDraftNotes] = useState("");
+  const [notesSaveError, setNotesSaveError] = useState<string | null>(null);
 
-  const handleSaveNotes = async (notes: string) => {
-    await updateGuest.mutateAsync({
-      id: guestId,
-      data: { notes },
-    });
+  const currentNotes = guest?.notes ?? "";
 
-    await refetch();
+  const handleEditNotes = () => {
+    setDraftNotes(currentNotes);
+    setNotesSaveError(null);
+    setIsEditingNotes(true);
+  };
+
+  const handleCancelNotes = () => {
+    setDraftNotes(currentNotes);
+    setNotesSaveError(null);
+    setIsEditingNotes(false);
+  };
+
+  const handleSaveNotes = async () => {
+    setNotesSaveError(null);
+
+    try {
+      await updateGuest.mutateAsync({
+        id: guestId,
+        data: { notes: draftNotes },
+      });
+
+      await refetch();
+      setIsEditingNotes(false);
+    } catch (saveError) {
+      setNotesSaveError(getGuestNotesSaveErrorMessage(saveError));
+      throw saveError;
+    }
   };
 
   const detailErrorMessage =
@@ -79,7 +106,17 @@ function GuestProfilePage() {
       <div className="grid gap-[2vh] xl:grid-cols-[minmax(0,45vw)_minmax(0,32vw)]">
         <div className="flex flex-col gap-[2vh]">
           <GuestProfileCard guest={guest} />
-          <GuestNotesCard notes={guest.notes} onSave={handleSaveNotes} />
+          <GuestNotesCard
+            notes={currentNotes}
+            draft={draftNotes}
+            isEditing={isEditingNotes}
+            isSaving={updateGuest.isPending}
+            errorMessage={notesSaveError}
+            onDraftChange={setDraftNotes}
+            onEdit={handleEditNotes}
+            onCancel={handleCancelNotes}
+            onSave={handleSaveNotes}
+          />
         </div>
         <div className="flex flex-col gap-[2vh]">
           <GuestSpecialNeedsCard specialNeeds={specialNeeds} />

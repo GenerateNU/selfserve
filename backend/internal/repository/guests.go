@@ -117,13 +117,11 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 	guest.DoNotDisturbStart = formatPGTime(doNotDisturbStart)
 	guest.DoNotDisturbEnd = formatPGTime(doNotDisturbEnd)
 
-	if len(assistanceRaw) > 0 && string(assistanceRaw) != "null" {
-		var assistance models.Assistance
-		if err := json.Unmarshal(assistanceRaw, &assistance); err != nil {
-			return nil, err
-		}
-		guest.Assistance = &assistance
+	assistance, err := decodeAssistance(assistanceRaw)
+	if err != nil {
+		return nil, err
 	}
+	guest.Assistance = assistance
 
 	rows, err := r.db.Query(ctx, `
 		SELECT gb.arrival_date, gb.departure_date, rm.room_number, gb.status, gb.group_size
@@ -221,6 +219,19 @@ func formatPGTime(value pgtype.Time) *string {
 
 	formatted := fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
 	return &formatted
+}
+
+func decodeAssistance(raw []byte) (*models.Assistance, error) {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil, nil
+	}
+
+	var assistance models.Assistance
+	if err := json.Unmarshal(raw, &assistance); err != nil {
+		return nil, err
+	}
+
+	return &assistance, nil
 }
 
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {

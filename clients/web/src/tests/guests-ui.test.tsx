@@ -1,8 +1,11 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { ApiError } from "@shared";
+import { describe, expect, it, vi } from "vitest";
+import { GuestNotesCard } from "../components/guests/GuestNotesCard";
 import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageSkeleton";
 import { GuestProfileCard } from "../components/guests/GuestProfileCard";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
+import { getGuestNotesSaveErrorMessage } from "../components/guests/guest-note-errors";
 import { formatDate } from "../utils/dates";
 import type { GuestWithBooking } from "@shared";
 
@@ -127,6 +130,107 @@ describe("guest UI helpers", () => {
 
       expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBe(
         11,
+      );
+    });
+  });
+
+  describe("GuestNotesCard", () => {
+    it("shows pending state while save is in flight", async () => {
+      render(
+        <GuestNotesCard
+          notes="Initial"
+          draft="Updated"
+          isEditing
+          isSaving
+          onDraftChange={() => {}}
+          onEdit={() => {}}
+          onCancel={() => {}}
+          onSave={async () => {}}
+        />,
+      );
+
+      expect(
+        screen.getByRole("button", { name: "Saving..." }),
+      ).toHaveProperty("disabled", true);
+      expect(screen.getByRole("button", { name: "Cancel" })).toHaveProperty(
+        "disabled",
+        true,
+      );
+    });
+
+    it("shows an inline error and keeps editing open", async () => {
+      render(
+        <GuestNotesCard
+          notes="Initial"
+          draft="Initial"
+          isEditing
+          errorMessage="Failed to save notes. Please try again."
+          onDraftChange={() => {}}
+          onEdit={() => {}}
+          onCancel={() => {}}
+          onSave={async () => {}}
+        />,
+      );
+
+      expect(
+        screen.getByText("Failed to save notes. Please try again."),
+      ).not.toBe(null);
+      expect(screen.getByRole("textbox")).not.toBe(null);
+    });
+
+    it("reflects updated notes after parent props change", async () => {
+      const onEdit = vi.fn();
+      const onCancel = vi.fn();
+      const onSave = vi.fn(async () => {});
+      const onDraftChange = vi.fn();
+
+      const { rerender } = render(
+        <GuestNotesCard
+          notes="Initial"
+          draft="Initial"
+          isEditing={false}
+          onDraftChange={onDraftChange}
+          onEdit={onEdit}
+          onCancel={onCancel}
+          onSave={onSave}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+      expect(onEdit).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <GuestNotesCard
+          notes="Updated"
+          draft="Updated"
+          isEditing={false}
+          onDraftChange={onDraftChange}
+          onEdit={onEdit}
+          onCancel={onCancel}
+          onSave={onSave}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Updated")).not.toBe(null);
+      });
+    });
+  });
+
+  describe("getGuestNotesSaveErrorMessage", () => {
+    it("returns validation copy for note length failures", () => {
+      const error = new ApiError("notes must be at most 1000 characters", 400, {
+        message: "notes must be at most 1000 characters",
+      });
+
+      expect(getGuestNotesSaveErrorMessage(error)).toBe(
+        "Notes must be 1000 characters or fewer.",
+      );
+    });
+
+    it("falls back to a generic save failure message", () => {
+      expect(getGuestNotesSaveErrorMessage(new Error("network"))).toBe(
+        "Failed to save notes. Please try again.",
       );
     });
   });
