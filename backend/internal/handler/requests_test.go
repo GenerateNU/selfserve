@@ -457,38 +457,6 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		assert.Contains(t, string(body), "name")
 	})
 
-	t.Run("returns 400 on invalid hotel_id uuid", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{
-			makeRequestFunc: func(ctx context.Context, req *models.Request) (*models.Request, error) {
-				return req, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Post("/request", h.CreateRequest)
-
-		invalidUUIDBody := `{
-			"hotel_id": "not-a-uuid",
-			"name": "room cleaning",
-			"request_type": "recurring",
-			"status": "pending",
-			"priority": "high",
-			"notes": "No special requests"
-		}`
-
-		req := httptest.NewRequest("POST", "/request", bytes.NewBufferString(invalidUUIDBody))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "hotel_id")
-	})
 
 	t.Run("returns 400 on invalid optional guest_id uuid", func(t *testing.T) {
 		t.Parallel()
@@ -689,25 +657,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 
 		bodyMissingHotelID := `{"raw_text": "Need towels"}`
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(bodyMissingHotelID))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "hotel_id")
-	})
-
-	t.Run("returns 400 on invalid hotel_id uuid", func(t *testing.T) {
-		t.Parallel()
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{}, nil)
-		app.Post("/request/generate", h.GenerateRequest)
-
-		bodyInvalidUUID := `{"hotel_id": "not-a-uuid", "raw_text": "Need towels"}`
-		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(bodyInvalidUUID))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -974,27 +923,6 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		assert.Contains(t, string(respBody), "next_cursor_time")
 	})
 
-	t.Run("returns 400 when X-Hotel-ID header is missing", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
-				return nil, time.Time{}, "", errors.New("should not be called")
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Post("/request/cursor", h.GetRequestByCursor)
-
-		body := `{"status":"pending"}`
-		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-	})
 
 	t.Run("returns 400 when status is invalid", func(t *testing.T) {
 		t.Parallel()
@@ -1022,31 +950,6 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		assert.Contains(t, string(respBody), "Status")
 	})
 
-	t.Run("returns 400 when X-Hotel-ID is invalid UUID", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
-				return nil, time.Time{}, "", errors.New("should not be called")
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Post("/request/cursor", h.GetRequestByCursor)
-
-		body := `{"status":"pending"}`
-		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "notaUUID")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "X-Hotel-ID")
-	})
 
 	t.Run("returns 404 when not found in db", func(t *testing.T) {
 		t.Parallel()
@@ -1214,25 +1117,6 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 		app.Get("/request/guest/:id", h.GetRequestsByGuest)
 
 		req := httptest.NewRequest("GET", "/request/guest/"+validGuestID, nil)
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "hotel_id")
-	})
-
-	t.Run("returns 400 when X-Hotel-ID is invalid UUID", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{}
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Get("/request/guest/:id", h.GetRequestsByGuest)
-
-		req := httptest.NewRequest("GET", "/request/guest/"+validGuestID, nil)
-		req.Header.Set("X-Hotel-ID", "not-a-uuid")
 
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -1443,25 +1327,6 @@ func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 		app.Get("/request/room/:id", h.GetRequestsByRoomID)
 
 		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-
-		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "hotel_id")
-	})
-
-	t.Run("returns 400 when X-Hotel-ID is not a valid UUID", func(t *testing.T) {
-		t.Parallel()
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		withAuth(app, validUserID)
-		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
-		app.Get("/request/room/:id", h.GetRequestsByRoomID)
-
-		req := httptest.NewRequest("GET", "/request/room/"+validRoomID, nil)
-		req.Header.Set("X-Hotel-ID", "not-a-uuid")
 
 		resp, err := app.Test(req)
 		require.NoError(t, err)

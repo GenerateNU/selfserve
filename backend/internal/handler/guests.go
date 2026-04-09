@@ -180,6 +180,9 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Router       /api/v1/guests [post]
 func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	hotelID := c.Get("X-Hotel-ID")
+	if hotelID == "" {
+		return errs.BadRequest("hotel_id header must be provided")
+	}
 	var filters models.GuestFilters
 	filters.HotelID = hotelID
 	if err := httpx.BindAndValidate(c, &filters); err != nil {

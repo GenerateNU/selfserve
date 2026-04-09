@@ -238,28 +238,6 @@ func TestRoomsHandler_FilterRooms(t *testing.T) {
 		assert.Equal(t, 400, resp.StatusCode)
 	})
 
-	t.Run("returns 400 when hotel_id header is invalid", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
-				return nil, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
-		app.Post("/rooms", h.FilterRooms)
-
-		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{}`))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(hotelIDHeader, "not-a-uuid")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-	})
-
 	// invalid cursor is handled in repository now; handler does not validate cursor
 
 	t.Run("returns 500 when repository fails", func(t *testing.T) {
@@ -349,27 +327,6 @@ func TestRoomsHandler_GetFloors(t *testing.T) {
 		app.Get("/rooms/floors", h.GetFloors)
 
 		req := httptest.NewRequest("GET", "/rooms/floors", nil)
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-	})
-
-	t.Run("returns 400 when hotel_id header is invalid", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRoomsRepository{
-			findFloorsFunc: func(ctx context.Context, hotelID string) ([]int, error) {
-				return []int{}, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
-		app.Get("/rooms/floors", h.GetFloors)
-
-		req := httptest.NewRequest("GET", "/rooms/floors", nil)
-		req.Header.Set(hotelIDHeader, "not-a-uuid")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 

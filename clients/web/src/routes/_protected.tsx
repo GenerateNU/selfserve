@@ -1,9 +1,9 @@
-import { useStartup } from "@/context/startup";
 import { createFileRoute } from "@tanstack/react-router";
 import { RedirectToSignIn, SignedIn, SignedOut } from "@clerk/clerk-react";
+import { Loader2 } from "lucide-react";
 import { SideBarWithContent } from "@/components/SideBarWithContent";
 import NoUserInfo from "@/components/ui/NoUserInfo";
-import { Loader2 } from "lucide-react";
+import { useStartup } from "@/context/startup";
 
 export const Route = createFileRoute("/_protected")({
   component: ProtectedLayout,
