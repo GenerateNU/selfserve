@@ -10,9 +10,9 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
+import { ClerkProvider } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { StartupProvider, useStartup } from "@/context/startup";
+import { StartupProvider, StartupStatus, useStartup } from "@/context/startup";
 import NoUserInfo from "@/components/ui/NoUserInfo";
 import { ActivityIndicator, View } from "react-native";
 
@@ -34,12 +34,13 @@ function AppLayout() {
   const colorScheme = useColorScheme();
   const status = useStartup();
 
-  if (status === "no-user-info") return <NoUserInfo />;
-  if (status === "loading") return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <ActivityIndicator size="large" />
-    </View>
-  );
+  if (status === StartupStatus.NoUserInfo) return <NoUserInfo />;
+  if (status === StartupStatus.Loading)
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -56,20 +57,18 @@ function AppLayout() {
 }
 
 export default function RootLayout() {
-  
   return (
     <ClerkProvider
       publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       tokenCache={tokenCache}
     >
-      
-        <QueryClientProvider client={queryClient}>
-          <StartupProvider>
+      <QueryClientProvider client={queryClient}>
+        <StartupProvider>
           <SafeAreaProvider>
             <AppLayout />
           </SafeAreaProvider>
-          </StartupProvider>
-        </QueryClientProvider>
+        </StartupProvider>
+      </QueryClientProvider>
     </ClerkProvider>
   );
 }

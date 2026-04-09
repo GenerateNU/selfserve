@@ -3,9 +3,14 @@ import { useAuth } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import { setConfig } from "@shared";
 
-type StartupStatus = "loading" | "unauthenticated" | "no-user-info" | "ready";
+export enum StartupStatus {
+  Loading,
+  Unauthenticated,
+  NoUserInfo,
+  Ready,
+}
 
-const StartupContext = createContext<StartupStatus>("loading");
+const StartupContext = createContext<StartupStatus>(StartupStatus.Loading);
 
 export function useStartup() {
   return useContext(StartupContext);
@@ -38,12 +43,11 @@ export function StartupProvider({ children }: { children: React.ReactNode }) {
   }
 
   const startupStatus = useMemo<StartupStatus>(() => {
-    if (!isLoaded) return "loading";
-    if (!isSignedIn) return "unauthenticated";
-    if (status === "pending") return "loading";
-    if (status === "error") return "no-user-info";
-    if (status === "success") return "ready";
-    return "loading";
+    if (!isLoaded) return StartupStatus.Loading;
+    if (!isSignedIn) return StartupStatus.Unauthenticated;
+    if (status === "pending") return StartupStatus.Loading;
+    if (status === "error") return StartupStatus.NoUserInfo;
+    return StartupStatus.Ready;
   }, [isLoaded, isSignedIn, status]);
 
   return (

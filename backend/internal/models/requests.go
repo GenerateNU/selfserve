@@ -39,7 +39,7 @@ func (p RequestPriority) IsValid() bool {
 
 // for post because the ID and timestamps should always be generated
 type MakeRequest struct {
-	HotelID                 string     `json:"hotel_id" validate:"notblank" example:"521e8400-e458-41d4-a716-446655440000"`
+	HotelID                 string     `json:"hotel_id" validate:"notblank,startswith=org_" example:"521e8400-e458-41d4-a716-446655440000"`
 	GuestID                 *string    `json:"guest_id" validate:"omitempty,uuid" example:"521e8417-e458-41d4-a716-446655440990"`
 	UserID                  *string    `json:"user_id" example:"521ee400-e458-41d4-a716-446655440000"`
 	ReservationID           *string    `json:"reservation_id" example:"521e8400-e458-41d4-a716-498655440000"`
@@ -66,7 +66,7 @@ type GetRequestsByStatusInput struct {
 
 type GenerateRequestInput struct {
 	RawText string `json:"raw_text" example:"Guest in room 504 needs extra towels urgently"`
-	HotelID string `json:"hotel_id" example:"521e8400-e458-41d4-a716-446655440000"`
+	HotelID string `json:"hotel_id" validate:"notblank,startswith=org_" example:"521e8400-e458-41d4-a716-446655440000"`
 } //@name GenerateRequestInput
 
 type GenerateRequestWarning struct {

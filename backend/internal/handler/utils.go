@@ -22,6 +22,9 @@ func hotelIDFromHeader(c *fiber.Ctx) (string, error) {
 	if hotelID == "" {
 		return "", errs.BadRequest("hotel_id header is required")
 	}
+	if !strings.HasPrefix(hotelID, "org_") {
+		return "", errs.BadRequest("hotel_id header is invalid")
+	}
 	return hotelID, nil
 }
 
