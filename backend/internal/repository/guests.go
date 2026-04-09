@@ -85,7 +85,10 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 }
 
 func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
-	guest := &models.GuestWithStays{}
+	guest := &models.GuestWithStays{
+		CurrentStays: []models.Stay{},
+		PastStays:    []models.Stay{},
+	}
 
 	err := r.db.QueryRow(ctx, `
 		SELECT
@@ -117,35 +120,34 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 	}
 	defer rows.Close()
 
+	if err := loadGuestStayHistory(guest, rows); err != nil {
+		return nil, err
+	}
+
+	sortGuestStays(guest)
+
+	return guest, rows.Err()
+}
+
+func loadGuestStayHistory(guest *models.GuestWithStays, rows pgx.Rows) error {
 	for rows.Next() {
 		var arrivalDate, departureDate *time.Time
 		var roomNumber, groupSize *int
 		var status *models.BookingStatus
 
-		if guest == nil {
-			guest = &models.GuestWithStays{
-				CurrentStays: []models.Stay{},
-				PastStays:    []models.Stay{},
-			}
+		if err := rows.Scan(&arrivalDate, &departureDate, &roomNumber, &status, &groupSize); err != nil {
+			return err
 		}
 
-		err := rows.Scan(
-			&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email, &guest.Preferences, &guest.Notes,
-			&arrivalDate, &departureDate, &roomNumber, &status,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if arrivalDate == nil {
+		if arrivalDate == nil || departureDate == nil || roomNumber == nil || status == nil {
 			continue
 		}
 
 		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, status)
-		guest = appendStay(guest, stay, *status)
+		appendStay(guest, stay, *status)
 	}
 
-	return guest, rows.Err()
+	return rows.Err()
 }
 
 func buildStay(arrival, departure *time.Time, roomNumber, groupSize *int, status *models.BookingStatus) models.Stay {
