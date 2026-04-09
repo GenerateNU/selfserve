@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
@@ -38,8 +39,14 @@ func (r *HotelsRepository) FindByID(ctx context.Context, id string) (*models.Hot
 }
 
 func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
 	createdHotel := &models.Hotel{CreateHotelRequest: *hotel}
-	err := r.db.QueryRow(ctx, `
+	err = tx.QueryRow(ctx, `
         INSERT INTO hotels (id, name, floors)
         VALUES ($1, $2, $3)
         ON CONFLICT (id) DO NOTHING
@@ -53,5 +60,18 @@ func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.Create
 		}
 		return nil, err
 	}
+
+	_, err = tx.Exec(ctx, `
+		INSERT INTO departments (hotel_id, name)
+		SELECT $1, unnest($2::text[])
+	`, hotel.ID, models.DefaultDepartments)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", errs.ErrDefaultDepartmentInsertDB, err)
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
 	return createdHotel, nil
 }
