@@ -116,6 +116,7 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 			return errs.NotFound("guest", "id", id)
 
 		}
+		slog.Error("failed to get guest with stays", "id", id, "error", err)
 		return errs.InternalServerError()
 	}
 	return c.JSON(guest)

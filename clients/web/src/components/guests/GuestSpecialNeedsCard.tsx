@@ -1,7 +1,6 @@
 type SpecialNeeds = {
   dietaryRestrictions: string;
   accessibilityNeeds: string;
-  sensorySensitivities: string;
   medicalConditions: string;
 };
 
@@ -36,10 +35,6 @@ export function GuestSpecialNeedsCard({
       <SpecialNeedsRow
         label="Accessibility Needs"
         value={specialNeeds.accessibilityNeeds}
-      />
-      <SpecialNeedsRow
-        label="Sensory Sensitivities"
-        value={specialNeeds.sensorySensitivities}
       />
       <SpecialNeedsRow
         label="Medical Conditions"

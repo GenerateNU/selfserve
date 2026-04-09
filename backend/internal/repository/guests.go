@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"iter"
 	"sort"
 	"time"
@@ -11,6 +13,7 @@ import (
 	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -89,6 +92,8 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 		CurrentStays: []models.Stay{},
 		PastStays:    []models.Stay{},
 	}
+	var doNotDisturbStart, doNotDisturbEnd pgtype.Time
+	var assistanceRaw []byte
 
 	err := r.db.QueryRow(ctx, `
 		SELECT
@@ -99,14 +104,25 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 		WHERE g.id = $1
 	`, id).Scan(
 		&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email,
-		&guest.Preferences, &guest.Notes, &guest.Pronouns, &guest.DoNotDisturbStart,
-		&guest.DoNotDisturbEnd, &guest.HousekeepingCadence, &guest.Assistance,
+		&guest.Preferences, &guest.Notes, &guest.Pronouns, &doNotDisturbStart,
+		&doNotDisturbEnd, &guest.HousekeepingCadence, &assistanceRaw,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
 		}
 		return nil, err
+	}
+
+	guest.DoNotDisturbStart = formatPGTime(doNotDisturbStart)
+	guest.DoNotDisturbEnd = formatPGTime(doNotDisturbEnd)
+
+	if len(assistanceRaw) > 0 && string(assistanceRaw) != "null" {
+		var assistance models.Assistance
+		if err := json.Unmarshal(assistanceRaw, &assistance); err != nil {
+			return nil, err
+		}
+		guest.Assistance = &assistance
 	}
 
 	rows, err := r.db.Query(ctx, `
@@ -131,34 +147,42 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 
 func loadGuestStayHistory(guest *models.GuestWithStays, rows pgx.Rows) error {
 	for rows.Next() {
-		var arrivalDate, departureDate *time.Time
-		var roomNumber, groupSize *int
-		var status *models.BookingStatus
+		var arrivalDate, departureDate pgtype.Date
+		var roomNumber, groupSize pgtype.Int4
+		var status string
 
 		if err := rows.Scan(&arrivalDate, &departureDate, &roomNumber, &status, &groupSize); err != nil {
 			return err
 		}
 
-		if arrivalDate == nil || departureDate == nil || roomNumber == nil || status == nil {
+		if !arrivalDate.Valid || !departureDate.Valid || !roomNumber.Valid || status == "" {
 			continue
 		}
 
-		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, status)
-		appendStay(guest, stay, *status)
+		stayStatus := models.BookingStatus(status)
+		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, stayStatus)
+		appendStay(guest, stay, stayStatus)
 	}
 
 	return rows.Err()
 }
 
-func buildStay(arrival, departure *time.Time, roomNumber, groupSize *int, status *models.BookingStatus) models.Stay {
+func buildStay(
+	arrival pgtype.Date,
+	departure pgtype.Date,
+	roomNumber pgtype.Int4,
+	groupSize pgtype.Int4,
+	status models.BookingStatus,
+) models.Stay {
 	stay := models.Stay{
-		ArrivalDate:   *arrival,
-		DepartureDate: *departure,
-		RoomNumber:    *roomNumber,
-		Status:        *status,
+		ArrivalDate:   arrival.Time,
+		DepartureDate: departure.Time,
+		RoomNumber:    int(roomNumber.Int32),
+		Status:        status,
 	}
-	if groupSize != nil {
-		stay.GroupSize = groupSize
+	if groupSize.Valid {
+		value := int(groupSize.Int32)
+		stay.GroupSize = &value
 	}
 	return stay
 }
@@ -181,6 +205,22 @@ func sortGuestStays(guest *models.GuestWithStays) {
 	sort.Slice(guest.PastStays, func(i, j int) bool {
 		return guest.PastStays[i].DepartureDate.After(guest.PastStays[j].DepartureDate)
 	})
+}
+
+func formatPGTime(value pgtype.Time) *string {
+	if !value.Valid {
+		return nil
+	}
+
+	duration := time.Duration(value.Microseconds) * time.Microsecond
+	hours := int(duration / time.Hour)
+	duration -= time.Duration(hours) * time.Hour
+	minutes := int(duration / time.Minute)
+	duration -= time.Duration(minutes) * time.Minute
+	seconds := int(duration / time.Second)
+
+	formatted := fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+	return &formatted
 }
 
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {

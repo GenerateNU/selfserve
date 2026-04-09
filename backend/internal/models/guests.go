@@ -83,8 +83,8 @@ type GuestWithStays struct {
 	Preferences         *string     `json:"preferences,omitempty" example:"extra pillows"`
 	Notes               *string     `json:"notes,omitempty" example:"VIP"`
 	Pronouns            *string     `json:"pronouns,omitempty" example:"she/her"`
-	DoNotDisturbStart   *time.Time  `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
-	DoNotDisturbEnd     *time.Time  `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
+	DoNotDisturbStart   *string     `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
+	DoNotDisturbEnd     *string     `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
 	HousekeepingCadence *string     `json:"housekeeping_cadence,omitempty" example:"daily"`
 	Assistance          *Assistance `json:"assistance,omitempty"`
 	CurrentStays        []Stay      `json:"current_stays" validate:"required"`

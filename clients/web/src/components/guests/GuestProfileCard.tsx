@@ -18,6 +18,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 export function GuestProfileCard({ guest }: GuestProfileCardProps) {
   const hasCurrentStay = guest.current_stays.length > 0;
   const currentStay = guest.current_stays[0];
+  const phone = guest.phone?.trim() || "-";
+  const email = guest.email?.trim() || "-";
+  const pronouns = guest.pronouns?.trim() || "-";
 
   return (
     <section className="border border-black bg-white px-[1vw] py-[2vh]">
@@ -33,9 +36,20 @@ export function GuestProfileCard({ guest }: GuestProfileCardProps) {
       </div>
 
       <div className="pt-[1vh]">
+        <DetailRow label="Phone" value={phone} />
+        <DetailRow label="Email" value={email} />
+        <DetailRow label="Pronouns" value={pronouns} />
         {hasCurrentStay ? (
           <>
             <DetailRow label="Room" value={String(currentStay.room_number)} />
+            <DetailRow
+              label="Group Size"
+              value={
+                currentStay.group_size != null
+                  ? String(currentStay.group_size)
+                  : "-"
+              }
+            />
             <DetailRow
               label="Arrival"
               value={formatDate(currentStay.arrival_date)}

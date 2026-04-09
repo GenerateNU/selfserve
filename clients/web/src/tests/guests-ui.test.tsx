@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { GuestWithBooking } from "@shared";
 import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageSkeleton";
+import { GuestProfileCard } from "../components/guests/GuestProfileCard";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
 import { formatDate } from "../utils/dates";
 
@@ -77,6 +78,46 @@ describe("guest UI helpers", () => {
       );
 
       expect(screen.getByText("—")).not.toBe(null);
+    });
+  });
+
+  describe("GuestProfileCard", () => {
+    it("renders current backend guest fields", () => {
+      render(
+        <GuestProfileCard
+          guest={{
+            id: "guest-1",
+            first_name: "Jane",
+            last_name: "Doe",
+            phone: "+1 555 111 2222",
+            email: "jane@example.com",
+            preferences: undefined,
+            notes: "VIP",
+            pronouns: "she/her",
+            do_not_disturb_start: undefined,
+            do_not_disturb_end: undefined,
+            housekeeping_cadence: undefined,
+            assistance: undefined,
+            current_stays: [
+              {
+                arrival_date: "2026-04-10",
+                departure_date: "2026-04-15",
+                room_number: 301,
+                group_size: 2,
+                status: "active",
+              },
+            ],
+            past_stays: [],
+          }}
+        />,
+      );
+
+      expect(screen.getByText("Jane Doe")).not.toBe(null);
+      expect(screen.getByText("+1 555 111 2222")).not.toBe(null);
+      expect(screen.getByText("jane@example.com")).not.toBe(null);
+      expect(screen.getByText("she/her")).not.toBe(null);
+      expect(screen.getByText("301")).not.toBe(null);
+      expect(screen.getByText("2")).not.toBe(null);
     });
   });
 
