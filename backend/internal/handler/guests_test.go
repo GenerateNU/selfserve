@@ -353,7 +353,7 @@ func TestGuestsHandler_GetGuest(t *testing.T) {
 func TestGuestsHandler_GetGuests(t *testing.T) {
 	t.Parallel()
 
-	validHotelID := "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+	validHotelID := "org_a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 
 	t.Run("returns 200 with guest page", func(t *testing.T) {
 		t.Parallel()

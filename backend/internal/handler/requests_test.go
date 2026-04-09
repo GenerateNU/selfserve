@@ -76,7 +76,7 @@ func TestRequestHandler_GetRequest(t *testing.T) {
 					CreatedAt:      time.Now(),
 					RequestVersion: time.Now(),
 					MakeRequest: models.MakeRequest{
-						HotelID:     "521e8400-e458-41d4-a716-446655440000",
+						HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
 						Name:        "room cleaning",
 						RequestType: "recurring",
 						Status:      "assigned",
@@ -194,7 +194,7 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						CreatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
-							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
 							Name:        "room cleaning",
 							RequestType: "recurring",
 							Status:      "assigned",
@@ -206,7 +206,7 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						CreatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
-							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
 							Name:        "towel replacement",
 							RequestType: "one-time",
 							Status:      "pending",
@@ -218,7 +218,7 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						CreatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
-							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
 							Name:        "maintenance repair",
 							RequestType: "one-time",
 							Status:      "in-progress",
@@ -230,7 +230,7 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						CreatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
-							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
 							Name:        "extra pillows",
 							RequestType: "one-time",
 							Status:      "completed",
@@ -242,7 +242,7 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 						CreatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
-							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
 							Name:        "minibar refill",
 							RequestType: "recurring",
 							Status:      "assigned",
@@ -308,7 +308,7 @@ func TestRequestHandler_GetRequests(t *testing.T) {
 func TestRequestHandler_MakeRequest(t *testing.T) {
 	t.Parallel()
 	validBody := `{
-		"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+		"hotel_id": "org_550e8400-e29b-41d4-a716-446655440000",
 		"name": "room cleaning",
 		"request_type": "recurring",
 		"status": "pending",
@@ -358,7 +358,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		app.Post("/request", h.CreateRequest)
 
 		bodyWithOptionalUUIDs := `{
-			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+			"hotel_id": "org_550e8400-e29b-41d4-a716-446655440000",
 			"guest_id": "660e8400-e29b-41d4-a716-446655440000",
 			"user_id": "770e8400-e29b-41d4-a716-446655440000",
 			"name": "room cleaning",
@@ -395,7 +395,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		app.Post("/request", h.CreateRequest)
 
 		bodyWithInProgressStatus := `{
-			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+			"hotel_id": "org_550e8400-e29b-41d4-a716-446655440000",
 			"name": "room cleaning",
 			"request_type": "recurring",
 			"status": "in progress",
@@ -471,7 +471,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		app.Post("/request", h.CreateRequest)
 
 		invalidGuestIDBody := `{
-			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+			"hotel_id": "org_550e8400-e29b-41d4-a716-446655440000",
 			"guest_id": "not-a-uuid",
 			"name": "room cleaning",
 			"request_type": "recurring",
@@ -505,7 +505,7 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		app.Post("/request", h.CreateRequest)
 
 		bodyWithInvalidPriority := `{
-			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+			"hotel_id": "org_550e8400-e29b-41d4-a716-446655440000",
 			"name": "room cleaning",
 			"request_type": "recurring",
 			"status": "pending",
@@ -551,7 +551,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 	t.Parallel()
 
 	validBody := `{
-		"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+		"hotel_id": "org_550e8400-e29b-41d4-a716-446655440000",
 		"raw_text": "Room 302 needs extra towels urgently"
 	}`
 
@@ -673,7 +673,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{}, nil)
 		app.Post("/request/generate", h.GenerateRequest)
 
-		bodyEmptyText := `{"hotel_id": "550e8400-e29b-41d4-a716-446655440000", "raw_text": ""}`
+		bodyEmptyText := `{"hotel_id": "org_550e8400-e29b-41d4-a716-446655440000", "raw_text": ""}`
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(bodyEmptyText))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
@@ -756,7 +756,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		app.Post("/request/generate", h.GenerateRequest)
 
 		customBody := `{
-			"hotel_id": "550e8400-e29b-41d4-a716-446655440000",
+			"hotel_id": "org_550e8400-e29b-41d4-a716-446655440000",
 			"raw_text": "I need the AC fixed in room 101 ASAP"
 		}`
 		req := httptest.NewRequest("POST", "/request/generate", bytes.NewBufferString(customBody))
@@ -766,7 +766,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 
 		assert.Equal(t, 200, resp.StatusCode)
 		assert.Equal(t, "I need the AC fixed in room 101 ASAP", capturedInput.RawText)
-		assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", capturedInput.HotelID)
+		assert.Equal(t, "org_550e8400-e29b-41d4-a716-446655440000", capturedInput.HotelID)
 	})
 
 	t.Run("uses hotel_id from request body not LLM", func(t *testing.T) {
@@ -794,7 +794,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 
 		assert.Equal(t, 200, resp.StatusCode)
 		body, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(body), "550e8400-e29b-41d4-a716-446655440000")
+		assert.Contains(t, string(body), "org_550e8400-e29b-41d4-a716-446655440000")
 	})
 
 	t.Run("defaults notes to empty string when LLM omits notes", func(t *testing.T) {
@@ -880,7 +880,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 						CreatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
-							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
 							Name:        "room cleaning",
 							RequestType: "recurring",
 							Status:      "pending",
@@ -892,7 +892,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 						CreatedAt:      time.Now(),
 						RequestVersion: time.Now(),
 						MakeRequest: models.MakeRequest{
-							HotelID:     "521e8400-e458-41d4-a716-446655440000",
+							HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
 							Name:        "towel request",
 							RequestType: "one-time",
 							Status:      "pending",
@@ -910,7 +910,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		body := `{"status":"pending"}`
 		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
+		req.Header.Set("X-Hotel-ID", "org_521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -938,7 +938,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		body := `{"status":"invalid"}`
 		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
+		req.Header.Set("X-Hotel-ID", "org_521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -964,7 +964,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		body := `{"status":"pending"}`
 		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
+		req.Header.Set("X-Hotel-ID", "org_521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -987,7 +987,7 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		body := `{"status":"pending"}`
 		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "521e8400-e458-41d4-a716-446655440000")
+		req.Header.Set("X-Hotel-ID", "org_521e8400-e458-41d4-a716-446655440000")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -999,7 +999,7 @@ func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
 	t.Parallel()
 
 	validGuestID := "530e8400-e458-41d4-a716-446655440000"
-	validHotelID := "521e8400-e458-41d4-a716-446655440000"
+	validHotelID := "org_521e8400-e458-41d4-a716-446655440000"
 
 	t.Run("returns 200 with guest requests", func(t *testing.T) {
 		t.Parallel()
@@ -1150,7 +1150,7 @@ func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 
 	const (
 		validRoomID  = "630e8400-e458-41d4-a716-446655440000"
-		validHotelID = "521e8400-e458-41d4-a716-446655440000"
+		validHotelID = "org_521e8400-e458-41d4-a716-446655440000"
 		validUserID  = "user_abc123"
 	)
 

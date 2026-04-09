@@ -35,7 +35,7 @@ func (m *mockRoomsRepository) FindRoomByID(ctx context.Context, hotelID string, 
 
 var _ RoomsRepository = (*mockRoomsRepository)(nil)
 
-const testHotelID = "00000000-0000-0000-0000-000000000001"
+const testHotelID = "org_00000000000000000000000001"
 
 func TestRoomsHandler_FilterRooms(t *testing.T) {
 	t.Parallel()
