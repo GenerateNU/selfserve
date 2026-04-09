@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
@@ -42,7 +43,7 @@ func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.Create
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	createdHotel := &models.Hotel{CreateHotelRequest: *hotel}
 	err = tx.QueryRow(ctx, `
@@ -66,7 +67,7 @@ func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.Create
 			VALUES ($1, $2)
 		`, hotel.ID, name)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %w", errs.ErrDefaultDepartmentInsertDB, err)
 		}
 	}
 
