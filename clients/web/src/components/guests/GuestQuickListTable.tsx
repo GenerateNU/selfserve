@@ -3,6 +3,8 @@ import type { GuestWithBooking } from "@shared";
 
 type GuestQuickListTableProps = {
   guests: Array<GuestWithBooking>;
+  floorOptions: number[];
+  groupSizeOptions: number[];
   groupFilter: string;
   floorFilter: string;
   isLoading?: boolean;
@@ -21,6 +23,8 @@ function avatarPill() {
 
 export function GuestQuickListTable({
   guests,
+  floorOptions,
+  groupSizeOptions,
   groupFilter,
   floorFilter,
   isLoading = false,
@@ -40,9 +44,11 @@ export function GuestQuickListTable({
           aria-label="Group filter"
         >
           <option value="all">Group</option>
-          <option value="1-2">1-2</option>
-          <option value="3-4">3-4</option>
-          <option value="5+">5-20</option>
+          {groupSizeOptions.map((size) => (
+            <option key={size} value={String(size)}>
+              {size}
+            </option>
+          ))}
         </select>
         <select
           value={floorFilter}
@@ -51,11 +57,11 @@ export function GuestQuickListTable({
           aria-label="Floor filter"
         >
           <option value="all">Floor</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
+          {floorOptions.map((floor) => (
+            <option key={floor} value={String(floor)}>
+              {floor}
+            </option>
+          ))}
         </select>
         <p>Room</p>
       </div>

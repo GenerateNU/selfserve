@@ -1,3 +1,7 @@
+import {
+  useGetGuestBookingsGroupSizes,
+  useGetRoomsFloors,
+} from "@shared";
 import { usePostApiV1GuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -15,15 +19,6 @@ export const Route = createFileRoute("/_protected/guests/")({
   component: GuestsQuickListPage,
 });
 
-function groupSizeFilter(filter: string): Array<number> | undefined {
-  if (filter === "1-2") return [1, 2];
-  if (filter === "3-4") return [3, 4];
-  // Product decision: the largest group filter bucket is capped at 20.
-  if (filter === "5+")
-    return [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-  return undefined;
-}
-
 function GuestsQuickListPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,6 +33,11 @@ function GuestsQuickListPage() {
 
   const debouncedSearch = useDebounce(searchTerm, 300);
   const postGuests = usePostApiV1GuestsSearchHook();
+  const { data: floorsData } = useGetRoomsFloors();
+  const { data: groupSizesData } = useGetGuestBookingsGroupSizes();
+
+  const availableFloors = floorsData ?? [];
+  const availableGroupSizes = groupSizesData ?? [];
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading, isError } =
     useInfiniteQuery({
@@ -46,7 +46,7 @@ function GuestsQuickListPage() {
         postGuests({
           search: debouncedSearch || undefined,
           floors: floorFilter !== "all" ? [Number(floorFilter)] : undefined,
-          group_size: groupSizeFilter(groupFilter),
+          group_size: groupFilter !== "all" ? [Number(groupFilter)] : undefined,
           cursor: pageParam,
           limit: 20,
         }),
@@ -68,6 +68,8 @@ function GuestsQuickListPage() {
       <>
         <GuestQuickListTable
           guests={allGuests}
+          floorOptions={availableFloors}
+          groupSizeOptions={availableGroupSizes}
           groupFilter={groupFilter}
           floorFilter={floorFilter}
           isLoading={isLoading}
