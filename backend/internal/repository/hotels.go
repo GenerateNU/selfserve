@@ -61,14 +61,12 @@ func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.Create
 		return nil, err
 	}
 
-	for _, name := range models.DefaultDepartments {
-		_, err = tx.Exec(ctx, `
-			INSERT INTO departments (hotel_id, name)
-			VALUES ($1, $2)
-		`, hotel.ID, name)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", errs.ErrDefaultDepartmentInsertDB, err)
-		}
+	_, err = tx.Exec(ctx, `
+		INSERT INTO departments (hotel_id, name)
+		SELECT $1, unnest($2::text[])
+	`, hotel.ID, models.DefaultDepartments)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", errs.ErrDefaultDepartmentInsertDB, err)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
