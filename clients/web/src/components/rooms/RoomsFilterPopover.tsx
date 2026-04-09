@@ -108,14 +108,9 @@ export function RoomsFilterPopover() {
         setOpen(next);
       }}
     >
-      <PopoverTrigger>
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-lg border border-stroke-subtle px-4 py-2 text-sm font-medium text-text-default hover:bg-primary/5 transition-colors h-11 w-22.75"
-        >
-          <Filter className="h-4 w-4 text-text-default" />
-          Filter
-        </button>
+      <PopoverTrigger className="flex items-center gap-2 rounded-lg border border-stroke-subtle px-4 py-2 text-sm font-medium text-text-default hover:bg-primary/5 transition-colors h-11 w-22.75">
+        <Filter className="h-4 w-4 text-text-default" />
+        Filter
       </PopoverTrigger>
       <PopoverContent sideOffset={8} align="start" className="px-6 w-115.75">
         <FilterPopoverHeader onReset={handleReset} />
