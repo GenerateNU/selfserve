@@ -81,7 +81,7 @@ export function GuestQuickListTable({
             <p className="truncate text-[1vw] text-black">
               {guest.preferred_name}
             </p>
-            <p className="text-[1vw] text-black">{guest.group_size ?? "—"}</p>
+            <p className="text-[1vw] text-black">{String(guest.group_size)}</p>
             <p className="text-[1vw] text-black">{guest.floor}</p>
             <p className="text-[1vw] text-black">{guest.room_number}</p>
           </button>
