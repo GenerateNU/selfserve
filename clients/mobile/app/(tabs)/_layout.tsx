@@ -1,4 +1,4 @@
-import { Redirect, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 import React from "react";
 
 import { HapticTab } from "@/components/haptic-tab";
@@ -6,7 +6,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { View, Text } from "react-native";
-import { useAuth } from "@clerk/clerk-expo";
+import { useStartup } from "@/context/startup";
 
 type TabBarIconProps = {
   name: React.ComponentProps<typeof IconSymbol>["name"];
@@ -36,6 +36,8 @@ const PlusButton = () => (
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const c = Colors[colorScheme ?? "light"];
+  const status = useStartup();
+  if (status !== "ready") return null;
 
   return (
     <Tabs

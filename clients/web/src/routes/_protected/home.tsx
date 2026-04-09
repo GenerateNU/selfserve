@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useUser } from "@clerk/clerk-react";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users";
-import { MakeRequestPriority } from "@shared";
+import { getConfig, MakeRequestPriority } from "@shared";
 import type { Request } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
@@ -102,16 +99,7 @@ function HomePage() {
       />
     ) : null;
 
-  const { user: clerkUser } = useUser();
-  const getUsersId = useGetUsersIdHook();
-
-  const { data: backendUser } = useQuery({
-    queryKey: ["user", clerkUser?.id],
-    queryFn: () => getUsersId(clerkUser!.id),
-    enabled: !!clerkUser?.id,
-  });
-
-  const hotelId = backendUser?.hotel_id;
+  const hotelId = getConfig().hotelId;
 
   return (
     <PageShell
