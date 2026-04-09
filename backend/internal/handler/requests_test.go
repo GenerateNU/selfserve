@@ -457,7 +457,6 @@ func TestRequestHandler_MakeRequest(t *testing.T) {
 		assert.Contains(t, string(body), "name")
 	})
 
-
 	t.Run("returns 400 on invalid optional guest_id uuid", func(t *testing.T) {
 		t.Parallel()
 
@@ -923,7 +922,6 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		assert.Contains(t, string(respBody), "next_cursor_time")
 	})
 
-
 	t.Run("returns 400 when status is invalid", func(t *testing.T) {
 		t.Parallel()
 
@@ -949,7 +947,6 @@ func TestRequestHandler_GetRequestByCursor(t *testing.T) {
 		respBody, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(respBody), "Status")
 	})
-
 
 	t.Run("returns 404 when not found in db", func(t *testing.T) {
 		t.Parallel()

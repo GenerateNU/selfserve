@@ -462,7 +462,6 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 		assert.Equal(t, 400, resp.StatusCode)
 	})
 
-
 	t.Run("returns 400 on invalid cursor", func(t *testing.T) {
 		t.Parallel()
 

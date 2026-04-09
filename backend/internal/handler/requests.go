@@ -124,8 +124,8 @@ func validateGenerateRequest(input *models.GenerateRequestInput) error {
 	errors := make(map[string]string)
 
 	if input.HotelID == "" {
-        errors["hotel_id"] = "must not be an empty string"
-    }
+		errors["hotel_id"] = "must not be an empty string"
+	}
 
 	if input.RawText == "" {
 		errors["raw_text"] = "must not be an empty string"
