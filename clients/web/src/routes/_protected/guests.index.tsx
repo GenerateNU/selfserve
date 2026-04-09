@@ -1,7 +1,7 @@
 import { usePostApiV1GuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { MakeRequestPriority } from "@shared";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
@@ -55,16 +55,16 @@ function GuestsQuickListPage() {
     });
 
   const allGuests = data?.pages.flatMap((page) => page.data ?? []) ?? [];
-  const renderContent = () => {
-    if (isError) {
-      return (
-        <div className="border border-black bg-white px-[1vw] py-[2vh] text-[1vw] text-black">
-          Failed to load guests. Please try again.
-        </div>
-      );
-    }
 
-    return (
+  let guestsContent;
+  if (isError) {
+    guestsContent = (
+      <div className="border border-black bg-white px-[1vw] py-[2vh] text-[1vw] text-black">
+        Failed to load guests. Please try again.
+      </div>
+    );
+  } else {
+    guestsContent = (
       <>
         <GuestQuickListTable
           guests={allGuests}
@@ -96,7 +96,7 @@ function GuestsQuickListPage() {
         )}
       </>
     );
-  };
+  }
 
   return (
     <PageShell
@@ -115,16 +115,7 @@ function GuestsQuickListPage() {
       }
     >
       <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
-      <GuestQuickListTable
-        guests={filteredGuests}
-        groupFilter={groupFilter}
-        floorFilter={floorFilter}
-        onGroupFilterChange={setGroupFilter}
-        onFloorFilterChange={setFloorFilter}
-        onGuestClick={(guestId) =>
-          navigate({ to: "/guests/$guestId", params: { guestId } })
-        }
-      />
+      {guestsContent}
       {generatedData === null && (
         <GlobalTaskInput
           onRequestGenerated={(r: Request) => {

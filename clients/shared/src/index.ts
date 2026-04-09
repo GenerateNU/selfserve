@@ -52,13 +52,12 @@ export {
   useGetApiV1GuestsId,
   usePutApiV1GuestsId,
   usePostApiV1GuestsSearchHook,
-  useGetApiV1GuestsStaysId,
+  useGetGuestsStaysId,
 } from "./api/generated/endpoints/guests/guests";
 
 export type {
   GuestWithBooking,
   GuestWithStays,
-  GuestPage,
   GuestFilters,
   Stay,
 } from "./api/generated/models";

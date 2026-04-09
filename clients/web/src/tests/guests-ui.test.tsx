@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import type { GuestWithBooking } from "@shared";
 import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageSkeleton";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
 import { formatDate } from "../utils/dates";
@@ -31,11 +32,20 @@ describe("guest UI helpers", () => {
       );
     });
 
-    // currently filtering caps guests from 5-20, instead of 5+ using this test as a placeholder for testing that
-    it("shows the capped top-end group filter label", () => {
+    it("renders an em dash for a null group size", () => {
+      const guest = {
+        id: "guest-1",
+        first_name: "Ada",
+        last_name: "Lovelace",
+        preferred_name: "Ada",
+        floor: 4,
+        group_size: null as unknown as GuestWithBooking["group_size"],
+        room_number: 401,
+      };
+
       render(
         <GuestQuickListTable
-          guests={[]}
+          guests={[guest]}
           groupFilter="all"
           floorFilter="all"
           onGroupFilterChange={() => {}}
@@ -44,11 +54,7 @@ describe("guest UI helpers", () => {
         />,
       );
 
-      expect(
-        screen.getByRole("option", {
-          name: "5-20",
-        }),
-      ).not.toBe(null);
+      expect(screen.getByText("—")).not.toBe(null);
     });
   });
 
