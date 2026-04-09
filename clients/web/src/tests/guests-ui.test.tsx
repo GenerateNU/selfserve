@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { GuestWithBooking } from "@shared";
 import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageSkeleton";
 import { GuestProfileCard } from "../components/guests/GuestProfileCard";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
 import { formatDate } from "../utils/dates";
+import type { GuestWithBooking } from "@shared";
 
 describe("guest UI helpers", () => {
   describe("formatDate", () => {

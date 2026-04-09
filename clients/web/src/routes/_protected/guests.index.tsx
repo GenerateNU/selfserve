@@ -1,4 +1,5 @@
 import {
+  MakeRequestPriority,
   useGetGuestBookingsGroupSizes,
   useGetRoomsFloors,
 } from "@shared";
@@ -6,7 +7,6 @@ import { usePostApiV1GuestsSearchHook } from "@shared/api/generated/endpoints/gu
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { MakeRequestPriority } from "@shared";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { useDebounce } from "../../hooks/use-debounce";

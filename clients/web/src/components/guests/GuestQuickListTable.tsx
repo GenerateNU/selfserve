@@ -3,8 +3,8 @@ import type { GuestWithBooking } from "@shared";
 
 type GuestQuickListTableProps = {
   guests: Array<GuestWithBooking>;
-  floorOptions: number[];
-  groupSizeOptions: number[];
+  floorOptions: Array<number>;
+  groupSizeOptions: Array<number>;
   groupFilter: string;
   floorFilter: string;
   isLoading?: boolean;
