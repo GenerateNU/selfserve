@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type GuestNotesCardProps = {
-  initialNotes?: string;
+  notes?: string;
+  onSave: (nextNotes: string) => Promise<void> | void;
 };
 
-export function GuestNotesCard({ initialNotes = "" }: GuestNotesCardProps) {
+export function GuestNotesCard({ notes = "", onSave }: GuestNotesCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [notes, setNotes] = useState(initialNotes);
-  const [draft, setDraft] = useState(initialNotes);
+  const [draft, setDraft] = useState(notes);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setDraft(notes);
+    }
+  }, [isEditing, notes]);
 
   const startEditing = () => {
     setDraft(notes);
@@ -19,8 +25,8 @@ export function GuestNotesCard({ initialNotes = "" }: GuestNotesCardProps) {
     setIsEditing(false);
   };
 
-  const saveNotes = () => {
-    setNotes(draft);
+  const saveNotes = async () => {
+    await onSave(draft);
     setIsEditing(false);
   };
 
