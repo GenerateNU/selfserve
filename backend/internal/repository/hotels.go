@@ -38,8 +38,14 @@ func (r *HotelsRepository) FindByID(ctx context.Context, id string) (*models.Hot
 }
 
 func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
 	createdHotel := &models.Hotel{CreateHotelRequest: *hotel}
-	err := r.db.QueryRow(ctx, `
+	err = tx.QueryRow(ctx, `
         INSERT INTO hotels (id, name, floors)
         VALUES ($1, $2, $3)
         ON CONFLICT (id) DO NOTHING
@@ -53,5 +59,20 @@ func (r *HotelsRepository) InsertHotel(ctx context.Context, hotel *models.Create
 		}
 		return nil, err
 	}
+
+	for _, name := range models.DefaultDepartments {
+		_, err = tx.Exec(ctx, `
+			INSERT INTO departments (hotel_id, name)
+			VALUES ($1, $2)
+		`, hotel.ID, name)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
 	return createdHotel, nil
 }
