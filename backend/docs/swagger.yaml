@@ -168,16 +168,12 @@ definitions:
         items:
           type: integer
         type: array
-      hotel_id:
-        type: string
       limit:
         maximum: 100
         minimum: 1
         type: integer
       search:
         type: string
-    required:
-    - hotel_id
     type: object
   GuestPage:
     properties:
@@ -216,18 +212,25 @@ definitions:
   GuestWithBooking:
     properties:
       first_name:
+        example: Jane
         type: string
       floor:
+        example: 3
         type: integer
       group_size:
+        example: 2
         type: integer
       id:
+        example: 530e8400-e458-41d4-a716-446655440000
         type: string
       last_name:
+        example: Doe
         type: string
       preferred_name:
+        example: Jane
         type: string
       room_number:
+        example: 301
         type: integer
     required:
     - first_name
@@ -644,41 +647,36 @@ paths:
     post:
       consumes:
       - application/json
-      description: Retrieves guests optionally filtered by floor
+      description: Creates a guest with the given data
       parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
-      - description: Guest filters
+      - description: Guest data
         in: body
-        name: body
+        name: request
         required: true
         schema:
-          $ref: '#/definitions/GuestFilters'
+          $ref: '#/definitions/CreateGuest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/GuestPage'
+            $ref: '#/definitions/Guest'
         "400":
-          description: Bad Request
+          description: Invalid guest body format
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
             type: object
       security:
       - BearerAuth: []
-      summary: Get Guests
+      summary: Creates a guest
       tags:
       - guests
   /api/v1/guests/{id}:
@@ -764,6 +762,86 @@ paths:
       security:
       - BearerAuth: []
       summary: Updates a guest
+      tags:
+      - guests
+  /api/v1/guests/search:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves guests optionally filtered by floor
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Guest filters
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/GuestFilters'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GuestPage'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Guests
+      tags:
+      - guests
+  /api/v1/guests/stays/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single guest with previous stays given an id
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GuestWithStays'
+        "400":
+          description: Invalid guest ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Guest not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Gets a guest with previous stays
       tags:
       - guests
   /api/v1/hotels:
