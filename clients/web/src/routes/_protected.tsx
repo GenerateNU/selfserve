@@ -3,7 +3,7 @@ import { RedirectToSignIn, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Loader2 } from "lucide-react";
 import { SideBarWithContent } from "@/components/SideBarWithContent";
 import NoUserInfo from "@/components/ui/NoUserInfo";
-import { useStartup } from "@/context/startup";
+import { StartupStatus, useStartup } from "@/context/startup";
 
 export const Route = createFileRoute("/_protected")({
   component: ProtectedLayout,
@@ -12,21 +12,21 @@ export const Route = createFileRoute("/_protected")({
 function ProtectedLayout() {
   const status = useStartup();
 
-  if (status === "unauthenticated")
+  if (status === StartupStatus.Unauthenticated)
     return (
       <SignedOut>
         <RedirectToSignIn />
       </SignedOut>
     );
 
-  if (status === "loading") {
+  if (status === StartupStatus.Loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="animate-spin" />
       </div>
     );
   }
-  if (status === "no-user-info") return <NoUserInfo />;
+  if (status === StartupStatus.NoUserInfo) return <NoUserInfo />;
 
   return (
     <>
