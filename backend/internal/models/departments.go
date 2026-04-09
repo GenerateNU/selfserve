@@ -2,11 +2,20 @@ package models
 
 import "time"
 
-var DefaultDepartments = []string{
-	"Front Desk",
-	"Housekeeping",
-	"Maintenance",
-	"Food & Beverage",
+type DepartmentName string
+
+const (
+	DepartmentFrontDesk    DepartmentName = "Front Desk"
+	DepartmentHousekeeping DepartmentName = "Housekeeping"
+	DepartmentMaintenance  DepartmentName = "Maintenance"
+	DepartmentFoodBeverage DepartmentName = "Food & Beverage"
+)
+
+var DefaultDepartments = []DepartmentName{
+	DepartmentFrontDesk,
+	DepartmentHousekeeping,
+	DepartmentMaintenance,
+	DepartmentFoodBeverage,
 }
 
 type Department struct {
