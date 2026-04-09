@@ -213,7 +213,7 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return errs.InvalidJSON()
 	}
-	
+
 	if err := httpx.Validate(&input); err != nil {
 		return err
 	}
