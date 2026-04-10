@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
-import { cn, hashNameToColor } from "@/lib/utils";
+import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -87,14 +87,6 @@ const ROLES: Array<{ role: Role; description: string }> = [
 // Shared grid template applied to both header and every row
 const ROW_GRID = "grid grid-cols-[1fr_10rem_8rem_7rem] items-center gap-x-4";
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
 
 function MemberAvatar({ member }: { member: Member }) {
   if (member.avatarUrl) {

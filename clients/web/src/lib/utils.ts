@@ -17,6 +17,15 @@ const AVATAR_COLOR_SETS = [
   "bg-orange-100 text-orange-700",
 ];
 
+export function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export function hashNameToColor(name: string): string {
   const hash = [...name].reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return AVATAR_COLOR_SETS[hash % AVATAR_COLOR_SETS.length];

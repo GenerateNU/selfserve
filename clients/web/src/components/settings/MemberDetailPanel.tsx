@@ -1,6 +1,6 @@
 import { ArrowLeft, Check, ChevronDown } from "lucide-react";
 import type { Member } from "./MembersTab";
-import { cn, hashNameToColor } from "@/lib/utils";
+import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,14 +15,6 @@ const ROLES: Array<{ role: Role; description: string }> = [
   { role: "Member", description: "Can view and use workspace content" },
 ];
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
 
 type MemberDetailPanelProps = {
   member: Member;
