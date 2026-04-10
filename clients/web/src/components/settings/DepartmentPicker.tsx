@@ -61,9 +61,7 @@ export function DepartmentPicker({
             <DropdownMenuCheckboxItem
               key={dept.id}
               checked={selected.has(dept.name)}
-              onCheckedChange={(checked) =>
-                toggle(dept.id, dept.name, checked)
-              }
+              onCheckedChange={(checked) => toggle(dept.id, dept.name, checked)}
               onSelect={(e) => e.preventDefault()}
             >
               {dept.name}
