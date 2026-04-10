@@ -158,7 +158,10 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    const timer = setTimeout(
+      () => setDebouncedSearch(searchInput),
+      SEARCH_DEBOUNCE_MS,
+    );
     return () => clearTimeout(timer);
   }, [searchInput]);
 
@@ -198,7 +201,8 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   });
 
   const allMembers =
-    membersPages?.pages.flatMap((page) => (page.users ?? []).map(toMember)) ?? [];
+    membersPages?.pages.flatMap((page) => (page.users ?? []).map(toMember)) ??
+    [];
 
   return (
     <div>
