@@ -7,7 +7,7 @@ type Department = {
   memberCount: number;
 };
 
-const PLACEHOLDER_DEPARTMENTS: Department[] = [
+const PLACEHOLDER_DEPARTMENTS: Array<Department> = [
   { id: "1", name: "Front Desk", memberCount: 5 },
   { id: "2", name: "Housekeeping", memberCount: 12 },
   { id: "3", name: "Maintenance", memberCount: 8 },
@@ -17,7 +17,7 @@ const PLACEHOLDER_DEPARTMENTS: Department[] = [
 const ROW_GRID = "grid grid-cols-[1fr_8rem_5rem] items-center gap-x-4";
 
 export function DepartmentsTab() {
-  const [departments, setDepartments] = useState<Department[]>(
+  const [departments, setDepartments] = useState<Array<Department>>(
     PLACEHOLDER_DEPARTMENTS,
   );
   const [editingId, setEditingId] = useState<string | null>(null);
