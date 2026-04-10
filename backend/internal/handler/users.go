@@ -65,14 +65,14 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 
 // SearchUsers godoc
 // @Summary      Search users by hotel
-// @Description  Returns a paginated list of users for a hotel, optionally filtered by name
+// @Description  Returns a paginated list of users for a hotel, optionally filtered by name. Cursor is the last seen user ID.
 // @Tags         users
 // @Accept       json
 // @Produce      json
 // @Param        hotel_id  query     string  true   "Hotel UUID"
 // @Param        cursor    query     string  false  "Pagination cursor (last seen user ID)"
 // @Param        q         query     string  false  "Name search query"
-// @Success      200   {object}  map[string]interface{}
+// @Success      200   {object}  models.UserPage
 // @Failure      400   {object}  errs.HTTPError
 // @Failure      500   {object}  errs.HTTPError
 // @Security     BearerAuth
@@ -93,9 +93,9 @@ func (h *UsersHandler) SearchUsers(c *fiber.Ctx) error {
 		return errs.InternalServerError()
 	}
 
-	return c.JSON(fiber.Map{
-		"users":       users,
-		"next_cursor": nextCursor,
+	return c.JSON(models.UserPage{
+		Users:      users,
+		NextCursor: nextCursor,
 	})
 }
 

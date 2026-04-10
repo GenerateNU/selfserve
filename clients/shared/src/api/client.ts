@@ -11,9 +11,13 @@ export const createRequest = (
   const hardCodedHotelId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
   return async <T>(config: RequestConfig): Promise<T> => {
     let fullUrl = `${baseUrl}${config.url}`;
-    if (config.params && Object.keys(config.params).length > 0) {
-      const searchParams = new URLSearchParams(config.params);
-      fullUrl += '?' + searchParams.toString();
+    if (config.params) {
+      const definedParams = Object.fromEntries(
+        Object.entries(config.params).filter(([, v]) => v !== undefined),
+      );
+      if (Object.keys(definedParams).length > 0) {
+        fullUrl += '?' + new URLSearchParams(definedParams).toString();
+      }
     }
 
     try {
