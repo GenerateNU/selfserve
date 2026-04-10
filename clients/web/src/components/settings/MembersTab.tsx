@@ -37,7 +37,7 @@ const ROLES: Array<{ role: Role; description: string }> = [
 
 const ROW_GRID = "grid grid-cols-[1fr_12rem_8rem_7rem] items-center gap-x-4";
 
-const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_DEBOUNCE_MS = 200;
 
 function toMember(user: User): Member {
   const fullName =
