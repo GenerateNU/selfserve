@@ -1,4 +1,4 @@
-.PHONY: install install-shared install-mobile install-web dev-web dev-mobile format format-mobile format-web lint lint-web lint-mobile lint-fix lint-fix-web lint-fix-mobile
+.PHONY: install install-shared install-mobile install-web dev-web dev-mobile format format-mobile format-web lint lint-web lint-mobile lint-fix lint-fix-web lint-fix-mobile sync-api
 
 # Install dependencies in shared, mobile, and web
 install: install-shared install-mobile install-web
@@ -57,4 +57,8 @@ dev-mobile:
 	@cd mobile && npx expo start
 
 generate:
+	@cd shared && npm run generate:api
+
+sync-api:
+	@cd ../backend && make swagger
 	@cd shared && npm run generate:api
