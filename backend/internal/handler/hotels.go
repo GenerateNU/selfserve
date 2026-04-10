@@ -9,6 +9,7 @@ import (
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -20,10 +21,10 @@ type HotelsRepository interface {
 
 type HotelsHandler struct {
 	repo      HotelsRepository
-	usersRepo HotelUsersRepository
+	usersRepo storage.UsersRepository
 }
 
-func NewHotelsHandler(repo HotelsRepository, usersRepo HotelUsersRepository) *HotelsHandler {
+func NewHotelsHandler(repo HotelsRepository, usersRepo storage.UsersRepository) *HotelsHandler {
 	return &HotelsHandler{repo: repo, usersRepo: usersRepo}
 }
 
