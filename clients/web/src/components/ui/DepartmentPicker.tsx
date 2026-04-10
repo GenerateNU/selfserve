@@ -48,9 +48,9 @@ export function DepartmentPicker({
         align="start"
         side="bottom"
         sideOffset={6}
-        className="w-56 p-0"
+        className="w-56 border border-stroke-subtle p-0"
       >
-        <div className="flex max-h-60 flex-col overflow-y-auto">
+        <div className="flex max-h-60 flex-col divide-y divide-stroke-subtle overflow-y-auto">
           {isLoading && (
             <p className="px-3 py-4 text-center text-sm text-text-subtle">
               Loading...
