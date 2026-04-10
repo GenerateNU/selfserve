@@ -4,23 +4,22 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "react-native-reanimated";
 import "../global.css";
-import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
-
-import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import {
-  ClerkProvider,
-  ClerkLoaded,
-  useAuth,
-  useOrganization,
-} from "@clerk/clerk-expo";
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
+import { tokenCache } from "@clerk/clerk-expo/token-cache";
+import { ClerkProvider } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { setConfig } from "@shared";
+import { StartupProvider, StartupStatus, useStartup } from "@/context/startup";
+import NoUserInfo from "@/components/ui/NoUserInfo";
+import { ActivityIndicator, View } from "react-native";
 
-// Client explicity created outside component to avoid recreation
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // 1 min
+      staleTime: 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -31,22 +30,30 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-// Component to configure auth provider and the api base url
-function AppConfigurator() {
-  const { getToken } = useAuth();
-  const { organization } = useOrganization();
-  const hotelId = organization?.publicMetadata?.hotel_id;
+function AppLayout() {
+  const colorScheme = useColorScheme();
+  const status = useStartup();
 
-  if (!hotelId) {
-    return <Redirect href="/no-org" />;
-  }
+  if (status === StartupStatus.NoUserInfo) return <NoUserInfo />;
+  if (status === StartupStatus.Loading)
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" />
+      </View>
+    );
 
-  setConfig({
-    API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
-    getToken,
-    hotelId: hotelId as string,
-  });
-  return null;
+  return (
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="modal"
+          options={{ presentation: "modal", title: "Modal" }}
+        />
+      </Stack>
+      <StatusBar style="auto" />
+    </ThemeProvider>
+  );
 }
 
 export default function RootLayout() {
@@ -55,23 +62,13 @@ export default function RootLayout() {
       publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       tokenCache={tokenCache}
     >
-      <ClerkLoaded>
-        <AppConfigurator />
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <StartupProvider>
           <SafeAreaProvider>
-            <ThemeProvider value={DefaultTheme}>
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="modal"
-                  options={{ presentation: "modal", title: "Modal" }}
-                />
-              </Stack>
-              <StatusBar style="auto" />
-            </ThemeProvider>
+            <AppLayout />
           </SafeAreaProvider>
-        </QueryClientProvider>
-      </ClerkLoaded>
+        </StartupProvider>
+      </QueryClientProvider>
     </ClerkProvider>
   );
 }
