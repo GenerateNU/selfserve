@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { ProfileTab } from "./ProfileTab";
-import { MembersTab, type Member } from "./MembersTab";
+import { MembersTab } from "./MembersTab";
 import { MemberDetailPanel } from "./MemberDetailPanel";
+import type { Member } from "./MembersTab";
+import type { SettingsTab } from "./SettingsNav";
 import { DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { SettingsTab } from "./SettingsNav";
 
 type SettingsContentPanelProps = {
   activeTab: SettingsTab;
