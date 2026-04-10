@@ -125,11 +125,10 @@ function RolePicker({ role, onChange }: RolePickerProps) {
 
 type MemberRowProps = {
   member: Member;
-  onRoleChange: (id: string, role: Role) => void;
   onSelect: (member: Member) => void;
 };
 
-function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
+function MemberRow({ member, onSelect }: MemberRowProps) {
   return (
     <div className={cn(ROW_GRID, "py-2")}>
       <div>
@@ -154,10 +153,7 @@ function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
 
       <span className="text-xs text-text-subtle">{member.joinedAt}</span>
 
-      <RolePicker
-        role={member.role}
-        onChange={(r) => onRoleChange(member.id, r)}
-      />
+      <RolePicker role={member.role} onChange={() => {}} />
     </div>
   );
 }
@@ -168,10 +164,6 @@ type MembersTabProps = {
 
 export function MembersTab({ onSelectMember }: MembersTabProps) {
   const [search, setSearch] = useState("");
-  const [roleOverrides, setRoleOverrides] = useState<
-    Partial<Record<string, Role>>
-  >({});
-
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
   const fetchHotelUsers = useCustomInstance<HotelUsersPage>();
@@ -200,22 +192,13 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
 
   const allUsers = data?.pages.flatMap((p) => p.users) ?? [];
 
-  const members: Array<Member> = allUsers.map((u) => {
-    const base = toMember(u);
-    return roleOverrides[u.id] !== undefined
-      ? { ...base, role: roleOverrides[u.id] }
-      : base;
-  });
+  const members = allUsers.map(toMember);
 
   const filtered = members.filter(
     (m) =>
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.email.toLowerCase().includes(search.toLowerCase()),
   );
-
-  function handleRoleChange(id: string, role: Role) {
-    setRoleOverrides((prev) => ({ ...prev, [id]: role }));
-  }
 
   return (
     <div>
@@ -268,7 +251,6 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
             <MemberRow
               key={member.id}
               member={member}
-              onRoleChange={handleRoleChange}
               onSelect={onSelectMember}
             />
           ))
