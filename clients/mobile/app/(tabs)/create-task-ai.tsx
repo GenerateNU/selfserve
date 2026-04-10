@@ -51,7 +51,7 @@ type GeneratedTask = {
   description?: string;
 };
 
-function SkeletonLine({ width }: { width: string | number }) {
+function SkeletonLine({ width }: { width: `${number}%` | number }) {
   return (
     <View
       className="bg-stroke-subtle rounded-full h-[10px]"
