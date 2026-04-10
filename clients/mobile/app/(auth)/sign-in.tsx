@@ -1,7 +1,7 @@
 import { ClerkStatus } from "@/constants/clerk";
 import { useClerkErrorHandler } from "@/hooks/useClerkErrorHandler";
 import { useSignIn } from "@clerk/clerk-expo";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useRef, useState } from "react";
 import {
   Pressable,
@@ -101,12 +101,6 @@ export default function Login() {
           </Text>
         </Pressable>
 
-        <View className="flex-row justify-center">
-          <Text className="text-sm text-text-subtle">No account? </Text>
-          <Link href="/sign-up" className="text-sm text-primary font-medium">
-            Sign up
-          </Link>
-        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
