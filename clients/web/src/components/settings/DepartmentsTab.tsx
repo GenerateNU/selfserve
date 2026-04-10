@@ -4,10 +4,10 @@ import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import {
-  useGetDepartments,
   useCreateDepartment,
-  useUpdateDepartment,
   useDeleteDepartment,
+  useGetDepartments,
+  useUpdateDepartment,
 } from "@shared";
 
 const ROW_GRID = "grid grid-cols-[1fr_5rem] items-center gap-x-4";
