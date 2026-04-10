@@ -40,6 +40,7 @@ function AppLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="create-task-ai" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)/sign-in" options={{ headerShown: false }} />
         <Stack.Screen
           name="modal"
