@@ -25,3 +25,11 @@ type Department struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 } //@name Department
+
+type CreateDepartment struct {
+	Name string `json:"name" validate:"notblank"`
+}
+
+type UpdateDepartment struct {
+	Name string `json:"name" validate:"notblank"`
+}

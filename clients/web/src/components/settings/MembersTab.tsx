@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { useCustomInstance } from "@shared/api/orval-mutator";
+import { DepartmentPicker } from "./DepartmentPicker";
+import type { User } from "@shared/api/generated/models";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -10,82 +16,51 @@ import {
 
 type Role = "Admin" | "Member";
 
+type UserPage = {
+  users: Array<User> | null;
+  next_cursor: string;
+};
+
 export type Member = {
   id: string;
   name: string;
   email: string;
   avatarUrl?: string;
   role: Role;
-  department: string;
+  departments: Array<string>;
+  hotelId: string;
   joinedAt: string;
 };
-
-const MOCK_MEMBERS: Array<Member> = [
-  {
-    id: "1",
-    name: "Isabelle Fontaine",
-    email: "isabelle.fontaine@grandhyatt.com",
-    role: "Admin",
-    department: "Front Desk",
-    joinedAt: "Jan 3, 2024",
-  },
-  {
-    id: "2",
-    name: "Marcus Webb",
-    email: "marcus.webb@grandhyatt.com",
-    role: "Admin",
-    department: "Maintenance",
-    joinedAt: "Feb 14, 2024",
-  },
-  {
-    id: "3",
-    name: "Priya Nair",
-    email: "priya.nair@grandhyatt.com",
-    role: "Admin",
-    department: "Housekeeping",
-    joinedAt: "Mar 1, 2024",
-  },
-  {
-    id: "4",
-    name: "Tomás Herrera",
-    email: "tomas.herrera@grandhyatt.com",
-    role: "Member",
-    department: "Maintenance",
-    joinedAt: "Mar 22, 2024",
-  },
-  {
-    id: "5",
-    name: "Yuki Tanaka",
-    email: "yuki.tanaka@grandhyatt.com",
-    role: "Member",
-    department: "Food & Beverage",
-    joinedAt: "Apr 5, 2024",
-  },
-  {
-    id: "6",
-    name: "Amara Diallo",
-    email: "amara.diallo@grandhyatt.com",
-    role: "Member",
-    department: "Housekeeping",
-    joinedAt: "May 18, 2024",
-  },
-  {
-    id: "7",
-    name: "Lena Hoffmann",
-    email: "lena.hoffmann@grandhyatt.com",
-    role: "Member",
-    department: "Front Desk",
-    joinedAt: "Jun 2, 2024",
-  },
-];
 
 const ROLES: Array<{ role: Role; description: string }> = [
   { role: "Admin", description: "Can manage members and most settings" },
   { role: "Member", description: "Can view and use workspace content" },
 ];
 
-// Shared grid template applied to both header and every row
-const ROW_GRID = "grid grid-cols-[1fr_10rem_8rem_7rem] items-center gap-x-4";
+const ROW_GRID = "grid grid-cols-[1fr_12rem_8rem_7rem] items-center gap-x-4";
+
+const SEARCH_DEBOUNCE_MS = 200;
+
+function toMember(user: User): Member {
+  const fullName =
+    [user.first_name, user.last_name].filter(Boolean).join(" ") || "Unknown";
+  return {
+    id: user.id!,
+    name: fullName,
+    email: user.primary_email ?? "",
+    avatarUrl: user.profile_picture ?? undefined,
+    role: user.role === "Admin" ? "Admin" : "Member",
+    departments: user.departments ?? [],
+    hotelId: user.hotel_id ?? "",
+    joinedAt: user.created_at
+      ? new Date(user.created_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "",
+  };
+}
 
 function MemberAvatar({ member }: { member: Member }) {
   if (member.avatarUrl) {
@@ -122,17 +97,19 @@ function RolePicker({ role, onChange }: RolePickerProps) {
         <ChevronDown className="size-3 text-text-subtle opacity-70" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        {ROLES.map(({ role: r, description }) => (
+        {ROLES.map(({ role: roleOption, description }) => (
           <DropdownMenuItem
-            key={r}
-            onClick={() => onChange(r)}
+            key={roleOption}
+            onClick={() => onChange(roleOption)}
             className="flex items-start gap-3 px-3 py-2.5"
           >
             <div className="flex-1">
-              <p className="text-sm font-medium text-text-default">{r}</p>
+              <p className="text-sm font-medium text-text-default">
+                {roleOption}
+              </p>
               <p className="text-xs text-text-subtle">{description}</p>
             </div>
-            {r === role && (
+            {roleOption === role && (
               <Check className="mt-0.5 size-3.5 shrink-0 text-text-subtle" />
             )}
           </DropdownMenuItem>
@@ -144,39 +121,35 @@ function RolePicker({ role, onChange }: RolePickerProps) {
 
 type MemberRowProps = {
   member: Member;
-  onRoleChange: (id: string, role: Role) => void;
   onSelect: (member: Member) => void;
 };
 
-function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
+function MemberRow({ member, onSelect }: MemberRowProps) {
   return (
     <div className={cn(ROW_GRID, "py-2")}>
-      <div>
-        <button
-          type="button"
-          onClick={() => onSelect(member)}
-          className="group inline-flex items-center gap-2.5 cursor-pointer"
-        >
-          <MemberAvatar member={member} />
-          <div className="min-w-0 text-left">
-            <p className="truncate text-sm font-medium text-text-default leading-tight group-hover:underline">
-              {member.name}
-            </p>
-            <p className="truncate text-xs text-text-subtle">{member.email}</p>
-          </div>
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => onSelect(member)}
+        className="group inline-flex items-center gap-2.5 cursor-pointer"
+      >
+        <MemberAvatar member={member} />
+        <div className="min-w-0 text-left">
+          <p className="truncate text-sm font-medium text-text-default leading-tight group-hover:underline">
+            {member.name}
+          </p>
+          <p className="truncate text-xs text-text-subtle">{member.email}</p>
+        </div>
+      </button>
 
-      <span className="truncate text-xs text-text-subtle">
-        {member.department}
-      </span>
+      <DepartmentPicker
+        memberId={member.id}
+        hotelId={member.hotelId}
+        departmentNames={member.departments}
+      />
 
       <span className="text-xs text-text-subtle">{member.joinedAt}</span>
 
-      <RolePicker
-        role={member.role}
-        onChange={(r) => onRoleChange(member.id, r)}
-      />
+      <RolePicker role={member.role} onChange={() => {}} />
     </div>
   );
 }
@@ -186,25 +159,62 @@ type MembersTabProps = {
 };
 
 export function MembersTab({ onSelectMember }: MembersTabProps) {
-  const [members, setMembers] = useState<Array<Member>>(MOCK_MEMBERS);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const filtered = members.filter(
-    (m) =>
-      m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.email.toLowerCase().includes(search.toLowerCase()),
-  );
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setDebouncedSearch(searchInput),
+      SEARCH_DEBOUNCE_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
-  function handleRoleChange(id: string, role: Role) {
-    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)));
-  }
+  const { user: clerkUser } = useUser();
+  const getCurrentUser = useGetUsersIdHook();
+  const searchUsers = useCustomInstance<UserPage>();
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["user", clerkUser?.id],
+    queryFn: () => getCurrentUser(clerkUser!.id),
+    enabled: !!clerkUser?.id,
+  });
+
+  const hotelId = currentUser?.hotel_id;
+
+  const {
+    data: membersPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ["hotel-members", hotelId, debouncedSearch],
+    queryFn: ({ pageParam }: { pageParam: string }) =>
+      searchUsers({
+        url: "/users/search",
+        method: "POST",
+        data: {
+          hotel_id: hotelId!,
+          cursor: pageParam || undefined,
+          q: debouncedSearch || undefined,
+        },
+      }),
+    enabled: !!hotelId,
+    initialPageParam: "",
+    getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
+  });
+
+  const allMembers =
+    membersPages?.pages.flatMap((page) => (page.users ?? []).map(toMember)) ??
+    [];
 
   return (
     <div>
       {/* Toolbar */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-text-subtle">
-          {members.length} member{members.length !== 1 ? "s" : ""}
+          {allMembers.length} member{allMembers.length !== 1 ? "s" : ""}
         </p>
         <button
           type="button"
@@ -221,37 +231,54 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
         <input
           type="text"
           placeholder="Filter by name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           className="w-full rounded-md border border-stroke-subtle bg-transparent py-1.5 pl-8 pr-3 text-sm text-text-default placeholder:text-text-subtle focus:outline-none focus:border-stroke-default transition-colors"
         />
       </div>
 
-      {/* Column headers — same grid as rows */}
+      {/* Column headers */}
       <div className={cn(ROW_GRID, "pb-1.5 border-b border-stroke-subtle")}>
         <p className="text-xs font-medium text-text-subtle">User</p>
-        <p className="text-xs font-medium text-text-subtle">Department</p>
+        <p className="text-xs font-medium text-text-subtle">Departments</p>
         <p className="text-xs font-medium text-text-subtle">Joined</p>
         <p className="pl-2 text-xs font-medium text-text-subtle">Role</p>
       </div>
 
       {/* Rows */}
       <div className="pt-1">
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <p className="py-10 text-center text-sm text-text-subtle">
+            Loading members...
+          </p>
+        ) : allMembers.length === 0 ? (
           <p className="py-10 text-center text-sm text-text-subtle">
             No members match your search.
           </p>
         ) : (
-          filtered.map((member) => (
+          allMembers.map((member) => (
             <MemberRow
               key={member.id}
               member={member}
-              onRoleChange={handleRoleChange}
               onSelect={onSelectMember}
             />
           ))
         )}
       </div>
+
+      {/* Load more */}
+      {hasNextPage && (
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="text-xs text-text-subtle hover:text-text-default transition-colors disabled:opacity-50"
+          >
+            {isFetchingNextPage ? "Loading..." : "Load more"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

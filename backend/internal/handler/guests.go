@@ -193,6 +193,12 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	if len(filters.GroupSize) == 0 {
 		filters.GroupSize = nil
 	}
+	if len(filters.Status) == 0 {
+		filters.Status = nil
+	}
+	if len(filters.Assistance) == 0 {
+		filters.Assistance = nil
+	}
 
 	if filters.Cursor != "" {
 		parts := strings.SplitN(filters.Cursor, "|", 2)

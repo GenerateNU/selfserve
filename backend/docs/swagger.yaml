@@ -555,6 +555,10 @@ definitions:
       department:
         example: Housekeeping
         type: string
+      departments:
+        items:
+          type: string
+        type: array
       employee_id:
         example: EMP-1234
         type: string
@@ -1035,6 +1039,40 @@ paths:
       summary: Get personalized hello message
       tags:
       - hello
+  /hotels/{id}/users:
+    get:
+      description: Returns a paginated list of all users for a hotel
+      parameters:
+      - description: Hotel ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Pagination cursor (last seen user ID)
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get users by hotel
+      tags:
+      - hotels
   /notifications:
     get:
       description: Returns the most recent notifications for the authenticated user
