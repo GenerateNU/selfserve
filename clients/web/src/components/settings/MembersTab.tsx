@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronDown, ChevronRight, Search, UserPlus } from "lucide-react";
+import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
 import { cn, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -85,7 +85,7 @@ const ROLES: { role: Role; description: string }[] = [
 ];
 
 // Shared grid template applied to both header and every row
-const ROW_GRID = "grid grid-cols-[2rem_1fr_10rem_8rem_7rem_1rem] items-center gap-x-4";
+const ROW_GRID = "grid grid-cols-[1fr_10rem_8rem_7rem] items-center gap-x-4";
 
 function getInitials(name: string) {
   return name
@@ -159,17 +159,21 @@ type MemberRowProps = {
 
 function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
   return (
-    <div
-      className={cn(ROW_GRID, "group cursor-pointer px-2 py-2")}
-      onClick={() => onSelect(member)}
-    >
-      <MemberAvatar member={member} />
-
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-text-default leading-tight">
-          {member.name}
-        </p>
-        <p className="truncate text-xs text-text-subtle">{member.email}</p>
+    <div className={cn(ROW_GRID, "px-2 py-2")}>
+      <div>
+        <button
+          type="button"
+          onClick={() => onSelect(member)}
+          className="inline-flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-bg-selected transition-colors cursor-pointer"
+        >
+          <MemberAvatar member={member} />
+          <div className="min-w-0 text-left">
+            <p className="truncate text-sm font-medium text-text-default leading-tight">
+              {member.name}
+            </p>
+            <p className="truncate text-xs text-text-subtle">{member.email}</p>
+          </div>
+        </button>
       </div>
 
       <span className="truncate text-xs text-text-subtle">
@@ -180,14 +184,10 @@ function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
         {member.joinedAt}
       </span>
 
-      <div onClick={(e) => e.stopPropagation()}>
-        <RolePicker
-          role={member.role}
-          onChange={(r) => onRoleChange(member.id, r)}
-        />
-      </div>
-
-      <ChevronRight className="size-4 text-text-subtle opacity-0 transition-opacity group-hover:opacity-100" />
+      <RolePicker
+        role={member.role}
+        onChange={(r) => onRoleChange(member.id, r)}
+      />
     </div>
   );
 }
@@ -242,12 +242,10 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
 
       {/* Column headers — same grid as rows */}
       <div className={cn(ROW_GRID, "px-2 pb-1.5 border-b border-stroke-subtle")}>
-        <div />
         <p className="text-xs font-medium text-text-subtle">User</p>
         <p className="text-xs font-medium text-text-subtle">Department</p>
         <p className="text-xs font-medium text-text-subtle">Joined</p>
         <p className="text-xs font-medium text-text-subtle">Role</p>
-        <div />
       </div>
 
       {/* Rows */}
