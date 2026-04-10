@@ -42,7 +42,7 @@ definitions:
         example: John
         type: string
       hotel_id:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: org_550e8400-e29b-41d4-a716-446655440000
         type: string
       id:
         example: user_123
@@ -93,7 +93,7 @@ definitions:
   GenerateRequestInput:
     properties:
       hotel_id:
-        example: 521e8400-e458-41d4-a716-446655440000
+        example: org_521e8400-e458-41d4-a716-446655440000
         type: string
       raw_text:
         example: Guest in room 504 needs extra towels urgently
@@ -235,9 +235,9 @@ definitions:
     required:
     - first_name
     - floor
-    - group_size
     - id
     - last_name
+    - preferred_name
     - room_number
     type: object
   GuestWithStays:
@@ -329,7 +329,7 @@ definitions:
         example: 521e8417-e458-41d4-a716-446655440990
         type: string
       hotel_id:
-        example: 521e8400-e458-41d4-a716-446655440000
+        example: org_521e8400-e458-41d4-a716-446655440000
         type: string
       name:
         example: room cleaning
@@ -423,7 +423,7 @@ definitions:
         example: 521e8417-e458-41d4-a716-446655440990
         type: string
       hotel_id:
-        example: 521e8400-e458-41d4-a716-446655440000
+        example: org_521e8400-e458-41d4-a716-446655440000
         type: string
       id:
         example: 530e8400-e458-41d4-a716-446655440000
@@ -562,7 +562,7 @@ definitions:
         example: John
         type: string
       hotel_id:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: org_550e8400-e29b-41d4-a716-446655440000
         type: string
       id:
         example: user_123
@@ -995,45 +995,6 @@ paths:
       summary: Get available group size options
       tags:
       - guest-bookings
-  /guests/stays/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a single guest with previous stays given an id
-      parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/GuestWithStays'
-        "400":
-          description: Invalid guest ID format
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Guest not found
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Gets a guest with previous stays
-      tags:
-      - guests
   /hello:
     get:
       consumes:
