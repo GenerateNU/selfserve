@@ -49,3 +49,29 @@ export const useDeleteDepartment = (hotelId: string | undefined) => {
     },
   });
 };
+
+export const useAddEmployeeDepartment = (hotelId: string | undefined) => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ employeeId, departmentId }: { employeeId: string; departmentId: string }) =>
+      api.post<void>(`/users/${employeeId}/departments`, { department_id: departmentId }),
+    onSettled: (_data, _err, { employeeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["hotel-members", hotelId] });
+      queryClient.invalidateQueries({ queryKey: ["user", employeeId] });
+    },
+  });
+};
+
+export const useRemoveEmployeeDepartment = (hotelId: string | undefined) => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ employeeId, departmentId }: { employeeId: string; departmentId: string }) =>
+      api.delete<void>(`/users/${employeeId}/departments/${departmentId}`),
+    onSettled: (_data, _err, { employeeId }) => {
+      queryClient.invalidateQueries({ queryKey: ["hotel-members", hotelId] });
+      queryClient.invalidateQueries({ queryKey: ["user", employeeId] });
+    },
+  });
+};

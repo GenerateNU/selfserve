@@ -258,6 +258,23 @@ func (r *UsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, curso
 	return users, "", nil
 }
 
+func (r *UsersRepository) AddEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error {
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO employee_departments (employee_id, department_id)
+		VALUES ($1, $2)
+		ON CONFLICT DO NOTHING
+	`, employeeID, departmentID)
+	return err
+}
+
+func (r *UsersRepository) RemoveEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error {
+	_, err := r.db.Exec(ctx, `
+		DELETE FROM employee_departments
+		WHERE employee_id = $1 AND department_id = $2
+	`, employeeID, departmentID)
+	return err
+}
+
 func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
 	batch := &pgx.Batch{}
 

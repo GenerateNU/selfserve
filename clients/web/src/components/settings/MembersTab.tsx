@@ -4,6 +4,7 @@ import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { useCustomInstance } from "@shared/api/orval-mutator";
+import { DepartmentPicker } from "./DepartmentPicker";
 import type { User } from "@shared/api/generated/models";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
@@ -27,6 +28,7 @@ export type Member = {
   avatarUrl?: string;
   role: Role;
   departments: Array<string>;
+  hotelId: string;
   joinedAt: string;
 };
 
@@ -48,7 +50,8 @@ function toMember(user: User): Member {
     email: user.primary_email ?? "",
     avatarUrl: user.profile_picture ?? undefined,
     role: user.role === "Admin" ? "Admin" : "Member",
-    departments: user.department ? [user.department] : [],
+    departments: user.departments ?? [],
+    hotelId: user.hotel_id ?? "",
     joinedAt: user.created_at
       ? new Date(user.created_at).toLocaleDateString("en-US", {
           month: "short",
@@ -138,9 +141,11 @@ function MemberRow({ member, onSelect }: MemberRowProps) {
         </div>
       </button>
 
-      <span className="truncate text-xs text-text-subtle">
-        {member.departments.length > 0 ? member.departments.join(", ") : "—"}
-      </span>
+      <DepartmentPicker
+        memberId={member.id}
+        hotelId={member.hotelId}
+        departmentNames={member.departments}
+      />
 
       <span className="text-xs text-text-subtle">{member.joinedAt}</span>
 

@@ -59,6 +59,14 @@ func (m *mockUsersRepositoryClerk) GetUsersByHotel(ctx context.Context, hotelID,
 	return nil, "", nil
 }
 
+func (m *mockUsersRepositoryClerk) AddEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error {
+	return nil
+}
+
+func (m *mockUsersRepositoryClerk) RemoveEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error {
+	return nil
+}
+
 var _ storage.UsersRepository = (*mockUsersRepositoryClerk)(nil)
 
 type mockHotelsRepositoryClerk struct {

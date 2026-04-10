@@ -184,6 +184,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Put("/:userId/profile-picture", usersHandler.UpdateProfilePicture)
 		r.Delete("/:userId/profile-picture", usersHandler.DeleteProfilePicture)
 		r.Put("/:id", usersHandler.UpdateUser)
+		r.Post("/:id/departments", usersHandler.AddEmployeeDepartment)
+		r.Delete("/:id/departments/:deptId", usersHandler.RemoveEmployeeDepartment)
 	})
 
 	// Guest Routes
