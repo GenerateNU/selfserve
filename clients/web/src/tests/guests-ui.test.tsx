@@ -5,6 +5,7 @@ import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageS
 import { GuestProfileCard } from "../components/guests/GuestProfileCard";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
 import { GuestDetailsDrawer } from "../components/guests/GuestDetailsDrawer";
+import { GuestProfileTab } from "../components/guests/GuestProfileTab";
 import { formatDate } from "../utils/dates";
 import type { GuestWithBooking, GuestWithStays, GuestRequest } from "@shared";
 import * as guestsEndpoints from "@shared/api/generated/endpoints/guests/guests";
@@ -278,5 +279,116 @@ describe("GuestDetailsDrawer", () => {
       />,
     );
     expect(screen.getByText("Failed to load guest details.")).not.toBe(null);
+  });
+});
+
+describe("GuestProfileTab", () => {
+  it("renders vital information fields", () => {
+    render(
+      <GuestProfileTab
+        guest={mockGuest}
+        onSaveNotes={vi.fn()}
+        isSavingNotes={false}
+      />,
+    );
+
+    expect(screen.getByText("Ada Lovelace")).not.toBe(null);
+    expect(screen.getByText("she/her")).not.toBe(null);
+    expect(screen.getByText("22:00 \u2013 08:00")).not.toBe(null);
+    expect(screen.getByText("Daily")).not.toBe(null);
+  });
+
+  it("renders specific assistance chips from all three categories", () => {
+    render(
+      <GuestProfileTab
+        guest={mockGuest}
+        onSaveNotes={vi.fn()}
+        isSavingNotes={false}
+      />,
+    );
+
+    expect(screen.getByText("Wheelchair ramp")).not.toBe(null);
+    expect(screen.getByText("Gluten-free")).not.toBe(null);
+  });
+
+  it("renders notes in read mode and shows edit button", () => {
+    render(
+      <GuestProfileTab
+        guest={mockGuest}
+        onSaveNotes={vi.fn()}
+        isSavingNotes={false}
+      />,
+    );
+
+    expect(screen.getByText("VIP guest")).not.toBe(null);
+    expect(screen.getByRole("button", { name: /edit/i })).not.toBe(null);
+  });
+
+  it("switches notes to edit mode when Edit is clicked", async () => {
+    render(
+      <GuestProfileTab
+        guest={mockGuest}
+        onSaveNotes={vi.fn()}
+        isSavingNotes={false}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    expect(screen.getByRole("textbox")).not.toBe(null);
+    expect(screen.getByRole("button", { name: /cancel/i })).not.toBe(null);
+    expect(screen.getByRole("button", { name: /save/i })).not.toBe(null);
+  });
+
+  it("calls onSaveNotes with the new value", async () => {
+    const handleSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <GuestProfileTab
+        guest={mockGuest}
+        onSaveNotes={handleSave}
+        isSavingNotes={false}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+    const textarea = screen.getByRole("textbox");
+    await userEvent.clear(textarea);
+    await userEvent.type(textarea, "Updated notes");
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+    expect(handleSave).toHaveBeenCalledWith("Updated notes");
+  });
+
+  it("cancels edit and restores original notes", async () => {
+    render(
+      <GuestProfileTab
+        guest={mockGuest}
+        onSaveNotes={vi.fn()}
+        isSavingNotes={false}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /edit/i }));
+    const textarea = screen.getByRole("textbox");
+    await userEvent.clear(textarea);
+    await userEvent.type(textarea, "Draft that gets discarded");
+    await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
+
+    expect(screen.getByText("VIP guest")).not.toBe(null);
+    expect(screen.queryByRole("textbox")).toBe(null);
+  });
+
+  it("shows a dash when DND window is not set", () => {
+    render(
+      <GuestProfileTab
+        guest={{ ...mockGuest, do_not_disturb_start: undefined, do_not_disturb_end: undefined }}
+        onSaveNotes={vi.fn()}
+        isSavingNotes={false}
+      />,
+    );
+
+    // The DND row should show "\u2014" instead of a time range
+    const dndRow = screen.getByText("Do Not Disturb").closest("div")!;
+    expect(dndRow.textContent).toContain("\u2014");
   });
 });
