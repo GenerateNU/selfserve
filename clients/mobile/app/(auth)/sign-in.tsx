@@ -100,7 +100,6 @@ export default function Login() {
             {loading ? "Signing in…" : "Continue"}
           </Text>
         </Pressable>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );
