@@ -49,7 +49,7 @@ type Guest struct {
 } //@name Guest
 
 type GuestFilters struct {
-	HotelID    string `json:"hotel_id" validate:"required,uuid" swaggerignore:"true"`
+	HotelID    string `json:"hotel_id" validate:"required,startswith=org_" swaggerignore:"true"`
 	Floors     []int  `json:"floors"`
 	GroupSize  []int  `json:"group_size"`
 	Search     string `json:"search"`

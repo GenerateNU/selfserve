@@ -36,6 +36,10 @@ var commands = map[string]command{
 		description: "Fetch all guests from the database and reindex them in OpenSearch",
 		run:         runReindexGuests,
 	},
+	"backfill-hotel-departments": {
+		description: "Seed default departments for hotels that have no departments",
+		run:         runBackfillHotelDepartments,
+	},
 }
 
 func main() {
