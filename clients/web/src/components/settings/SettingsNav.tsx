@@ -1,6 +1,15 @@
 import { useUser } from "@clerk/clerk-react";
+import { Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export function SettingsNav() {
+export type SettingsTab = "profile" | "members";
+
+type SettingsNavProps = {
+  activeTab: SettingsTab;
+  onTabChange: (tab: SettingsTab) => void;
+};
+
+export function SettingsNav({ activeTab, onTabChange }: SettingsNavProps) {
   const { user } = useUser();
 
   const displayName =
@@ -17,11 +26,14 @@ export function SettingsNav() {
         Account
       </p>
 
-      {/* User identity row — clickable */}
+      {/* User identity row — profile tab */}
       <button
         type="button"
-        onClick={() => {}}
-        className="mb-0.5 flex w-full items-center gap-2.5 rounded-md px-2 py-1.5"
+        onClick={() => onTabChange("profile")}
+        className={cn(
+          "mb-0.5 flex w-full items-center gap-2.5 rounded-md px-2 py-1.5",
+          activeTab === "profile" && "bg-bg-selected",
+        )}
       >
         {user?.imageUrl ? (
           <img
@@ -37,6 +49,22 @@ export function SettingsNav() {
         <span className="truncate text-sm text-text-default">
           {displayName || "User"}
         </span>
+      </button>
+
+      <p className="px-2 pb-1 pt-4 text-xs font-medium text-text-secondary">
+        Workspace
+      </p>
+
+      <button
+        type="button"
+        onClick={() => onTabChange("members")}
+        className={cn(
+          "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5",
+          activeTab === "members" && "bg-bg-selected",
+        )}
+      >
+        <Users className="size-4 shrink-0 text-text-subtle" />
+        <span className="text-sm text-text-default">Members</span>
       </button>
     </div>
   );
