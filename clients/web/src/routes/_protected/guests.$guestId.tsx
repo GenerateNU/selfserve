@@ -1,8 +1,4 @@
-import {
-  ApiError,
-  useGetGuestsStaysId,
-  usePutApiV1GuestsId,
-} from "@shared";
+import { ApiError, useGetGuestsStaysId, usePutApiV1GuestsId } from "@shared";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { GuestNotesCard } from "../../components/guests/GuestNotesCard";
 import { GuestPageShell } from "../../components/guests/GuestPageShell";
