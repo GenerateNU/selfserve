@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Search, UserPlus } from "lucide-react";
 import { cn, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -10,7 +10,7 @@ import {
 
 type Role = "Admin" | "Member";
 
-type Member = {
+export type Member = {
   id: string;
   name: string;
   email: string;
@@ -85,7 +85,7 @@ const ROLES: { role: Role; description: string }[] = [
 ];
 
 // Shared grid template applied to both header and every row
-const ROW_GRID = "grid grid-cols-[2rem_1fr_10rem_8rem_7rem] items-center gap-x-4";
+const ROW_GRID = "grid grid-cols-[2rem_1fr_10rem_8rem_7rem_1rem] items-center gap-x-4";
 
 function getInitials(name: string) {
   return name
@@ -154,11 +154,15 @@ function RolePicker({ role, onChange }: RolePickerProps) {
 type MemberRowProps = {
   member: Member;
   onRoleChange: (id: string, role: Role) => void;
+  onSelect: (member: Member) => void;
 };
 
-function MemberRow({ member, onRoleChange }: MemberRowProps) {
+function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
   return (
-    <div className={cn(ROW_GRID, "px-2 py-2")}>
+    <div
+      className={cn(ROW_GRID, "group cursor-pointer px-2 py-2")}
+      onClick={() => onSelect(member)}
+    >
       <MemberAvatar member={member} />
 
       <div className="min-w-0">
@@ -176,15 +180,23 @@ function MemberRow({ member, onRoleChange }: MemberRowProps) {
         {member.joinedAt}
       </span>
 
-      <RolePicker
-        role={member.role}
-        onChange={(r) => onRoleChange(member.id, r)}
-      />
+      <div onClick={(e) => e.stopPropagation()}>
+        <RolePicker
+          role={member.role}
+          onChange={(r) => onRoleChange(member.id, r)}
+        />
+      </div>
+
+      <ChevronRight className="size-4 text-text-subtle opacity-0 transition-opacity group-hover:opacity-100" />
     </div>
   );
 }
 
-export function MembersTab() {
+type MembersTabProps = {
+  onSelectMember: (member: Member) => void;
+};
+
+export function MembersTab({ onSelectMember }: MembersTabProps) {
   const [members, setMembers] = useState<Member[]>(MOCK_MEMBERS);
   const [search, setSearch] = useState("");
 
@@ -235,6 +247,7 @@ export function MembersTab() {
         <p className="text-xs font-medium text-text-subtle">Department</p>
         <p className="text-xs font-medium text-text-subtle">Joined</p>
         <p className="text-xs font-medium text-text-subtle">Role</p>
+        <div />
       </div>
 
       {/* Rows */}
@@ -249,6 +262,7 @@ export function MembersTab() {
               key={member.id}
               member={member}
               onRoleChange={handleRoleChange}
+              onSelect={onSelectMember}
             />
           ))
         )}
