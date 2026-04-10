@@ -1,17 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Building2, Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
+import { useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
-import { useCustomInstance } from "@shared/api/orval-mutator";
-
-type Department = {
-  id: string;
-  hotel_id: string;
-  name: string;
-  created_at: string;
-  updated_at: string;
-};
+import {
+  useGetDepartments,
+  useCreateDepartment,
+  useUpdateDepartment,
+  useDeleteDepartment,
+} from "@shared";
 
 const ROW_GRID = "grid grid-cols-[1fr_5rem] items-center gap-x-4";
 
@@ -22,12 +19,8 @@ export function DepartmentsTab() {
   const [newName, setNewName] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
   const getCurrentUser = useGetUsersIdHook();
-  const request = useCustomInstance<Department>();
-  const requestList = useCustomInstance<Department[]>();
-  const requestVoid = useCustomInstance<void>();
 
   const { data: currentUser } = useQuery({
     queryKey: ["user", clerkUser?.id],
@@ -37,85 +30,24 @@ export function DepartmentsTab() {
 
   const hotelId = currentUser?.hotel_id;
 
-  const { data: departments = [], isLoading } = useQuery({
-    queryKey: ["departments", hotelId],
-    queryFn: () =>
-      requestList({
-        url: `/hotels/${hotelId}/departments`,
-        method: "GET",
-      }),
-    enabled: !!hotelId,
-  });
-
-  const { mutate: createDepartment, isPending: isCreating } = useMutation({
-    mutationFn: (name: string) =>
-      request({
-        url: `/hotels/${hotelId}/departments`,
-        method: "POST",
-        data: { name },
-      }),
-    onSuccess: () => {
-      setNewName("");
-      setIsAdding(false);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["departments", hotelId] });
-    },
-  });
-
-  const { mutate: updateDepartment, isPending: isUpdating } = useMutation({
-    mutationFn: ({ id, name }: { id: string; name: string }) =>
-      request({
-        url: `/hotels/${hotelId}/departments/${id}`,
-        method: "PUT",
-        data: { name },
-      }),
-    onSuccess: () => {
-      setEditingId(null);
-      setEditingName("");
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["departments", hotelId] });
-    },
-  });
-
-  const { mutate: deleteDepartment, isPending: isDeleting } = useMutation({
-    mutationFn: (id: string) =>
-      requestVoid({
-        url: `/hotels/${hotelId}/departments/${id}`,
-        method: "DELETE",
-      }),
-    onSuccess: () => {
-      setDeletingId(null);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["departments", hotelId] });
-    },
-  });
-
-  function startEdit(dept: Department) {
-    setEditingId(dept.id);
-    setEditingName(dept.name);
-  }
+  const { data: departments = [], isLoading } = useGetDepartments(hotelId);
+  const { mutate: createDepartment, isPending: isCreating } = useCreateDepartment(hotelId);
+  const { mutate: updateDepartment, isPending: isUpdating } = useUpdateDepartment(hotelId);
+  const { mutate: deleteDepartment, isPending: isDeleting } = useDeleteDepartment(hotelId);
 
   function confirmEdit() {
     if (!editingName.trim() || !editingId || isUpdating) return;
-    updateDepartment({ id: editingId, name: editingName.trim() });
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setEditingName("");
+    updateDepartment(
+      { id: editingId, name: editingName.trim() },
+      { onSuccess: () => { setEditingId(null); setEditingName(""); } },
+    );
   }
 
   function confirmAdd() {
     if (!newName.trim() || isCreating) return;
-    createDepartment(newName.trim());
-  }
-
-  function cancelAdd() {
-    setNewName("");
-    setIsAdding(false);
+    createDepartment(newName.trim(), {
+      onSuccess: () => { setNewName(""); setIsAdding(false); },
+    });
   }
 
   const deletingDept = departments.find((d) => d.id === deletingId);
@@ -170,7 +102,7 @@ export function DepartmentsTab() {
                         onChange={(e) => setEditingName(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") confirmEdit();
-                          if (e.key === "Escape") cancelEdit();
+                          if (e.key === "Escape") { setEditingId(null); setEditingName(""); }
                         }}
                         autoFocus
                         className="flex-1 border-b border-stroke-default bg-transparent py-0.5 text-sm text-text-default focus:outline-none"
@@ -185,7 +117,7 @@ export function DepartmentsTab() {
                       </button>
                       <button
                         type="button"
-                        onClick={cancelEdit}
+                        onClick={() => { setEditingId(null); setEditingName(""); }}
                         className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                       >
                         <X className="size-4" />
@@ -202,7 +134,7 @@ export function DepartmentsTab() {
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
-                      onClick={() => startEdit(dept)}
+                      onClick={() => { setEditingId(dept.id); setEditingName(dept.name); }}
                       className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                     >
                       <Pencil className="size-4" />
@@ -229,7 +161,7 @@ export function DepartmentsTab() {
                     onChange={(e) => setNewName(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") confirmAdd();
-                      if (e.key === "Escape") cancelAdd();
+                      if (e.key === "Escape") { setNewName(""); setIsAdding(false); }
                     }}
                     placeholder="Department name"
                     autoFocus
@@ -245,7 +177,7 @@ export function DepartmentsTab() {
                   </button>
                   <button
                     type="button"
-                    onClick={cancelAdd}
+                    onClick={() => { setNewName(""); setIsAdding(false); }}
                     className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                   >
                     <X className="size-4" />
@@ -285,7 +217,11 @@ export function DepartmentsTab() {
               </button>
               <button
                 type="button"
-                onClick={() => deleteDepartment(deletingId)}
+                onClick={() =>
+                  deleteDepartment(deletingId, {
+                    onSuccess: () => setDeletingId(null),
+                  })
+                }
                 disabled={isDeleting}
                 className="rounded-lg bg-danger px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
               >
