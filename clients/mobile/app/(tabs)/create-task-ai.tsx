@@ -52,7 +52,6 @@ type GeneratedTask = {
   description?: string;
 };
 
-
 type TaskFieldRowProps = {
   icon: React.ReactNode;
   label: string;
