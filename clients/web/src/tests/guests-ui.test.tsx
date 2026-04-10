@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageSkeleton";
 import { GuestProfileCard } from "../components/guests/GuestProfileCard";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
@@ -65,6 +66,31 @@ describe("guest UI helpers", () => {
 
       expect(screen.getByText("Xinning Liu")).not.toBe(null);
       expect(screen.getByText("(Lucy)")).not.toBe(null);
+    });
+  });
+
+  describe("GuestQuickListTable click handler", () => {
+    it("calls onGuestClick with the guest id when a row is clicked", async () => {
+      const handleClick = vi.fn();
+      const guest: GuestWithBooking = {
+        id: "g-123",
+        first_name: "Layla",
+        last_name: "Hassan",
+        preferred_name: "Layla",
+        floor: 2,
+        group_size: 1,
+        room_number: 201,
+      };
+
+      render(
+        <GuestQuickListTable
+          guests={[guest]}
+          onGuestClick={handleClick}
+        />,
+      );
+
+      await userEvent.click(screen.getByText("Layla Hassan"));
+      expect(handleClick).toHaveBeenCalledWith("g-123");
     });
   });
 
