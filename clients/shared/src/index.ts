@@ -72,6 +72,9 @@ export type {
   RoomRequestsResponse,
 } from "./api/generated/models";
 
+// User hooks
+export { getUserQueryKey, useGetUser, useUpdateUser } from "./api/users";
+
 // Department types and hooks
 export type { Department } from "./types/departments";
 
