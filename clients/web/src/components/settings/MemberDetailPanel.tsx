@@ -73,7 +73,9 @@ export function MemberDetailPanel({
         <div className="flex items-center justify-between py-3">
           <span className="text-sm text-text-subtle">Departments</span>
           <span className="text-sm font-medium text-text-default">
-            {member.departments.length > 0 ? member.departments.join(", ") : "—"}
+            {member.departments.length > 0
+              ? member.departments.join(", ")
+              : "—"}
           </span>
         </div>
 

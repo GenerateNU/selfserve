@@ -41,7 +41,8 @@ type HotelUsersPage = {
 };
 
 function toMember(u: ApiUser): Member {
-  const name = [u.first_name, u.last_name].filter(Boolean).join(" ") || "Unknown";
+  const name =
+    [u.first_name, u.last_name].filter(Boolean).join(" ") || "Unknown";
   return {
     id: u.id,
     name,
@@ -181,24 +182,19 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
 
   const hotelId = backendUser?.hotel_id;
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useInfiniteQuery({
-    queryKey: ["hotel-users", hotelId],
-    queryFn: ({ pageParam }: { pageParam: string }) =>
-      fetchHotelUsers({
-        url: `/hotels/${hotelId}/users`,
-        method: "GET",
-        params: pageParam ? { cursor: pageParam } : undefined,
-      }),
-    enabled: !!hotelId,
-    initialPageParam: "",
-    getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useInfiniteQuery({
+      queryKey: ["hotel-users", hotelId],
+      queryFn: ({ pageParam }: { pageParam: string }) =>
+        fetchHotelUsers({
+          url: `/hotels/${hotelId}/users`,
+          method: "GET",
+          params: pageParam ? { cursor: pageParam } : undefined,
+        }),
+      enabled: !!hotelId,
+      initialPageParam: "",
+      getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
+    });
 
   const allUsers = data?.pages.flatMap((p) => p.users) ?? [];
 
