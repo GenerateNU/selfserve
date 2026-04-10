@@ -18,10 +18,6 @@ type HotelsRepository interface {
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
 }
 
-type HotelUsersRepository interface {
-	GetUsersByHotel(ctx context.Context, hotelID, cursor string, limit int) ([]*models.User, string, error)
-}
-
 type HotelsHandler struct {
 	repo      HotelsRepository
 	usersRepo HotelUsersRepository

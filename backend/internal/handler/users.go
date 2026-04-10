@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"time"
@@ -25,6 +26,11 @@ type SearchUsersQuery struct {
 }
 
 const defaultUsersPageSize = 20
+
+// HotelUsersRepository is the subset of UsersRepository used by HotelsHandler.
+type HotelUsersRepository interface {
+	GetUsersByHotel(ctx context.Context, hotelID, cursor string, limit int) ([]*models.User, string, error)
+}
 
 type UsersHandler struct {
 	UsersRepository storage.UsersRepository
