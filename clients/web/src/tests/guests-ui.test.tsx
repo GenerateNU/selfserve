@@ -7,6 +7,7 @@ import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
 import { GuestDetailsDrawer } from "../components/guests/GuestDetailsDrawer";
 import { GuestProfileTab } from "../components/guests/GuestProfileTab";
 import { GuestVisitActivityTab } from "../components/guests/GuestVisitActivityTab";
+import { GuestBookingHistoryView } from "../components/guests/GuestBookingHistoryView";
 import { formatDate } from "../utils/dates";
 import type { GuestWithBooking, GuestWithStays, GuestRequest, Stay } from "@shared";
 import * as guestsEndpoints from "@shared/api/generated/endpoints/guests/guests";
@@ -491,5 +492,77 @@ describe("GuestVisitActivityTab", () => {
     await userEvent.click(viewAllBtn);
 
     expect(screen.getByRole("button", { name: /visit activity/i })).not.toBe(null);
+  });
+});
+
+const pastStay2024: Stay = {
+  arrival_date: "2024-12-01",
+  departure_date: "2024-12-07",
+  room_number: 202,
+  group_size: 1,
+  status: "inactive",
+};
+
+const pastStay2023: Stay = {
+  arrival_date: "2023-06-10",
+  departure_date: "2023-06-15",
+  room_number: 103,
+  group_size: 3,
+  status: "inactive",
+};
+
+describe("GuestBookingHistoryView", () => {
+  it("calls onBack when the back button is clicked", async () => {
+    const handleBack = vi.fn();
+    render(
+      <GuestBookingHistoryView
+        currentStays={[]}
+        pastStays={[]}
+        onBack={handleBack}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /visit activity/i }));
+    expect(handleBack).toHaveBeenCalledOnce();
+  });
+
+  it("renders current stay under Active Bookings heading", () => {
+    render(
+      <GuestBookingHistoryView
+        currentStays={[mockActiveStay]}
+        pastStays={[]}
+        onBack={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/active bookings/i)).not.toBe(null);
+    expect(screen.getByText("Suite 301")).not.toBe(null);
+  });
+
+  it("groups past stays by year", () => {
+    render(
+      <GuestBookingHistoryView
+        currentStays={[]}
+        pastStays={[pastStay2024, pastStay2023]}
+        onBack={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("2024")).not.toBe(null);
+    expect(screen.getByText("2023")).not.toBe(null);
+    expect(screen.getByText("Suite 202")).not.toBe(null);
+    expect(screen.getByText("Suite 103")).not.toBe(null);
+  });
+
+  it("shows empty message when no past stays exist", () => {
+    render(
+      <GuestBookingHistoryView
+        currentStays={[]}
+        pastStays={[]}
+        onBack={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/no booking history/i)).not.toBe(null);
   });
 });
