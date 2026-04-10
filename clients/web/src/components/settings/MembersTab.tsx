@@ -201,8 +201,7 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   });
 
   const allMembers =
-    membersPages?.pages.flatMap((page) => page.users.map(toMember)) ??
-    [];
+    membersPages?.pages.flatMap((page) => page.users.map(toMember)) ?? [];
 
   return (
     <div>
