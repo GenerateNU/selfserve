@@ -47,7 +47,10 @@ function AppLayout() {
         />
       </Stack>
       {status === StartupStatus.Loading && (
-        <View style={StyleSheet.absoluteFill} className="justify-center items-center bg-bg-primary">
+        <View
+          style={StyleSheet.absoluteFill}
+          className="justify-center items-center bg-bg-primary"
+        >
           <ActivityIndicator size="large" />
         </View>
       )}
