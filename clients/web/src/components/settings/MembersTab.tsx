@@ -1,9 +1,10 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { useCustomInstance } from "@shared/api/orval-mutator";
+import type { User } from "@shared/api/generated/models";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -13,6 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 type Role = "Admin" | "Member";
+
+type UserPage = {
+  users: Array<User> | null;
+  next_cursor: string;
+};
 
 export type Member = {
   id: string;
@@ -24,34 +30,27 @@ export type Member = {
   joinedAt: string;
 };
 
-type ApiUser = {
-  id: string;
-  first_name?: string;
-  last_name?: string;
-  primary_email?: string;
-  profile_picture?: string;
-  role?: string;
-  departments?: Array<string>;
-  created_at?: string;
-};
+const ROLES: Array<{ role: Role; description: string }> = [
+  { role: "Admin", description: "Can manage members and most settings" },
+  { role: "Member", description: "Can view and use workspace content" },
+];
 
-type HotelUsersPage = {
-  users: Array<ApiUser>;
-  next_cursor: string;
-};
+const ROW_GRID = "grid grid-cols-[1fr_12rem_8rem_7rem] items-center gap-x-4";
 
-function toMember(u: ApiUser): Member {
-  const name =
-    [u.first_name, u.last_name].filter(Boolean).join(" ") || "Unknown";
+const SEARCH_DEBOUNCE_MS = 200;
+
+function toMember(user: User): Member {
+  const fullName =
+    [user.first_name, user.last_name].filter(Boolean).join(" ") || "Unknown";
   return {
-    id: u.id,
-    name,
-    email: u.primary_email ?? "",
-    avatarUrl: u.profile_picture ?? undefined,
-    role: u.role === "Admin" ? "Admin" : "Member",
-    departments: u.departments ?? [],
-    joinedAt: u.created_at
-      ? new Date(u.created_at).toLocaleDateString("en-US", {
+    id: user.id!,
+    name: fullName,
+    email: user.primary_email ?? "",
+    avatarUrl: user.profile_picture ?? undefined,
+    role: user.role === "Admin" ? "Admin" : "Member",
+    departments: user.department ? [user.department] : [],
+    joinedAt: user.created_at
+      ? new Date(user.created_at).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
           year: "numeric",
@@ -59,14 +58,6 @@ function toMember(u: ApiUser): Member {
       : "",
   };
 }
-
-const ROLES: Array<{ role: Role; description: string }> = [
-  { role: "Admin", description: "Can manage members and most settings" },
-  { role: "Member", description: "Can view and use workspace content" },
-];
-
-// Shared grid template applied to both header and every row
-const ROW_GRID = "grid grid-cols-[1fr_12rem_8rem_7rem] items-center gap-x-4";
 
 function MemberAvatar({ member }: { member: Member }) {
   if (member.avatarUrl) {
@@ -103,17 +94,19 @@ function RolePicker({ role, onChange }: RolePickerProps) {
         <ChevronDown className="size-3 text-text-subtle opacity-70" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        {ROLES.map(({ role: r, description }) => (
+        {ROLES.map(({ role: roleOption, description }) => (
           <DropdownMenuItem
-            key={r}
-            onClick={() => onChange(r)}
+            key={roleOption}
+            onClick={() => onChange(roleOption)}
             className="flex items-start gap-3 px-3 py-2.5"
           >
             <div className="flex-1">
-              <p className="text-sm font-medium text-text-default">{r}</p>
+              <p className="text-sm font-medium text-text-default">
+                {roleOption}
+              </p>
               <p className="text-xs text-text-subtle">{description}</p>
             </div>
-            {r === role && (
+            {roleOption === role && (
               <Check className="mt-0.5 size-3.5 shrink-0 text-text-subtle" />
             )}
           </DropdownMenuItem>
@@ -131,21 +124,19 @@ type MemberRowProps = {
 function MemberRow({ member, onSelect }: MemberRowProps) {
   return (
     <div className={cn(ROW_GRID, "py-2")}>
-      <div>
-        <button
-          type="button"
-          onClick={() => onSelect(member)}
-          className="group inline-flex items-center gap-2.5 cursor-pointer"
-        >
-          <MemberAvatar member={member} />
-          <div className="min-w-0 text-left">
-            <p className="truncate text-sm font-medium text-text-default leading-tight group-hover:underline">
-              {member.name}
-            </p>
-            <p className="truncate text-xs text-text-subtle">{member.email}</p>
-          </div>
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => onSelect(member)}
+        className="group inline-flex items-center gap-2.5 cursor-pointer"
+      >
+        <MemberAvatar member={member} />
+        <div className="min-w-0 text-left">
+          <p className="truncate text-sm font-medium text-text-default leading-tight group-hover:underline">
+            {member.name}
+          </p>
+          <p className="truncate text-xs text-text-subtle">{member.email}</p>
+        </div>
+      </button>
 
       <span className="truncate text-xs text-text-subtle">
         {member.departments.length > 0 ? member.departments.join(", ") : "—"}
@@ -163,49 +154,62 @@ type MembersTabProps = {
 };
 
 export function MembersTab({ onSelectMember }: MembersTabProps) {
-  const [search, setSearch] = useState("");
-  const { user: clerkUser } = useUser();
-  const getUsersId = useGetUsersIdHook();
-  const fetchHotelUsers = useCustomInstance<HotelUsersPage>();
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const { data: backendUser } = useQuery({
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setDebouncedSearch(searchInput),
+      SEARCH_DEBOUNCE_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const { user: clerkUser } = useUser();
+  const getCurrentUser = useGetUsersIdHook();
+  const searchUsers = useCustomInstance<UserPage>();
+
+  const { data: currentUser } = useQuery({
     queryKey: ["user", clerkUser?.id],
-    queryFn: () => getUsersId(clerkUser!.id),
+    queryFn: () => getCurrentUser(clerkUser!.id),
     enabled: !!clerkUser?.id,
   });
 
-  const hotelId = backendUser?.hotel_id;
+  const hotelId = currentUser?.hotel_id;
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useInfiniteQuery({
-      queryKey: ["hotel-users", hotelId],
-      queryFn: ({ pageParam }: { pageParam: string }) =>
-        fetchHotelUsers({
-          url: `/hotels/${hotelId}/users`,
-          method: "GET",
-          params: pageParam ? { cursor: pageParam } : undefined,
-        }),
-      enabled: !!hotelId,
-      initialPageParam: "",
-      getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
-    });
+  const {
+    data: membersPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ["hotel-members", hotelId, debouncedSearch],
+    queryFn: ({ pageParam }: { pageParam: string }) =>
+      searchUsers({
+        url: "/users/search",
+        method: "POST",
+        data: {
+          hotel_id: hotelId!,
+          cursor: pageParam || undefined,
+          q: debouncedSearch || undefined,
+        },
+      }),
+    enabled: !!hotelId,
+    initialPageParam: "",
+    getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
+  });
 
-  const allUsers = data?.pages.flatMap((p) => p.users) ?? [];
-
-  const members = allUsers.map(toMember);
-
-  const filtered = members.filter(
-    (m) =>
-      m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.email.toLowerCase().includes(search.toLowerCase()),
-  );
+  const allMembers =
+    membersPages?.pages.flatMap((page) => (page.users ?? []).map(toMember)) ??
+    [];
 
   return (
     <div>
       {/* Toolbar */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-text-subtle">
-          {members.length} member{members.length !== 1 ? "s" : ""}
+          {allMembers.length} member{allMembers.length !== 1 ? "s" : ""}
         </p>
         <button
           type="button"
@@ -222,13 +226,13 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
         <input
           type="text"
           placeholder="Filter by name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           className="w-full rounded-md border border-stroke-subtle bg-transparent py-1.5 pl-8 pr-3 text-sm text-text-default placeholder:text-text-subtle focus:outline-none focus:border-stroke-default transition-colors"
         />
       </div>
 
-      {/* Column headers — same grid as rows */}
+      {/* Column headers */}
       <div className={cn(ROW_GRID, "pb-1.5 border-b border-stroke-subtle")}>
         <p className="text-xs font-medium text-text-subtle">User</p>
         <p className="text-xs font-medium text-text-subtle">Departments</p>
@@ -242,12 +246,12 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
           <p className="py-10 text-center text-sm text-text-subtle">
             Loading members...
           </p>
-        ) : filtered.length === 0 ? (
+        ) : allMembers.length === 0 ? (
           <p className="py-10 text-center text-sm text-text-subtle">
             No members match your search.
           </p>
         ) : (
-          filtered.map((member) => (
+          allMembers.map((member) => (
             <MemberRow
               key={member.id}
               member={member}

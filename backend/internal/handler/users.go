@@ -18,10 +18,10 @@ type UpdateProfilePictureRequest struct {
 	Key string `json:"key" validate:"notblank" example:"profile-pictures/user123/1706540000.jpg"`
 }
 
-type SearchUsersQuery struct {
-	HotelID string `validate:"notblank"`
-	Cursor  string
-	Query   string
+type SearchUsersBody struct {
+	HotelID string `json:"hotel_id" validate:"notblank"`
+	Cursor  string `json:"cursor"`
+	Query   string `json:"q"`
 }
 
 const defaultUsersPageSize = 20
@@ -65,37 +65,31 @@ func (h *UsersHandler) GetUserByID(c *fiber.Ctx) error {
 
 // SearchUsers godoc
 // @Summary      Search users by hotel
-// @Description  Returns a paginated list of users for a hotel, optionally filtered by name
+// @Description  Returns a paginated list of users for a hotel, optionally filtered by name. Cursor is the last seen user ID.
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        hotel_id  query     string  true   "Hotel UUID"
-// @Param        cursor    query     string  false  "Pagination cursor (last seen user ID)"
-// @Param        q         query     string  false  "Name search query"
-// @Success      200   {object}  map[string]interface{}
-// @Failure      400   {object}  errs.HTTPError
-// @Failure      500   {object}  errs.HTTPError
+// @Param        request  body      SearchUsersBody  true  "Search params"
+// @Success      200      {object}  models.UserPage
+// @Failure      400      {object}  errs.HTTPError
+// @Failure      500      {object}  errs.HTTPError
 // @Security     BearerAuth
-// @Router       /users [get]
+// @Router       /users/search [post]
 func (h *UsersHandler) SearchUsers(c *fiber.Ctx) error {
-	q := SearchUsersQuery{
-		HotelID: c.Query("hotel_id"),
-		Cursor:  c.Query("cursor"),
-		Query:   c.Query("q"),
-	}
-	if err := httpx.Validate(&q); err != nil {
+	var body SearchUsersBody
+	if err := httpx.BindAndValidate(c, &body); err != nil {
 		return err
 	}
 
-	users, nextCursor, err := h.UsersRepository.SearchUsersByHotel(c.Context(), q.HotelID, q.Cursor, q.Query, defaultUsersPageSize)
+	users, nextCursor, err := h.UsersRepository.SearchUsersByHotel(c.Context(), body.HotelID, body.Cursor, body.Query, defaultUsersPageSize)
 	if err != nil {
-		slog.Error("failed to search users", "hotel_id", q.HotelID, "err", err)
+		slog.Error("failed to search users", "hotel_id", body.HotelID, "err", err)
 		return errs.InternalServerError()
 	}
 
-	return c.JSON(fiber.Map{
-		"users":       users,
-		"next_cursor": nextCursor,
+	return c.JSON(models.UserPage{
+		Users:      users,
+		NextCursor: nextCursor,
 	})
 }
 
