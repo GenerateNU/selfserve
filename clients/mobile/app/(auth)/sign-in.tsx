@@ -71,7 +71,10 @@ export default function Login() {
       router.replace("/(tabs)");
     } catch (err: any) {
       const code = err.errors?.[0]?.code as string | undefined;
-      if (code === "session_exists" || code === "identifier_already_signed_in") {
+      if (
+        code === "session_exists" ||
+        code === "identifier_already_signed_in"
+      ) {
         router.replace("/(tabs)");
       } else {
         setError(err.errors?.[0]?.message ?? "Google sign in failed");
