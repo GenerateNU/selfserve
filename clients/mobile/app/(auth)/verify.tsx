@@ -97,7 +97,9 @@ export default function VerifyEmail() {
           onPress={onResend}
           className="py-3 items-center active:opacity-75"
         >
-          <Text className="text-sm text-text-subtle">Didn't receive it? Resend</Text>
+          <Text className="text-sm text-text-subtle">
+            Didn't receive it? Resend
+          </Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

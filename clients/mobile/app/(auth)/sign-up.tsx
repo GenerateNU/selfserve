@@ -32,7 +32,12 @@ export default function SignUp() {
     setLoading(true);
     handleClerkAction(async () => {
       if (!isLoaded) return;
-      await signUp.create({ emailAddress: email, password, firstName, lastName });
+      await signUp.create({
+        emailAddress: email,
+        password,
+        firstName,
+        lastName,
+      });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       router.push(`/verify?email=${email}`);
     }).finally(() => setLoading(false));
@@ -127,7 +132,9 @@ export default function SignUp() {
         </Pressable>
 
         <View className="flex-row justify-center">
-          <Text className="text-sm text-text-subtle">Already have an account? </Text>
+          <Text className="text-sm text-text-subtle">
+            Already have an account?{" "}
+          </Text>
           <Link href="/sign-in" className="text-sm text-primary font-medium">
             Log in
           </Link>
