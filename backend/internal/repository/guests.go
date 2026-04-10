@@ -117,12 +117,12 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 	guest.DoNotDisturbStart = formatPGTime(doNotDisturbStart)
 	guest.DoNotDisturbEnd = formatPGTime(doNotDisturbEnd)
 
-	if len(assistanceRaw) > 0 && string(assistanceRaw) != "null" {
-		var assistance models.Assistance
+	if len(assistanceRaw) > 0 {
+		var assistance *models.Assistance
 		if err := json.Unmarshal(assistanceRaw, &assistance); err != nil {
 			return nil, err
 		}
-		guest.Assistance = &assistance
+		guest.Assistance = assistance
 	}
 
 	rows, err := r.db.Query(ctx, `
@@ -198,12 +198,16 @@ func appendStay(guest *models.GuestWithStays, stay models.Stay, status models.Bo
 }
 
 func sortGuestStays(guest *models.GuestWithStays) {
-	sort.Slice(guest.CurrentStays, func(i, j int) bool {
-		return guest.CurrentStays[i].ArrivalDate.After(guest.CurrentStays[j].ArrivalDate)
+	sort.Slice(guest.CurrentStays, func(currentStayIndex, otherCurrentStayIndex int) bool {
+		return guest.CurrentStays[currentStayIndex].ArrivalDate.After(
+			guest.CurrentStays[otherCurrentStayIndex].ArrivalDate,
+		)
 	})
 
-	sort.Slice(guest.PastStays, func(i, j int) bool {
-		return guest.PastStays[i].DepartureDate.After(guest.PastStays[j].DepartureDate)
+	sort.Slice(guest.PastStays, func(pastStayIndex, otherPastStayIndex int) bool {
+		return guest.PastStays[pastStayIndex].DepartureDate.After(
+			guest.PastStays[otherPastStayIndex].DepartureDate,
+		)
 	})
 }
 
