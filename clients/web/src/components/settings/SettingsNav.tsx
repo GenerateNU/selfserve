@@ -1,8 +1,8 @@
 import { useUser } from "@clerk/clerk-react";
-import { Users } from "lucide-react";
+import { Building2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type SettingsTab = "profile" | "members";
+export type SettingsTab = "profile" | "members" | "departments";
 
 type SettingsNavProps = {
   activeTab: SettingsTab;
@@ -58,12 +58,24 @@ export function SettingsNav({ activeTab, onTabChange }: SettingsNavProps) {
         type="button"
         onClick={() => onTabChange("members")}
         className={cn(
-          "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5",
+          "mb-0.5 flex w-full items-center gap-2.5 rounded-md px-2 py-1.5",
           activeTab === "members" && "bg-bg-selected",
         )}
       >
         <Users className="size-4 shrink-0 text-text-subtle" />
         <span className="text-sm text-text-default">Members</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onTabChange("departments")}
+        className={cn(
+          "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5",
+          activeTab === "departments" && "bg-bg-selected",
+        )}
+      >
+        <Building2 className="size-4 shrink-0 text-text-subtle" />
+        <span className="text-sm text-text-default">Departments</span>
       </button>
     </div>
   );
