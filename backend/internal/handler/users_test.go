@@ -96,6 +96,10 @@ func (m *mockUsersRepository) SearchUsersByHotel(ctx context.Context, hotelID, c
 	return nil, "", nil
 }
 
+func (m *mockUsersRepository) GetUsersByHotel(ctx context.Context, hotelID, cursor string, limit int) ([]*models.User, string, error) {
+	return nil, "", nil
+}
+
 // Makes the compiler verify the mock
 var _ storage.UsersRepository = (*mockUsersRepository)(nil)
 
