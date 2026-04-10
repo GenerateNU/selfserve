@@ -2,25 +2,14 @@ package clerk
 
 import (
 	"encoding/json"
+
 	"net/http"
 
-	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/models"
 )
 
-func ValidateAndReformatUserData(users []models.ClerkUser) ([]*models.CreateUser, error) {
-	var reformatedUsers []*models.CreateUser
-	for _, user := range users {
-		if err := handler.ValidateCreateUserClerk(&user); err != nil {
-			return nil, err
-		}
-		reformatedUsers = append(reformatedUsers, handler.ReformatUserData(&user))
-	}
-	return reformatedUsers, nil
-}
-
 func FetchUsersFromClerk(clerkApiUrl string, clerkSecret string) ([]models.ClerkUser, error) {
-	req, err := http.NewRequest("GET", clerkApiUrl, nil)
+	req, err := http.NewRequest("GET", clerkApiUrl+"/users?with_organization_memberships=true&limit=100", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -37,4 +26,34 @@ func FetchUsersFromClerk(clerkApiUrl string, clerkSecret string) ([]models.Clerk
 		return nil, err
 	}
 	return users, nil
+}
+
+func FetchUserOrgID(clerkApiUrl string, clerkSecret string, userID string) (string, error) {
+	req, err := http.NewRequest("GET", clerkApiUrl+"/users/"+userID+"/organization_memberships", nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+clerkSecret)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Data []struct {
+			Organization struct {
+				ID   string `json:"id"`
+				Name string `json:"name"`
+			} `json:"organization"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+	if len(result.Data) == 0 {
+		return "", nil
+	}
+	return result.Data[0].Organization.ID, nil
 }

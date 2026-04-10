@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { ProfileTab } from "./ProfileTab";
 import { MembersTab } from "./MembersTab";
 import { MemberDetailPanel } from "./MemberDetailPanel";
+import { DepartmentsTab } from "./DepartmentsTab";
 import type { Member } from "./MembersTab";
 import type { SettingsTab } from "./SettingsNav";
 import { DialogTitle } from "@/components/ui/dialog";
@@ -53,6 +54,7 @@ export function SettingsContentPanel({
         {activeTab === "members" && (
           <MembersTab onSelectMember={setSelectedMember} />
         )}
+        {activeTab === "departments" && <DepartmentsTab />}
       </div>
 
       {/* Member detail panel — slides in over content */}
