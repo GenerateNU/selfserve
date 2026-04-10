@@ -100,6 +100,14 @@ func (m *mockUsersRepository) GetUsersByHotel(ctx context.Context, hotelID, curs
 	return nil, "", nil
 }
 
+func (m *mockUsersRepository) AddEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error {
+	return nil
+}
+
+func (m *mockUsersRepository) RemoveEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error {
+	return nil
+}
+
 // Makes the compiler verify the mock
 var _ storage.UsersRepository = (*mockUsersRepository)(nil)
 
