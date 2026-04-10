@@ -153,6 +153,65 @@ func (h *UsersHandler) UpdateUser(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+type AddEmployeeDepartmentBody struct {
+	DepartmentID string `json:"department_id" validate:"notblank"`
+}
+
+// AddEmployeeDepartment godoc
+// @Summary      Add department to employee
+// @Description  Creates a row in employee_departments linking the user to a department
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                       true  "User ID"
+// @Param        request  body      AddEmployeeDepartmentBody    true  "Department to add"
+// @Success      204
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /users/{id}/departments [post]
+func (h *UsersHandler) AddEmployeeDepartment(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return errs.BadRequest("id is required")
+	}
+	var body AddEmployeeDepartmentBody
+	if err := httpx.BindAndValidate(c, &body); err != nil {
+		return err
+	}
+	if err := h.UsersRepository.AddEmployeeDepartment(c.Context(), id, body.DepartmentID); err != nil {
+		slog.Error("failed to add employee department", "employee_id", id, "department_id", body.DepartmentID, "err", err)
+		return errs.InternalServerError()
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// RemoveEmployeeDepartment godoc
+// @Summary      Remove department from employee
+// @Description  Deletes a row from employee_departments unlinking the user from a department
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id      path      string  true  "User ID"
+// @Param        deptId  path      string  true  "Department ID"
+// @Success      204
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /users/{id}/departments/{deptId} [delete]
+func (h *UsersHandler) RemoveEmployeeDepartment(c *fiber.Ctx) error {
+	id := c.Params("id")
+	deptId := c.Params("deptId")
+	if id == "" || deptId == "" {
+		return errs.BadRequest("id and deptId are required")
+	}
+	if err := h.UsersRepository.RemoveEmployeeDepartment(c.Context(), id, deptId); err != nil {
+		slog.Error("failed to remove employee department", "employee_id", id, "department_id", deptId, "err", err)
+		return errs.InternalServerError()
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 // GetProfilePicture godoc
 // @Summary      Get user's profile picture
 // @Description  Retrieves the user's profile picture key and returns a presigned URL for display
