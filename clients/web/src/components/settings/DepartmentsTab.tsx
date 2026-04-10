@@ -80,7 +80,7 @@ export function DepartmentsTab() {
           disabled={isAdding}
           className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-default hover:bg-bg-selected transition-colors disabled:opacity-50"
         >
-          <Plus className="size-3.5" />
+          <Plus className="size-4" />
           New department
         </button>
       </div>
@@ -122,16 +122,16 @@ export function DepartmentsTab() {
                       <button
                         type="button"
                         onClick={confirmEdit}
-                        className="rounded p-1 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
+                        className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                       >
-                        <Check className="size-3.5" />
+                        <Check className="size-4" />
                       </button>
                       <button
                         type="button"
                         onClick={cancelEdit}
-                        className="rounded p-1 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
+                        className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                       >
-                        <X className="size-3.5" />
+                        <X className="size-4" />
                       </button>
                     </div>
                   ) : (
@@ -151,16 +151,16 @@ export function DepartmentsTab() {
                     <button
                       type="button"
                       onClick={() => startEdit(dept)}
-                      className="rounded p-1 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
+                      className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                     >
-                      <Pencil className="size-3.5" />
+                      <Pencil className="size-4" />
                     </button>
                     <button
                       type="button"
                       onClick={() => setDeletingId(dept.id)}
                       className="rounded p-1 text-danger hover:bg-bg-selected transition-colors"
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-4" />
                     </button>
                   </div>
                 )}
@@ -186,16 +186,16 @@ export function DepartmentsTab() {
                   <button
                     type="button"
                     onClick={confirmAdd}
-                    className="rounded p-1 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
+                    className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                   >
-                    <Check className="size-3.5" />
+                    <Check className="size-4" />
                   </button>
                   <button
                     type="button"
                     onClick={cancelAdd}
-                    className="rounded p-1 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
+                    className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                   >
-                    <X className="size-3.5" />
+                    <X className="size-4" />
                   </button>
                 </div>
                 <span />
@@ -230,14 +230,14 @@ export function DepartmentsTab() {
                   <button
                     type="button"
                     onClick={() => setDeletingId(null)}
-                    className="px-4 py-2 text-[14px] font-medium text-text-secondary hover:text-text-default"
+                    className="rounded-lg border border-stroke-subtle px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-selected hover:text-text-default transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={confirmDelete}
-                    className="rounded-lg bg-danger px-5 py-2 text-[14px] font-semibold text-white hover:opacity-90 transition-opacity"
+                    className="rounded-lg bg-danger px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
                   >
                     Delete
                   </button>
