@@ -4,6 +4,7 @@ import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { useCustomInstance } from "@shared/api/orval-mutator";
+import { DepartmentPicker } from "./DepartmentPicker";
 import type { User } from "@shared/api/generated/models";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
@@ -12,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DepartmentPicker } from "./DepartmentPicker";
 
 type Role = "Admin" | "Member";
 

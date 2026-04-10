@@ -1,6 +1,6 @@
 import { ArrowLeft, Check, ChevronDown } from "lucide-react";
-import type { Member } from "./MembersTab";
 import { DepartmentPicker } from "./DepartmentPicker";
+import type { Member } from "./MembersTab";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,

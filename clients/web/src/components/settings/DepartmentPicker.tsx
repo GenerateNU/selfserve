@@ -15,7 +15,7 @@ import {
 type DepartmentPickerProps = {
   memberId: string;
   hotelId: string;
-  departmentNames: string[];
+  departmentNames: Array<string>;
 };
 
 export function DepartmentPicker({
