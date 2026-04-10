@@ -45,9 +45,6 @@ genkit-run: llm-start db-start
 cli:
 	@$(LOAD_ENV) go run ./cmd/cli $(filter-out $@,$(MAKECMDGOALS))
 
-sync-users:
-	@$(LOAD_ENV) go run ./cmd/clerk/sync.go
-
 seed:
 	@$(LOAD_ENV) bash scripts/seed.sh
 
