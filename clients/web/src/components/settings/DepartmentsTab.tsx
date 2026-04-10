@@ -93,7 +93,9 @@ export function DepartmentsTab() {
       ) : (
         <div className="overflow-hidden rounded-lg border border-stroke-subtle">
           {/* Column headers */}
-          <div className={`${ROW_GRID} border-b border-stroke-subtle bg-bg-selected px-3 py-2`}>
+          <div
+            className={`${ROW_GRID} border-b border-stroke-subtle bg-bg-selected px-3 py-2`}
+          >
             <p className="text-xs font-medium text-text-subtle">Name</p>
             <p className="text-xs font-medium text-text-subtle">Members</p>
             <span />
@@ -133,12 +135,15 @@ export function DepartmentsTab() {
                       </button>
                     </div>
                   ) : (
-                    <span className="text-sm text-text-default">{dept.name}</span>
+                    <span className="text-sm text-text-default">
+                      {dept.name}
+                    </span>
                   )}
                 </div>
 
                 <span className="text-xs text-text-subtle">
-                  {dept.memberCount} {dept.memberCount === 1 ? "member" : "members"}
+                  {dept.memberCount}{" "}
+                  {dept.memberCount === 1 ? "member" : "members"}
                 </span>
 
                 {editingId !== dept.id && (
@@ -201,44 +206,46 @@ export function DepartmentsTab() {
         </div>
       )}
 
-      {deletingId && (() => {
-        const dept = departments.find((d) => d.id === deletingId);
-        return (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30">
-            <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-              <button
-                type="button"
-                onClick={() => setDeletingId(null)}
-                className="absolute right-5 top-5 text-text-secondary hover:text-text-default"
-              >
-                <X className="size-5" />
-              </button>
-              <h2 className="text-[20px] font-bold text-text-default">
-                Delete {dept?.name}?
-              </h2>
-              <p className="mt-2 text-[16px] text-text-secondary">
-                This department will be permanently removed. Members won't be deleted.
-              </p>
-              <div className="mt-8 flex justify-end gap-3">
+      {deletingId &&
+        (() => {
+          const dept = departments.find((d) => d.id === deletingId);
+          return (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30">
+              <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
                 <button
                   type="button"
                   onClick={() => setDeletingId(null)}
-                  className="px-4 py-2 text-[14px] font-medium text-text-secondary hover:text-text-default"
+                  className="absolute right-5 top-5 text-text-secondary hover:text-text-default"
                 >
-                  Cancel
+                  <X className="size-5" />
                 </button>
-                <button
-                  type="button"
-                  onClick={confirmDelete}
-                  className="rounded-lg bg-danger px-5 py-2 text-[14px] font-semibold text-white hover:opacity-90 transition-opacity"
-                >
-                  Delete
-                </button>
+                <h2 className="text-[20px] font-bold text-text-default">
+                  Delete {dept?.name}?
+                </h2>
+                <p className="mt-2 text-[16px] text-text-secondary">
+                  This department will be permanently removed. Members won't be
+                  deleted.
+                </p>
+                <div className="mt-8 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDeletingId(null)}
+                    className="px-4 py-2 text-[14px] font-medium text-text-secondary hover:text-text-default"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDelete}
+                    className="rounded-lg bg-danger px-5 py-2 text-[14px] font-semibold text-white hover:opacity-90 transition-opacity"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 }
