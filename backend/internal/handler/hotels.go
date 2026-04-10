@@ -18,12 +18,17 @@ type HotelsRepository interface {
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
 }
 
-type HotelsHandler struct {
-	repo HotelsRepository
+type HotelUsersRepository interface {
+	GetUsersByHotel(ctx context.Context, hotelID, cursor string, limit int) ([]*models.User, string, error)
 }
 
-func NewHotelsHandler(repo HotelsRepository) *HotelsHandler {
-	return &HotelsHandler{repo: repo}
+type HotelsHandler struct {
+	repo      HotelsRepository
+	usersRepo HotelUsersRepository
+}
+
+func NewHotelsHandler(repo HotelsRepository, usersRepo HotelUsersRepository) *HotelsHandler {
+	return &HotelsHandler{repo: repo, usersRepo: usersRepo}
 }
 
 // GetHotelByID retrieves a single hotel by its ID
@@ -54,6 +59,39 @@ func (h *HotelsHandler) GetHotelByID(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(hotel)
+}
+
+// GetHotelUsers godoc
+// @Summary      Get users by hotel
+// @Description  Returns a paginated list of all users for a hotel
+// @Tags         hotels
+// @Produce      json
+// @Param        id      path      string  true   "Hotel ID"
+// @Param        cursor  query     string  false  "Pagination cursor (last seen user ID)"
+// @Success      200     {object}  map[string]interface{}
+// @Failure      400     {object}  errs.HTTPError
+// @Failure      500     {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /hotels/{id}/users [get]
+func (h *HotelsHandler) GetHotelUsers(c *fiber.Ctx) error {
+	hotelID := c.Params("id")
+	if strings.TrimSpace(hotelID) == "" {
+		return errs.BadRequest("hotel id is required")
+	}
+	cursor := c.Query("cursor")
+
+	const pageSize = 20
+	users, nextCursor, err := h.usersRepo.GetUsersByHotel(c.Context(), hotelID, cursor, pageSize)
+	if err != nil {
+		slog.Error("failed to get hotel users", "hotel_id", hotelID, "err", err)
+		slog.Error(err.Error())
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(fiber.Map{
+		"users":       users,
+		"next_cursor": nextCursor,
+	})
 }
 
 // CreateHotel creates a new hotel

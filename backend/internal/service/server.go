@@ -141,7 +141,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB), s3Store)
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), openSearchRepos.Guests)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
-	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
+	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB), repository.NewUsersRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
 	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
 	guestBookingsHandler := handler.NewGuestBookingsHandler(repository.NewGuestBookingsRepository(repo.DB))
@@ -210,6 +210,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/hotels", func(r fiber.Router) {
 		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
+		r.Get("/:id/users", hotelsHandler.GetHotelUsers)
 	})
 
 	// s3 routes
