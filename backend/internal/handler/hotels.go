@@ -121,16 +121,6 @@ func (h *HotelsHandler) GetDepartmentsByHotelID(c *fiber.Ctx) error {
 	return c.JSON(departments)
 }
 
-// CreateDepartmentRequest is the request body for creating a department
-type CreateDepartmentRequest struct {
-	Name string `json:"name" validate:"notblank"`
-}
-
-// UpdateDepartmentRequest is the request body for updating a department
-type UpdateDepartmentRequest struct {
-	Name string `json:"name" validate:"notblank"`
-}
-
 // CreateDepartment godoc
 // @Summary      Create department
 // @Description  Adds a new department to a hotel
@@ -138,7 +128,7 @@ type UpdateDepartmentRequest struct {
 // @Accept       json
 // @Produce      json
 // @Param        id       path      string                    true  "Hotel ID"
-// @Param        request  body      CreateDepartmentRequest   true  "Department data"
+// @Param        request  body      models.CreateDepartment   true  "Department data"
 // @Success      201      {object}  models.Department
 // @Failure      400      {object}  errs.HTTPError
 // @Failure      500      {object}  errs.HTTPError
@@ -150,7 +140,7 @@ func (h *HotelsHandler) CreateDepartment(c *fiber.Ctx) error {
 		return errs.BadRequest("hotel id is required")
 	}
 
-	var req CreateDepartmentRequest
+	var req models.CreateDepartment
 	if err := httpx.BindAndValidate(c, &req); err != nil {
 		return err
 	}
@@ -172,7 +162,7 @@ func (h *HotelsHandler) CreateDepartment(c *fiber.Ctx) error {
 // @Produce      json
 // @Param        id      path      string                    true  "Hotel ID"
 // @Param        deptId  path      string                    true  "Department ID"
-// @Param        request body      UpdateDepartmentRequest   true  "Department data"
+// @Param        request body      models.UpdateDepartment   true  "Department data"
 // @Success      200     {object}  models.Department
 // @Failure      400     {object}  errs.HTTPError
 // @Failure      404     {object}  errs.HTTPError
@@ -189,7 +179,7 @@ func (h *HotelsHandler) UpdateDepartment(c *fiber.Ctx) error {
 		return errs.BadRequest("department id is required")
 	}
 
-	var req UpdateDepartmentRequest
+	var req models.UpdateDepartment
 	if err := httpx.BindAndValidate(c, &req); err != nil {
 		return err
 	}
