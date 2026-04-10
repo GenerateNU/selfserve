@@ -14,7 +14,7 @@ export default function Index() {
     }
 
     router.replace("/(tabs)");
-  }, [status]);
+  }, [status, router]);
 
   return null;
 }

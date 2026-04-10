@@ -37,7 +37,7 @@ function AppLayout() {
   if (status === StartupStatus.NoUserInfo) return <NoUserInfo />;
   if (status === StartupStatus.Loading)
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" />
       </View>
     );
