@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn, hashNameToColor } from "@/lib/utils";
 
 type ProfileHeroProps = {
   firstName: string;
@@ -22,8 +23,8 @@ export function ProfileHero({
           className="size-30 rounded-full object-cover"
         />
       ) : (
-        <div className="flex size-30 items-center justify-center rounded-full border-2 border-text-default bg-background">
-          <span className="text-[40px] font-semibold text-text-default">
+        <div className={cn("flex size-30 items-center justify-center rounded-full", hashNameToColor(displayName))}>
+          <span className="text-[40px] font-semibold">
             {displayName.charAt(0)}
           </span>
         </div>

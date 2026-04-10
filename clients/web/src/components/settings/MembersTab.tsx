@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,7 @@ type Member = {
   email: string;
   avatarUrl?: string;
   role: Role;
+  department: string;
   joinedAt: string;
 };
 
@@ -25,6 +26,7 @@ const MOCK_MEMBERS: Member[] = [
     name: "Isabelle Fontaine",
     email: "isabelle.fontaine@grandhyatt.com",
     role: "Admin",
+    department: "Front Desk",
     joinedAt: "Jan 3, 2024",
   },
   {
@@ -32,6 +34,7 @@ const MOCK_MEMBERS: Member[] = [
     name: "Marcus Webb",
     email: "marcus.webb@grandhyatt.com",
     role: "Admin",
+    department: "Maintenance",
     joinedAt: "Feb 14, 2024",
   },
   {
@@ -39,6 +42,7 @@ const MOCK_MEMBERS: Member[] = [
     name: "Priya Nair",
     email: "priya.nair@grandhyatt.com",
     role: "Admin",
+    department: "Housekeeping",
     joinedAt: "Mar 1, 2024",
   },
   {
@@ -46,6 +50,7 @@ const MOCK_MEMBERS: Member[] = [
     name: "Tomás Herrera",
     email: "tomas.herrera@grandhyatt.com",
     role: "Member",
+    department: "Maintenance",
     joinedAt: "Mar 22, 2024",
   },
   {
@@ -53,6 +58,7 @@ const MOCK_MEMBERS: Member[] = [
     name: "Yuki Tanaka",
     email: "yuki.tanaka@grandhyatt.com",
     role: "Member",
+    department: "Food & Beverage",
     joinedAt: "Apr 5, 2024",
   },
   {
@@ -60,6 +66,7 @@ const MOCK_MEMBERS: Member[] = [
     name: "Amara Diallo",
     email: "amara.diallo@grandhyatt.com",
     role: "Member",
+    department: "Housekeeping",
     joinedAt: "May 18, 2024",
   },
   {
@@ -67,6 +74,7 @@ const MOCK_MEMBERS: Member[] = [
     name: "Lena Hoffmann",
     email: "lena.hoffmann@grandhyatt.com",
     role: "Member",
+    department: "Front Desk",
     joinedAt: "Jun 2, 2024",
   },
 ];
@@ -76,16 +84,8 @@ const ROLES: { role: Role; description: string }[] = [
   { role: "Member", description: "Can view and use workspace content" },
 ];
 
-// Soft avatar background colors cycled by member index
-const AVATAR_COLORS = [
-  "bg-violet-100 text-violet-700",
-  "bg-sky-100 text-sky-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-amber-100 text-amber-700",
-  "bg-rose-100 text-rose-700",
-  "bg-teal-100 text-teal-700",
-  "bg-orange-100 text-orange-700",
-];
+// Shared grid template applied to both header and every row
+const ROW_GRID = "grid grid-cols-[2rem_1fr_10rem_8rem_7rem] items-center gap-x-4";
 
 function getInitials(name: string) {
   return name
@@ -96,27 +96,21 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
-function MemberAvatar({
-  member,
-  colorClass,
-}: {
-  member: Member;
-  colorClass: string;
-}) {
+function MemberAvatar({ member }: { member: Member }) {
   if (member.avatarUrl) {
     return (
       <img
         src={member.avatarUrl}
         alt={member.name}
-        className="size-8 shrink-0 rounded-full object-cover"
+        className="size-8 rounded-full object-cover"
       />
     );
   }
   return (
     <div
       className={cn(
-        "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-        colorClass,
+        "flex size-8 items-center justify-center rounded-full text-xs font-semibold",
+        hashNameToColor(member.name),
       )}
     >
       {getInitials(member.name)}
@@ -132,7 +126,7 @@ type RolePickerProps = {
 function RolePicker({ role, onChange }: RolePickerProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-text-secondary hover:bg-bg-selected transition-colors outline-none">
+      <DropdownMenuTrigger className="flex w-full items-center justify-between rounded-md px-2 py-1 text-sm text-text-secondary hover:bg-bg-selected transition-colors outline-none">
         {role}
         <ChevronDown className="size-3 text-text-subtle opacity-70" />
       </DropdownMenuTrigger>
@@ -141,7 +135,7 @@ function RolePicker({ role, onChange }: RolePickerProps) {
           <DropdownMenuItem
             key={r}
             onClick={() => onChange(r)}
-            className="flex items-start gap-3 px-3 py-2.5 cursor-pointer"
+            className="flex items-start gap-3 px-3 py-2.5"
           >
             <div className="flex-1">
               <p className="text-sm font-medium text-text-default">{r}</p>
@@ -159,32 +153,33 @@ function RolePicker({ role, onChange }: RolePickerProps) {
 
 type MemberRowProps = {
   member: Member;
-  colorClass: string;
   onRoleChange: (id: string, role: Role) => void;
 };
 
-function MemberRow({ member, colorClass, onRoleChange }: MemberRowProps) {
+function MemberRow({ member, onRoleChange }: MemberRowProps) {
   return (
-    <div className="flex items-center gap-3 px-2 py-2">
-      <MemberAvatar member={member} colorClass={colorClass} />
+    <div className={cn(ROW_GRID, "px-2 py-2")}>
+      <MemberAvatar member={member} />
 
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0">
         <p className="truncate text-sm font-medium text-text-default leading-tight">
           {member.name}
         </p>
         <p className="truncate text-xs text-text-subtle">{member.email}</p>
       </div>
 
-      <span className="hidden shrink-0 text-xs text-text-subtle sm:block w-28 text-right">
+      <span className="truncate text-xs text-text-subtle">
+        {member.department}
+      </span>
+
+      <span className="text-xs text-text-subtle">
         {member.joinedAt}
       </span>
 
-      <div className="shrink-0">
-        <RolePicker
-          role={member.role}
-          onChange={(r) => onRoleChange(member.id, r)}
-        />
-      </div>
+      <RolePicker
+        role={member.role}
+        onChange={(r) => onRoleChange(member.id, r)}
+      />
     </div>
   );
 }
@@ -207,7 +202,7 @@ export function MembersTab() {
 
   return (
     <div className="-mx-4">
-      {/* Header */}
+      {/* Toolbar */}
       <div className="mb-4 flex items-center justify-between px-4">
         <p className="text-sm text-text-subtle">
           {members.length} member{members.length !== 1 ? "s" : ""}
@@ -233,16 +228,13 @@ export function MembersTab() {
         />
       </div>
 
-      {/* Column labels */}
-      <div className="mb-0.5 flex items-center gap-3 px-4 pb-1 border-b border-stroke-subtle">
-        <div className="size-8 shrink-0" />
-        <p className="flex-1 text-xs font-medium text-text-subtle">User</p>
-        <p className="hidden sm:block w-28 text-right text-xs font-medium text-text-subtle">
-          Joined
-        </p>
-        <p className="w-20 text-right text-xs font-medium text-text-subtle pr-2">
-          Role
-        </p>
+      {/* Column headers — same grid as rows */}
+      <div className={cn(ROW_GRID, "px-2 pb-1.5 border-b border-stroke-subtle")}>
+        <div />
+        <p className="text-xs font-medium text-text-subtle">User</p>
+        <p className="text-xs font-medium text-text-subtle">Department</p>
+        <p className="text-xs font-medium text-text-subtle">Joined</p>
+        <p className="text-xs font-medium text-text-subtle">Role</p>
       </div>
 
       {/* Rows */}
@@ -252,11 +244,10 @@ export function MembersTab() {
             No members match your search.
           </p>
         ) : (
-          filtered.map((member, i) => (
+          filtered.map((member) => (
             <MemberRow
               key={member.id}
               member={member}
-              colorClass={AVATAR_COLORS[i % AVATAR_COLORS.length]}
               onRoleChange={handleRoleChange}
             />
           ))

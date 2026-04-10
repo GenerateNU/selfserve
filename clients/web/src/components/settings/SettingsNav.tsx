@@ -26,7 +26,6 @@ export function SettingsNav({ activeTab, onTabChange }: SettingsNavProps) {
         Account
       </p>
 
-      {/* User identity row — profile tab */}
       <button
         type="button"
         onClick={() => onTabChange("profile")}
