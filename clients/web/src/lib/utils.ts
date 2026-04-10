@@ -8,13 +8,13 @@ export function cn(...inputs: Array<ClassValue>) {
 }
 
 const AVATAR_COLOR_SETS = [
-  "bg-violet-100 text-violet-700",
-  "bg-sky-100 text-sky-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-amber-100 text-amber-700",
-  "bg-rose-100 text-rose-700",
-  "bg-teal-100 text-teal-700",
-  "bg-orange-100 text-orange-700",
+  "bg-violet-500 text-white",
+  "bg-sky-400 text-white",
+  "bg-emerald-400 text-white",
+  "bg-amber-500 text-white",
+  "bg-rose-400 text-white",
+  "bg-teal-400 text-white",
+  "bg-orange-400 text-white",
 ];
 
 export function getInitials(name: string): string {
