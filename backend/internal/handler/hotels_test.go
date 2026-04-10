@@ -17,8 +17,8 @@ import (
 )
 
 type mockHotelsRepository struct {
-	findByIDFunc               func(ctx context.Context, id string) (*models.Hotel, error)
-	insertHotelFunc            func(ctx context.Context, req *models.CreateHotelRequest) (*models.Hotel, error)
+	findByIDFunc                func(ctx context.Context, id string) (*models.Hotel, error)
+	insertHotelFunc             func(ctx context.Context, req *models.CreateHotelRequest) (*models.Hotel, error)
 	getDepartmentsByHotelIDFunc func(ctx context.Context, hotelID string) ([]*models.Department, error)
 }
 
