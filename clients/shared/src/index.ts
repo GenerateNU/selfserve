@@ -52,7 +52,7 @@ export {
   useGetApiV1GuestsId,
   usePutApiV1GuestsId,
   usePostApiV1GuestsSearchHook,
-  useGetGuestsStaysId,
+  useGetApiV1GuestsStaysId,
 } from "./api/generated/endpoints/guests/guests";
 
 export type {

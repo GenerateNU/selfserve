@@ -1,4 +1,8 @@
-import { ApiError, useGetGuestsStaysId, usePutApiV1GuestsId } from "@shared";
+import {
+  ApiError,
+  useGetApiV1GuestsStaysId,
+  usePutApiV1GuestsId,
+} from "@shared";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { GuestNotesCard } from "../../components/guests/GuestNotesCard";
 import { GuestPageShell } from "../../components/guests/GuestPageShell";
@@ -20,7 +24,7 @@ function GuestProfilePage() {
     isError,
     error,
     refetch,
-  } = useGetGuestsStaysId(guestId);
+  } = useGetApiV1GuestsStaysId(guestId);
   const updateGuest = usePutApiV1GuestsId();
 
   const handleSaveNotes = async (notes: string) => {
