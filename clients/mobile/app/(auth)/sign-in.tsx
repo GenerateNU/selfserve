@@ -1,10 +1,10 @@
-import { ClerkStatus } from "@/constants/clerk";
+import { ClerkErrorCode, ClerkStatus } from "@/constants/clerk";
 import { useClerkErrorHandler } from "@/hooks/useClerkErrorHandler";
 import { useAuth, useSignIn, useSSO } from "@clerk/clerk-expo";
 import { AntDesign } from "@expo/vector-icons";
-import * as Linking from "expo-linking";
+import { createURL } from "expo-linking";
 import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
+import { coolDownAsync, maybeCompleteAuthSession, warmUpAsync } from "expo-web-browser";
 import { useEffect, useRef, useState } from "react";
 import {
   Pressable,
@@ -17,7 +17,7 @@ import {
   ScrollView,
 } from "react-native";
 
-WebBrowser.maybeCompleteAuthSession();
+maybeCompleteAuthSession();
 
 const PLACEHOLDER_COLOR = "#AFAFAD";
 
@@ -34,9 +34,9 @@ export default function Login() {
   const handleClerkAction = useClerkErrorHandler(setError);
 
   useEffect(() => {
-    WebBrowser.warmUpAsync();
+    warmUpAsync();
     return () => {
-      WebBrowser.coolDownAsync();
+      coolDownAsync();
     };
   }, []);
 
@@ -63,7 +63,7 @@ export default function Login() {
       const { createdSessionId, setActive: setActiveSession } =
         await startSSOFlow({
           strategy: "oauth_google",
-          redirectUrl: Linking.createURL("/sign-in"),
+          redirectUrl: createURL("/sign-in"),
         });
       if (createdSessionId) {
         await setActiveSession!({ session: createdSessionId });
@@ -71,10 +71,7 @@ export default function Login() {
       router.replace("/(tabs)");
     } catch (err: any) {
       const code = err.errors?.[0]?.code as string | undefined;
-      if (
-        code === "session_exists" ||
-        code === "identifier_already_signed_in"
-      ) {
+      if (code === ClerkErrorCode.SessionExists || code === ClerkErrorCode.IdentifierAlreadySignedIn) {
         router.replace("/(tabs)");
       } else {
         setError(err.errors?.[0]?.message ?? "Google sign in failed");
