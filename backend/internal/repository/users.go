@@ -67,7 +67,6 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 	return createdUser, nil
 }
 
-
 func (r *UsersRepository) UpsertUser(ctx context.Context, user *models.ClerkUser, hotelID string) (*models.User, error) {
 	createdUser := &models.User{}
 
@@ -80,7 +79,8 @@ func (r *UsersRepository) UpsertUser(ctx context.Context, user *models.ClerkUser
 		ON CONFLICT (id) DO UPDATE SET
 			first_name      = EXCLUDED.first_name,
 			last_name       = EXCLUDED.last_name,
-			profile_picture = COALESCE(EXCLUDED.profile_picture, users.profile_picture)
+			profile_picture = COALESCE(EXCLUDED.profile_picture, users.profile_picture),
+			hotel_id        = EXCLUDED.hotel_id
 		RETURNING id, created_at, updated_at
 	`,
 		user.ID,
@@ -96,8 +96,6 @@ func (r *UsersRepository) UpsertUser(ctx context.Context, user *models.ClerkUser
 
 	return createdUser, nil
 }
-
-
 
 func (r *UsersRepository) UpdateProfilePicture(ctx context.Context, userId string, key string) error {
 	_, err := r.db.Exec(ctx, `

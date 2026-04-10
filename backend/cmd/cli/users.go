@@ -49,7 +49,6 @@ func runSyncUsers(ctx context.Context, cfg config.Config, _ []string) error {
 			continue
 		}
 
-
 		if _, err := usersRepo.UpsertUser(ctx, &u, orgID); err != nil {
 			log.Printf("failed to insert user %s: %v", u.ID, err)
 			continue
