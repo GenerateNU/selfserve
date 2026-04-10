@@ -56,6 +56,10 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
+        name="create-task-ai"
+        options={{ href: null, headerShown: false }}
+      />
+      <Tabs.Screen
         name="tasks"
         options={{
           title: "Tasks",
