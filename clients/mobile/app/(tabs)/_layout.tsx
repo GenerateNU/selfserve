@@ -6,6 +6,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { View, Text } from "react-native";
+import { StartupStatus, useStartup } from "@/context/startup";
 
 type TabBarIconProps = {
   name: React.ComponentProps<typeof IconSymbol>["name"];
@@ -35,6 +36,8 @@ const PlusButton = () => (
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const c = Colors[colorScheme ?? "light"];
+  const status = useStartup();
+  if (status !== StartupStatus.Ready) return null;
 
   return (
     <Tabs
