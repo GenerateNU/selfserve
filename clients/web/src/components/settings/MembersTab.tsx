@@ -48,7 +48,7 @@ function toMember(user: User): Member {
     email: user.primary_email ?? "",
     avatarUrl: user.profile_picture ?? undefined,
     role: user.role === "Admin" ? "Admin" : "Member",
-    departments: user.departments ?? [],
+    departments: user.department ? [user.department] : [],
     joinedAt: user.created_at
       ? new Date(user.created_at).toLocaleDateString("en-US", {
           month: "short",
