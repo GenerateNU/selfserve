@@ -1,71 +1,67 @@
 import { useState } from "react";
 import { Building2, Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
+import { useQuery } from "@tanstack/react-query";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import {
+  useCreateDepartment,
+  useDeleteDepartment,
+  useGetDepartments,
+  useUpdateDepartment,
+} from "@shared";
 
-type Department = {
-  id: string;
-  name: string;
-  memberCount: number;
-};
-
-const PLACEHOLDER_DEPARTMENTS: Array<Department> = [
-  { id: "1", name: "Front Desk", memberCount: 5 },
-  { id: "2", name: "Housekeeping", memberCount: 12 },
-  { id: "3", name: "Maintenance", memberCount: 8 },
-  { id: "4", name: "Food & Beverage", memberCount: 15 },
-];
-
-const ROW_GRID = "grid grid-cols-[1fr_8rem_5rem] items-center gap-x-4";
+const ROW_GRID = "grid grid-cols-[1fr_5rem] items-center gap-x-4";
 
 export function DepartmentsTab() {
-  const [departments, setDepartments] = useState<Array<Department>>(
-    PLACEHOLDER_DEPARTMENTS,
-  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  function startEdit(dept: Department) {
-    setEditingId(dept.id);
-    setEditingName(dept.name);
-  }
+  const { user: clerkUser } = useUser();
+  const getCurrentUser = useGetUsersIdHook();
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["user", clerkUser?.id],
+    queryFn: () => getCurrentUser(clerkUser!.id),
+    enabled: !!clerkUser?.id,
+  });
+
+  const hotelId = currentUser?.hotel_id;
+
+  const { data: departments = [], isLoading } = useGetDepartments(hotelId);
+  const { mutate: createDepartment, isPending: isCreating } =
+    useCreateDepartment(hotelId);
+  const { mutate: updateDepartment, isPending: isUpdating } =
+    useUpdateDepartment(hotelId);
+  const { mutate: deleteDepartment, isPending: isDeleting } =
+    useDeleteDepartment(hotelId);
 
   function confirmEdit() {
-    if (!editingName.trim() || !editingId) return;
-    setDepartments((prev) =>
-      prev.map((d) =>
-        d.id === editingId ? { ...d, name: editingName.trim() } : d,
-      ),
+    if (!editingName.trim() || !editingId || isUpdating) return;
+    updateDepartment(
+      { id: editingId, name: editingName.trim() },
+      {
+        onSuccess: () => {
+          setEditingId(null);
+          setEditingName("");
+        },
+      },
     );
-    setEditingId(null);
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setEditingName("");
-  }
-
-  function confirmDelete() {
-    if (!deletingId) return;
-    setDepartments((prev) => prev.filter((d) => d.id !== deletingId));
-    setDeletingId(null);
   }
 
   function confirmAdd() {
-    if (!newName.trim()) return;
-    setDepartments((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), name: newName.trim(), memberCount: 0 },
-    ]);
-    setNewName("");
-    setIsAdding(false);
+    if (!newName.trim() || isCreating) return;
+    createDepartment(newName.trim(), {
+      onSuccess: () => {
+        setNewName("");
+        setIsAdding(false);
+      },
+    });
   }
 
-  function cancelAdd() {
-    setNewName("");
-    setIsAdding(false);
-  }
+  const deletingDept = departments.find((d) => d.id === deletingId);
 
   return (
     <div>
@@ -85,7 +81,11 @@ export function DepartmentsTab() {
         </button>
       </div>
 
-      {departments.length === 0 && !isAdding ? (
+      {isLoading ? (
+        <div className="py-12 text-center text-sm text-text-subtle">
+          Loading…
+        </div>
+      ) : departments.length === 0 && !isAdding ? (
         <div className="flex flex-col items-center gap-2 py-12 text-text-subtle">
           <Building2 className="size-7 opacity-40" />
           <p className="text-sm">No departments yet. Add one to get started.</p>
@@ -97,7 +97,6 @@ export function DepartmentsTab() {
             className={`${ROW_GRID} border-b border-stroke-subtle bg-bg-selected px-3 py-2`}
           >
             <p className="text-xs font-medium text-text-subtle">Name</p>
-            <p className="text-xs font-medium text-text-subtle">Members</p>
             <span />
           </div>
 
@@ -114,7 +113,10 @@ export function DepartmentsTab() {
                         onChange={(e) => setEditingName(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") confirmEdit();
-                          if (e.key === "Escape") cancelEdit();
+                          if (e.key === "Escape") {
+                            setEditingId(null);
+                            setEditingName("");
+                          }
                         }}
                         autoFocus
                         className="flex-1 border-b border-stroke-default bg-transparent py-0.5 text-sm text-text-default focus:outline-none"
@@ -122,13 +124,17 @@ export function DepartmentsTab() {
                       <button
                         type="button"
                         onClick={confirmEdit}
-                        className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
+                        disabled={isUpdating}
+                        className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors disabled:opacity-50"
                       >
                         <Check className="size-4" />
                       </button>
                       <button
                         type="button"
-                        onClick={cancelEdit}
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditingName("");
+                        }}
                         className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                       >
                         <X className="size-4" />
@@ -141,16 +147,14 @@ export function DepartmentsTab() {
                   )}
                 </div>
 
-                <span className="text-xs text-text-subtle">
-                  {dept.memberCount}{" "}
-                  {dept.memberCount === 1 ? "member" : "members"}
-                </span>
-
                 {editingId !== dept.id && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
-                      onClick={() => startEdit(dept)}
+                      onClick={() => {
+                        setEditingId(dept.id);
+                        setEditingName(dept.name);
+                      }}
                       className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                     >
                       <Pencil className="size-4" />
@@ -177,7 +181,10 @@ export function DepartmentsTab() {
                     onChange={(e) => setNewName(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") confirmAdd();
-                      if (e.key === "Escape") cancelAdd();
+                      if (e.key === "Escape") {
+                        setNewName("");
+                        setIsAdding(false);
+                      }
                     }}
                     placeholder="Department name"
                     autoFocus
@@ -186,19 +193,22 @@ export function DepartmentsTab() {
                   <button
                     type="button"
                     onClick={confirmAdd}
-                    className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
+                    disabled={isCreating}
+                    className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors disabled:opacity-50"
                   >
                     <Check className="size-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={cancelAdd}
+                    onClick={() => {
+                      setNewName("");
+                      setIsAdding(false);
+                    }}
                     className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                   >
                     <X className="size-4" />
                   </button>
                 </div>
-                <span />
                 <span />
               </div>
             )}
@@ -206,46 +216,47 @@ export function DepartmentsTab() {
         </div>
       )}
 
-      {deletingId &&
-        (() => {
-          const dept = departments.find((d) => d.id === deletingId);
-          return (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30">
-              <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-                <button
-                  type="button"
-                  onClick={() => setDeletingId(null)}
-                  className="absolute right-5 top-5 text-text-secondary hover:text-text-default"
-                >
-                  <X className="size-5" />
-                </button>
-                <h2 className="text-[20px] font-bold text-text-default">
-                  Delete {dept?.name}?
-                </h2>
-                <p className="mt-2 text-[16px] text-text-secondary">
-                  This department will be permanently removed. Members won't be
-                  deleted.
-                </p>
-                <div className="mt-8 flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setDeletingId(null)}
-                    className="rounded-lg border border-stroke-subtle px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-selected hover:text-text-default transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={confirmDelete}
-                    className="rounded-lg bg-danger px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+      {deletingId && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+            <button
+              type="button"
+              onClick={() => setDeletingId(null)}
+              className="absolute right-5 top-5 text-text-secondary hover:text-text-default"
+            >
+              <X className="size-5" />
+            </button>
+            <h2 className="text-[20px] font-bold text-text-default">
+              Delete {deletingDept?.name}?
+            </h2>
+            <p className="mt-2 text-[16px] text-text-secondary">
+              This department will be permanently removed. Members won't be
+              deleted.
+            </p>
+            <div className="mt-8 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletingId(null)}
+                className="rounded-lg border border-stroke-subtle px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-selected hover:text-text-default transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  deleteDepartment(deletingId, {
+                    onSuccess: () => setDeletingId(null),
+                  })
+                }
+                disabled={isDeleting}
+                className="rounded-lg bg-danger px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                Delete
+              </button>
             </div>
-          );
-        })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

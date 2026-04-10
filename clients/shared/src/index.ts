@@ -67,6 +67,17 @@ export type {
   RoomRequestsResponse,
 } from "./api/generated/models";
 
+// Department types and hooks
+export type { Department } from "./types/departments";
+
+export {
+  getDepartmentsQueryKey,
+  useGetDepartments,
+  useCreateDepartment,
+  useUpdateDepartment,
+  useDeleteDepartment,
+} from "./api/departments";
+
 // Notification types and hooks
 export type {
   Notification,
