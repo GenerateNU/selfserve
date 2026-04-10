@@ -193,7 +193,7 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 		filters.GroupSize = nil
 	}
 	if len(filters.Status) == 0 {
-    	filters.Status = nil
+		filters.Status = nil
 	}
 	if len(filters.Assistance) == 0 {
 		filters.Assistance = nil

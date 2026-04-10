@@ -79,18 +79,18 @@ const (
 )
 
 type GuestFilters struct {
-	HotelID     string           `json:"hotel_id"     validate:"required,startswith=org_"`
-	Status      []BookingStatus  `json:"status"       validate:"omitempty,dive,oneof=active inactive"`
-	BookingSort GuestSortOrder   `json:"booking_sort" validate:"omitempty,oneof=high_to_low low_to_high"`
-	RequestSort RequestSortOrder `json:"request_sort" validate:"omitempty,oneof=high_to_low low_to_high urgent"`
-	FloorSort   FloorSortOrder   `json:"floor_sort"   validate:"omitempty,oneof=ascending descending"`
-	Floors      []int            `json:"floors"`
-	GroupSize   []int            `json:"group_size"`
-	Search      string           `json:"search"`
-	Cursor      string           `json:"cursor"`
-	CursorName  string           `json:"-"`
-	CursorID    string           `json:"-"`
-	Limit       int              `json:"limit"        validate:"omitempty,min=1,max=100"`
+	HotelID     string             `json:"hotel_id"     validate:"required,startswith=org_"`
+	Status      []BookingStatus    `json:"status"       validate:"omitempty,dive,oneof=active inactive"`
+	BookingSort GuestSortOrder     `json:"booking_sort" validate:"omitempty,oneof=high_to_low low_to_high"`
+	RequestSort RequestSortOrder   `json:"request_sort" validate:"omitempty,oneof=high_to_low low_to_high urgent"`
+	FloorSort   FloorSortOrder     `json:"floor_sort"   validate:"omitempty,oneof=ascending descending"`
+	Floors      []int              `json:"floors"`
+	GroupSize   []int              `json:"group_size"`
+	Search      string             `json:"search"`
+	Cursor      string             `json:"cursor"`
+	CursorName  string             `json:"-"`
+	CursorID    string             `json:"-"`
+	Limit       int                `json:"limit"        validate:"omitempty,min=1,max=100"`
 	Assistance  []AssistanceFilter `json:"assistance" validate:"omitempty,dive,oneof=accessibility dietary medical"`
 } // @name GuestFilters
 
