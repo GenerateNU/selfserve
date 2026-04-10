@@ -2,11 +2,9 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import {
-  useGetUsersHook,
-  useGetUsersIdHook,
-} from "@shared/api/generated/endpoints/users/users.ts";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import type { User } from "@shared/api/generated/models";
+import { useCustomInstance } from "@shared/api/orval-mutator";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -17,9 +15,8 @@ import {
 
 type Role = "Admin" | "Member";
 
-// Mirrors models.UserPage — replace with generated UserPage after make sync-api
 type UserPage = {
-  users: User[];
+  users: Array<User>;
   next_cursor: string;
 };
 
@@ -29,7 +26,7 @@ export type Member = {
   email: string;
   avatarUrl?: string;
   role: Role;
-  departments: string[];
+  departments: Array<string>;
   joinedAt: string;
 };
 
@@ -167,7 +164,7 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
 
   const { user: clerkUser } = useUser();
   const getCurrentUser = useGetUsersIdHook();
-  const getHotelMembers = useGetUsersHook();
+  const searchUsers = useCustomInstance<UserPage>();
 
   const { data: currentUser } = useQuery({
     queryKey: ["user", clerkUser?.id],
@@ -186,11 +183,15 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   } = useInfiniteQuery({
     queryKey: ["hotel-members", hotelId, debouncedSearch],
     queryFn: ({ pageParam }: { pageParam: string }) =>
-      getHotelMembers({
-        hotel_id: hotelId!,
-        cursor: pageParam || undefined,
-        q: debouncedSearch || undefined,
-      }) as Promise<UserPage>,
+      searchUsers({
+        url: "/users/search",
+        method: "POST",
+        data: {
+          hotel_id: hotelId!,
+          cursor: pageParam || undefined,
+          q: debouncedSearch || undefined,
+        },
+      }),
     enabled: !!hotelId,
     initialPageParam: "",
     getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
