@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
-import type { User } from "@shared/api/generated/models";
 import { useCustomInstance } from "@shared/api/orval-mutator";
+import type { User } from "@shared/api/generated/models";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -201,7 +201,7 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   });
 
   const allMembers =
-    membersPages?.pages.flatMap((page) => (page.users ?? []).map(toMember)) ??
+    membersPages?.pages.flatMap((page) => page.users.map(toMember)) ??
     [];
 
   return (
