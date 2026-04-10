@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
 import type {
+  Department,
   MakeRequest,
   MakeRequestPriority,
   RoomWithOptionalGuestBooking,
@@ -12,6 +13,7 @@ import type {
 } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { AssigneePicker } from "@/components/ui/AssigneePicker";
+import { DepartmentPicker } from "@/components/ui/DepartmentPicker";
 import { RoomPicker } from "@/components/ui/RoomPicker";
 import { cn } from "@/lib/utils";
 
@@ -75,6 +77,7 @@ export function CreateRequestDrawer({
   );
   const [assignee, setAssignee] = useState<User | undefined>();
   const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>();
+  const [department, setDepartment] = useState<Department | undefined>();
 
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
@@ -117,6 +120,7 @@ export function CreateRequestDrawer({
       description: description.trim() || undefined,
       user_id: assignee?.id,
       room_id: room?.id ?? initialData?.room_id,
+      department: department?.id,
     });
   }
 
@@ -184,7 +188,19 @@ export function CreateRequestDrawer({
           />
         </div>
         <FieldRow label="Deadline" value="Empty" />
-        <FieldRow label="Department" value="Empty" />
+        <div className="flex items-center gap-8">
+          <div className="flex w-28 shrink-0 items-center gap-1">
+            <GripHorizontal className="size-4.5 text-text-subtle" />
+            <span className="text-sm text-text-subtle">Department</span>
+          </div>
+          {backendUser?.hotel_id && (
+            <DepartmentPicker
+              hotelId={backendUser.hotel_id}
+              selectedDepartment={department}
+              onSelect={setDepartment}
+            />
+          )}
+        </div>
         <FieldRow label="Location" value="Empty" />
 
         {showMore && (
