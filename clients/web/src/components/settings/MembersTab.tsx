@@ -159,7 +159,7 @@ type MemberRowProps = {
 
 function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
   return (
-    <div className={cn(ROW_GRID, "px-2 py-2")}>
+    <div className={cn(ROW_GRID, "py-2")}>
       <div>
         <button
           type="button"
@@ -213,9 +213,9 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   }
 
   return (
-    <div className="-mx-4">
+    <div>
       {/* Toolbar */}
-      <div className="mb-4 flex items-center justify-between px-4">
+      <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-text-subtle">
           {members.length} member{members.length !== 1 ? "s" : ""}
         </p>
@@ -229,8 +229,8 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
       </div>
 
       {/* Search */}
-      <div className="relative mb-3 px-4">
-        <Search className="absolute left-7 top-1/2 size-3.5 -translate-y-1/2 text-text-subtle" />
+      <div className="relative mb-3">
+        <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-text-subtle" />
         <input
           type="text"
           placeholder="Filter by name or email..."
@@ -241,15 +241,15 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
       </div>
 
       {/* Column headers — same grid as rows */}
-      <div className={cn(ROW_GRID, "px-2 pb-1.5 border-b border-stroke-subtle")}>
-        <p className="text-xs font-medium text-text-subtle">User</p>
+      <div className={cn(ROW_GRID, "pb-1.5 border-b border-stroke-subtle")}>
+        <p className="pl-2 text-xs font-medium text-text-subtle">User</p>
         <p className="text-xs font-medium text-text-subtle">Department</p>
         <p className="text-xs font-medium text-text-subtle">Joined</p>
         <p className="text-xs font-medium text-text-subtle">Role</p>
       </div>
 
       {/* Rows */}
-      <div className="px-2 pt-1">
+      <div className="pt-1">
         {filtered.length === 0 ? (
           <p className="py-10 text-center text-sm text-text-subtle">
             No members match your search.
