@@ -1,27 +1,20 @@
 import { UserRound } from "lucide-react";
-import { formatDate } from "../../utils/dates";
-import type { GuestWithStays } from "@shared";
+import type { GuestProfile } from "./guest-mocks";
 
 type GuestProfileCardProps = {
-  guest: GuestWithStays;
+  guest: GuestProfile;
 };
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid grid-cols-[38%_1fr] items-center py-[1vh] text-[1vw]">
-      <p className="text-text-subtle">{label}</p>
+      <p className="text-[#b6bac3]">{label}</p>
       <p className="text-black">{value}</p>
     </div>
   );
 }
 
 export function GuestProfileCard({ guest }: GuestProfileCardProps) {
-  const hasCurrentStay = guest.current_stays.length > 0;
-  const currentStay = guest.current_stays[0];
-  const phone = guest.phone?.trim() || "-";
-  const email = guest.email?.trim() || "-";
-  const pronouns = guest.pronouns?.trim() || "-";
-
   return (
     <section className="border border-black bg-white px-[1vw] py-[2vh]">
       <div className="mb-[2vh] flex items-start gap-[1.1vw]">
@@ -30,38 +23,28 @@ export function GuestProfileCard({ guest }: GuestProfileCardProps) {
         </div>
         <div>
           <p className="text-[2vw] font-medium leading-tight text-black">
-            {guest.first_name} {guest.last_name}
+            {guest.preferredName}
           </p>
+          <p className="text-[1vw] text-black">{guest.pronouns}</p>
         </div>
       </div>
 
+      <div className="border-b border-[#d3d8df] pb-[1vh]">
+        <DetailRow label="Government Name" value={guest.governmentName} />
+        <DetailRow label="Date of Birth" value={guest.dateOfBirth} />
+      </div>
+
       <div className="pt-[1vh]">
-        <DetailRow label="Phone" value={phone} />
-        <DetailRow label="Email" value={email} />
-        <DetailRow label="Pronouns" value={pronouns} />
-        {hasCurrentStay ? (
-          <>
-            <DetailRow label="Room" value={String(currentStay.room_number)} />
-            <DetailRow
-              label="Group Size"
-              value={
-                currentStay.group_size != null
-                  ? String(currentStay.group_size)
-                  : "-"
-              }
-            />
-            <DetailRow
-              label="Arrival"
-              value={formatDate(currentStay.arrival_date)}
-            />
-            <DetailRow
-              label="Departure"
-              value={formatDate(currentStay.departure_date)}
-            />
-          </>
-        ) : (
-          <p className="text-[1vw] text-text-subtle">No active stay.</p>
-        )}
+        <DetailRow label="Room" value={guest.room} />
+        <DetailRow label="Group Size" value={String(guest.groupSize)} />
+        <DetailRow
+          label="Arrival"
+          value={`${guest.arrivalTime}  ${guest.arrivalDate}`}
+        />
+        <DetailRow
+          label="Departure"
+          value={`${guest.departureTime}  ${guest.departureDate}`}
+        />
       </div>
     </section>
   );

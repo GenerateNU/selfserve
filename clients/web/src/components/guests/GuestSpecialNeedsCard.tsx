@@ -1,19 +1,15 @@
-type SpecialNeeds = {
-  dietaryRestrictions: string;
-  accessibilityNeeds: string;
-  medicalConditions: string;
-};
+import type { GuestProfile } from "./guest-mocks";
 
 type GuestSpecialNeedsCardProps = {
-  specialNeeds: SpecialNeeds;
+  specialNeeds: GuestProfile["specialNeeds"];
 };
 
 function SpecialNeedsRow({ label, value }: { label: string; value: string }) {
   const displayValue = value.trim().length > 0 ? value : "-";
   return (
     <div className="grid grid-cols-[48%_1fr] py-[1vh] text-[1vw]">
-      <p className="text-text-subtle">{label}</p>
-      <p className={displayValue === "-" ? "text-text-subtle" : "text-black"}>
+      <p className="text-[#b6bac3]">{label}</p>
+      <p className={displayValue === "-" ? "text-[#b6bac3]" : "text-black"}>
         {displayValue}
       </p>
     </div>
@@ -35,6 +31,10 @@ export function GuestSpecialNeedsCard({
       <SpecialNeedsRow
         label="Accessibility Needs"
         value={specialNeeds.accessibilityNeeds}
+      />
+      <SpecialNeedsRow
+        label="Sensory Sensitivities"
+        value={specialNeeds.sensorySensitivities}
       />
       <SpecialNeedsRow
         label="Medical Conditions"

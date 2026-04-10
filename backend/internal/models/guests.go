@@ -49,7 +49,7 @@ type Guest struct {
 } //@name Guest
 
 type GuestFilters struct {
-	HotelID    string `json:"hotel_id" validate:"required,startswith=org_" swaggerignore:"true"`
+	HotelID    string `json:"hotel_id" validate:"required,startswith=org_"`
 	Floors     []int  `json:"floors"`
 	GroupSize  []int  `json:"group_size"`
 	Search     string `json:"search"`
@@ -65,13 +65,13 @@ type GuestPage struct {
 } // @name GuestPage
 
 type GuestWithBooking struct {
-	ID            string `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`
-	FirstName     string `json:"first_name" validate:"required" example:"Jane"`
-	LastName      string `json:"last_name" validate:"required" example:"Doe"`
-	PreferredName string `json:"preferred_name" validate:"required" example:"Jane"`
-	Floor         int    `json:"floor" validate:"required" example:"3"`
-	RoomNumber    int    `json:"room_number" validate:"required" example:"301"`
-	GroupSize     *int   `json:"group_size" example:"2"`
+	ID            string `json:"id" validate:"required"`
+	FirstName     string `json:"first_name" validate:"required"`
+	LastName      string `json:"last_name" validate:"required"`
+	PreferredName string `json:"preferred_name"`
+	Floor         int    `json:"floor" validate:"required"`
+	RoomNumber    int    `json:"room_number" validate:"required"`
+	GroupSize     *int   `json:"group_size" validate:"required"`
 } // @name GuestWithBooking
 
 type GuestWithStays struct {
@@ -83,8 +83,8 @@ type GuestWithStays struct {
 	Preferences         *string     `json:"preferences,omitempty" example:"extra pillows"`
 	Notes               *string     `json:"notes,omitempty" example:"VIP"`
 	Pronouns            *string     `json:"pronouns,omitempty" example:"she/her"`
-	DoNotDisturbStart   *string     `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
-	DoNotDisturbEnd     *string     `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
+	DoNotDisturbStart   *time.Time  `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
+	DoNotDisturbEnd     *time.Time  `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
 	HousekeepingCadence *string     `json:"housekeeping_cadence,omitempty" example:"daily"`
 	Assistance          *Assistance `json:"assistance,omitempty"`
 	CurrentStays        []Stay      `json:"current_stays" validate:"required"`
