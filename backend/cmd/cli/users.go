@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/generate/selfserve/config"
+	"github.com/generate/selfserve/internal/models"
 	"github.com/generate/selfserve/internal/repository"
 	"github.com/generate/selfserve/internal/service/clerk"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
@@ -26,8 +27,7 @@ func main() {
 	defer repo.Close()
 	usersRepo := repository.NewUsersRepository(repo.DB)
 
-	path := "/users"
-	err = syncUsers(ctx, cfg.BaseURL+path, cfg.SecretKey, usersRepo)
+	err = syncUsers(ctx, cfg.BaseURL, cfg.SecretKey, usersRepo)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,18 +37,33 @@ func main() {
 func syncUsers(ctx context.Context, clerkBaseURL string, clerkSecret string,
 	usersRepo storage.UsersRepository) error {
 
-	users, err := clerk.FetchUsersFromClerk(clerkBaseURL, clerkSecret)
+	users, err := clerk.FetchUsersFromClerk(clerkBaseURL+"/users", clerkSecret);
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to fetch users: %w", err);
 	}
 
-	transformed, err := clerk.ValidateAndReformatUserData(users)
-	if err != nil {
-		return err
-	}
+	for _, u := range users {
+		if len(u.OrganizationMemberships) == 0 {
+			log.Printf("skipping user %s: no org membership found", u.ID);
+			continue;
+		}
 
-	if err := usersRepo.BulkInsertUsers(ctx, transformed); err != nil {
-		return fmt.Errorf("failed to insert users: %w", err)
+		orgID := u.OrganizationMemberships[0].Organization.ID
+
+		createUser := &models.CreateUser{
+			ID:             u.ID,
+			FirstName:      u.FirstName,
+			LastName:       u.LastName,
+			HotelID:        orgID,
+			ProfilePicture: u.ImageUrl,
+		}
+
+		if _, err := usersRepo.InsertUser(ctx, createUser); err != nil {
+			log.Printf("failed to insert user %s: %v", u.ID, err);
+			continue;
+		}
+
+		log.Printf("inserted user %s", u.ID);
 	}
 
 	return nil
