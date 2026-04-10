@@ -67,6 +67,36 @@ func (r *UsersRepository) InsertUser(ctx context.Context, user *models.CreateUse
 	return createdUser, nil
 }
 
+func (r *UsersRepository) UpsertUser(ctx context.Context, user *models.ClerkUser, hotelID string) (*models.User, error) {
+	createdUser := &models.User{}
+
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO public.users (
+			id, first_name, last_name, hotel_id, profile_picture
+		) VALUES (
+			$1, $2, $3, $4, $5
+		)
+		ON CONFLICT (id) DO UPDATE SET
+			first_name      = EXCLUDED.first_name,
+			last_name       = EXCLUDED.last_name,
+			profile_picture = COALESCE(EXCLUDED.profile_picture, users.profile_picture),
+			hotel_id        = EXCLUDED.hotel_id
+		RETURNING id, created_at, updated_at
+	`,
+		user.ID,
+		user.FirstName,
+		user.LastName,
+		hotelID,
+		user.ImageUrl,
+	).Scan(&createdUser.ID, &createdUser.CreatedAt, &createdUser.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return createdUser, nil
+}
+
 func (r *UsersRepository) UpdateProfilePicture(ctx context.Context, userId string, key string) error {
 	_, err := r.db.Exec(ctx, `
 		UPDATE users SET profile_picture = $1 WHERE id = $2
