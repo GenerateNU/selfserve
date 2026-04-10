@@ -20,7 +20,7 @@ export type Member = {
   joinedAt: string;
 };
 
-const MOCK_MEMBERS: Member[] = [
+const MOCK_MEMBERS: Array<Member> = [
   {
     id: "1",
     name: "Isabelle Fontaine",
@@ -79,7 +79,7 @@ const MOCK_MEMBERS: Member[] = [
   },
 ];
 
-const ROLES: { role: Role; description: string }[] = [
+const ROLES: Array<{ role: Role; description: string }> = [
   { role: "Admin", description: "Can manage members and most settings" },
   { role: "Member", description: "Can view and use workspace content" },
 ];
@@ -195,7 +195,7 @@ type MembersTabProps = {
 };
 
 export function MembersTab({ onSelectMember }: MembersTabProps) {
-  const [members, setMembers] = useState<Member[]>(MOCK_MEMBERS);
+  const [members, setMembers] = useState<Array<Member>>(MOCK_MEMBERS);
   const [search, setSearch] = useState("");
 
   const filtered = members.filter(

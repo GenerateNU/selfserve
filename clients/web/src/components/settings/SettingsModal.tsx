@@ -2,10 +2,12 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { SettingsNav, type SettingsTab } from "./SettingsNav";
+import { SettingsNav  } from "./SettingsNav";
 import { ProfileTab } from "./ProfileTab";
-import { MembersTab, type Member } from "./MembersTab";
+import {  MembersTab } from "./MembersTab";
 import { MemberDetailPanel } from "./MemberDetailPanel";
+import type {Member} from "./MembersTab";
+import type {SettingsTab} from "./SettingsNav";
 import { DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 

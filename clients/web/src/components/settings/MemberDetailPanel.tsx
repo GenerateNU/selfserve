@@ -1,6 +1,6 @@
 import { ArrowLeft, Check, ChevronDown } from "lucide-react";
-import { cn, hashNameToColor } from "@/lib/utils";
 import type { Member } from "./MembersTab";
+import { cn, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
 
 type Role = "Admin" | "Member";
 
-const ROLES: { role: Role; description: string }[] = [
+const ROLES: Array<{ role: Role; description: string }> = [
   { role: "Admin", description: "Can manage members and most settings" },
   { role: "Member", description: "Can view and use workspace content" },
 ];
