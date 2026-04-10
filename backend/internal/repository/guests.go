@@ -2,14 +2,18 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"iter"
+	"sort"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -84,7 +88,12 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 }
 
 func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
-	guest := &models.GuestWithStays{}
+	guest := &models.GuestWithStays{
+		CurrentStays: []models.Stay{},
+		PastStays:    []models.Stay{},
+	}
+	var doNotDisturbStart, doNotDisturbEnd pgtype.Time
+	var assistanceRaw []byte
 
 	err := r.db.QueryRow(ctx, `
 		SELECT
@@ -95,14 +104,25 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 		WHERE g.id = $1
 	`, id).Scan(
 		&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email,
-		&guest.Preferences, &guest.Notes, &guest.Pronouns, &guest.DoNotDisturbStart,
-		&guest.DoNotDisturbEnd, &guest.HousekeepingCadence, &guest.Assistance,
+		&guest.Preferences, &guest.Notes, &guest.Pronouns, &doNotDisturbStart,
+		&doNotDisturbEnd, &guest.HousekeepingCadence, &assistanceRaw,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
 		}
 		return nil, err
+	}
+
+	guest.DoNotDisturbStart = formatPGTime(doNotDisturbStart)
+	guest.DoNotDisturbEnd = formatPGTime(doNotDisturbEnd)
+
+	if len(assistanceRaw) > 0 {
+		var assistance *models.Assistance
+		if err := json.Unmarshal(assistanceRaw, &assistance); err != nil {
+			return nil, err
+		}
+		guest.Assistance = assistance
 	}
 
 	rows, err := r.db.Query(ctx, `
@@ -116,35 +136,53 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		var arrivalDate, departureDate *time.Time
-		var roomNumber, groupSize *int
-		var status *models.BookingStatus
-
-		if err := rows.Scan(&arrivalDate, &departureDate, &roomNumber, &status, &groupSize); err != nil {
-			return nil, err
-		}
-
-		if arrivalDate == nil {
-			continue
-		}
-
-		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, status)
-		guest = appendStay(guest, stay, *status)
+	if err := loadGuestStayHistory(guest, rows); err != nil {
+		return nil, err
 	}
+
+	sortGuestStays(guest)
 
 	return guest, rows.Err()
 }
 
-func buildStay(arrival, departure *time.Time, roomNumber, groupSize *int, status *models.BookingStatus) models.Stay {
-	stay := models.Stay{
-		ArrivalDate:   *arrival,
-		DepartureDate: *departure,
-		RoomNumber:    *roomNumber,
-		Status:        *status,
+func loadGuestStayHistory(guest *models.GuestWithStays, rows pgx.Rows) error {
+	for rows.Next() {
+		var arrivalDate, departureDate pgtype.Date
+		var roomNumber, groupSize pgtype.Int4
+		var status string
+
+		if err := rows.Scan(&arrivalDate, &departureDate, &roomNumber, &status, &groupSize); err != nil {
+			return err
+		}
+
+		if !arrivalDate.Valid || !departureDate.Valid || !roomNumber.Valid || status == "" {
+			continue
+		}
+
+		stayStatus := models.BookingStatus(status)
+		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, stayStatus)
+		appendStay(guest, stay, stayStatus)
 	}
-	if groupSize != nil {
-		stay.GroupSize = groupSize
+
+	return rows.Err()
+}
+
+func buildStay(
+	arrival pgtype.Date,
+	departure pgtype.Date,
+	roomNumber pgtype.Int4,
+	groupSize pgtype.Int4,
+	status models.BookingStatus,
+) models.Stay {
+	stay := models.Stay{
+		ArrivalDate:   arrival.Time,
+		DepartureDate: departure.Time,
+		RoomNumber:    int(roomNumber.Int32),
+		Status:        status,
+	}
+	if groupSize.Valid {
+		value := int(groupSize.Int32)
+		stay.GroupSize = &value
 	}
 	return stay
 }
@@ -157,6 +195,36 @@ func appendStay(guest *models.GuestWithStays, stay models.Stay, status models.Bo
 		guest.PastStays = append(guest.PastStays, stay)
 	}
 	return guest
+}
+
+func sortGuestStays(guest *models.GuestWithStays) {
+	sort.Slice(guest.CurrentStays, func(currentStayIndex, otherCurrentStayIndex int) bool {
+		return guest.CurrentStays[currentStayIndex].ArrivalDate.After(
+			guest.CurrentStays[otherCurrentStayIndex].ArrivalDate,
+		)
+	})
+
+	sort.Slice(guest.PastStays, func(pastStayIndex, otherPastStayIndex int) bool {
+		return guest.PastStays[pastStayIndex].DepartureDate.After(
+			guest.PastStays[otherPastStayIndex].DepartureDate,
+		)
+	})
+}
+
+func formatPGTime(value pgtype.Time) *string {
+	if !value.Valid {
+		return nil
+	}
+
+	duration := time.Duration(value.Microseconds) * time.Microsecond
+	hours := int(duration / time.Hour)
+	duration -= time.Duration(hours) * time.Hour
+	minutes := int(duration / time.Minute)
+	duration -= time.Duration(minutes) * time.Minute
+	seconds := int(duration / time.Second)
+
+	formatted := fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+	return &formatted
 }
 
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {

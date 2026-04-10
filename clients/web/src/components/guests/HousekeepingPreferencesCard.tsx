@@ -1,13 +1,16 @@
-import type { GuestProfile } from "./guest-mocks";
+type HousekeepingPreferences = {
+  frequency: string;
+  doNotDisturb: string;
+};
 
 type HousekeepingPreferencesCardProps = {
-  housekeeping: GuestProfile["housekeeping"];
+  housekeeping: HousekeepingPreferences;
 };
 
 function PreferenceRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid grid-cols-[42%_1fr] py-[1vh] text-[1vw]">
-      <p className="text-[#b6bac3]">{label}</p>
+      <p className="text-text-subtle">{label}</p>
       <p className="text-black">{value}</p>
     </div>
   );
