@@ -168,7 +168,9 @@ type MembersTabProps = {
 
 export function MembersTab({ onSelectMember }: MembersTabProps) {
   const [search, setSearch] = useState("");
-  const [roleOverrides, setRoleOverrides] = useState<Record<string, Role>>({});
+  const [roleOverrides, setRoleOverrides] = useState<
+    Partial<Record<string, Role>>
+  >({});
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
