@@ -48,10 +48,12 @@ export default function TabLayout() {
         tabBarActiveTintColor: c.tabBarActive,
         tabBarInactiveTintColor: c.tabBarActive,
         tabBarItemStyle: {
-          paddingVertical: 10,
+          paddingVertical: 0,
         },
         tabBarStyle: {
-          height: 70,
+          paddingTop: 8,
+          paddingHorizontal: 20,
+          height: 68,
         },
       }}
     >
