@@ -29,7 +29,8 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ");
 
-  const title = activeTab === "profile" ? (displayName || "User") : tabTitles[activeTab];
+  const title =
+    activeTab === "profile" ? displayName || "User" : tabTitles[activeTab];
 
   function handleTabChange(tab: SettingsTab) {
     setActiveTab(tab);
@@ -38,7 +39,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
 
   function handleRoleChange(role: "Admin" | "Member") {
     if (!selectedMember) return;
-    setSelectedMember((prev) => prev ? { ...prev, role } : null);
+    setSelectedMember((prev) => (prev ? { ...prev, role } : null));
   }
 
   return (
@@ -85,7 +86,10 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                   member={selectedMember}
                   note={memberNotes[selectedMember.id] ?? ""}
                   onNoteChange={(note) =>
-                    setMemberNotes((prev) => ({ ...prev, [selectedMember.id]: note }))
+                    setMemberNotes((prev) => ({
+                      ...prev,
+                      [selectedMember.id]: note,
+                    }))
                   }
                   onRoleChange={handleRoleChange}
                   onBack={() => setSelectedMember(null)}

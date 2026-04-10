@@ -70,7 +70,9 @@ export function MemberDetailPanel({
           </div>
         )}
         <div>
-          <h2 className="text-2xl font-bold text-text-default">{member.name}</h2>
+          <h2 className="text-2xl font-bold text-text-default">
+            {member.name}
+          </h2>
           <p className="text-sm text-text-subtle">{member.email}</p>
         </div>
       </div>
@@ -79,7 +81,9 @@ export function MemberDetailPanel({
       <div className="mb-8 divide-y divide-stroke-subtle/50 border-y border-stroke-subtle/50">
         <div className="flex items-center justify-between py-3">
           <span className="text-sm text-text-subtle">Department</span>
-          <span className="text-sm font-medium text-text-default">{member.department}</span>
+          <span className="text-sm font-medium text-text-default">
+            {member.department}
+          </span>
         </div>
 
         <div className="flex items-center justify-between py-3">
@@ -111,7 +115,9 @@ export function MemberDetailPanel({
 
         <div className="flex items-center justify-between py-3">
           <span className="text-sm text-text-subtle">Joined</span>
-          <span className="text-sm font-medium text-text-default">{member.joinedAt}</span>
+          <span className="text-sm font-medium text-text-default">
+            {member.joinedAt}
+          </span>
         </div>
       </div>
 

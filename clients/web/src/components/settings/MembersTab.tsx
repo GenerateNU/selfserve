@@ -180,9 +180,7 @@ function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
         {member.department}
       </span>
 
-      <span className="text-xs text-text-subtle">
-        {member.joinedAt}
-      </span>
+      <span className="text-xs text-text-subtle">{member.joinedAt}</span>
 
       <RolePicker
         role={member.role}
@@ -207,9 +205,7 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   );
 
   function handleRoleChange(id: string, role: Role) {
-    setMembers((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, role } : m)),
-    );
+    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)));
   }
 
   return (

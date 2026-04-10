@@ -23,7 +23,12 @@ export function ProfileHero({
           className="size-30 rounded-full object-cover"
         />
       ) : (
-        <div className={cn("flex size-30 items-center justify-center rounded-full", hashNameToColor(displayName))}>
+        <div
+          className={cn(
+            "flex size-30 items-center justify-center rounded-full",
+            hashNameToColor(displayName),
+          )}
+        >
           <span className="text-[40px] font-semibold">
             {displayName.charAt(0)}
           </span>
