@@ -2,6 +2,7 @@ import { View, Text, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import { Sparkles, ClipboardList, ChevronRight } from "lucide-react-native";
+import { router } from "expo-router";
 
 function SelectionBox({
   icon,
@@ -57,7 +58,7 @@ export default function CreateTaskScreen() {
           <SelectionBox
             icon={<Sparkles size={20} color="#15502c" />}
             label="Use SelfServe's AI"
-            onPress={() => {}}
+            onPress={() => router.push("/create-task-ai")}
           />
           <SelectionBox
             icon={<ClipboardList size={20} color="#15502c" />}

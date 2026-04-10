@@ -14,7 +14,7 @@ import { ClerkProvider } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { StartupProvider, StartupStatus, useStartup } from "@/context/startup";
 import NoUserInfo from "@/components/ui/NoUserInfo";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,7 +47,10 @@ function AppLayout() {
         />
       </Stack>
       {status === StartupStatus.Loading && (
-        <View className="absolute inset-0 justify-center items-center bg-bg-primary">
+        <View
+          style={StyleSheet.absoluteFill}
+          className="justify-center items-center bg-bg-primary"
+        >
           <ActivityIndicator size="large" />
         </View>
       )}
