@@ -35,12 +35,6 @@ function AppLayout() {
   const status = useStartup();
 
   if (status === StartupStatus.NoUserInfo) return <NoUserInfo />;
-  if (status === StartupStatus.Loading)
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" />
-      </View>
-    );
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -52,6 +46,11 @@ function AppLayout() {
           options={{ presentation: "modal", title: "Modal" }}
         />
       </Stack>
+      {status === StartupStatus.Loading && (
+        <View className="absolute inset-0 justify-center items-center bg-bg-primary">
+          <ActivityIndicator size="large" />
+        </View>
+      )}
       <StatusBar style="auto" />
     </ThemeProvider>
   );
