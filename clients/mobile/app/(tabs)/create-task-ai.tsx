@@ -113,7 +113,7 @@ export default function CreateTaskAIScreen() {
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [screenState, setScreenState] = useState<ScreenState>("idle");
   const [generatedTask, setGeneratedTask] = useState<GeneratedTask | null>(
-    null
+    null,
   );
   const [taskSheetVisible, setTaskSheetVisible] = useState(false);
 
@@ -145,8 +145,7 @@ export default function CreateTaskAIScreen() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: (task: MakeRequest) =>
-      api.post<unknown>("/request", task),
+    mutationFn: (task: MakeRequest) => api.post<unknown>("/request", task),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["requests"] });
       router.back();
