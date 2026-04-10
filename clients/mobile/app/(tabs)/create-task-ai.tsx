@@ -29,6 +29,15 @@ import { useAPIClient } from "@shared/api/client";
 import { getConfig } from "@shared/api/config";
 import type { GenerateRequestResponse, MakeRequest } from "@shared";
 
+// Token values for JSX props that can't use className (icon colors, placeholder, etc.)
+const colors = {
+  primary: "#15502c",
+  textSubtle: "#747474",
+  textSecondary: "#5d5d5d",
+  strokeSubtle: "#d8d8d8",
+  white: "#ffffff",
+} as const;
+
 type ScreenState = "idle" | "loading" | "complete";
 
 type GeneratedTask = {
@@ -53,7 +62,7 @@ function SkeletonLine({ width }: { width: string | number }) {
 
 function SkeletonCard() {
   return (
-    <View className="bg-[#e9e9e9] rounded-lg px-4 py-4 gap-3">
+    <View className="bg-stroke-disabled rounded-lg px-4 py-4 gap-3">
       <SkeletonLine width="100%" />
       <SkeletonLine width="66%" />
       <SkeletonLine width="84%" />
@@ -91,7 +100,7 @@ function TaskFieldRow({ icon, label, value }: TaskFieldRowProps) {
             <Text className="text-[15px] text-text-subtle tracking-tight">
               Select...
             </Text>
-            <ChevronRight size={16} color="#747474" />
+            <ChevronRight size={16} color={colors.textSubtle} />
           </>
         )}
       </View>
@@ -177,9 +186,9 @@ export default function CreateTaskAIScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       {/* Header */}
-      <View className="flex-row items-center px-[22px] py-3 border-b border-[#e9e9e9] h-14">
+      <View className="flex-row items-center px-[22px] py-3 border-b border-stroke-disabled h-14">
         <Pressable onPress={() => router.back()} className="mr-3">
-          <ChevronLeft size={20} color="#000" />
+          <ChevronLeft size={20} color="black" />
         </Pressable>
         <Text className="text-2xl font-medium text-text-default tracking-tight">
           Task Creation
@@ -199,8 +208,8 @@ export default function CreateTaskAIScreen() {
         >
           {/* Submitted query bubble */}
           {submittedQuery ? (
-            <View className="bg-[#edf5f1] border border-[#a8cdb9] rounded-lg p-4">
-              <Text className="text-[15px] text-[#124425] tracking-tight leading-[1.25]">
+            <View className="bg-bg-selected border border-primary-accent rounded-lg p-4">
+              <Text className="text-[15px] text-primary-surface tracking-tight leading-[1.25]">
                 {submittedQuery}
               </Text>
             </View>
@@ -210,8 +219,8 @@ export default function CreateTaskAIScreen() {
           {screenState === "loading" && (
             <>
               <View className="flex-row items-center gap-3 py-2">
-                <ActivityIndicator size="small" color="#15502c" />
-                <Text className="text-[16px] text-[#15502c] tracking-tight">
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text className="text-[16px] text-primary tracking-tight">
                   Creating Task...
                 </Text>
               </View>
@@ -221,14 +230,14 @@ export default function CreateTaskAIScreen() {
         </ScrollView>
 
         {/* AI Chat Input */}
-        <View className="px-6 py-5 bg-white border-t border-[#e9e9e9]">
+        <View className="px-6 py-5 bg-white border-t border-stroke-disabled">
           <View className="flex-row items-center border border-stroke-subtle rounded-lg px-4 py-3 gap-3">
-            <Sparkles size={20} color="#15502c" />
+            <Sparkles size={20} color={colors.primary} />
             <View className="w-px h-5 bg-stroke-subtle" />
             <TextInput
-              className="flex-1 text-[15px] text-[#5d5d5d] tracking-tight"
+              className="flex-1 text-[15px] text-text-secondary tracking-tight"
               placeholder="Start typing to create a new task..."
-              placeholderTextColor="#5d5d5d"
+              placeholderTextColor={colors.textSecondary}
               value={query}
               onChangeText={setQuery}
               onSubmitEditing={handleSend}
@@ -244,8 +253,8 @@ export default function CreateTaskAIScreen() {
                 size={16}
                 color={
                   query.trim() && !generateMutation.isPending
-                    ? "#15502c"
-                    : "#d8d8d8"
+                    ? colors.primary
+                    : colors.strokeSubtle
                 }
               />
             </Pressable>
@@ -264,7 +273,7 @@ export default function CreateTaskAIScreen() {
           <View className="bg-white rounded-tl-3xl rounded-tr-3xl pt-10 pb-12 px-6">
             {/* Drag handle */}
             <View className="absolute top-4 left-0 right-0 items-center">
-              <View className="w-11 h-1 rounded-full bg-[#bababa]" />
+              <View className="w-11 h-1 rounded-full bg-text-disabled" />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -279,32 +288,32 @@ export default function CreateTaskAIScreen() {
                 {/* Fields */}
                 <View className="gap-4">
                   <TaskFieldRow
-                    icon={<NotepadText size={16} color="#747474" />}
+                    icon={<NotepadText size={16} color={colors.textSubtle} />}
                     label="Task Type"
                     value={generatedTask?.request_type}
                   />
                   <TaskFieldRow
-                    icon={<Clock4 size={16} color="#747474" />}
+                    icon={<Clock4 size={16} color={colors.textSubtle} />}
                     label="Deadline"
                     value={generatedTask?.scheduled_time}
                   />
                   <TaskFieldRow
-                    icon={<CalendarSync size={16} color="#747474" />}
+                    icon={<CalendarSync size={16} color={colors.textSubtle} />}
                     label="Reoccurring"
                     value={generatedTask?.reoccurring}
                   />
                   <TaskFieldRow
-                    icon={<Flag size={16} color="#747474" />}
+                    icon={<Flag size={16} color={colors.textSubtle} />}
                     label="Priority"
                     value={generatedTask?.priority}
                   />
                   <TaskFieldRow
-                    icon={<MapPin size={16} color="#747474" />}
+                    icon={<MapPin size={16} color={colors.textSubtle} />}
                     label="Location"
                     value={generatedTask?.room_id}
                   />
                   <TaskFieldRow
-                    icon={<House size={16} color="#747474" />}
+                    icon={<House size={16} color={colors.textSubtle} />}
                     label="Department"
                     value={generatedTask?.department}
                   />
@@ -314,7 +323,7 @@ export default function CreateTaskAIScreen() {
                     <Text className="text-[15px] font-medium text-text-subtle tracking-tight">
                       Description
                     </Text>
-                    <Text className="text-[15px] text-[#5d5d5d] tracking-tight leading-[1.25]">
+                    <Text className="text-[15px] text-text-secondary tracking-tight leading-[1.25]">
                       {generatedTask?.description ?? "Empty"}
                     </Text>
                   </View>
@@ -328,7 +337,7 @@ export default function CreateTaskAIScreen() {
                     className="bg-primary rounded h-[39px] items-center justify-center"
                   >
                     {saveMutation.isPending ? (
-                      <ActivityIndicator size="small" color="#fff" />
+                      <ActivityIndicator size="small" color={colors.white} />
                     ) : (
                       <Text className="text-[15px] text-white tracking-tight">
                         Save Task
