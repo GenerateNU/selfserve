@@ -245,7 +245,7 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
         <p className="pl-2 text-xs font-medium text-text-subtle">User</p>
         <p className="text-xs font-medium text-text-subtle">Department</p>
         <p className="text-xs font-medium text-text-subtle">Joined</p>
-        <p className="text-xs font-medium text-text-subtle">Role</p>
+        <p className="pl-2 text-xs font-medium text-text-subtle">Role</p>
       </div>
 
       {/* Rows */}
