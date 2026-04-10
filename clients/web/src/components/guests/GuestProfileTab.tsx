@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 import type { GuestWithStays } from "@shared";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -11,17 +12,40 @@ type GuestProfileTabProps = {
 
 function AssistanceChip({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center rounded-md border border-danger/30 bg-danger/10 px-2.5 py-1 text-xs font-medium text-danger">
+    <span className="inline-flex items-center gap-1 rounded border border-[#a21313] bg-[#ffeded] px-2 py-1 text-xs text-[#a21313]">
       {label}
+      <X className="size-3.5 text-[#a21313]" strokeWidth={2} />
     </span>
+  );
+}
+
+function AssistanceCategory({
+  title,
+  items,
+}: {
+  title: string;
+  items: string[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-medium text-text-secondary">{title}</p>
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <AssistanceChip key={item} label={item} />
+        ))}
+      </div>
+    </div>
   );
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start gap-4">
-      <span className="w-40 shrink-0 text-sm text-text-subtle">{label}</span>
-      <span className="text-sm text-text-default">{value}</span>
+    <div className="flex items-start gap-6">
+      <span className="w-40 shrink-0 text-base font-medium text-text-default whitespace-nowrap">
+        {label}
+      </span>
+      <span className="text-base text-text-default">{value}</span>
     </div>
   );
 }
@@ -36,14 +60,14 @@ export function GuestProfileTab({
 
   const dndWindow =
     guest.do_not_disturb_start && guest.do_not_disturb_end
-      ? `${guest.do_not_disturb_start} \u2013 ${guest.do_not_disturb_end}`
+      ? `${guest.do_not_disturb_start} - ${guest.do_not_disturb_end}`
       : "\u2014";
 
-  const allAssistance = [
-    ...(guest.assistance?.accessibility ?? []),
-    ...(guest.assistance?.dietary ?? []),
-    ...(guest.assistance?.medical ?? []),
-  ];
+  const accessibility = guest.assistance?.accessibility ?? [];
+  const dietary = guest.assistance?.dietary ?? [];
+  const medical = guest.assistance?.medical ?? [];
+  const hasAssistance =
+    accessibility.length > 0 || dietary.length > 0 || medical.length > 0;
 
   const handleEdit = () => {
     setDraftNotes(guest.notes ?? "");
@@ -61,13 +85,10 @@ export function GuestProfileTab({
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-8 p-6">
       {/* Vital Information */}
-      <section className="flex flex-col gap-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-text-subtle">
-          Vital Information
-        </h3>
-        <div className="flex flex-col gap-3">
+      <section className="flex flex-col gap-4 border-b border-stroke-subtle pb-6">
+        <div className="flex flex-col gap-4">
           <InfoRow
             label="Government Name"
             value={`${guest.first_name} ${guest.last_name}`}
@@ -81,32 +102,31 @@ export function GuestProfileTab({
         </div>
       </section>
 
-      <div className="border-t border-stroke-subtle" />
-
       {/* Specific Assistance */}
       <section className="flex flex-col gap-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-text-subtle">
+        <h3 className="text-base font-medium text-text-default">
           Specific Assistance
         </h3>
-        {allAssistance.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {allAssistance.map((item) => (
-              <AssistanceChip key={item} label={item} />
-            ))}
+        {hasAssistance ? (
+          <div className="flex flex-col gap-2 rounded border border-stroke-subtle p-4">
+            <AssistanceCategory title="Accessibility" items={accessibility} />
+            <AssistanceCategory
+              title="Dietary Restrictions"
+              items={dietary}
+            />
+            <AssistanceCategory title="Medical Needs" items={medical} />
           </div>
         ) : (
-          <p className="text-sm text-text-subtle">No assistance needs recorded.</p>
+          <p className="text-sm text-text-subtle">
+            No assistance needs recorded.
+          </p>
         )}
       </section>
 
-      <div className="border-t border-stroke-subtle" />
-
       {/* Notes */}
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-text-subtle">
-            Notes
-          </h3>
+          <h3 className="text-base font-medium text-text-default">Notes</h3>
           {!isEditing && (
             <button
               type="button"
@@ -120,13 +140,13 @@ export function GuestProfileTab({
         </div>
 
         {isEditing ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             <textarea
               value={draftNotes}
               onChange={(e) => setDraftNotes(e.target.value)}
-              rows={5}
-              className="w-full resize-none rounded-lg border border-stroke-subtle px-3 py-2.5 text-sm text-text-default placeholder:text-text-subtle focus:border-primary focus:outline-none"
-              placeholder="Add notes about this guest…"
+              rows={8}
+              className="w-full resize-none rounded-lg border border-primary p-4 text-base text-text-default placeholder:text-text-subtle focus:outline-none"
+              placeholder="Add notes about this guest\u2026"
             />
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={handleCancel}>
@@ -142,14 +162,14 @@ export function GuestProfileTab({
             </div>
           </div>
         ) : (
-          <p
+          <div
             className={cn(
-              "text-sm",
+              "rounded-lg border border-stroke-subtle p-4 text-base",
               guest.notes ? "text-text-default" : "text-text-subtle",
             )}
           >
             {guest.notes ?? "No notes yet."}
-          </p>
+          </div>
         )}
       </section>
     </div>

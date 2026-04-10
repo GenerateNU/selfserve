@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronRight, UsersRound, CalendarDays } from "lucide-react";
 import type { Stay } from "@shared";
 import { formatDate } from "@/utils/dates";
 
@@ -8,22 +8,59 @@ type GuestBookingHistoryViewProps = {
   onBack: () => void;
 };
 
-function StayRow({ stay }: { stay: Stay }) {
+function ActiveBookingCard({ stay }: { stay: Stay }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-stroke-subtle bg-white px-4 py-3">
-      <div className="flex flex-col gap-0.5">
-        <span className="text-sm font-medium text-text-default">
+    <div className="flex flex-col gap-2 rounded-lg border border-primary bg-bg-selected p-4">
+      <div className="flex items-start justify-between">
+        <span className="text-xl font-bold text-primary">
           Suite {stay.room_number}
         </span>
-        <span className="text-xs text-text-subtle">
-          {formatDate(stay.arrival_date)} – {formatDate(stay.departure_date)}
+        {stay.group_size != null && (
+          <div className="flex items-center gap-1 text-primary">
+            <UsersRound className="size-[19px]" strokeWidth={1.5} />
+            <span className="text-xl font-bold">{stay.group_size}</span>
+          </div>
+        )}
+      </div>
+      <div className="flex gap-[72px]">
+        <div className="flex flex-1 flex-col gap-1">
+          <span className="text-sm font-medium text-primary">Arrival:</span>
+          <div className="flex items-center gap-2 text-sm text-primary">
+            <CalendarDays className="size-3 shrink-0" strokeWidth={1.5} />
+            <span>{formatDate(stay.arrival_date)}</span>
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col gap-1">
+          <span className="text-sm font-medium text-primary">Departure:</span>
+          <div className="flex items-center gap-2 text-sm text-primary">
+            <CalendarDays className="size-3 shrink-0" strokeWidth={1.5} />
+            <span>{formatDate(stay.departure_date)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PastStayRow({ stay }: { stay: Stay }) {
+  return (
+    <div className="flex items-center rounded-lg border border-text-subtle bg-bg-container p-4">
+      <div className="flex flex-1 flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-text-subtle">
+            Suite {stay.room_number}
+          </span>
+          {stay.group_size != null && (
+            <div className="flex items-center gap-0.5 text-text-subtle">
+              <UsersRound className="size-3" strokeWidth={1.5} />
+              <span className="text-sm font-medium">{stay.group_size}</span>
+            </div>
+          )}
+        </div>
+        <span className="text-sm text-text-subtle">
+          {formatDate(stay.arrival_date)} - {formatDate(stay.departure_date)}
         </span>
       </div>
-      {stay.group_size != null && (
-        <span className="text-sm text-text-subtle">
-          {stay.group_size} {stay.group_size === 1 ? "guest" : "guests"}
-        </span>
-      )}
     </div>
   );
 }
@@ -42,26 +79,32 @@ export function GuestBookingHistoryView({
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* Back button */}
-      <button
-        type="button"
-        aria-label="Visit Activity"
-        onClick={onBack}
-        className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-      >
-        <ChevronLeft className="size-4" />
-        Visit Activity
-      </button>
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1 text-base">
+        <button
+          type="button"
+          aria-label="Visit Activity"
+          onClick={onBack}
+          className="text-text-default hover:underline"
+        >
+          Visit Activity
+        </button>
+        <ChevronRight className="size-3.5 text-text-default" strokeWidth={2} />
+        <span className="text-text-default">Booking History</span>
+      </div>
 
-      {/* Active / current stays */}
+      {/* Active stays */}
       {currentStays.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-text-subtle">
-            Active Bookings
+        <section className="flex flex-col gap-4">
+          <h3 className="text-base font-medium text-text-default">
+            Active Bookings ({currentStays.length})
           </h3>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {currentStays.map((stay) => (
-              <StayRow key={`active-${stay.room_number}`} stay={stay} />
+              <ActiveBookingCard
+                key={`active-${stay.room_number}`}
+                stay={stay}
+              />
             ))}
           </div>
         </section>
@@ -70,11 +113,11 @@ export function GuestBookingHistoryView({
       {/* Past stays by year */}
       {years.length > 0 ? (
         years.map((year) => (
-          <section key={year} className="flex flex-col gap-3">
-            <h3 className="text-sm font-semibold text-text-subtle">{year}</h3>
+          <section key={year} className="flex flex-col gap-2">
+            <h3 className="text-sm font-medium text-text-default">{year}</h3>
             <div className="flex flex-col gap-2">
               {byYear[year].map((stay, i) => (
-                <StayRow key={`${year}-${i}`} stay={stay} />
+                <PastStayRow key={`${year}-${i}`} stay={stay} />
               ))}
             </div>
           </section>

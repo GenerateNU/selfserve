@@ -69,7 +69,7 @@ function GuestsQuickListPage() {
   };
 
   const handleDrawerClose = () => {
-    navigate({ to: "/guests", search: {} });
+    navigate({ to: "/guests", search: { guestId: undefined, tab: "profile" } });
   };
 
   const handleTabChange = (newTab: "profile" | "activity") => {

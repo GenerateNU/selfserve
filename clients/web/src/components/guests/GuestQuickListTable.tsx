@@ -33,24 +33,20 @@ export function GuestQuickListTable({
             onClick={() => onGuestClick(guest.id)}
             className={`grid w-full ${COL_CLASSES} items-center gap-4 border-b border-stroke-subtle px-4 py-4 text-left last:border-b-0 hover:bg-bg-container`}
           >
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <p className="truncate text-sm font-medium text-primary">
-                {guest.first_name} {guest.last_name}
-              </p>
-              {guest.preferred_name &&
-                guest.preferred_name !== guest.first_name && (
-                  <p className="truncate text-sm text-text-subtle">
-                    ({guest.preferred_name})
-                  </p>
-                )}
-            </div>
+            <p className="truncate text-sm font-medium text-primary">
+              {guest.first_name} {guest.last_name}
+            </p>
 
             <p className="text-sm text-text-subtle">—</p>
 
             <div className="flex min-w-0 flex-wrap gap-1.5">
-              <span className="inline-flex items-center rounded px-2 py-1 text-xs bg-bg-selected text-primary">
-                Floor {guest.floor}, Suite {guest.room_number}
-              </span>
+              {guest.room_number != null ? (
+                <span className="inline-flex items-center rounded px-2 py-1 text-xs bg-bg-selected text-primary">
+                  Floor {guest.floor}, Suite {guest.room_number}
+                </span>
+              ) : (
+                <span className="text-base text-text-default">None</span>
+              )}
             </div>
 
             <p className="text-sm text-primary">—</p>
