@@ -102,8 +102,9 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 // @Failure      400   {object}  map[string]string "Invalid guest ID format"
 // @Failure      404  {object}  errs.HTTPError  "Guest not found"
 // @Failure      500   {object}  map[string]string "Internal server error"
+// @ID           getGuestsStaysId
 // @Security     BearerAuth
-// @Router       /guests/stays/{id} [get]
+// @Router       /api/v1/guests/stays/{id} [get]
 func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if !validUUID(id) {
@@ -116,6 +117,7 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 			return errs.NotFound("guest", "id", id)
 
 		}
+		slog.Error("failed to get guest with stays", "id", id, "error", err)
 		return errs.InternalServerError()
 	}
 	return c.JSON(guest)
@@ -177,7 +179,7 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /api/v1/guests [post]
+// @Router       /api/v1/guests/search [post]
 func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	hotelID := c.Get("X-Hotel-ID")
 	var filters models.GuestFilters
