@@ -6,8 +6,9 @@ import { GuestProfileCard } from "../components/guests/GuestProfileCard";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
 import { GuestDetailsDrawer } from "../components/guests/GuestDetailsDrawer";
 import { GuestProfileTab } from "../components/guests/GuestProfileTab";
+import { GuestVisitActivityTab } from "../components/guests/GuestVisitActivityTab";
 import { formatDate } from "../utils/dates";
-import type { GuestWithBooking, GuestWithStays, GuestRequest } from "@shared";
+import type { GuestWithBooking, GuestWithStays, GuestRequest, Stay } from "@shared";
 import * as guestsEndpoints from "@shared/api/generated/endpoints/guests/guests";
 import * as requestsEndpoints from "@shared/api/generated/endpoints/requests/requests";
 
@@ -390,5 +391,105 @@ describe("GuestProfileTab", () => {
     // The DND row should show "\u2014" instead of a time range
     const dndRow = screen.getByText("Do Not Disturb").closest("div")!;
     expect(dndRow.textContent).toContain("\u2014");
+  });
+});
+
+const mockActiveStay: Stay = {
+  arrival_date: "2026-04-10",
+  departure_date: "2026-04-15",
+  room_number: 301,
+  group_size: 2,
+  status: "active",
+};
+
+const mockRequest: GuestRequest = {
+  id: "req-1",
+  name: "Extra towels",
+  description: "Needs extra towels in room",
+  priority: "high",
+  status: "pending",
+  request_category: "Housekeeping",
+  room_number: 301,
+};
+
+describe("GuestVisitActivityTab", () => {
+  it("renders active booking card with room number and dates", () => {
+    render(
+      <GuestVisitActivityTab
+        currentStays={[mockActiveStay]}
+        pastStays={[]}
+        requests={[]}
+      />,
+    );
+
+    expect(screen.getByText("Suite 301")).not.toBe(null);
+    expect(screen.getByText(/04\/10\/2026/)).not.toBe(null);
+    expect(screen.getByText(/04\/15\/2026/)).not.toBe(null);
+  });
+
+  it("renders guest count from group_size", () => {
+    render(
+      <GuestVisitActivityTab
+        currentStays={[mockActiveStay]}
+        pastStays={[]}
+        requests={[]}
+      />,
+    );
+
+    expect(screen.getByText(/2.*guest/i)).not.toBe(null);
+  });
+
+  it("shows empty state when there are no active bookings", () => {
+    render(
+      <GuestVisitActivityTab
+        currentStays={[]}
+        pastStays={[mockActiveStay]}
+        requests={[]}
+      />,
+    );
+
+    expect(screen.getByText(/no active bookings/i)).not.toBe(null);
+  });
+
+  it("renders a request card with name and priority badge", () => {
+    render(
+      <GuestVisitActivityTab
+        currentStays={[]}
+        pastStays={[]}
+        requests={[mockRequest]}
+      />,
+    );
+
+    expect(screen.getByText("Extra towels")).not.toBe(null);
+    expect(screen.getByText(/high priority/i)).not.toBe(null);
+  });
+
+  it("renders the request department tag", () => {
+    render(
+      <GuestVisitActivityTab
+        currentStays={[]}
+        pastStays={[]}
+        requests={[mockRequest]}
+      />,
+    );
+
+    expect(screen.getByText("Housekeeping")).not.toBe(null);
+  });
+
+  it("shows 'View All Bookings' button and switches to history view on click", async () => {
+    render(
+      <GuestVisitActivityTab
+        currentStays={[mockActiveStay]}
+        pastStays={[{ ...mockActiveStay, status: "inactive" }]}
+        requests={[]}
+      />,
+    );
+
+    const viewAllBtn = screen.getByRole("button", { name: /view all bookings/i });
+    expect(viewAllBtn).not.toBe(null);
+
+    await userEvent.click(viewAllBtn);
+
+    expect(screen.getByRole("button", { name: /visit activity/i })).not.toBe(null);
   });
 });

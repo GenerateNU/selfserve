@@ -31,7 +31,8 @@ export function GuestDetailsDrawer({
     isError,
     refetch,
   } = useGetGuestsStaysId(guestId);
-  const { data: requests = [] } = useGetRequestGuestId(guestId);
+  const { data: requestsData } = useGetRequestGuestId(guestId);
+  const requests = (requestsData as any)?.items ?? requestsData ?? [];
   const updateGuest = usePutApiV1GuestsId();
 
   const handleSaveNotes = async (notes: string) => {
