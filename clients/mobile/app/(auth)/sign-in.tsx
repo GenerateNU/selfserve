@@ -4,7 +4,11 @@ import { useAuth, useSignIn, useSSO } from "@clerk/clerk-expo";
 import { AntDesign } from "@expo/vector-icons";
 import { createURL } from "expo-linking";
 import { router } from "expo-router";
-import { coolDownAsync, maybeCompleteAuthSession, warmUpAsync } from "expo-web-browser";
+import {
+  coolDownAsync,
+  maybeCompleteAuthSession,
+  warmUpAsync,
+} from "expo-web-browser";
 import { useEffect, useRef, useState } from "react";
 import {
   Pressable,
@@ -71,7 +75,10 @@ export default function Login() {
       router.replace("/(tabs)");
     } catch (err: any) {
       const code = err.errors?.[0]?.code as string | undefined;
-      if (code === ClerkErrorCode.SessionExists || code === ClerkErrorCode.IdentifierAlreadySignedIn) {
+      if (
+        code === ClerkErrorCode.SessionExists ||
+        code === ClerkErrorCode.IdentifierAlreadySignedIn
+      ) {
         router.replace("/(tabs)");
       } else {
         setError(err.errors?.[0]?.message ?? "Google sign in failed");
