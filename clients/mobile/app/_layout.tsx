@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, Redirect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -7,7 +7,13 @@ import "../global.css";
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
+import {
+  ClerkProvider,
+  ClerkLoaded,
+  useAuth,
+  useOrganization,
+} from "@clerk/clerk-expo";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { setConfig } from "@shared";
 
 // Client explicity created outside component to avoid recreation
@@ -28,9 +34,17 @@ export const unstable_settings = {
 // Component to configure auth provider and the api base url
 function AppConfigurator() {
   const { getToken } = useAuth();
+  const { organization } = useOrganization();
+  const hotelId = organization?.publicMetadata?.hotel_id;
+
+  if (!hotelId) {
+    return <Redirect href="/no-org" />;
+  }
+
   setConfig({
     API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
     getToken,
+    hotelId: hotelId as string,
   });
   return null;
 }
