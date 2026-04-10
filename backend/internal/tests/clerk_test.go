@@ -79,6 +79,22 @@ func (m *mockHotelsRepositoryClerk) InsertHotel(ctx context.Context, hotel *mode
 	return nil, nil
 }
 
+func (m *mockHotelsRepositoryClerk) GetDepartmentsByHotelID(ctx context.Context, hotelID string) ([]*models.Department, error) {
+	return nil, nil
+}
+
+func (m *mockHotelsRepositoryClerk) InsertDepartment(ctx context.Context, hotelID, name string) (*models.Department, error) {
+	return nil, nil
+}
+
+func (m *mockHotelsRepositoryClerk) UpdateDepartment(ctx context.Context, id, hotelID, name string) (*models.Department, error) {
+	return nil, nil
+}
+
+func (m *mockHotelsRepositoryClerk) DeleteDepartment(ctx context.Context, id, hotelID string) error {
+	return nil
+}
+
 var _ storage.HotelsRepository = (*mockHotelsRepositoryClerk)(nil)
 
 func validVerifier() *mockWebhookVerifier {

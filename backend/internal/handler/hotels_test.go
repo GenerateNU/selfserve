@@ -17,8 +17,9 @@ import (
 )
 
 type mockHotelsRepository struct {
-	findByIDFunc    func(ctx context.Context, id string) (*models.Hotel, error)
-	insertHotelFunc func(ctx context.Context, req *models.CreateHotelRequest) (*models.Hotel, error)
+	findByIDFunc               func(ctx context.Context, id string) (*models.Hotel, error)
+	insertHotelFunc            func(ctx context.Context, req *models.CreateHotelRequest) (*models.Hotel, error)
+	getDepartmentsByHotelIDFunc func(ctx context.Context, hotelID string) ([]*models.Department, error)
 }
 
 func (m *mockHotelsRepository) FindByID(ctx context.Context, id string) (*models.Hotel, error) {
@@ -27,6 +28,25 @@ func (m *mockHotelsRepository) FindByID(ctx context.Context, id string) (*models
 
 func (m *mockHotelsRepository) InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error) {
 	return m.insertHotelFunc(ctx, hotel)
+}
+
+func (m *mockHotelsRepository) GetDepartmentsByHotelID(ctx context.Context, hotelID string) ([]*models.Department, error) {
+	if m.getDepartmentsByHotelIDFunc != nil {
+		return m.getDepartmentsByHotelIDFunc(ctx, hotelID)
+	}
+	return nil, nil
+}
+
+func (m *mockHotelsRepository) InsertDepartment(ctx context.Context, hotelID, name string) (*models.Department, error) {
+	return nil, nil
+}
+
+func (m *mockHotelsRepository) UpdateDepartment(ctx context.Context, id, hotelID, name string) (*models.Department, error) {
+	return nil, nil
+}
+
+func (m *mockHotelsRepository) DeleteDepartment(ctx context.Context, id, hotelID string) error {
+	return nil
 }
 
 func TestHotelHandler_GetHotelByID(t *testing.T) {

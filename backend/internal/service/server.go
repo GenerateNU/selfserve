@@ -211,6 +211,10 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
 		r.Get("/:id/users", hotelsHandler.GetHotelUsers)
+		r.Get("/:id/departments", hotelsHandler.GetDepartmentsByHotelID)
+		r.Post("/:id/departments", hotelsHandler.CreateDepartment)
+		r.Put("/:id/departments/:deptId", hotelsHandler.UpdateDepartment)
+		r.Delete("/:id/departments/:deptId", hotelsHandler.DeleteDepartment)
 	})
 
 	// s3 routes

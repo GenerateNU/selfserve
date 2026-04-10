@@ -57,6 +57,10 @@ type RequestsRepository interface {
 type HotelsRepository interface {
 	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
+	GetDepartmentsByHotelID(ctx context.Context, hotelID string) ([]*models.Department, error)
+	InsertDepartment(ctx context.Context, hotelID, name string) (*models.Department, error)
+	UpdateDepartment(ctx context.Context, id, hotelID, name string) (*models.Department, error)
+	DeleteDepartment(ctx context.Context, id, hotelID string) error
 }
 
 // S3Storage defines the interface for S3 operations
