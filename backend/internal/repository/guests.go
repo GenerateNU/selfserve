@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"iter"
+	"strings"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -300,6 +301,8 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 		assistanceFilter = append(assistanceFilter, string(a))
 	}
 
+	orderBy := buildGuestOrderBy(filters)
+
 	rows, err := r.db.Query(ctx, `
 	WITH guest_data AS (
 		SELECT
@@ -345,15 +348,8 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 				OR ('medical' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'medical', '[]'::jsonb)) > 0)
 			)
 		)
-	ORDER BY
-		CASE WHEN $9::text = 'urgent' THEN has_urgent::int END DESC,
-		CASE WHEN $9::text = 'high_to_low' THEN request_count END DESC,
-		CASE WHEN $9::text = 'low_to_high' THEN request_count END ASC,
-		CASE WHEN $10::text = 'ascending' THEN floor END ASC,
-		CASE WHEN $10::text = 'descending' THEN floor END DESC,
-		full_name ASC,
-		id ASC
-	LIMIT $11`,
+	ORDER BY ` + orderBy + `
+	LIMIT $9`,
 		filters.HotelID,
 		statusFilter,
 		filters.Floors,
@@ -362,8 +358,6 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 		filters.CursorName,
 		filters.CursorID,
 		assistanceFilter,
-		string(filters.RequestSort),
-		string(filters.FloorSort),
 		filters.Limit+1,
 	)
 	if err != nil {
@@ -397,4 +391,30 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 		Data:       guests,
 		NextCursor: nextCursor,
 	}, nil
+}
+
+
+func buildGuestOrderBy(filters *models.GuestFilters) string {
+	var parts []string
+
+	switch filters.RequestSort {
+		case models.RequestSortUrgent:
+			parts = append(parts, "has_urgent DESC")
+		case models.RequestSortHighToLow:
+			parts = append(parts, "request_count DESC")
+		case models.RequestSortLowToHigh:
+			parts = append(parts, "request_count ASC")
+	}
+
+	switch filters.FloorSort {
+		case models.FloorSortAscending:
+			parts = append(parts, "floor ASC")
+		case models.FloorSortDescending:
+			parts = append(parts, "floor DESC")
+	}
+
+	
+	parts = append(parts, "full_name ASC", "id ASC")
+
+	return strings.Join(parts, ", ")
 }
