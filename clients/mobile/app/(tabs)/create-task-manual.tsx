@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronDown,
@@ -21,16 +21,20 @@ import {
   MapPin,
   House,
   ChevronRight,
+  Search,
   X,
 } from "lucide-react-native";
 import { useAPIClient } from "@shared/api/client";
 import { getConfig } from "@shared/api/config";
+import { useGetRoomsFloorsHook } from "@shared/api/generated/endpoints/rooms/rooms";
 import type { MakeRequest, MakeRequestPriority } from "@shared";
 
 const colors = {
   primary: "#15502c",
   textSubtle: "#747474",
   strokeSubtle: "#d8d8d8",
+  borderDefault: "#aeaeae",
+  borderLight: "#e5e9ed",
   white: "#ffffff",
 } as const;
 
@@ -102,9 +106,24 @@ export default function CreateTaskManualScreen() {
     undefined,
   );
   const [priorityExpanded, setPriorityExpanded] = useState(false);
+  const [floor, setFloor] = useState<number | undefined>(undefined);
+  const [floorExpanded, setFloorExpanded] = useState(false);
+  const [floorSearch, setFloorSearch] = useState("");
+  const floorInputRef = useRef<TextInput>(null);
 
   const api = useAPIClient();
   const queryClient = useQueryClient();
+  const getFloors = useGetRoomsFloorsHook();
+
+  const { data: floors = [] } = useQuery({
+    queryKey: ["/rooms/floors"],
+    queryFn: () => getFloors(),
+    enabled: floorExpanded,
+  });
+
+  const filteredFloors = floors.filter((f) =>
+    floorSearch ? String(f).includes(floorSearch) : true,
+  );
 
   const saveMutation = useMutation({
     mutationFn: (task: MakeRequest) => api.post<unknown>("/request", task),
@@ -127,6 +146,21 @@ export default function CreateTaskManualScreen() {
       request_type: "general",
     });
   };
+
+  function handleFloorToggle() {
+    const next = !floorExpanded;
+    setFloorExpanded(next);
+    setFloorSearch("");
+    if (next) {
+      setTimeout(() => floorInputRef.current?.focus(), 50);
+    }
+  }
+
+  function handleFloorSelect(f: number) {
+    setFloor(f);
+    setFloorExpanded(false);
+    setFloorSearch("");
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
@@ -238,10 +272,91 @@ export default function CreateTaskManualScreen() {
               icon={<CalendarSync size={16} color={colors.textSubtle} />}
               label="Reoccurring"
             />
-            <TaskFieldRow
-              icon={<MapPin size={16} color={colors.textSubtle} />}
-              label="Location"
-            />
+
+            {/* Floor */}
+            <View className="gap-2">
+              <Pressable
+                onPress={handleFloorToggle}
+                className="flex-row items-center justify-between h-6"
+              >
+                <View className="flex-row items-center gap-1">
+                  <MapPin size={16} color={colors.textSubtle} />
+                  <Text className="text-[15px] text-text-subtle tracking-tight">
+                    Floor
+                  </Text>
+                </View>
+                <View className="flex-row items-center gap-1">
+                  <Text
+                    className={`text-[15px] tracking-tight ${floor !== undefined ? "text-text-default" : "text-text-subtle"}`}
+                  >
+                    {floor !== undefined ? `Floor ${floor}` : "Select..."}
+                  </Text>
+                  <ChevronRight size={14} color={colors.textSubtle} />
+                </View>
+              </Pressable>
+
+              {floorExpanded && (
+                <View
+                  className="rounded"
+                  style={{
+                    borderWidth: 1,
+                    borderColor: colors.borderDefault,
+                  }}
+                >
+                  {/* Search input */}
+                  <View
+                    className="flex-row items-center gap-2.5 px-2 py-2"
+                    style={{
+                      borderBottomWidth: 1,
+                      borderBottomColor: colors.borderLight,
+                    }}
+                  >
+                    <Search size={17} color={colors.textSubtle} />
+                    <View className="flex-row items-center flex-1">
+                      <Text className="text-[12px] font-bold text-text-default tracking-tight">
+                        Floor:{" "}
+                      </Text>
+                      <TextInput
+                        ref={floorInputRef}
+                        className="flex-1 text-[12px] text-text-default tracking-tight"
+                        value={floorSearch}
+                        onChangeText={setFloorSearch}
+                        keyboardType="numeric"
+                        returnKeyType="search"
+                        placeholderTextColor={colors.textSubtle}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Floor list */}
+                  {filteredFloors.length === 0 ? (
+                    <View className="px-4 py-3">
+                      <Text className="text-[12px] text-text-subtle tracking-tight">
+                        No floors found
+                      </Text>
+                    </View>
+                  ) : (
+                    filteredFloors.map((f) => (
+                      <Pressable
+                        key={f}
+                        onPress={() => handleFloorSelect(f)}
+                        className="px-4 py-2"
+                        style={
+                          floor === f
+                            ? { backgroundColor: "#f5f5f5" }
+                            : undefined
+                        }
+                      >
+                        <Text className="text-[12px] text-text-default tracking-tight">
+                          Floor {f}
+                        </Text>
+                      </Pressable>
+                    ))
+                  )}
+                </View>
+              )}
+            </View>
+
             <TaskFieldRow
               icon={<House size={16} color={colors.textSubtle} />}
               label="Department"
