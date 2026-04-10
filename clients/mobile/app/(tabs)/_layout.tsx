@@ -28,7 +28,7 @@ const TabBarIcon = ({ name, focused, activeColor, label }: TabBarIconProps) => (
 );
 
 const PlusButton = () => (
-  <View className="bg-primary rounded-full w-14 h-14 items-center justify-center -mb-2">
+  <View className="bg-primary rounded-full size-16 items-center justify-center mb-6">
     <IconSymbol size={22} name="plus" color={Colors["light"].background} />
   </View>
 );
