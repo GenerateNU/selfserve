@@ -54,7 +54,7 @@ dev-web:
 	@cd web && npm run dev
 
 dev-mobile:
-	@cd mobile && npx expo start
+	@cd mobile && npm run start
 
 generate:
 	@cd shared && npm run generate:api

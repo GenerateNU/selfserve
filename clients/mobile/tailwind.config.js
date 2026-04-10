@@ -6,6 +6,11 @@ module.exports = {
       colors: {
         primary: "#15502c",
         "primary-hover": "#0a2916",
+        "text-default": "#1a1a1a",
+        "text-subtle": "#747474",
+        "bg-surface": "#ffffff",
+        "bg-input": "#f4f4f4",
+        "bg-selected": "#edf5f1",
         "stroke-subtle": "#d8d8d8",
         "success-accent": "#e8fff0",
         "success-container": "#bdffdd",

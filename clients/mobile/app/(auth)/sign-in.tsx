@@ -2,24 +2,31 @@ import { ClerkStatus } from "@/constants/clerk";
 import { useClerkErrorHandler } from "@/hooks/useClerkErrorHandler";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Pressable,
   TextInput,
   View,
   Text,
   Keyboard,
-  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
+
+const PLACEHOLDER_COLOR = "#AFAFAD";
 
 export default function Login() {
   const { isLoaded, signIn, setActive } = useSignIn();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
   const handleClerkAction = useClerkErrorHandler(setError);
 
-  const onLogin = () =>
+  const onLogin = () => {
+    setLoading(true);
     handleClerkAction(async () => {
       if (!isLoaded || !signIn || !setActive) return;
       const result = await signIn.create({ identifier: email, password });
@@ -27,21 +34,29 @@ export default function Login() {
         await setActive({ session: result.createdSessionId });
         router.replace("/(tabs)");
       }
-    });
+    }).finally(() => setLoading(false));
+  };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 justify-center px-8 bg-white">
+    <KeyboardAvoidingView
+      className="flex-1 bg-bg-surface"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerClassName="flex-grow justify-center px-8 py-12"
+        keyboardShouldPersistTaps="handled"
+        onScrollBeginDrag={Keyboard.dismiss}
+      >
         <View className="items-center mb-10">
-          <View className="w-10 h-10 bg-[#37352F] rounded-lg items-center justify-center">
+          <View className="w-10 h-10 bg-primary rounded-lg items-center justify-center">
             <Text className="text-white font-bold text-lg leading-none">S</Text>
           </View>
         </View>
 
-        <Text className="text-[22px] font-semibold text-[#37352F] mb-1.5 tracking-tight">
+        <Text className="text-[22px] font-semibold text-text-default mb-1.5 tracking-tight">
           Log in
         </Text>
-        <Text className="text-sm text-[#787774] mb-7">
+        <Text className="text-sm text-text-subtle mb-7">
           Enter your credentials to continue
         </Text>
 
@@ -50,19 +65,25 @@ export default function Login() {
             value={email}
             onChangeText={setEmail}
             placeholder="Email"
-            placeholderTextColor="#AFAFAD"
+            placeholderTextColor={PLACEHOLDER_COLOR}
             keyboardType="email-address"
             autoCapitalize="none"
-            className="bg-[#F1F1EF] rounded-md px-3 py-3.5 text-sm text-[#37352F]"
+            autoFocus
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+            className="bg-bg-input rounded-md px-3 py-3.5 text-sm text-text-default"
           />
           <TextInput
+            ref={passwordRef}
             value={password}
             onChangeText={setPassword}
             placeholder="Password"
-            placeholderTextColor="#AFAFAD"
+            placeholderTextColor={PLACEHOLDER_COLOR}
             secureTextEntry
             autoCapitalize="none"
-            className="bg-[#F1F1EF] rounded-md px-3 py-3.5 text-sm text-[#37352F]"
+            returnKeyType="done"
+            onSubmitEditing={onLogin}
+            className="bg-bg-input rounded-md px-3 py-3.5 text-sm text-text-default"
           />
         </View>
 
@@ -72,18 +93,21 @@ export default function Login() {
 
         <Pressable
           onPress={onLogin}
-          className="bg-[#37352F] rounded-md py-3.5 items-center mb-6 active:opacity-75"
+          disabled={loading || !email || !password}
+          className="bg-primary rounded-md py-3.5 items-center mb-6 active:opacity-75 disabled:opacity-40"
         >
-          <Text className="text-white font-medium text-sm">Continue</Text>
+          <Text className="text-white font-medium text-sm">
+            {loading ? "Signing in…" : "Continue"}
+          </Text>
         </Pressable>
 
         <View className="flex-row justify-center">
-          <Text className="text-sm text-[#787774]">No account? </Text>
-          <Link href="/sign-up" className="text-sm text-[#37352F] font-medium">
+          <Text className="text-sm text-text-subtle">No account? </Text>
+          <Link href="/sign-up" className="text-sm text-primary font-medium">
             Sign up
           </Link>
         </View>
-      </View>
-    </TouchableWithoutFeedback>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
