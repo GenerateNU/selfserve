@@ -1,8 +1,7 @@
-import { formatDate } from "../../utils/dates";
-import type { Stay } from "@shared";
+import type { PreviousStay } from "./guest-mocks";
 
 type PreviousStaysCardProps = {
-  stays: Array<Stay>;
+  stays: Array<PreviousStay>;
 };
 
 export function PreviousStaysCard({ stays }: PreviousStaysCardProps) {
@@ -12,21 +11,19 @@ export function PreviousStaysCard({ stays }: PreviousStaysCardProps) {
         Previous Stays
       </h2>
       <div className="flex flex-col gap-[1vh]">
-        {stays.map((stay, index) => (
+        {stays.map((stay) => (
           <article
-            key={`${stay.arrival_date}-${stay.room_number}-${index}`}
+            key={stay.id}
             className="rounded-[1vh] border border-black px-[1vw] py-[1vh]"
           >
             <p className="text-[1vw] text-black">
-              {formatDate(stay.arrival_date)} -{" "}
-              {formatDate(stay.departure_date)}
+              {stay.startDate} - {stay.endDate}
             </p>
-            <p className="text-[1vw] text-black">Room {stay.room_number}</p>
+            <p className="text-[1vw] text-black">
+              {stay.room} | Group size: {stay.groupSize}
+            </p>
           </article>
         ))}
-        {stays.length === 0 && (
-          <p className="text-[1vw] text-text-subtle">No previous stays.</p>
-        )}
       </div>
     </section>
   );

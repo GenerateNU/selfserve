@@ -1,19 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type GuestNotesCardProps = {
-  notes?: string;
-  onSave: (nextNotes: string) => Promise<void> | void;
+  initialNotes: string;
 };
 
-export function GuestNotesCard({ notes = "", onSave }: GuestNotesCardProps) {
+export function GuestNotesCard({ initialNotes }: GuestNotesCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState(notes);
-
-  useEffect(() => {
-    if (!isEditing) {
-      setDraft(notes);
-    }
-  }, [isEditing, notes]);
+  const [notes, setNotes] = useState(initialNotes);
+  const [draft, setDraft] = useState(initialNotes);
 
   const startEditing = () => {
     setDraft(notes);
@@ -25,8 +19,8 @@ export function GuestNotesCard({ notes = "", onSave }: GuestNotesCardProps) {
     setIsEditing(false);
   };
 
-  const saveNotes = async () => {
-    await onSave(draft);
+  const saveNotes = () => {
+    setNotes(draft);
     setIsEditing(false);
   };
 
@@ -39,7 +33,7 @@ export function GuestNotesCard({ notes = "", onSave }: GuestNotesCardProps) {
             <button
               type="button"
               onClick={startEditing}
-              className="h-[3vh] min-h-[3vh] bg-primary px-[1vw] text-[1vw] text-white hover:bg-primary-hover"
+              className="h-[3vh] min-h-[3vh] bg-[#004fc5] px-[1vw] text-[1vw] text-white"
             >
               Edit
             </button>
@@ -67,7 +61,7 @@ export function GuestNotesCard({ notes = "", onSave }: GuestNotesCardProps) {
             <button
               type="button"
               onClick={saveNotes}
-              className="h-[3vh] min-h-[3vh] bg-primary px-[1vw] text-[1vw] text-white hover:bg-primary-hover"
+              className="h-[3vh] min-h-[3vh] bg-[#004fc5] px-[1vw] text-[1vw] text-white"
             >
               Save
             </button>
