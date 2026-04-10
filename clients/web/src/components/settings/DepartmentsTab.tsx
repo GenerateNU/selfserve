@@ -31,22 +31,33 @@ export function DepartmentsTab() {
   const hotelId = currentUser?.hotel_id;
 
   const { data: departments = [], isLoading } = useGetDepartments(hotelId);
-  const { mutate: createDepartment, isPending: isCreating } = useCreateDepartment(hotelId);
-  const { mutate: updateDepartment, isPending: isUpdating } = useUpdateDepartment(hotelId);
-  const { mutate: deleteDepartment, isPending: isDeleting } = useDeleteDepartment(hotelId);
+  const { mutate: createDepartment, isPending: isCreating } =
+    useCreateDepartment(hotelId);
+  const { mutate: updateDepartment, isPending: isUpdating } =
+    useUpdateDepartment(hotelId);
+  const { mutate: deleteDepartment, isPending: isDeleting } =
+    useDeleteDepartment(hotelId);
 
   function confirmEdit() {
     if (!editingName.trim() || !editingId || isUpdating) return;
     updateDepartment(
       { id: editingId, name: editingName.trim() },
-      { onSuccess: () => { setEditingId(null); setEditingName(""); } },
+      {
+        onSuccess: () => {
+          setEditingId(null);
+          setEditingName("");
+        },
+      },
     );
   }
 
   function confirmAdd() {
     if (!newName.trim() || isCreating) return;
     createDepartment(newName.trim(), {
-      onSuccess: () => { setNewName(""); setIsAdding(false); },
+      onSuccess: () => {
+        setNewName("");
+        setIsAdding(false);
+      },
     });
   }
 
@@ -102,7 +113,10 @@ export function DepartmentsTab() {
                         onChange={(e) => setEditingName(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") confirmEdit();
-                          if (e.key === "Escape") { setEditingId(null); setEditingName(""); }
+                          if (e.key === "Escape") {
+                            setEditingId(null);
+                            setEditingName("");
+                          }
                         }}
                         autoFocus
                         className="flex-1 border-b border-stroke-default bg-transparent py-0.5 text-sm text-text-default focus:outline-none"
@@ -117,7 +131,10 @@ export function DepartmentsTab() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => { setEditingId(null); setEditingName(""); }}
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditingName("");
+                        }}
                         className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                       >
                         <X className="size-4" />
@@ -134,7 +151,10 @@ export function DepartmentsTab() {
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
-                      onClick={() => { setEditingId(dept.id); setEditingName(dept.name); }}
+                      onClick={() => {
+                        setEditingId(dept.id);
+                        setEditingName(dept.name);
+                      }}
                       className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                     >
                       <Pencil className="size-4" />
@@ -161,7 +181,10 @@ export function DepartmentsTab() {
                     onChange={(e) => setNewName(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") confirmAdd();
-                      if (e.key === "Escape") { setNewName(""); setIsAdding(false); }
+                      if (e.key === "Escape") {
+                        setNewName("");
+                        setIsAdding(false);
+                      }
                     }}
                     placeholder="Department name"
                     autoFocus
@@ -177,7 +200,10 @@ export function DepartmentsTab() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setNewName(""); setIsAdding(false); }}
+                    onClick={() => {
+                      setNewName("");
+                      setIsAdding(false);
+                    }}
                     className="rounded p-1.5 text-text-subtle hover:bg-bg-selected hover:text-text-default transition-colors"
                   >
                     <X className="size-4" />
