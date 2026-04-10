@@ -71,9 +71,9 @@ export function MemberDetailPanel({
       {/* Info rows */}
       <div className="mb-8 divide-y divide-stroke-subtle/50 border-y border-stroke-subtle/50">
         <div className="flex items-center justify-between py-3">
-          <span className="text-sm text-text-subtle">Department</span>
+          <span className="text-sm text-text-subtle">Departments</span>
           <span className="text-sm font-medium text-text-default">
-            {member.department}
+            {member.departments.length > 0 ? member.departments.join(", ") : "—"}
           </span>
         </div>
 

@@ -1,5 +1,9 @@
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { useCustomInstance } from "@shared/api/orval-mutator";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -16,68 +20,44 @@ export type Member = {
   email: string;
   avatarUrl?: string;
   role: Role;
-  department: string;
+  departments: Array<string>;
   joinedAt: string;
 };
 
-const MOCK_MEMBERS: Array<Member> = [
-  {
-    id: "1",
-    name: "Isabelle Fontaine",
-    email: "isabelle.fontaine@grandhyatt.com",
-    role: "Admin",
-    department: "Front Desk",
-    joinedAt: "Jan 3, 2024",
-  },
-  {
-    id: "2",
-    name: "Marcus Webb",
-    email: "marcus.webb@grandhyatt.com",
-    role: "Admin",
-    department: "Maintenance",
-    joinedAt: "Feb 14, 2024",
-  },
-  {
-    id: "3",
-    name: "Priya Nair",
-    email: "priya.nair@grandhyatt.com",
-    role: "Admin",
-    department: "Housekeeping",
-    joinedAt: "Mar 1, 2024",
-  },
-  {
-    id: "4",
-    name: "Tomás Herrera",
-    email: "tomas.herrera@grandhyatt.com",
-    role: "Member",
-    department: "Maintenance",
-    joinedAt: "Mar 22, 2024",
-  },
-  {
-    id: "5",
-    name: "Yuki Tanaka",
-    email: "yuki.tanaka@grandhyatt.com",
-    role: "Member",
-    department: "Food & Beverage",
-    joinedAt: "Apr 5, 2024",
-  },
-  {
-    id: "6",
-    name: "Amara Diallo",
-    email: "amara.diallo@grandhyatt.com",
-    role: "Member",
-    department: "Housekeeping",
-    joinedAt: "May 18, 2024",
-  },
-  {
-    id: "7",
-    name: "Lena Hoffmann",
-    email: "lena.hoffmann@grandhyatt.com",
-    role: "Member",
-    department: "Front Desk",
-    joinedAt: "Jun 2, 2024",
-  },
-];
+type ApiUser = {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  primary_email?: string;
+  profile_picture?: string;
+  role?: string;
+  departments?: Array<string>;
+  created_at?: string;
+};
+
+type HotelUsersPage = {
+  users: Array<ApiUser>;
+  next_cursor: string;
+};
+
+function toMember(u: ApiUser): Member {
+  const name = [u.first_name, u.last_name].filter(Boolean).join(" ") || "Unknown";
+  return {
+    id: u.id,
+    name,
+    email: u.primary_email ?? "",
+    avatarUrl: u.profile_picture ?? undefined,
+    role: u.role === "Admin" ? "Admin" : "Member",
+    departments: u.departments ?? [],
+    joinedAt: u.created_at
+      ? new Date(u.created_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "",
+  };
+}
 
 const ROLES: Array<{ role: Role; description: string }> = [
   { role: "Admin", description: "Can manage members and most settings" },
@@ -85,7 +65,7 @@ const ROLES: Array<{ role: Role; description: string }> = [
 ];
 
 // Shared grid template applied to both header and every row
-const ROW_GRID = "grid grid-cols-[1fr_10rem_8rem_7rem] items-center gap-x-4";
+const ROW_GRID = "grid grid-cols-[1fr_12rem_8rem_7rem] items-center gap-x-4";
 
 function MemberAvatar({ member }: { member: Member }) {
   if (member.avatarUrl) {
@@ -168,7 +148,7 @@ function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
       </div>
 
       <span className="truncate text-xs text-text-subtle">
-        {member.department}
+        {member.departments.length > 0 ? member.departments.join(", ") : "—"}
       </span>
 
       <span className="text-xs text-text-subtle">{member.joinedAt}</span>
@@ -186,8 +166,48 @@ type MembersTabProps = {
 };
 
 export function MembersTab({ onSelectMember }: MembersTabProps) {
-  const [members, setMembers] = useState<Array<Member>>(MOCK_MEMBERS);
   const [search, setSearch] = useState("");
+  const [roleOverrides, setRoleOverrides] = useState<Record<string, Role>>({});
+
+  const { user: clerkUser } = useUser();
+  const getUsersId = useGetUsersIdHook();
+  const fetchHotelUsers = useCustomInstance<HotelUsersPage>();
+
+  const { data: backendUser } = useQuery({
+    queryKey: ["user", clerkUser?.id],
+    queryFn: () => getUsersId(clerkUser!.id),
+    enabled: !!clerkUser?.id,
+  });
+
+  const hotelId = backendUser?.hotel_id;
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ["hotel-users", hotelId],
+    queryFn: ({ pageParam }: { pageParam: string }) =>
+      fetchHotelUsers({
+        url: `/hotels/${hotelId}/users`,
+        method: "GET",
+        params: pageParam ? { cursor: pageParam } : undefined,
+      }),
+    enabled: !!hotelId,
+    initialPageParam: "",
+    getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
+  });
+
+  const allUsers = data?.pages.flatMap((p) => p.users) ?? [];
+
+  const members: Array<Member> = allUsers.map((u) => {
+    const base = toMember(u);
+    return roleOverrides[u.id] !== undefined
+      ? { ...base, role: roleOverrides[u.id] }
+      : base;
+  });
 
   const filtered = members.filter(
     (m) =>
@@ -196,7 +216,7 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   );
 
   function handleRoleChange(id: string, role: Role) {
-    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)));
+    setRoleOverrides((prev) => ({ ...prev, [id]: role }));
   }
 
   return (
@@ -230,14 +250,18 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
       {/* Column headers — same grid as rows */}
       <div className={cn(ROW_GRID, "pb-1.5 border-b border-stroke-subtle")}>
         <p className="text-xs font-medium text-text-subtle">User</p>
-        <p className="text-xs font-medium text-text-subtle">Department</p>
+        <p className="text-xs font-medium text-text-subtle">Departments</p>
         <p className="text-xs font-medium text-text-subtle">Joined</p>
         <p className="pl-2 text-xs font-medium text-text-subtle">Role</p>
       </div>
 
       {/* Rows */}
       <div className="pt-1">
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <p className="py-10 text-center text-sm text-text-subtle">
+            Loading members...
+          </p>
+        ) : filtered.length === 0 ? (
           <p className="py-10 text-center text-sm text-text-subtle">
             No members match your search.
           </p>
@@ -252,6 +276,20 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
           ))
         )}
       </div>
+
+      {/* Load more */}
+      {hasNextPage && (
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="text-xs text-text-subtle hover:text-text-default transition-colors disabled:opacity-50"
+          >
+            {isFetchingNextPage ? "Loading..." : "Load more"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
