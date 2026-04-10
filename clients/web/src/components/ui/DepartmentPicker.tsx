@@ -67,13 +67,15 @@ export function DepartmentPicker({
               type="button"
               onClick={() => handleSelect(department)}
               className={cn(
-                "px-3 py-2 text-left text-sm transition-colors hover:bg-bg-selected",
-                selectedDepartment?.id === department.id
-                  ? "bg-bg-selected text-text-default"
-                  : "text-text-default",
+                "flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-bg-selected",
+                selectedDepartment?.id === department.id && "bg-bg-selected",
               )}
             >
-              {department.name}
+              <div className="min-w-0">
+                <p className="truncate text-sm text-text-default">
+                  {department.name}
+                </p>
+              </div>
             </button>
           ))}
         </div>
