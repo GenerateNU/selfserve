@@ -1,11 +1,14 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageSkeleton";
 import { GuestProfileCard } from "../components/guests/GuestProfileCard";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
+import { GuestDetailsDrawer } from "../components/guests/GuestDetailsDrawer";
 import { formatDate } from "../utils/dates";
-import type { GuestWithBooking } from "@shared";
+import type { GuestWithBooking, GuestWithStays, GuestRequest } from "@shared";
+import * as guestsEndpoints from "@shared/api/generated/endpoints/guests/guests";
+import * as requestsEndpoints from "@shared/api/generated/endpoints/requests/requests";
 
 describe("guest UI helpers", () => {
   describe("formatDate", () => {
@@ -142,5 +145,138 @@ describe("guest UI helpers", () => {
         11,
       );
     });
+  });
+});
+
+const mockGuest: GuestWithStays = {
+  id: "g-1",
+  first_name: "Ada",
+  last_name: "Lovelace",
+  pronouns: "she/her",
+  email: "ada@example.com",
+  phone: "+1 555 000 0001",
+  do_not_disturb_start: "22:00",
+  do_not_disturb_end: "08:00",
+  housekeeping_cadence: "Daily",
+  assistance: {
+    accessibility: ["Wheelchair ramp"],
+    dietary: ["Gluten-free"],
+    medical: [],
+  },
+  notes: "VIP guest",
+  current_stays: [
+    {
+      arrival_date: "2026-04-10",
+      departure_date: "2026-04-15",
+      room_number: 301,
+      group_size: 2,
+      status: "active",
+    },
+  ],
+  past_stays: [],
+};
+
+describe("GuestDetailsDrawer", () => {
+  beforeEach(() => {
+    vi.spyOn(guestsEndpoints, "useGetGuestsStaysId").mockReturnValue({
+      data: mockGuest,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    } as any);
+
+    vi.spyOn(guestsEndpoints, "usePutApiV1GuestsId").mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as any);
+
+    vi.spyOn(requestsEndpoints, "useGetRequestGuestId").mockReturnValue({
+      data: [] as GuestRequest[],
+      isLoading: false,
+      isError: false,
+    } as any);
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it("renders the guest full name in the header", () => {
+    render(
+      <GuestDetailsDrawer
+        guestId="g-1"
+        activeTab="profile"
+        onTabChange={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Ada Lovelace")).not.toBe(null);
+  });
+
+  it("calls onClose when the X button is clicked", async () => {
+    const handleClose = vi.fn();
+    render(
+      <GuestDetailsDrawer
+        guestId="g-1"
+        activeTab="profile"
+        onTabChange={vi.fn()}
+        onClose={handleClose}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: /close/i }));
+    expect(handleClose).toHaveBeenCalledOnce();
+  });
+
+  it("calls onTabChange with 'activity' when Visit Activity tab is clicked", async () => {
+    const handleTabChange = vi.fn();
+    render(
+      <GuestDetailsDrawer
+        guestId="g-1"
+        activeTab="profile"
+        onTabChange={handleTabChange}
+        onClose={vi.fn()}
+      />,
+    );
+    await userEvent.click(screen.getByRole("tab", { name: /visit activity/i }));
+    expect(handleTabChange).toHaveBeenCalledWith("activity");
+  });
+
+  it("shows a loading skeleton when guest data is loading", () => {
+    vi.spyOn(guestsEndpoints, "useGetGuestsStaysId").mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    } as any);
+
+    const { container } = render(
+      <GuestDetailsDrawer
+        guestId="g-1"
+        activeTab="profile"
+        onTabChange={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(0);
+  });
+
+  it("shows error message when guest data fails to load", () => {
+    vi.spyOn(guestsEndpoints, "useGetGuestsStaysId").mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error("fetch failed"),
+      refetch: vi.fn(),
+    } as any);
+
+    render(
+      <GuestDetailsDrawer
+        guestId="g-1"
+        activeTab="profile"
+        onTabChange={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Failed to load guest details.")).not.toBe(null);
   });
 });
