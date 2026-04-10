@@ -15,7 +15,6 @@ const ROLES: Array<{ role: Role; description: string }> = [
   { role: "Member", description: "Can view and use workspace content" },
 ];
 
-
 type MemberDetailPanelProps = {
   member: Member;
   note: string;

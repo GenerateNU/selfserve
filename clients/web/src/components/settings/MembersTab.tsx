@@ -87,7 +87,6 @@ const ROLES: Array<{ role: Role; description: string }> = [
 // Shared grid template applied to both header and every row
 const ROW_GRID = "grid grid-cols-[1fr_10rem_8rem_7rem] items-center gap-x-4";
 
-
 function MemberAvatar({ member }: { member: Member }) {
   if (member.avatarUrl) {
     return (
