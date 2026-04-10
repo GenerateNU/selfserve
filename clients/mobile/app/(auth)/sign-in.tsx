@@ -1,8 +1,15 @@
-import { ClerkStatus } from "@/constants/clerk";
+import { ClerkErrorCode, ClerkStatus } from "@/constants/clerk";
 import { useClerkErrorHandler } from "@/hooks/useClerkErrorHandler";
-import { useSignIn } from "@clerk/clerk-expo";
+import { useAuth, useSignIn, useSSO } from "@clerk/clerk-expo";
+import { AntDesign } from "@expo/vector-icons";
+import { createURL } from "expo-linking";
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import {
+  coolDownAsync,
+  maybeCompleteAuthSession,
+  warmUpAsync,
+} from "expo-web-browser";
+import { useEffect, useRef, useState } from "react";
 import {
   Pressable,
   TextInput,
@@ -14,16 +21,28 @@ import {
   ScrollView,
 } from "react-native";
 
+maybeCompleteAuthSession();
+
 const PLACEHOLDER_COLOR = "#AFAFAD";
 
 export default function Login() {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { startSSOFlow } = useSSO();
+  const { isSignedIn } = useAuth();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const passwordRef = useRef<TextInput>(null);
   const handleClerkAction = useClerkErrorHandler(setError);
+
+  useEffect(() => {
+    warmUpAsync();
+    return () => {
+      coolDownAsync();
+    };
+  }, []);
 
   const onLogin = () => {
     setLoading(true);
@@ -35,6 +54,38 @@ export default function Login() {
         router.replace("/(tabs)");
       }
     }).finally(() => setLoading(false));
+  };
+
+  const onGoogleSignIn = async () => {
+    if (isSignedIn) {
+      router.replace("/(tabs)");
+      return;
+    }
+    setGoogleLoading(true);
+    setError("");
+    try {
+      const { createdSessionId, setActive: setActiveSession } =
+        await startSSOFlow({
+          strategy: "oauth_google",
+          redirectUrl: createURL("/sign-in"),
+        });
+      if (createdSessionId) {
+        await setActiveSession!({ session: createdSessionId });
+      }
+      router.replace("/(tabs)");
+    } catch (err: any) {
+      const code = err.errors?.[0]?.code as string | undefined;
+      if (
+        code === ClerkErrorCode.SessionExists ||
+        code === ClerkErrorCode.IdentifierAlreadySignedIn
+      ) {
+        router.replace("/(tabs)");
+      } else {
+        setError(err.errors?.[0]?.message ?? "Google sign in failed");
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -98,6 +149,23 @@ export default function Login() {
         >
           <Text className="text-white font-medium text-sm">
             {loading ? "Signing in…" : "Continue"}
+          </Text>
+        </Pressable>
+
+        <View className="flex-row items-center mb-4">
+          <View className="flex-1 h-px bg-stroke-subtle" />
+          <Text className="text-text-subtle text-xs mx-3">or</Text>
+          <View className="flex-1 h-px bg-stroke-subtle" />
+        </View>
+
+        <Pressable
+          onPress={onGoogleSignIn}
+          disabled={googleLoading}
+          className="bg-bg-container border border-stroke-subtle rounded-md py-3.5 flex-row items-center justify-center gap-x-2.5 active:opacity-75 disabled:opacity-40"
+        >
+          <AntDesign name="google" size={16} color="#4285F4" />
+          <Text className="text-text-default font-medium text-sm">
+            {googleLoading ? "Signing in…" : "Continue with Google"}
           </Text>
         </Pressable>
       </ScrollView>
