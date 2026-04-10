@@ -37,38 +37,48 @@ export default function VerifyEmail() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 justify-center px-6 bg-white">
-        <Text className="text-2xl font-bold text-primary mb-2">
+      <View className="flex-1 justify-center px-8 bg-white">
+        <View className="items-center mb-10">
+          <View className="w-10 h-10 bg-[#37352F] rounded-lg items-center justify-center">
+            <Text className="text-white font-bold text-lg leading-none">S</Text>
+          </View>
+        </View>
+
+        <Text className="text-[22px] font-semibold text-[#37352F] mb-1.5 tracking-tight">
           Check your email
         </Text>
-        <Text className="text-sm text-shadow-strong mb-8">
-          Verification code sent to {email}
+        <Text className="text-sm text-[#787774] mb-7">
+          We sent a code to{" "}
+          <Text className="text-[#37352F] font-medium">{email}</Text>
         </Text>
 
         <TextInput
           value={code}
           onChangeText={setCode}
-          placeholder="Enter code"
+          placeholder="Verification code"
+          placeholderTextColor="#AFAFAD"
           keyboardType="number-pad"
           autoComplete="one-time-code"
           autoFocus
-          className="border border-stroke-subtle rounded-xl px-4 py-3 text-base mb-4"
+          className="bg-[#F1F1EF] rounded-md px-3 py-3.5 text-sm text-[#37352F] mb-5 tracking-widest"
         />
 
-        {error && <Text className="text-danger text-sm mb-4">{error}</Text>}
+        {error ? (
+          <Text className="text-danger text-sm mb-4">{error}</Text>
+        ) : null}
 
         <Pressable
           onPress={onVerify}
-          className="bg-primary rounded-xl py-4 items-center mb-3 active:opacity-80"
+          className="bg-[#37352F] rounded-md py-3.5 items-center mb-3 active:opacity-75"
         >
-          <Text className="text-white font-semibold text-base">Verify</Text>
+          <Text className="text-white font-medium text-sm">Verify email</Text>
         </Pressable>
 
         <Pressable
           onPress={onResend}
-          className="py-3 items-center active:opacity-80"
+          className="py-3 items-center active:opacity-75"
         >
-          <Text className="text-primary text-sm font-medium">Resend code</Text>
+          <Text className="text-sm text-[#787774]">Didn't receive it? Resend</Text>
         </Pressable>
       </View>
     </TouchableWithoutFeedback>

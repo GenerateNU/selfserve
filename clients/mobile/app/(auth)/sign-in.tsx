@@ -31,49 +31,58 @@ export default function Login() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 justify-center px-6 bg-white">
-        <Text className="text-2xl font-bold text-primary mb-2">
-          Welcome back
+      <View className="flex-1 justify-center px-8 bg-white">
+        <View className="items-center mb-10">
+          <View className="w-10 h-10 bg-[#37352F] rounded-lg items-center justify-center">
+            <Text className="text-white font-bold text-lg leading-none">S</Text>
+          </View>
+        </View>
+
+        <Text className="text-[22px] font-semibold text-[#37352F] mb-1.5 tracking-tight">
+          Log in
         </Text>
-        <Text className="text-sm text-shadow-strong mb-8">
-          Sign in to your account
+        <Text className="text-sm text-[#787774] mb-7">
+          Enter your credentials to continue
         </Text>
 
-        <View className="gap-y-3 mb-4">
+        <View className="gap-y-2 mb-5">
           <TextInput
             value={email}
             onChangeText={setEmail}
             placeholder="Email"
+            placeholderTextColor="#AFAFAD"
             keyboardType="email-address"
             autoCapitalize="none"
-            className="border border-stroke-subtle rounded-xl px-4 py-3 text-base"
+            className="bg-[#F1F1EF] rounded-md px-3 py-3.5 text-sm text-[#37352F]"
           />
           <TextInput
             value={password}
             onChangeText={setPassword}
             placeholder="Password"
+            placeholderTextColor="#AFAFAD"
             secureTextEntry
             autoCapitalize="none"
-            className="border border-stroke-subtle rounded-xl px-4 py-3 text-base"
+            className="bg-[#F1F1EF] rounded-md px-3 py-3.5 text-sm text-[#37352F]"
           />
         </View>
 
-        {error && <Text className="text-danger text-sm mb-4">{error}</Text>}
+        {error ? (
+          <Text className="text-danger text-sm mb-4">{error}</Text>
+        ) : null}
 
         <Pressable
           onPress={onLogin}
-          className="bg-primary rounded-xl py-4 items-center mb-4 active:opacity-80"
+          className="bg-[#37352F] rounded-md py-3.5 items-center mb-6 active:opacity-75"
         >
-          <Text className="text-white font-semibold text-base">Sign in</Text>
+          <Text className="text-white font-medium text-sm">Continue</Text>
         </Pressable>
 
-        <Link
-          href="/sign-up"
-          className="text-center text-sm text-shadow-strong"
-        >
-          Do not have an account?{" "}
-          <Text className="text-primary font-medium">Sign up</Text>
-        </Link>
+        <View className="flex-row justify-center">
+          <Text className="text-sm text-[#787774]">No account? </Text>
+          <Link href="/sign-up" className="text-sm text-[#37352F] font-medium">
+            Sign up
+          </Link>
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );

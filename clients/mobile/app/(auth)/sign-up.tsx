@@ -35,61 +35,74 @@ export default function SignUp() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 justify-center px-6 bg-white">
-        <Text className="text-2xl font-bold text-primary mb-2">
-          Create account
+      <View className="flex-1 justify-center px-8 bg-white">
+        <View className="items-center mb-10">
+          <View className="w-10 h-10 bg-[#37352F] rounded-lg items-center justify-center">
+            <Text className="text-white font-bold text-lg leading-none">S</Text>
+          </View>
+        </View>
+
+        <Text className="text-[22px] font-semibold text-[#37352F] mb-1.5 tracking-tight">
+          Create an account
         </Text>
-        <Text className="text-sm text-shadow-strong mb-8">
-          Sign up to get started
+        <Text className="text-sm text-[#787774] mb-7">
+          Fill in your details to get started
         </Text>
 
-        <View className="gap-y-3 mb-4">
-          <TextInput
-            value={firstName}
-            onChangeText={setFirstName}
-            placeholder="First name"
-            className="border border-stroke-subtle rounded-xl px-4 py-3 text-base"
-          />
-          <TextInput
-            value={lastName}
-            onChangeText={setLastName}
-            placeholder="Last name"
-            className="border border-stroke-subtle rounded-xl px-4 py-3 text-base"
-          />
+        <View className="gap-y-2 mb-5">
+          <View className="flex-row gap-x-2">
+            <TextInput
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="First name"
+              placeholderTextColor="#AFAFAD"
+              className="flex-1 bg-[#F1F1EF] rounded-md px-3 py-3.5 text-sm text-[#37352F]"
+            />
+            <TextInput
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Last name"
+              placeholderTextColor="#AFAFAD"
+              className="flex-1 bg-[#F1F1EF] rounded-md px-3 py-3.5 text-sm text-[#37352F]"
+            />
+          </View>
           <TextInput
             value={email}
             onChangeText={setEmail}
             placeholder="Email"
+            placeholderTextColor="#AFAFAD"
             keyboardType="email-address"
             autoCapitalize="none"
-            className="border border-stroke-subtle rounded-xl px-4 py-3 text-base"
+            className="bg-[#F1F1EF] rounded-md px-3 py-3.5 text-sm text-[#37352F]"
           />
           <TextInput
             value={password}
             onChangeText={setPassword}
             placeholder="Password"
+            placeholderTextColor="#AFAFAD"
             secureTextEntry
             autoCapitalize="none"
-            className="border border-stroke-subtle rounded-xl px-4 py-3 text-base"
+            className="bg-[#F1F1EF] rounded-md px-3 py-3.5 text-sm text-[#37352F]"
           />
         </View>
 
-        {error && <Text className="text-danger text-sm mb-4">{error}</Text>}
+        {error ? (
+          <Text className="text-danger text-sm mb-4">{error}</Text>
+        ) : null}
 
         <Pressable
           onPress={onSignUp}
-          className="bg-primary rounded-xl py-4 items-center mb-4 active:opacity-80"
+          className="bg-[#37352F] rounded-md py-3.5 items-center mb-6 active:opacity-75"
         >
-          <Text className="text-white font-semibold text-base">Sign Up</Text>
+          <Text className="text-white font-medium text-sm">Continue</Text>
         </Pressable>
 
-        <Link
-          href="/sign-in"
-          className="text-center text-sm text-shadow-strong"
-        >
-          Already have an account?{" "}
-          <Text className="text-primary font-medium">Sign in</Text>
-        </Link>
+        <View className="flex-row justify-center">
+          <Text className="text-sm text-[#787774]">Already have an account? </Text>
+          <Link href="/sign-in" className="text-sm text-[#37352F] font-medium">
+            Log in
+          </Link>
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );
