@@ -45,12 +45,7 @@ describe("guest UI helpers", () => {
         room_number: 401,
       };
 
-      render(
-        <GuestQuickListTable
-          guests={[guest]}
-          onGuestClick={() => {}}
-        />,
-      );
+      render(<GuestQuickListTable guests={[guest]} onGuestClick={() => {}} />);
 
       expect(screen.getByText("Floor 4, Suite 401")).not.toBe(null);
     });
@@ -66,9 +61,7 @@ describe("guest UI helpers", () => {
         room_number: 301,
       };
 
-      render(
-        <GuestQuickListTable guests={[guest]} onGuestClick={() => {}} />,
-      );
+      render(<GuestQuickListTable guests={[guest]} onGuestClick={() => {}} />);
 
       expect(screen.getByText("Xinning Liu")).not.toBe(null);
       expect(screen.getByText("(Lucy)")).not.toBe(null);

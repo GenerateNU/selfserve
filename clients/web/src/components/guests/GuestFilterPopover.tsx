@@ -118,7 +118,9 @@ export function GuestFilterPopover({
                       selected={pendingFloor === String(floor)}
                       onClick={() =>
                         setPendingFloor(
-                          pendingFloor === String(floor) ? "all" : String(floor),
+                          pendingFloor === String(floor)
+                            ? "all"
+                            : String(floor),
                         )
                       }
                     />
