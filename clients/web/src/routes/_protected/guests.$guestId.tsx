@@ -1,6 +1,6 @@
 import {
   ApiError,
-  useGetApiV1GuestsStaysId,
+  useGetGuestsStaysId,
   usePutApiV1GuestsId,
 } from "@shared";
 import { Link, createFileRoute } from "@tanstack/react-router";
@@ -24,7 +24,7 @@ function GuestProfilePage() {
     isError,
     error,
     refetch,
-  } = useGetApiV1GuestsStaysId(guestId);
+  } = useGetGuestsStaysId(guestId);
   const updateGuest = usePutApiV1GuestsId();
 
   const handleSaveNotes = async (notes: string) => {

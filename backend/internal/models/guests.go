@@ -79,7 +79,7 @@ const (
 )
 
 type GuestFilters struct {
-	HotelID     string             `json:"hotel_id"     validate:"required,startswith=org_"`
+	HotelID     string             `json:"hotel_id"     validate:"required,startswith=org_" swaggerignore:"true"`
 	Status      []BookingStatus    `json:"status"       validate:"omitempty,dive,oneof=active inactive"`
 	BookingSort GuestSortOrder     `json:"booking_sort" validate:"omitempty,oneof=high_to_low low_to_high"`
 	RequestSort RequestSortOrder   `json:"request_sort" validate:"omitempty,oneof=high_to_low low_to_high urgent"`
