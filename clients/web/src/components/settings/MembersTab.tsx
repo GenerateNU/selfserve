@@ -164,11 +164,11 @@ function MemberRow({ member, onRoleChange, onSelect }: MemberRowProps) {
         <button
           type="button"
           onClick={() => onSelect(member)}
-          className="inline-flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-bg-selected transition-colors cursor-pointer"
+          className="group inline-flex items-center gap-2.5 cursor-pointer"
         >
           <MemberAvatar member={member} />
           <div className="min-w-0 text-left">
-            <p className="truncate text-sm font-medium text-text-default leading-tight">
+            <p className="truncate text-sm font-medium text-text-default leading-tight group-hover:underline">
               {member.name}
             </p>
             <p className="truncate text-xs text-text-subtle">{member.email}</p>
@@ -242,7 +242,7 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
 
       {/* Column headers — same grid as rows */}
       <div className={cn(ROW_GRID, "pb-1.5 border-b border-stroke-subtle")}>
-        <p className="pl-2 text-xs font-medium text-text-subtle">User</p>
+        <p className="text-xs font-medium text-text-subtle">User</p>
         <p className="text-xs font-medium text-text-subtle">Department</p>
         <p className="text-xs font-medium text-text-subtle">Joined</p>
         <p className="pl-2 text-xs font-medium text-text-subtle">Role</p>
