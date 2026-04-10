@@ -16,7 +16,7 @@ import {
 type Role = "Admin" | "Member";
 
 type UserPage = {
-  users: Array<User>;
+  users: Array<User> | null;
   next_cursor: string;
 };
 
@@ -201,7 +201,8 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   });
 
   const allMembers =
-    membersPages?.pages.flatMap((page) => page.users.map(toMember)) ?? [];
+    membersPages?.pages.flatMap((page) => (page.users ?? []).map(toMember)) ??
+    [];
 
   return (
     <div>
