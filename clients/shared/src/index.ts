@@ -6,6 +6,19 @@ export type { Config } from "./api/config";
 // config functions
 export { setConfig, getConfig } from "./api/config";
 
+export { getExtFromMime } from "./utils";
+export {
+  getProfilePicture,
+  getUploadUrl,
+  saveProfilePictureKey,
+  deleteProfilePicture,
+  uploadFileToS3,
+} from "./api/profile-picture";
+export type {
+  UploadUrlResponse,
+  ProfilePictureResponse,
+} from "./api/profile-picture";
+
 // Generated Types - Models
 export { MakeRequestPriority } from "./api/generated/models";
 
@@ -32,7 +45,7 @@ export {
 export {
   usePostRequest,
   usePostRequestGenerate,
-  useGetRequestRoomId,
+  useGetRequestGuestId,
 } from "./api/generated/endpoints/requests/requests";
 
 export {
@@ -64,7 +77,6 @@ export type {
   RoomWithOptionalGuestBooking,
   FilterRoomsRequest,
   GuestRequest,
-  RoomRequestsResponse,
 } from "./api/generated/models";
 
 // Notification types and hooks

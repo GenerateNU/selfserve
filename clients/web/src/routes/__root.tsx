@@ -64,15 +64,16 @@ export const Route = createRootRoute({
 
 // Component to configure auth provider and the api base url
 function AppConfigurator() {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const { organization } = useOrganization();
   const hotelId = organization?.publicMetadata.hotel_id;
-
   const navigate = useNavigate();
 
-  if (!hotelId) {
-    navigate({ to: "/no-org" });
-  }
+  useEffect(() => {
+    if (isSignedIn && !hotelId) {
+      navigate({ to: "/no-org" });
+    }
+  }, [hotelId, isSignedIn, navigate]);
 
   useEffect(() => {
     setConfig({
@@ -80,7 +81,7 @@ function AppConfigurator() {
       getToken,
       hotelId: hotelId as string,
     });
-  }, [getToken]);
+  }, [getToken, hotelId]);
 
   return null;
 }
