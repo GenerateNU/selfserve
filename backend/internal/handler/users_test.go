@@ -439,7 +439,7 @@ func TestUsersHandler_UpdateProfilePicture(t *testing.T) {
 			},
 		}
 
-		app := fiber.New()
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewUsersHandler(mock, &mockS3Storage{})
 		app.Put("/users/:userId/profile-picture", h.UpdateProfilePicture)
 

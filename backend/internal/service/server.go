@@ -17,11 +17,10 @@ import (
 
 	"github.com/generate/selfserve/internal/service/clerk"
 	notificationssvc "github.com/generate/selfserve/internal/service/notifications"
-	"github.com/generate/selfserve/internal/storage/redis"
-
 	s3storage "github.com/generate/selfserve/internal/service/s3"
 	opensearchstorage "github.com/generate/selfserve/internal/service/storage/opensearch"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	"github.com/generate/selfserve/internal/storage/redis"
 	"github.com/generate/selfserve/internal/validation"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -43,8 +42,6 @@ type App struct {
 
 func InitApp(cfg *config.Config) (*App, error) {
 	validation.Init()
-
-	// Init DB/repository(ies)
 
 	repo, err := storage.NewRepository(cfg.DB)
 	if err != nil {
@@ -68,7 +65,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, openSearchRepos); err != nil { //nolint:wsl
+	if err = setupRoutes(app, repo, genkitInstance, cfg, s3Store, openSearchRepos); err != nil {
 		if e := repo.Close(); e != nil {
 			return nil, errors.Join(err, e)
 		}

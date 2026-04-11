@@ -96,7 +96,7 @@ func (h *S3Handler) GetUploadURL(c *fiber.Ctx) error {
 // @Tags         s3
 // @Accept       json
 // @Produce      json
-// @Param        key  path  string  true  "File key (full path after /presigned-url/)"
+// @Param        key  path  string  true  "File key (full path after /presigned-get-url/)"
 // @Success      200  {string}  string  "Presigned URL"
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
