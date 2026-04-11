@@ -79,6 +79,20 @@ export type {
   GuestRequest,
 } from "./api/generated/models";
 
+// User hooks
+export { getUserQueryKey, useGetUser, useUpdateUser } from "./api/users";
+
+// Department types and hooks
+export type { Department } from "./types/departments";
+
+export {
+  getDepartmentsQueryKey,
+  useGetDepartments,
+  useCreateDepartment,
+  useUpdateDepartment,
+  useDeleteDepartment,
+} from "./api/departments";
+
 // Notification types and hooks
 export type {
   Notification,

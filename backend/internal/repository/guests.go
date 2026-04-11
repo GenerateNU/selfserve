@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"iter"
+	"strings"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -290,8 +291,17 @@ func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*mod
 }
 
 func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
-	floorsFilter := filters.Floors
-	groupSizesFilter := filters.GroupSize
+	var statusFilter []string
+	for _, s := range filters.Status {
+		statusFilter = append(statusFilter, string(s))
+	}
+
+	var assistanceFilter []string
+	for _, a := range filters.Assistance {
+		assistanceFilter = append(assistanceFilter, string(a))
+	}
+
+	orderBy := buildGuestOrderBy(filters)
 
 	rows, err := r.db.Query(ctx, `
 	WITH guest_data AS (
@@ -305,29 +315,50 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 			r.room_number,
 			gb.group_size,
 			gb.hotel_id,
-			gb.status
+			gb.status,
+			g.assistance,
+			COUNT(req.id) AS request_count,
+			BOOL_OR(req.priority = 'high') AS has_urgent
 		FROM guest_bookings gb
 		JOIN guests g ON g.id = gb.guest_id
 		JOIN rooms r ON r.id = gb.room_id
+		LEFT JOIN requests req ON req.guest_id = g.id AND req.hotel_id = $1
+		GROUP BY g.id, g.first_name, g.last_name, g.preferences, r.floor, r.room_number, gb.group_size, gb.hotel_id, gb.status, g.assistance
 	)
 	SELECT id, first_name, last_name, preferred_name, floor, room_number, group_size
 	FROM guest_data
 	WHERE hotel_id = $1
-		AND status = 'active'
-		AND ($2::int[] IS NULL OR floor = ANY($2))
-		AND ($3::int[] IS NULL OR group_size = ANY($3))
-		AND (
-			$4::text = ''
-			OR full_name ILIKE '%' || $4 || '%'
-			OR room_number::text ILIKE '%' || $4 || '%'
-		)
+		AND ($2::text[] IS NULL OR status = ANY($2))
+		AND ($3::int[] IS NULL OR floor = ANY($3))
+		AND ($4::int[] IS NULL OR group_size = ANY($4))
 		AND (
 			$5::text = ''
-			OR (full_name, id::text) > ($5::text, $6::text)
+			OR full_name ILIKE '%' || $5 || '%'
+			OR room_number::text ILIKE '%' || $5 || '%'
 		)
-	ORDER BY full_name ASC, id ASC
-	LIMIT $7`,
-		filters.HotelID, floorsFilter, groupSizesFilter, filters.Search, filters.CursorName, filters.CursorID, filters.Limit+1,
+		AND (
+			$6::text = ''
+			OR (full_name, id::text) > ($6::text, $7::text)
+		)
+		AND (
+			$8::text[] IS NULL
+			OR (
+				('accessibility' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'accessibility', '[]'::jsonb)) > 0)
+				OR ('dietary' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'dietary', '[]'::jsonb)) > 0)
+				OR ('medical' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'medical', '[]'::jsonb)) > 0)
+			)
+		)
+	ORDER BY `+orderBy+`
+	LIMIT $9`,
+		filters.HotelID,
+		statusFilter,
+		filters.Floors,
+		filters.GroupSize,
+		filters.Search,
+		filters.CursorName,
+		filters.CursorID,
+		assistanceFilter,
+		filters.Limit+1,
 	)
 	if err != nil {
 		return nil, err
@@ -360,4 +391,28 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 		Data:       guests,
 		NextCursor: nextCursor,
 	}, nil
+}
+
+func buildGuestOrderBy(filters *models.GuestFilters) string {
+	var parts []string
+
+	switch filters.RequestSort {
+	case models.RequestSortUrgent:
+		parts = append(parts, "has_urgent DESC")
+	case models.RequestSortHighToLow:
+		parts = append(parts, "request_count DESC")
+	case models.RequestSortLowToHigh:
+		parts = append(parts, "request_count ASC")
+	}
+
+	switch filters.FloorSort {
+	case models.FloorSortAscending:
+		parts = append(parts, "floor ASC")
+	case models.FloorSortDescending:
+		parts = append(parts, "floor DESC")
+	}
+
+	parts = append(parts, "full_name ASC", "id ASC")
+
+	return strings.Join(parts, ", ")
 }

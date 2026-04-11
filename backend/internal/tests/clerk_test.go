@@ -55,6 +55,18 @@ func (m *mockUsersRepositoryClerk) SearchUsersByHotel(ctx context.Context, hotel
 	return nil, "", nil
 }
 
+func (m *mockUsersRepositoryClerk) GetUsersByHotel(ctx context.Context, hotelID, cursor string, limit int) ([]*models.User, string, error) {
+	return nil, "", nil
+}
+
+func (m *mockUsersRepositoryClerk) AddEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error {
+	return nil
+}
+
+func (m *mockUsersRepositoryClerk) RemoveEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error {
+	return nil
+}
+
 var _ storage.UsersRepository = (*mockUsersRepositoryClerk)(nil)
 
 type mockHotelsRepositoryClerk struct {
@@ -73,6 +85,22 @@ func (m *mockHotelsRepositoryClerk) InsertHotel(ctx context.Context, hotel *mode
 		return m.insertHotelFunc(ctx, hotel)
 	}
 	return nil, nil
+}
+
+func (m *mockHotelsRepositoryClerk) GetDepartmentsByHotelID(ctx context.Context, hotelID string) ([]*models.Department, error) {
+	return nil, nil
+}
+
+func (m *mockHotelsRepositoryClerk) InsertDepartment(ctx context.Context, hotelID, name string) (*models.Department, error) {
+	return nil, nil
+}
+
+func (m *mockHotelsRepositoryClerk) UpdateDepartment(ctx context.Context, id, hotelID, name string) (*models.Department, error) {
+	return nil, nil
+}
+
+func (m *mockHotelsRepositoryClerk) DeleteDepartment(ctx context.Context, id, hotelID string) error {
+	return nil
 }
 
 var _ storage.HotelsRepository = (*mockHotelsRepositoryClerk)(nil)
