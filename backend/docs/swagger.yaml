@@ -66,6 +66,22 @@ definitions:
         example: America/New_York
         type: string
     type: object
+  Department:
+    properties:
+      created_at:
+        type: string
+      hotel_id:
+        example: org_2abc123
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Housekeeping
+        type: string
+      updated_at:
+        type: string
+    type: object
   Dev:
     properties:
       created_at:
@@ -158,8 +174,24 @@ definitions:
     type: object
   GuestFilters:
     properties:
+      assistance:
+        items:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.AssistanceFilter'
+        type: array
+      booking_sort:
+        allOf:
+        - $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestSortOrder'
+        enum:
+        - high_to_low
+        - low_to_high
       cursor:
         type: string
+      floor_sort:
+        allOf:
+        - $ref: '#/definitions/github_com_generate_selfserve_internal_models.FloorSortOrder'
+        enum:
+        - ascending
+        - descending
       floors:
         items:
           type: integer
@@ -174,8 +206,19 @@ definitions:
         maximum: 100
         minimum: 1
         type: integer
+      request_sort:
+        allOf:
+        - $ref: '#/definitions/github_com_generate_selfserve_internal_models.RequestSortOrder'
+        enum:
+        - high_to_low
+        - low_to_high
+        - urgent
       search:
         type: string
+      status:
+        items:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
+        type: array
     required:
     - hotel_id
     type: object
@@ -590,12 +633,31 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
     type: object
+  UserPage:
+    properties:
+      next_cursor:
+        type: string
+      users:
+        items:
+          $ref: '#/definitions/User'
+        type: array
+    type: object
   github_com_generate_selfserve_internal_errs.HTTPError:
     properties:
       code:
         type: integer
       message: {}
     type: object
+  github_com_generate_selfserve_internal_models.AssistanceFilter:
+    enum:
+    - accessibility
+    - dietary
+    - medical
+    type: string
+    x-enum-varnames:
+    - AssistanceAccessibility
+    - AssistanceDietary
+    - AssistanceMedical
   github_com_generate_selfserve_internal_models.BookingStatus:
     enum:
     - active
@@ -604,6 +666,27 @@ definitions:
     x-enum-varnames:
     - BookingStatusActive
     - BookingStatusInactive
+  github_com_generate_selfserve_internal_models.CreateDepartment:
+    properties:
+      name:
+        type: string
+    type: object
+  github_com_generate_selfserve_internal_models.FloorSortOrder:
+    enum:
+    - ascending
+    - descending
+    type: string
+    x-enum-varnames:
+    - FloorSortAscending
+    - FloorSortDescending
+  github_com_generate_selfserve_internal_models.GuestSortOrder:
+    enum:
+    - high_to_low
+    - low_to_high
+    type: string
+    x-enum-varnames:
+    - GuestSortHighToLow
+    - GuestSortLowToHigh
   github_com_generate_selfserve_internal_models.NotificationType:
     enum:
     - task_assigned
@@ -612,6 +695,21 @@ definitions:
     x-enum-varnames:
     - TypeTaskAssigned
     - TypeHighPriorityTask
+  github_com_generate_selfserve_internal_models.RequestSortOrder:
+    enum:
+    - high_to_low
+    - low_to_high
+    - urgent
+    type: string
+    x-enum-varnames:
+    - RequestSortHighToLow
+    - RequestSortLowToHigh
+    - RequestSortUrgent
+  github_com_generate_selfserve_internal_models.UpdateDepartment:
+    properties:
+      name:
+        type: string
+    type: object
   github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
     properties:
       has_more:
@@ -622,6 +720,20 @@ definitions:
         type: array
       next_cursor:
         description: nil when no more pages
+        type: string
+    type: object
+  internal_handler.AddEmployeeDepartmentBody:
+    properties:
+      department_id:
+        type: string
+    type: object
+  internal_handler.SearchUsersBody:
+    properties:
+      cursor:
+        type: string
+      hotel_id:
+        type: string
+      q:
         type: string
     type: object
   internal_handler.UpdateProfilePictureRequest:
@@ -644,199 +756,6 @@ info:
   title: SelfServe API
   version: "1.0"
 paths:
-  /api/v1/guests:
-    post:
-      consumes:
-      - application/json
-      description: Retrieves guests optionally filtered by floor
-      parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
-      - description: Guest filters
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/GuestFilters'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/GuestPage'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get Guests
-      tags:
-      - guests
-  /api/v1/guests/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a single guest given an id
-      parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Guest'
-        "400":
-          description: Invalid guest ID format
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Guest not found
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Gets a guest
-      tags:
-      - guests
-    put:
-      consumes:
-      - application/json
-      description: Updates fields on a guest
-      parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Guest update data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/UpdateGuest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Guest'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Updates a guest
-      tags:
-      - guests
-  /api/v1/hotels:
-    post:
-      consumes:
-      - application/json
-      description: Create a new hotel with the given data
-      parameters:
-      - description: Hotel data
-        in: body
-        name: hotel
-        required: true
-        schema:
-          $ref: '#/definitions/Hotel'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/Hotel'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Create hotel
-      tags:
-      - hotels
-  /api/v1/hotels/{id}:
-    get:
-      description: Retrieve a hotel's details using its UUID
-      parameters:
-      - description: Hotel ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Hotel'
-        "400":
-          description: Invalid hotel ID format
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "404":
-          description: Hotel not found
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-      security:
-      - BearerAuth: []
-      summary: Get hotel by ID
-      tags:
-      - hotels
   /device-tokens:
     post:
       consumes:
@@ -921,6 +840,168 @@ paths:
       summary: Get available group size options
       tags:
       - guest-bookings
+  /guests:
+    post:
+      consumes:
+      - application/json
+      description: Creates a guest with the given data
+      parameters:
+      - description: Guest data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateGuest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Guest'
+        "400":
+          description: Invalid guest body format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Creates a guest
+      tags:
+      - guests
+  /guests/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single guest given an id
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Guest'
+        "400":
+          description: Invalid guest ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Guest not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Gets a guest
+      tags:
+      - guests
+    put:
+      consumes:
+      - application/json
+      description: Updates fields on a guest
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Guest update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateGuest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Guest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Updates a guest
+      tags:
+      - guests
+  /guests/search:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves guests optionally filtered by floor
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Guest filters
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/GuestFilters'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GuestPage'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Guests
+      tags:
+      - guests
   /guests/stays/{id}:
     get:
       consumes:
@@ -1000,6 +1081,221 @@ paths:
       summary: Get personalized hello message
       tags:
       - hello
+  /hotels:
+    post:
+      consumes:
+      - application/json
+      description: Create a new hotel with the given data
+      parameters:
+      - description: Hotel data
+        in: body
+        name: hotel
+        required: true
+        schema:
+          $ref: '#/definitions/Hotel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/Hotel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create hotel
+      tags:
+      - hotels
+  /hotels/{id}:
+    get:
+      description: Retrieve a hotel's details using its UUID
+      parameters:
+      - description: Hotel ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Hotel'
+        "400":
+          description: Invalid hotel ID format
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Hotel not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get hotel by ID
+      tags:
+      - hotels
+  /hotels/{id}/departments:
+    get:
+      description: Returns all departments for a hotel
+      parameters:
+      - description: Hotel ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Department'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get departments by hotel
+      tags:
+      - hotels
+    post:
+      consumes:
+      - application/json
+      description: Adds a new department to a hotel
+      parameters:
+      - description: Hotel ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Department data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.CreateDepartment'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/Department'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create department
+      tags:
+      - hotels
+  /hotels/{id}/departments/{deptId}:
+    delete:
+      description: Removes a department from a hotel
+      parameters:
+      - description: Hotel ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Department ID
+        in: path
+        name: deptId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete department
+      tags:
+      - hotels
+    put:
+      consumes:
+      - application/json
+      description: Renames a department
+      parameters:
+      - description: Hotel ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Department ID
+        in: path
+        name: deptId
+        required: true
+        type: string
+      - description: Department data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_generate_selfserve_internal_models.UpdateDepartment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Department'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update department
+      tags:
+      - hotels
   /hotels/{id}/users:
     get:
       description: Returns a paginated list of all users for a hotel
@@ -1498,46 +1794,6 @@ paths:
       tags:
       - s3
   /users:
-    get:
-      consumes:
-      - application/json
-      description: Returns a paginated list of users for a hotel, optionally filtered
-        by name
-      parameters:
-      - description: Hotel UUID
-        in: query
-        name: hotel_id
-        required: true
-        type: string
-      - description: Pagination cursor (last seen user ID)
-        in: query
-        name: cursor
-        type: string
-      - description: Name search query
-        in: query
-        name: q
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-      security:
-      - BearerAuth: []
-      summary: Search users by hotel
-      tags:
-      - users
     post:
       consumes:
       - application/json
@@ -1652,6 +1908,76 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user
+      tags:
+      - users
+  /users/{id}/departments:
+    post:
+      consumes:
+      - application/json
+      description: Creates a row in employee_departments linking the user to a department
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Department to add
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.AddEmployeeDepartmentBody'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Add department to employee
+      tags:
+      - users
+  /users/{id}/departments/{deptId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a row from employee_departments unlinking the user from
+        a department
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Department ID
+        in: path
+        name: deptId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Remove department from employee
       tags:
       - users
   /users/{userId}/profile-picture:
@@ -1769,6 +2095,39 @@ paths:
               type: string
             type: object
       summary: Update user's profile picture
+      tags:
+      - users
+  /users/search:
+    post:
+      consumes:
+      - application/json
+      description: Returns a paginated list of users for a hotel, optionally filtered
+        by name. Cursor is the last seen user ID.
+      parameters:
+      - description: Search params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.SearchUsersBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/UserPage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Search users by hotel
       tags:
       - users
 schemes:
