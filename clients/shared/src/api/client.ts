@@ -10,11 +10,7 @@ export const createRequest = (
 ) => {
   return async <T>(config: RequestConfig): Promise<T> => {
     const hotelId = getConfig().hotelId;
-    const normalizedUrl =
-      baseUrl.endsWith("/api/v1") && config.url.startsWith("/api/v1/")
-        ? config.url.replace(/^\/api\/v1/, "")
-        : config.url;
-    let fullUrl = `${baseUrl}${normalizedUrl}`;
+    let fullUrl = `${baseUrl}${config.url}`;
     if (config.params && Object.keys(config.params).length > 0) {
       const searchParams = new URLSearchParams(config.params);
       fullUrl += "?" + searchParams.toString();
