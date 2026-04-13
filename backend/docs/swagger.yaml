@@ -759,275 +759,6 @@ info:
   title: SelfServe API
   version: "1.0"
 paths:
-  /api/v1/guests:
-    post:
-      consumes:
-      - application/json
-      description: Creates a guest with the given data
-      parameters:
-      - description: Guest data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/CreateGuest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Guest'
-        "400":
-          description: Invalid guest body format
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Creates a guest
-      tags:
-      - guests
-  /api/v1/guests/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a single guest given an id
-      parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Guest'
-        "400":
-          description: Invalid guest ID format
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Guest not found
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Gets a guest
-      tags:
-      - guests
-    put:
-      consumes:
-      - application/json
-      description: Updates fields on a guest
-      parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Guest update data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/UpdateGuest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Guest'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Updates a guest
-      tags:
-      - guests
-  /api/v1/guests/search:
-    post:
-      consumes:
-      - application/json
-      description: Retrieves guests optionally filtered by floor
-      parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
-      - description: Guest filters
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/GuestFilters'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/GuestPage'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get Guests
-      tags:
-      - guests
-  /api/v1/guests/stays/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a single guest with previous stays given an id
-      operationId: getGuestsStaysId
-      parameters:
-      - description: Guest ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/GuestWithStays'
-        "400":
-          description: Invalid guest ID format
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Guest not found
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Gets a guest with previous stays
-      tags:
-      - guests
-  /api/v1/hotels:
-    post:
-      consumes:
-      - application/json
-      description: Create a new hotel with the given data
-      parameters:
-      - description: Hotel data
-        in: body
-        name: hotel
-        required: true
-        schema:
-          $ref: '#/definitions/Hotel'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/Hotel'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Create hotel
-      tags:
-      - hotels
-  /api/v1/hotels/{id}:
-    get:
-      description: Retrieve a hotel's details using its UUID
-      parameters:
-      - description: Hotel ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Hotel'
-        "400":
-          description: Invalid hotel ID format
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "404":
-          description: Hotel not found
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
-      security:
-      - BearerAuth: []
-      summary: Get hotel by ID
-      tags:
-      - hotels
   /device-tokens:
     post:
       consumes:
@@ -1112,6 +843,208 @@ paths:
       summary: Get available group size options
       tags:
       - guest-bookings
+  /guests:
+    post:
+      consumes:
+      - application/json
+      description: Creates a guest with the given data
+      parameters:
+      - description: Guest data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateGuest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Guest'
+        "400":
+          description: Invalid guest body format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Creates a guest
+      tags:
+      - guests
+  /guests/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single guest given an id
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Guest'
+        "400":
+          description: Invalid guest ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Guest not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Gets a guest
+      tags:
+      - guests
+    put:
+      consumes:
+      - application/json
+      description: Updates fields on a guest
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Guest update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateGuest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Guest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Updates a guest
+      tags:
+      - guests
+  /guests/search:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves guests optionally filtered by floor
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Guest filters
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/GuestFilters'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GuestPage'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Guests
+      tags:
+      - guests
+  /guests/stays/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single guest with previous stays given an id
+      operationId: getGuestsStaysId
+      parameters:
+      - description: Guest ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GuestWithStays'
+        "400":
+          description: Invalid guest ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Guest not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Gets a guest with previous stays
+      tags:
+      - guests
   /hello:
     get:
       consumes:
@@ -1152,6 +1085,73 @@ paths:
       summary: Get personalized hello message
       tags:
       - hello
+  /hotels:
+    post:
+      consumes:
+      - application/json
+      description: Create a new hotel with the given data
+      parameters:
+      - description: Hotel data
+        in: body
+        name: hotel
+        required: true
+        schema:
+          $ref: '#/definitions/Hotel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/Hotel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create hotel
+      tags:
+      - hotels
+  /hotels/{id}:
+    get:
+      description: Retrieve a hotel's details using its UUID
+      parameters:
+      - description: Hotel ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Hotel'
+        "400":
+          description: Invalid hotel ID format
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Hotel not found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get hotel by ID
+      tags:
+      - hotels
   /hotels/{id}/departments:
     get:
       description: Returns all departments for a hotel

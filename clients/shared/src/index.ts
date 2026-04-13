@@ -41,17 +41,17 @@ export {
 } from "./api/generated/endpoints/users/users";
 
 export {
-  usePostApiV1Hotels,
-  useGetApiV1HotelsId,
+  usePostHotels,
+  useGetHotelsId,
 } from "./api/generated/endpoints/hotels/hotels";
 
 export { useGetDevsName } from "./api/generated/endpoints/devs/devs";
 
 export {
-  usePostApiV1Guests,
-  useGetApiV1GuestsId,
-  usePutApiV1GuestsId,
-  usePostApiV1GuestsSearchHook,
+  usePostGuests,
+  useGetGuestsId,
+  usePutGuestsId,
+  usePostGuestsSearchHook,
   useGetGuestsStaysId,
 } from "./api/generated/endpoints/guests/guests";
 
