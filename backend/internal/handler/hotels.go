@@ -42,7 +42,7 @@ func NewHotelsHandler(repo HotelsRepository, usersRepo storage.UsersRepository) 
 // @Failure      404  {object}  errs.HTTPError  "Hotel not found"
 // @Failure      500  {object}  errs.HTTPError  "Internal server error"
 // @Security     BearerAuth
-// @Router       /api/v1/hotels/{id} [get]
+// @Router       /hotels/{id} [get]
 func (h *HotelsHandler) GetHotelByID(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 
@@ -241,7 +241,7 @@ func (h *HotelsHandler) DeleteDepartment(c *fiber.Ctx) error {
 // @Failure      400    {object}  map[string]string
 // @Failure      500    {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /api/v1/hotels [post]
+// @Router       /hotels [post]
 func (h *HotelsHandler) CreateHotel(c *fiber.Ctx) error {
 	var hotelRequest models.CreateHotelRequest
 
