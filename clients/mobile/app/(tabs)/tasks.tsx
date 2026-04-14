@@ -1,43 +1,33 @@
+import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActiveFilterChips } from "@/components/tasks/active-filter-chips";
 import { TabBar } from "@/components/tasks/tab-bar";
 import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
-import { TAB, TabName, TASK_ASSIGNMENT_STATE } from "@/constants/tasks";
-import { myTasks, unassignedTasks } from "@/data/mockTasks";
-
-const tabConfigs: Record<
-  TabName,
-  {
-    tasks: typeof myTasks;
-    variant: (typeof TASK_ASSIGNMENT_STATE)[keyof typeof TASK_ASSIGNMENT_STATE];
-    showFilters: boolean;
-  }
-> = {
-  [TAB.MY_TASKS]: {
-    tasks: myTasks,
-    variant: TASK_ASSIGNMENT_STATE.ASSIGNED,
-    showFilters: false,
-  },
-  [TAB.UNASSIGNED]: {
-    tasks: unassignedTasks,
-    variant: TASK_ASSIGNMENT_STATE.UNASSIGNED,
-    showFilters: true,
-  },
-};
+import { TAB, TabName } from "@/constants/tasks";
+import { useGetRequestsFeed } from "@shared/api/requests";
 
 export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
-  const currentTab = tabConfigs[activeTab];
+  const { userId } = useAuth();
+
+  const myTasksQuery = useGetRequestsFeed({ userId: userId ?? undefined });
+  const myTaskItems = myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
+
+  function handleEndReached() {
+    if (myTasksQuery.hasNextPage && !myTasksQuery.isFetchingNextPage) {
+      myTasksQuery.fetchNextPage();
+    }
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg-surface" edges={["top"]}>
       <TasksHeader />
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-      {currentTab.showFilters && (
+      {activeTab === TAB.UNASSIGNED && (
         <ActiveFilterChips
           filters={[
             { label: "Department: Room Service", value: "room-service" },
@@ -47,7 +37,19 @@ export default function TasksScreen() {
         />
       )}
       <View className="flex-1">
-        <TaskList tasks={currentTab.tasks} variant={currentTab.variant} />
+        {activeTab === TAB.MY_TASKS && (
+          myTasksQuery.isLoading ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator />
+            </View>
+          ) : (
+            <TaskList
+              tasks={myTaskItems}
+              onEndReached={handleEndReached}
+              isLoadingMore={myTasksQuery.isFetchingNextPage}
+            />
+          )
+        )}
       </View>
     </SafeAreaView>
   );
