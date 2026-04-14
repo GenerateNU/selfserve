@@ -6,6 +6,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { View, Text } from "react-native";
+import { StartupStatus, useStartup } from "@/context/startup";
 
 type TabBarIconProps = {
   name: React.ComponentProps<typeof IconSymbol>["name"];
@@ -27,7 +28,7 @@ const TabBarIcon = ({ name, focused, activeColor, label }: TabBarIconProps) => (
 );
 
 const PlusButton = () => (
-  <View className="bg-primary rounded-full w-14 h-14 items-center justify-center -mb-2">
+  <View className="bg-primary rounded-full size-16 items-center justify-center mb-6">
     <IconSymbol size={22} name="plus" color={Colors["light"].background} />
   </View>
 );
@@ -35,6 +36,8 @@ const PlusButton = () => (
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const c = Colors[colorScheme ?? "light"];
+  const status = useStartup();
+  if (status !== StartupStatus.Ready) return null;
 
   return (
     <Tabs
@@ -45,10 +48,12 @@ export default function TabLayout() {
         tabBarActiveTintColor: c.tabBarActive,
         tabBarInactiveTintColor: c.tabBarActive,
         tabBarItemStyle: {
-          paddingVertical: 10,
+          paddingVertical: 0,
         },
         tabBarStyle: {
-          height: 70,
+          paddingTop: 8,
+          paddingHorizontal: 20,
+          height: 68,
         },
       }}
     >

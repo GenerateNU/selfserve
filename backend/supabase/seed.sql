@@ -200,6 +200,8 @@ SELECT
   '2026-03-03'::timestamptz + (i || ' hours')::interval,
   '2026-03-03'::timestamptz + (i || ' hours')::interval
 FROM generate_series(1, 100) AS i
+ON CONFLICT (id, request_version) DO NOTHING;
+
 -- Requests
 --   Mix of statuses and priorities across occupied rooms (102, 202, 303)
 --   and unoccupied rooms to test filtering.

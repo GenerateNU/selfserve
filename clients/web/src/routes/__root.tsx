@@ -1,17 +1,11 @@
-import {
-  HeadContent,
-  Scripts,
-  createRootRoute,
-  useNavigate,
-} from "@tanstack/react-router";
+import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import { ClerkProvider, useAuth, useOrganization } from "@clerk/clerk-react";
+import { ClerkProvider } from "@clerk/clerk-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { setConfig } from "@shared";
-import { useEffect } from "react";
 import appCss from "../styles.css?url";
+import { StartupProvider } from "@/context/startup";
 
 // Client explicity created outside the component to avoid recreation
 const queryClient = new QueryClient({
@@ -62,30 +56,6 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
-// Component to configure auth provider and the api base url
-function AppConfigurator() {
-  const { getToken } = useAuth();
-  const { organization } = useOrganization();
-  const hotelId = organization?.publicMetadata.hotel_id;
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!hotelId) {
-      navigate({ to: "/no-org" });
-      return;
-    }
-
-    setConfig({
-      API_BASE_URL: process.env.API_BASE_URL ?? "",
-      getToken,
-      hotelId: hotelId as string,
-    });
-  }, [getToken, hotelId, navigate]);
-
-  return null;
-}
-
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -108,9 +78,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             import.meta.env.VITE_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL ?? "/home"
           }
         >
-          <AppConfigurator />
           <QueryClientProvider client={queryClient}>
-            {children}
+            <StartupProvider>{children}</StartupProvider>
             <ReactQueryDevtools initialIsOpen={false} />
           </QueryClientProvider>
         </ClerkProvider>

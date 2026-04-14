@@ -48,15 +48,50 @@ type Guest struct {
 	CreateGuest
 } //@name Guest
 
+type GuestSortOrder string
+
+const (
+	GuestSortHighToLow GuestSortOrder = "high_to_low"
+	GuestSortLowToHigh GuestSortOrder = "low_to_high"
+)
+
+type RequestSortOrder string
+
+const (
+	RequestSortHighToLow RequestSortOrder = "high_to_low"
+	RequestSortLowToHigh RequestSortOrder = "low_to_high"
+	RequestSortUrgent    RequestSortOrder = "urgent"
+)
+
+type FloorSortOrder string
+
+const (
+	FloorSortAscending  FloorSortOrder = "ascending"
+	FloorSortDescending FloorSortOrder = "descending"
+)
+
+type AssistanceFilter string
+
+const (
+	AssistanceAccessibility AssistanceFilter = "accessibility"
+	AssistanceDietary       AssistanceFilter = "dietary"
+	AssistanceMedical       AssistanceFilter = "medical"
+)
+
 type GuestFilters struct {
-	HotelID    string `json:"hotel_id" validate:"required,uuid"`
-	Floors     []int  `json:"floors"`
-	GroupSize  []int  `json:"group_size"`
-	Search     string `json:"search"`
-	Cursor     string `json:"cursor"`
-	CursorName string `json:"-"`
-	CursorID   string `json:"-"`
-	Limit      int    `json:"limit" validate:"omitempty,min=1,max=100"`
+	HotelID     string             `json:"hotel_id"     validate:"required,startswith=org_" swaggerignore:"true"`
+	Status      []BookingStatus    `json:"status"       validate:"omitempty,dive,oneof=active inactive"`
+	BookingSort GuestSortOrder     `json:"booking_sort" validate:"omitempty,oneof=high_to_low low_to_high"`
+	RequestSort RequestSortOrder   `json:"request_sort" validate:"omitempty,oneof=high_to_low low_to_high urgent"`
+	FloorSort   FloorSortOrder     `json:"floor_sort"   validate:"omitempty,oneof=ascending descending"`
+	Floors      []int              `json:"floors"`
+	GroupSize   []int              `json:"group_size"`
+	Search      string             `json:"search"`
+	Cursor      string             `json:"cursor"`
+	CursorName  string             `json:"-"`
+	CursorID    string             `json:"-"`
+	Limit       int                `json:"limit"        validate:"omitempty,min=1,max=100"`
+	Assistance  []AssistanceFilter `json:"assistance" validate:"omitempty,dive,oneof=accessibility dietary medical"`
 } // @name GuestFilters
 
 type GuestPage struct {
@@ -65,13 +100,13 @@ type GuestPage struct {
 } // @name GuestPage
 
 type GuestWithBooking struct {
-	ID            string `json:"id" validate:"required"`
-	FirstName     string `json:"first_name" validate:"required"`
-	LastName      string `json:"last_name" validate:"required"`
-	PreferredName string `json:"preferred_name"`
-	Floor         int    `json:"floor" validate:"required"`
-	RoomNumber    int    `json:"room_number" validate:"required"`
-	GroupSize     *int   `json:"group_size" validate:"required"`
+	ID            string `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`
+	FirstName     string `json:"first_name" validate:"required" example:"Jane"`
+	LastName      string `json:"last_name" validate:"required" example:"Doe"`
+	PreferredName string `json:"preferred_name" validate:"required" example:"Jane"`
+	Floor         int    `json:"floor" validate:"required" example:"3"`
+	RoomNumber    int    `json:"room_number" validate:"required" example:"301"`
+	GroupSize     *int   `json:"group_size" example:"2"`
 } // @name GuestWithBooking
 
 type GuestWithStays struct {
@@ -83,8 +118,8 @@ type GuestWithStays struct {
 	Preferences         *string     `json:"preferences,omitempty" example:"extra pillows"`
 	Notes               *string     `json:"notes,omitempty" example:"VIP"`
 	Pronouns            *string     `json:"pronouns,omitempty" example:"she/her"`
-	DoNotDisturbStart   *time.Time  `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
-	DoNotDisturbEnd     *time.Time  `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
+	DoNotDisturbStart   *string     `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
+	DoNotDisturbEnd     *string     `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
 	HousekeepingCadence *string     `json:"housekeeping_cadence,omitempty" example:"daily"`
 	Assistance          *Assistance `json:"assistance,omitempty"`
 	CurrentStays        []Stay      `json:"current_stays" validate:"required"`

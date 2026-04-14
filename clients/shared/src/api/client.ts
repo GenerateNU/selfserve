@@ -7,13 +7,13 @@ import { getConfig } from "./config";
 export const createRequest = (
   getToken: () => Promise<string | null>,
   baseUrl: string,
-  hotelId: string,
 ) => {
   return async <T>(config: RequestConfig): Promise<T> => {
+    const hotelId = getConfig().hotelId;
     let fullUrl = `${baseUrl}${config.url}`;
     if (config.params && Object.keys(config.params).length > 0) {
       const searchParams = new URLSearchParams(config.params);
-      fullUrl += '?' + searchParams.toString();
+      fullUrl += "?" + searchParams.toString();
     }
 
     try {
@@ -78,9 +78,9 @@ export const useAPIClient = (): HttpClient => {
   // can be called during app startup (e.g. in a useEffect)
   // before any API calls are executed.
   const request = async <T>(config: RequestConfig): Promise<T> => {
-    const { getToken, hotelId } = getConfig();
+    const { getToken } = getConfig();
     const baseUrl = getBaseUrl();
-    const doRequest = createRequest(getToken, baseUrl, hotelId);
+    const doRequest = createRequest(getToken, baseUrl);
     return doRequest<T>(config);
   };
 
@@ -104,10 +104,5 @@ export const getBaseUrl = (): string => {
     throw new Error("API_BASE_URL is not configured. Check your .env file.");
   }
 
-  const trimmed = url.replace(/\/+$/, "");
-  if (trimmed.endsWith("/api/v1")) {
-    return trimmed;
-  }
-
-  return `${trimmed}/api/v1`;
+  return url;
 };
