@@ -229,15 +229,23 @@ func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*mod
 					g.phone,
 					g.preferences,
 					g.notes,
+					g.assistance,
 					r.floor,
 					r.room_number,
 					gb.group_size,
 					gb.status,
 					gb.arrival_date,
-					gb.departure_date
+					gb.departure_date,
+					COALESCE(ra.request_count, 0) AS request_count,
+					COALESCE(ra.has_urgent, false) AS has_urgent
 				FROM guest_bookings gb
 				JOIN guests g ON g.id = gb.guest_id
 				JOIN rooms r ON r.id = gb.room_id
+				LEFT JOIN (
+					SELECT guest_id, hotel_id, COUNT(*) AS request_count, BOOL_OR(priority = 'high') AS has_urgent
+					FROM requests
+					GROUP BY guest_id, hotel_id
+				) ra ON ra.guest_id = g.id AND ra.hotel_id = gb.hotel_id
 				WHERE (
 					$1::text = ''
 					OR (CONCAT_WS(' ', g.first_name, g.last_name), g.id::text) > ($1::text, $2::text)
@@ -257,8 +265,10 @@ func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*mod
 					&doc.ID, &doc.HotelID, &doc.FullName,
 					&doc.FirstName, &doc.LastName, &doc.PreferredName,
 					&doc.Email, &doc.Phone, &doc.Preferences, &doc.Notes,
+					&doc.Assistance,
 					&doc.Floor, &doc.RoomNumber, &doc.GroupSize,
 					&doc.BookingStatus, &doc.ArrivalDate, &doc.DepartureDate,
+					&doc.RequestCount, &doc.HasUrgent,
 				); err != nil {
 					rows.Close()
 					yield(nil, err)
@@ -290,64 +300,108 @@ func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*mod
 	}
 }
 
+func toStringSlice[T ~string](items []T) []string {
+	if items == nil {
+		return nil
+	}
+	result := make([]string, len(items))
+	for i, item := range items {
+		result[i] = string(item)
+	}
+	return result
+}
+
+func scanGuests(rows pgx.Rows) ([]*models.GuestWithBooking, error) {
+	var guests []*models.GuestWithBooking
+	for rows.Next() {
+		var g models.GuestWithBooking
+		err := rows.Scan(&g.ID, &g.FirstName, &g.LastName, &g.PreferredName, &g.RequestCount, &g.HasUrgent, &g.Assistance, &g.ActiveBookings)
+		if err != nil {
+			return nil, err
+		}
+		guests = append(guests, &g)
+	}
+	return guests, rows.Err()
+}
+
+func buildNextCursor(guests []*models.GuestWithBooking, limit int) ([]*models.GuestWithBooking, *string) {
+	if len(guests) <= limit {
+		return guests, nil
+	}
+	guests = guests[:limit]
+	last := guests[limit-1]
+	encoded := last.FirstName + " " + last.LastName + "|" + last.ID
+	return guests, &encoded
+}
+
 func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
-	var statusFilter []string
-	for _, s := range filters.Status {
-		statusFilter = append(statusFilter, string(s))
-	}
-
-	var assistanceFilter []string
-	for _, a := range filters.Assistance {
-		assistanceFilter = append(assistanceFilter, string(a))
-	}
-
+	statusFilter := toStringSlice(filters.Status)
+	assistanceFilter := toStringSlice(filters.Assistance)
 	orderBy := buildGuestOrderBy(filters)
 
 	rows, err := r.db.Query(ctx, `
-	WITH guest_data AS (
+	WITH requests_agg AS (
+		SELECT
+			guest_id,
+			COUNT(*) AS request_count,
+			BOOL_OR(priority = 'high') AS has_urgent
+		FROM requests
+		WHERE hotel_id = $1
+		GROUP BY guest_id
+	),
+	guest_data AS (
 		SELECT
 			g.id,
 			g.first_name,
 			g.last_name,
 			CONCAT_WS(' ', g.first_name, g.last_name) AS full_name,
 			COALESCE(g.preferences, g.first_name) AS preferred_name,
-			r.floor,
-			r.room_number,
-			gb.group_size,
-			gb.hotel_id,
-			gb.status,
 			g.assistance,
-			COUNT(req.id) AS request_count,
-			BOOL_OR(req.priority = 'high') AS has_urgent
+			COALESCE(ra.request_count, 0) AS request_count,
+			COALESCE(ra.has_urgent, false) AS has_urgent,
+			COALESCE(
+				json_agg(
+					json_build_object('floor', r.floor, 'room_number', r.room_number)
+					ORDER BY r.floor, r.room_number
+				) FILTER (WHERE gb.status = 'active'),
+				'[]'::json
+			) AS active_bookings,
+			BOOL_OR(gb.status = 'active') AS has_active_booking,
+			ARRAY_AGG(DISTINCT r.floor) FILTER (WHERE gb.status = 'active') AS active_floors,
+			ARRAY_AGG(DISTINCT gb.group_size) FILTER (WHERE gb.status = 'active') AS active_group_sizes,
+			MIN(r.floor) FILTER (WHERE gb.status = 'active') AS min_floor
 		FROM guest_bookings gb
 		JOIN guests g ON g.id = gb.guest_id
 		JOIN rooms r ON r.id = gb.room_id
-		LEFT JOIN requests req ON req.guest_id = g.id AND req.hotel_id = $1
-		GROUP BY g.id, g.first_name, g.last_name, g.preferences, r.floor, r.room_number, gb.group_size, gb.hotel_id, gb.status, g.assistance
+		LEFT JOIN requests_agg ra ON ra.guest_id = g.id
+		WHERE gb.hotel_id = $1
+		GROUP BY g.id, g.first_name, g.last_name, g.preferences, g.assistance, ra.request_count, ra.has_urgent
 	)
-	SELECT id, first_name, last_name, preferred_name, floor, room_number, group_size
+	SELECT id, first_name, last_name, preferred_name, request_count, has_urgent, assistance, active_bookings
 	FROM guest_data
-	WHERE hotel_id = $1
-		AND ($2::text[] IS NULL OR status = ANY($2))
-		AND ($3::int[] IS NULL OR floor = ANY($3))
-		AND ($4::int[] IS NULL OR group_size = ANY($4))
-		AND (
-			$5::text = ''
-			OR full_name ILIKE '%' || $5 || '%'
-			OR room_number::text ILIKE '%' || $5 || '%'
+	WHERE (
+		$2::text[] IS NULL
+		OR ('active' = ANY($2) AND has_active_booking)
+		OR ('inactive' = ANY($2) AND NOT has_active_booking)
+	)
+	AND ($3::int[] IS NULL OR active_floors && $3::int[])
+	AND ($4::int[] IS NULL OR active_group_sizes && $4::int[])
+	AND (
+		$5::text = ''
+		OR full_name ILIKE '%' || $5 || '%'
+	)
+	AND (
+		$6::text = ''
+		OR (full_name, id::text) > ($6::text, $7::text)
+	)
+	AND (
+		$8::text[] IS NULL
+		OR (
+			('accessibility' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'accessibility', '[]'::jsonb)) > 0)
+			OR ('dietary' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'dietary', '[]'::jsonb)) > 0)
+			OR ('medical' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'medical', '[]'::jsonb)) > 0)
 		)
-		AND (
-			$6::text = ''
-			OR (full_name, id::text) > ($6::text, $7::text)
-		)
-		AND (
-			$8::text[] IS NULL
-			OR (
-				('accessibility' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'accessibility', '[]'::jsonb)) > 0)
-				OR ('dietary' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'dietary', '[]'::jsonb)) > 0)
-				OR ('medical' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'medical', '[]'::jsonb)) > 0)
-			)
-		)
+	)
 	ORDER BY `+orderBy+`
 	LIMIT $9`,
 		filters.HotelID,
@@ -365,27 +419,12 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 	}
 	defer rows.Close()
 
-	var guests []*models.GuestWithBooking
-	for rows.Next() {
-		var g models.GuestWithBooking
-		err := rows.Scan(&g.ID, &g.FirstName, &g.LastName, &g.PreferredName, &g.Floor, &g.RoomNumber, &g.GroupSize)
-		if err != nil {
-			return nil, err
-		}
-		guests = append(guests, &g)
-	}
-
-	if err := rows.Err(); err != nil {
+	guests, err := scanGuests(rows)
+	if err != nil {
 		return nil, err
 	}
 
-	var nextCursor *string
-	if len(guests) == filters.Limit+1 {
-		guests = guests[:filters.Limit]
-		last := guests[filters.Limit-1]
-		encoded := last.FirstName + " " + last.LastName + "|" + last.ID
-		nextCursor = &encoded
-	}
+	guests, nextCursor := buildNextCursor(guests, filters.Limit)
 
 	return &models.GuestPage{
 		Data:       guests,
@@ -407,9 +446,9 @@ func buildGuestOrderBy(filters *models.GuestFilters) string {
 
 	switch filters.FloorSort {
 	case models.FloorSortAscending:
-		parts = append(parts, "floor ASC")
+		parts = append(parts, "min_floor ASC")
 	case models.FloorSortDescending:
-		parts = append(parts, "floor DESC")
+		parts = append(parts, "min_floor DESC")
 	}
 
 	parts = append(parts, "full_name ASC", "id ASC")

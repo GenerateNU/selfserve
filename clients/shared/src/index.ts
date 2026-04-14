@@ -21,6 +21,14 @@ export type {
   Guest,
   GuestPage,
   Dev,
+  Assistance,
+  ActiveBooking,
+  Stay,
+  UpdateGuest,
+  GithubComGenerateSelfserveInternalModelsBookingStatus as BookingStatus,
+  GithubComGenerateSelfserveInternalModelsAssistanceFilter as AssistanceFilter,
+  GuestFiltersRequestSort as RequestSort,
+  GuestFiltersFloorSort as FloorSort,
 } from "./api/generated/models";
 
 // Generated API Functions
@@ -33,6 +41,7 @@ export {
   usePostRequest,
   usePostRequestGenerate,
   useGetRequestRoomId,
+  useGetRequestGuestId,
 } from "./api/generated/endpoints/requests/requests";
 
 export {
@@ -51,6 +60,7 @@ export {
   usePostGuests,
   useGetGuestsId,
   usePutGuestsId,
+  getGetGuestsStaysIdQueryKey,
 } from "./api/generated/endpoints/guests/guests";
 
 export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";

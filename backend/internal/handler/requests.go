@@ -292,29 +292,17 @@ func (r *RequestsHandler) GetRequestsByGuest(c *fiber.Ctx) error {
 	input := models.GetRequestsByGuestInput{
 		GuestID: c.Params("id"),
 		HotelID: c.Get("X-Hotel-ID"),
-		Cursor:  c.Query("cursor"),
-		Limit:   c.QueryInt("limit"),
 	}
 	if err := httpx.Validate(&input); err != nil {
 		return err
 	}
 
-	cursorID, cursorVersion, err := parseRequestCursor(input.Cursor)
-	if err != nil {
-		return errs.BadRequest("invalid cursor")
-	}
-
-	limit := utils.ResolveLimit(input.Limit)
-	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), input.GuestID, input.HotelID, cursorID, cursorVersion, limit+1)
+	requests, err := r.RequestRepository.FindRequestsByGuestID(c.Context(), input.GuestID, input.HotelID)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	page := utils.BuildCursorPage(requests, limit, func(req *models.GuestRequest) string {
-		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
-	})
-
-	return c.JSON(page)
+	return c.JSON(requests)
 }
 
 // GetRequestsByRoomID godoc

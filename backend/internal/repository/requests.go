@@ -150,24 +150,17 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 	return requests, nil
 }
 
-func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID string) ([]*models.GuestRequest, error) {
 	rows, err := r.db.Query(ctx, `
-		WITH latest AS (
-			SELECT DISTINCT ON (r.id)
-				r.id, r.name, r.priority, r.status, r.description, r.notes,
-				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version
-			FROM public.requests r
-			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
-			WHERE r.guest_id = $1
-			  AND r.hotel_id = $2
-			ORDER BY r.id ASC, r.request_version DESC
-		)
-		SELECT * FROM latest
-		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
-		ORDER BY id ASC
-		LIMIT $5
-	`, guestID, hotelID, cursorID, cursorVersion, limit)
+		SELECT DISTINCT ON (r.id)
+			r.id, r.name, r.priority, r.status, r.description, r.notes,
+			rm.room_number, r.request_type, r.request_category, r.created_at,
+			r.request_version
+		FROM public.requests r
+		LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
+		WHERE r.guest_id = $1 AND r.hotel_id = $2
+		ORDER BY r.id ASC, r.request_version DESC
+	`, guestID, hotelID)
 	if err != nil {
 		return nil, err
 	}
