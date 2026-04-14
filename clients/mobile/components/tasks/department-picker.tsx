@@ -1,8 +1,7 @@
 import { useState, useRef } from "react";
 import { View, Text, Pressable, TextInput } from "react-native";
 import { House, ChevronRight, Search, X } from "lucide-react-native";
-import { useQuery } from "@tanstack/react-query";
-import { useAPIClient } from "@shared/api/client";
+import { useGetDepartments } from "@shared/api/departments";
 import type { Department } from "@shared";
 
 const ICON_COLOR = "#747474";
@@ -17,13 +16,8 @@ export function DepartmentPicker({ hotelId, value, onChange }: DepartmentPickerP
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const inputRef = useRef<TextInput>(null);
-  const api = useAPIClient();
 
-  const { data: departments, isLoading } = useQuery({
-    queryKey: ["departments", hotelId],
-    queryFn: () => api.get<Department[]>(`/hotels/${hotelId}/departments`),
-    enabled: expanded,
-  });
+  const { data: departments, isLoading } = useGetDepartments(expanded ? hotelId : undefined);
 
   const filtered = (departments ?? []).filter((d) =>
     search ? d.name.toLowerCase().includes(search.toLowerCase()) : true,
