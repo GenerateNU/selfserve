@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { View, FlatList, ActivityIndicator } from "react-native";
-import { Header } from "@/components/ui/header";
 import { GuestCard } from "@/components/ui/guest-card";
 import { router } from "expo-router";
 import { useAPIClient } from "@shared/api/client";
