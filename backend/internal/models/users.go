@@ -35,6 +35,12 @@ type ClerkUser struct {
 
 type User struct {
 	CreateUser
-	CreatedAt time.Time `json:"created_at" example:"2024-01-01T00:00:00Z"`
-	UpdatedAt time.Time `json:"updated_at" example:"2024-01-01T00:00:00Z"`
+	Departments []string  `json:"departments,omitempty"`
+	CreatedAt   time.Time `json:"created_at" example:"2024-01-01T00:00:00Z"`
+	UpdatedAt   time.Time `json:"updated_at" example:"2024-01-01T00:00:00Z"`
 } //@name User
+
+type UserPage struct {
+	Users      []*User `json:"users"`
+	NextCursor string  `json:"next_cursor"`
+} //@name UserPage

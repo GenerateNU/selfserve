@@ -1,4 +1,5 @@
 import { ArrowLeft, Check, ChevronDown } from "lucide-react";
+import { DepartmentPicker } from "./DepartmentPicker";
 import type { Member } from "./MembersTab";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import {
@@ -71,10 +72,12 @@ export function MemberDetailPanel({
       {/* Info rows */}
       <div className="mb-8 divide-y divide-stroke-subtle/50 border-y border-stroke-subtle/50">
         <div className="flex items-center justify-between py-3">
-          <span className="text-sm text-text-subtle">Department</span>
-          <span className="text-sm font-medium text-text-default">
-            {member.department}
-          </span>
+          <span className="text-sm text-text-subtle">Departments</span>
+          <DepartmentPicker
+            memberId={member.id}
+            hotelId={member.hotelId}
+            departmentNames={member.departments}
+          />
         </div>
 
         <div className="flex items-center justify-between py-3">

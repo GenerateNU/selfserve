@@ -12,7 +12,7 @@
     "format:check": "prettier --check .",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage --passWithNoTests"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.23",

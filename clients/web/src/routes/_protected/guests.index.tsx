@@ -3,7 +3,7 @@ import {
   useGetGuestBookingsGroupSizes,
   useGetRoomsFloors,
 } from "@shared";
-import { usePostApiV1GuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
+import { usePostGuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -40,7 +40,7 @@ function GuestsQuickListPage() {
   } | null>(null);
 
   const debouncedSearch = useDebounce(searchTerm, 300);
-  const postGuests = usePostApiV1GuestsSearchHook();
+  const postGuests = usePostGuestsSearchHook();
   const { data: floorsData } = useGetRoomsFloors();
   const { data: groupSizesData } = useGetGuestBookingsGroupSizes();
 

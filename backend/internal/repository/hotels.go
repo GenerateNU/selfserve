@@ -133,6 +133,83 @@ func (r *HotelsRepository) AllHotelsWithoutDepartments(ctx context.Context) iter
 	}
 }
 
+// GetDepartmentsByHotelID returns all departments for a given hotel.
+func (r *HotelsRepository) GetDepartmentsByHotelID(ctx context.Context, hotelID string) ([]*models.Department, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, hotel_id, name, created_at, updated_at
+		FROM departments
+		WHERE hotel_id = $1
+		ORDER BY name ASC
+	`, hotelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var departments []*models.Department
+	for rows.Next() {
+		var d models.Department
+		if err := rows.Scan(&d.ID, &d.HotelID, &d.Name, &d.CreatedAt, &d.UpdatedAt); err != nil {
+			return nil, err
+		}
+		departments = append(departments, &d)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return departments, nil
+}
+
+// InsertDepartment creates a new department for a hotel.
+func (r *HotelsRepository) InsertDepartment(ctx context.Context, hotelID, name string) (*models.Department, error) {
+	var d models.Department
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO departments (hotel_id, name)
+		VALUES ($1, $2)
+		RETURNING id, hotel_id, name, created_at, updated_at
+	`, hotelID, name).Scan(&d.ID, &d.HotelID, &d.Name, &d.CreatedAt, &d.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrAlreadyExistsInDB
+		}
+		return nil, err
+	}
+	return &d, nil
+}
+
+// UpdateDepartment renames a department.
+func (r *HotelsRepository) UpdateDepartment(ctx context.Context, id, hotelID, name string) (*models.Department, error) {
+	var d models.Department
+	err := r.db.QueryRow(ctx, `
+		UPDATE departments
+		SET name = $1, updated_at = NOW()
+		WHERE id = $2 AND hotel_id = $3
+		RETURNING id, hotel_id, name, created_at, updated_at
+	`, name, id, hotelID).Scan(&d.ID, &d.HotelID, &d.Name, &d.CreatedAt, &d.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+	return &d, nil
+}
+
+// DeleteDepartment removes a department by id, scoped to the hotel.
+func (r *HotelsRepository) DeleteDepartment(ctx context.Context, id, hotelID string) error {
+	tag, err := r.db.Exec(ctx, `
+		DELETE FROM departments
+		WHERE id = $1 AND hotel_id = $2
+	`, id, hotelID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return errs.ErrNotFoundInDB
+	}
+	return nil
+}
+
 // InsertDefaultDepartments seeds the default departments for a hotel.
 // Uses ON CONFLICT DO NOTHING so it is safe to call on hotels that already
 // have some (but not all) defaults.

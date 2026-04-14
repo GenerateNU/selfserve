@@ -41,7 +41,7 @@ func NewGuestsHandler(repo storage.GuestsRepository, searchRepo storage.GuestsSe
 // @Failure      400   {object}  map[string]string "Invalid guest body format"
 // @Failure      500   {object}  map[string]string  "Internal server error"
 // @Security     BearerAuth
-// @Router       /api/v1/guests [post]
+// @Router       /guests [post]
 func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 	var CreateGuestRequest models.CreateGuest
 	if err := httpx.BindAndValidate(c, &CreateGuestRequest); err != nil {
@@ -71,7 +71,7 @@ func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 // @Failure      404  {object}  errs.HTTPError  "Guest not found"
 // @Failure      500   {object}  map[string]string "Internal server error"
 // @Security     BearerAuth
-// @Router       /api/v1/guests/{id} [get]
+// @Router       /guests/{id} [get]
 func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 	id := c.Params("id")
 	_, err := uuid.Parse(id)
@@ -102,8 +102,9 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 // @Failure      400   {object}  map[string]string "Invalid guest ID format"
 // @Failure      404  {object}  errs.HTTPError  "Guest not found"
 // @Failure      500   {object}  map[string]string "Internal server error"
+// @ID           getGuestsStaysId
 // @Security     BearerAuth
-// @Router       /api/v1/guests/stays/{id} [get]
+// @Router       /guests/stays/{id} [get]
 func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if !validUUID(id) {
@@ -135,7 +136,7 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 // @Failure      404   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /api/v1/guests/{id} [put]
+// @Router       /guests/{id} [put]
 func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -178,7 +179,7 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /api/v1/guests/search [post]
+// @Router       /guests/search [post]
 func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	hotelID := c.Get("X-Hotel-ID")
 	var filters models.GuestFilters
@@ -192,6 +193,12 @@ func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	}
 	if len(filters.GroupSize) == 0 {
 		filters.GroupSize = nil
+	}
+	if len(filters.Status) == 0 {
+		filters.Status = nil
+	}
+	if len(filters.Assistance) == 0 {
+		filters.Assistance = nil
 	}
 
 	if filters.Cursor != "" {

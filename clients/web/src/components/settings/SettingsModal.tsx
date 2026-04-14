@@ -13,6 +13,7 @@ type SettingsModalProps = {
 const tabTitles: Record<SettingsTab, string> = {
   profile: "",
   members: "Members",
+  departments: "Departments",
 };
 
 export function SettingsModal({ open, onClose }: SettingsModalProps) {

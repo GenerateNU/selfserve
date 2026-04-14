@@ -14,7 +14,7 @@ import { ClerkProvider } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { StartupProvider, StartupStatus, useStartup } from "@/context/startup";
 import NoUserInfo from "@/components/ui/NoUserInfo";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,22 +35,26 @@ function AppLayout() {
   const status = useStartup();
 
   if (status === StartupStatus.NoUserInfo) return <NoUserInfo />;
-  if (status === StartupStatus.Loading)
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" />
-      </View>
-    );
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="create-task-ai" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)/sign-in" options={{ headerShown: false }} />
         <Stack.Screen
           name="modal"
           options={{ presentation: "modal", title: "Modal" }}
         />
       </Stack>
+      {status === StartupStatus.Loading && (
+        <View
+          style={StyleSheet.absoluteFill}
+          className="justify-center items-center bg-bg-primary"
+        >
+          <ActivityIndicator size="large" />
+        </View>
+      )}
       <StatusBar style="auto" />
     </ThemeProvider>
   );
