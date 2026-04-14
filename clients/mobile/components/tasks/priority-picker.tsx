@@ -61,9 +61,11 @@ export function PriorityPicker({ value, onChange }: PriorityPickerProps) {
           <Text className="text-[15px] text-text-subtle tracking-tight">
             {value ? PRIORITY_CONFIG[value].label : "Select..."}
           </Text>
-          <View className={expanded ? "rotate-180" : ""}>
-            <ChevronDown size={14} color="#747474" />
-          </View>
+          <ChevronDown
+            size={14}
+            color="#747474"
+            style={{ transform: [{ rotate: expanded ? "180deg" : "0deg" }] }}
+          />
         </View>
       </Pressable>
 
