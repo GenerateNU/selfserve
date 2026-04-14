@@ -8,10 +8,8 @@ import {
 } from "react-native";
 import { Info, ChevronRight } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { useGetGuestsStaysId } from "@shared/api/generated/endpoints/guests/guests";
-import { useAPIClient } from "@shared/api/client";
-import type { GithubComGenerateSelfserveInternalUtilsCursorPageGuestRequest as GuestRequestPage } from "@shared";
+import { useInfiniteRequestsByGuest } from "@shared";
 import { GuestHeader, Tab } from "@/components/ui/guest-header";
 import { GuestProfileTab } from "@/components/ui/guest-profile";
 import { GuestRequestsTab } from "@/components/ui/guest-activity";
@@ -20,7 +18,6 @@ import { Colors } from "@/constants/theme";
 export default function GuestProfileScreen() {
   const { id } = useLocalSearchParams();
   const guestId = id as string;
-  const api = useAPIClient();
 
   const { data, isLoading } = useGetGuestsStaysId(guestId);
 
@@ -29,16 +26,7 @@ export default function GuestProfileScreen() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ["requests", "guest", guestId],
-    queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
-      api.get<GuestRequestPage>(`/request/guest/${guestId}`, {
-        ...(pageParam ? { cursor: pageParam } : {}),
-      }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.next_cursor,
-    enabled: !!guestId,
-  });
+  } = useInfiniteRequestsByGuest(guestId);
 
   const requests = useMemo(
     () => requestPages?.pages.flatMap((p) => p.items ?? []) ?? [],

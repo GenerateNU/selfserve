@@ -82,6 +82,8 @@ export type {
   GithubComGenerateSelfserveInternalUtilsCursorPageGuestRequest,
 } from "./api/generated/models";
 
+export { useInfiniteRequestsByGuest, getGuestRequestsQueryKey } from "./api/requests";
+
 
 // User hooks
 export { getUserQueryKey, useGetUser, useUpdateUser } from "./api/users";
