@@ -696,6 +696,18 @@ definitions:
       name:
         type: string
     type: object
+  github_com_generate_selfserve_internal_utils.CursorPage-GuestRequest:
+    properties:
+      has_more:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/GuestRequest'
+        type: array
+      next_cursor:
+        description: nil when no more pages
+        type: string
+    type: object
   github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
     properties:
       has_more:
@@ -1507,9 +1519,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/GuestRequest'
-            type: array
+            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-GuestRequest'
         "400":
           description: Bad Request
           schema:

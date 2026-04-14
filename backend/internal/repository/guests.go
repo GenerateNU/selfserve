@@ -368,17 +368,6 @@ func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*mod
 	}
 }
 
-func toStringSlice[T ~string](items []T) []string {
-	if items == nil {
-		return nil
-	}
-	result := make([]string, len(items))
-	for i, item := range items {
-		result[i] = string(item)
-	}
-	return result
-}
-
 func scanGuests(rows pgx.Rows) ([]*models.GuestWithBooking, error) {
 	var guests []*models.GuestWithBooking
 	for rows.Next() {
@@ -403,8 +392,6 @@ func buildNextCursor(guests []*models.GuestWithBooking, limit int) ([]*models.Gu
 }
 
 func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
-	statusFilter := toStringSlice(filters.Status)
-	assistanceFilter := toStringSlice(filters.Assistance)
 	orderBy := buildGuestOrderBy(filters)
 
 	rows, err := r.db.Query(ctx, `
@@ -473,13 +460,13 @@ func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filt
 	ORDER BY `+orderBy+`
 	LIMIT $9`,
 		filters.HotelID,
-		statusFilter,
+		filters.Status,
 		filters.Floors,
 		filters.GroupSize,
 		filters.Search,
 		filters.CursorName,
 		filters.CursorID,
-		assistanceFilter,
+		filters.Assistance,
 		filters.Limit+1,
 	)
 	if err != nil {

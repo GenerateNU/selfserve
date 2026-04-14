@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import { Flag, Clock } from "lucide-react-native";
 import { Colors } from "@/constants/theme";
 import type { GuestRequest } from "@shared";
@@ -6,9 +6,15 @@ import { formatTime, timeAgo } from "@/utils/time";
 
 interface GuestRequestsTabProps {
   requests: GuestRequest[];
+  onLoadMore?: () => void;
+  isFetchingMore?: boolean;
 }
 
-export function GuestRequestsTab({ requests }: GuestRequestsTabProps) {
+export function GuestRequestsTab({
+  requests,
+  onLoadMore,
+  isFetchingMore,
+}: GuestRequestsTabProps) {
   if (requests.length === 0) {
     return (
       <View className="flex-1 items-center justify-center py-[8vh]">
@@ -25,6 +31,11 @@ export function GuestRequestsTab({ requests }: GuestRequestsTabProps) {
       keyExtractor={(r, i) => r.id ?? String(i)}
       contentContainerStyle={{ padding: 16, gap: 12 }}
       renderItem={({ item }) => <RequestCard request={item} />}
+      onEndReached={onLoadMore}
+      onEndReachedThreshold={0.3}
+      ListFooterComponent={
+        isFetchingMore ? <ActivityIndicator className="py-4" /> : null
+      }
     />
   );
 }

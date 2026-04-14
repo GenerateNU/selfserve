@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,8 +8,10 @@ import {
 } from "react-native";
 import { Info, ChevronRight } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useGetGuestsStaysId } from "@shared/api/generated/endpoints/guests/guests";
-import { useGetRequestGuestId } from "@shared";
+import { useAPIClient } from "@shared/api/client";
+import type { GithubComGenerateSelfserveInternalUtilsCursorPageGuestRequest as GuestRequestPage } from "@shared";
 import { GuestHeader, Tab } from "@/components/ui/guest-header";
 import { GuestProfileTab } from "@/components/ui/guest-profile";
 import { GuestRequestsTab } from "@/components/ui/guest-activity";
@@ -18,9 +20,30 @@ import { Colors } from "@/constants/theme";
 export default function GuestProfileScreen() {
   const { id } = useLocalSearchParams();
   const guestId = id as string;
+  const api = useAPIClient();
 
   const { data, isLoading } = useGetGuestsStaysId(guestId);
-  const { data: requests = [] } = useGetRequestGuestId(guestId);
+
+  const {
+    data: requestPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["requests", "guest", guestId],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
+      api.get<GuestRequestPage>(`/request/guest/${guestId}`, {
+        ...(pageParam ? { cursor: pageParam } : {}),
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.next_cursor,
+    enabled: !!guestId,
+  });
+
+  const requests = useMemo(
+    () => requestPages?.pages.flatMap((p) => p.items ?? []) ?? [],
+    [requestPages],
+  );
 
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
@@ -83,7 +106,11 @@ export default function GuestProfileScreen() {
           />
         </ScrollView>
       ) : (
-        <GuestRequestsTab requests={requests} />
+        <GuestRequestsTab
+          requests={requests}
+          onLoadMore={hasNextPage ? fetchNextPage : undefined}
+          isFetchingMore={isFetchingNextPage}
+        />
       )}
     </View>
   );

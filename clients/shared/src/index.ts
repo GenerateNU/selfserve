@@ -79,7 +79,9 @@ export type {
   FilterRoomsRequest,
   GuestRequest,
   RoomRequestsResponse,
+  GithubComGenerateSelfserveInternalUtilsCursorPageGuestRequest,
 } from "./api/generated/models";
+
 
 // User hooks
 export { getUserQueryKey, useGetUser, useUpdateUser } from "./api/users";
