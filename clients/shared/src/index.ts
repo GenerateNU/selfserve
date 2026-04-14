@@ -33,6 +33,7 @@ export {
   usePostRequest,
   usePostRequestGenerate,
   useGetRequestRoomId,
+  useGetRequestGuestId,
 } from "./api/generated/endpoints/requests/requests";
 
 export {

@@ -52,6 +52,7 @@ function GuestProfilePage() {
           <p className="text-[1vw] text-black">{detailErrorMessage}</p>
           <Link
             to="/guests"
+            search={{ guestId: undefined, tab: "profile" }}
             className="mt-[1vh] inline-block text-[1vw] text-primary underline"
           >
             Return to guest list
