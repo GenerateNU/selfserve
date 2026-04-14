@@ -15,7 +15,8 @@ export default function TasksScreen() {
   const { userId } = useAuth();
 
   const myTasksQuery = useGetRequestsFeed({ userId: userId ?? undefined });
-  const myTaskItems = myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
+  const myTaskItems =
+    myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
 
   function handleEndReached() {
     if (myTasksQuery.hasNextPage && !myTasksQuery.isFetchingNextPage) {
@@ -37,8 +38,8 @@ export default function TasksScreen() {
         />
       )}
       <View className="flex-1">
-        {activeTab === TAB.MY_TASKS && (
-          myTasksQuery.isLoading ? (
+        {activeTab === TAB.MY_TASKS &&
+          (myTasksQuery.isLoading ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator />
             </View>
@@ -48,8 +49,7 @@ export default function TasksScreen() {
               onEndReached={handleEndReached}
               isLoadingMore={myTasksQuery.isFetchingNextPage}
             />
-          )
-        )}
+          ))}
       </View>
     </SafeAreaView>
   );

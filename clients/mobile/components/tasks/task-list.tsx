@@ -16,14 +16,21 @@ type TaskListProps = {
   isLoadingMore?: boolean;
 };
 
-export function TaskList({ tasks, onEndReached, isLoadingMore }: TaskListProps) {
+export function TaskList({
+  tasks,
+  onEndReached,
+  isLoadingMore,
+}: TaskListProps) {
   const active = tasks.filter((t) => t.status !== "completed");
   const completed = tasks.filter((t) => t.status === "completed");
 
   const data: ListItem[] = [
     ...active,
     ...(completed.length > 0
-      ? [{ _type: "section-header" as const, title: "Completed Tasks" }, ...completed]
+      ? [
+          { _type: "section-header" as const, title: "Completed Tasks" },
+          ...completed,
+        ]
       : []),
   ];
 

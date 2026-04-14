@@ -18,7 +18,9 @@ function formatTime(iso: string): string {
   const time = date
     .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
     .toLowerCase();
-  return isToday ? `Today at ${time}` : date.toLocaleDateString([], { month: "short", day: "numeric" });
+  return isToday
+    ? `Today at ${time}`
+    : date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
 function formatLocation(roomNumber?: number | null): string {

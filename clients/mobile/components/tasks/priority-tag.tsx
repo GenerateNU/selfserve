@@ -37,10 +37,13 @@ type PriorityTagProps = {
 };
 
 export function PriorityTag({ priority, dimmed = false }: PriorityTagProps) {
-  const config = PRIORITY_CONFIG[priority.toLowerCase() as Priority] ?? PRIORITY_CONFIG.low;
+  const config =
+    PRIORITY_CONFIG[priority.toLowerCase() as Priority] ?? PRIORITY_CONFIG.low;
 
   return (
-    <View className={`${config.containerClass} flex-row items-center gap-1 px-2 py-1 rounded`}>
+    <View
+      className={`${config.containerClass} flex-row items-center gap-1 px-2 py-1 rounded`}
+    >
       <Feather
         name="flag"
         size={12}
