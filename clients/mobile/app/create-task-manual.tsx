@@ -17,15 +17,15 @@ import {
   Clock4,
   CalendarSync,
   MapPin,
-  House,
   ChevronRight,
   Search,
 } from "lucide-react-native";
 import { useAPIClient } from "@shared/api/client";
 import { getConfig } from "@shared/api/config";
 import { useGetRoomsFloorsHook } from "@shared/api/generated/endpoints/rooms/rooms";
-import type { MakeRequest, MakeRequestPriority } from "@shared";
+import type { MakeRequest, MakeRequestPriority, Department } from "@shared";
 import { PriorityPicker } from "@/components/tasks/priority-picker";
+import { DepartmentPicker } from "@/components/tasks/department-picker";
 
 const colors = {
   textSubtle: "#747474",
@@ -71,6 +71,9 @@ export default function CreateTaskManualScreen() {
   const [priority, setPriority] = useState<MakeRequestPriority | undefined>(
     undefined,
   );
+  const [department, setDepartment] = useState<Department | undefined>(
+    undefined,
+  );
   const [floor, setFloor] = useState<number | undefined>(undefined);
   const [floorExpanded, setFloorExpanded] = useState(false);
   const [floorSearch, setFloorSearch] = useState("");
@@ -107,6 +110,7 @@ export default function CreateTaskManualScreen() {
       name: taskName.trim(),
       description: description.trim() || undefined,
       priority,
+      department: department?.id,
       status: "pending",
       request_type: "general",
     });
@@ -258,9 +262,10 @@ export default function CreateTaskManualScreen() {
               )}
             </View>
 
-            <TaskFieldRow
-              icon={<House size={16} color={colors.textSubtle} />}
-              label="Department"
+            <DepartmentPicker
+              hotelId={getConfig().hotelId}
+              value={department}
+              onChange={setDepartment}
             />
 
             {/* Description */}

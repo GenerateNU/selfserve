@@ -375,6 +375,23 @@ if len(batch) > 0 {
 
 ---
 
+## Mobile Patterns (React Native)
+
+### Styling
+
+Use NativeWind (Tailwind) classes via `className` as the default. Fall back to inline `style` only when NativeWind cannot express it — the two known cases are:
+
+- **Transforms on icon components** (e.g. rotation) — pass `style={{ transform: [...] }}` directly to the icon since wrapping in a `View` with a transform class is unreliable in RN.
+- **Dynamic border colors** — when a border color must come from a runtime value (not a fixed Tailwind token), use inline style.
+
+All other colors, spacing, layout, and typography should use NativeWind classes. Custom design tokens (colors, etc.) belong in `tailwind.config.js` so they can be used as classes everywhere.
+
+### API Calls
+
+Always prefer hooks and utilities from `clients/shared/src/api/` over writing raw `useQuery` calls inline. If a shared hook exists (e.g. `useGetDepartments`), use it. If one doesn't exist yet, add it to `shared` so it can be reused across web and mobile.
+
+---
+
 ## Testing (Frontend)
 
 - Vitest as test runner
