@@ -28,6 +28,7 @@ import {
 import { useAPIClient } from "@shared/api/client";
 import { getConfig } from "@shared/api/config";
 import type { GenerateRequestResponse, MakeRequest } from "@shared";
+import { SkeletonCard } from "@/components/ui/SkeletonCard";
 
 // Token values for JSX props that can't use className (icon colors, placeholder, etc.)
 const colors = {
@@ -50,30 +51,6 @@ type GeneratedTask = {
   department?: string;
   description?: string;
 };
-
-function SkeletonLine({ width }: { width: `${number}%` | number }) {
-  return (
-    <View
-      className="bg-stroke-subtle rounded-full h-[10px]"
-      style={{ width }}
-    />
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <View className="bg-stroke-disabled rounded-lg px-4 py-4 gap-3">
-      <SkeletonLine width="100%" />
-      <SkeletonLine width="66%" />
-      <SkeletonLine width="84%" />
-      <View className="flex-row justify-between">
-        <SkeletonLine width="34%" />
-        <SkeletonLine width="34%" />
-      </View>
-      <SkeletonLine width="100%" />
-    </View>
-  );
-}
 
 type TaskFieldRowProps = {
   icon: React.ReactNode;
