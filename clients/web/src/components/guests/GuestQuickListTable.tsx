@@ -85,8 +85,12 @@ export function GuestQuickListTable({
                 {guest.preferred_name}
               </p>
               <p className="text-[1vw] text-black">—</p>
-              <p className="text-[1vw] text-black">{firstBooking?.floor ?? "—"}</p>
-              <p className="text-[1vw] text-black">{firstBooking?.room_number ?? "—"}</p>
+              <p className="text-[1vw] text-black">
+                {firstBooking?.floor ?? "—"}
+              </p>
+              <p className="text-[1vw] text-black">
+                {firstBooking?.room_number ?? "—"}
+              </p>
             </button>
           );
         })}
