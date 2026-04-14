@@ -62,10 +62,6 @@ export default function TabLayout() {
         options={{ href: null, headerShown: false }}
       />
       <Tabs.Screen
-        name="create-task-manual"
-        options={{ href: null, headerShown: false }}
-      />
-      <Tabs.Screen
         name="tasks"
         options={{
           title: "Tasks",
