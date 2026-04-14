@@ -80,13 +80,13 @@ export default function CreateTaskManualScreen() {
   const queryClient = useQueryClient();
   const getFloors = useGetRoomsFloorsHook();
 
-  const { data: floors = [] } = useQuery({
+  const { data: floors } = useQuery({
     queryKey: ["/rooms/floors"],
     queryFn: () => getFloors(),
     enabled: floorExpanded,
   });
 
-  const filteredFloors = floors.filter((f) =>
+  const filteredFloors = (floors ?? []).filter((f) =>
     floorSearch ? String(f).includes(floorSearch) : true,
   );
 

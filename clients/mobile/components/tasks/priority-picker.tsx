@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Text, Pressable } from "react-native";
-import { Flag, ChevronDown, X } from "lucide-react-native";
+import { Flag, ChevronRight, X } from "lucide-react-native";
 import type { MakeRequestPriority } from "@shared";
 
 type PriorityConfig = {
@@ -61,10 +61,10 @@ export function PriorityPicker({ value, onChange }: PriorityPickerProps) {
           <Text className="text-[15px] text-text-subtle tracking-tight">
             {value ? PRIORITY_CONFIG[value].label : "Select..."}
           </Text>
-          <ChevronDown
+          <ChevronRight
             size={14}
             color="#747474"
-            style={{ transform: [{ rotate: expanded ? "180deg" : "0deg" }] }}
+            style={{ transform: [{ rotate: expanded ? "90deg" : "0deg" }] }}
           />
         </View>
       </Pressable>
