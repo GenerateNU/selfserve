@@ -45,7 +45,7 @@ export {
 export {
   usePostRequest,
   usePostRequestGenerate,
-  useGetRequestGuestId,
+  useGetRequestRoomId,
 } from "./api/generated/endpoints/requests/requests";
 
 export {

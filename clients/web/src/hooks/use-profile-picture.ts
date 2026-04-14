@@ -7,8 +7,8 @@ import {
   saveProfilePictureKey,
   uploadFileToS3,
 } from "@shared";
-import { StartupStatus, useStartup } from "@/context/startup";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { StartupStatus, useStartup } from "@/context/startup";
 
 export function useProfilePicture(userId: string): {
   profilePicUrl: string | null;
