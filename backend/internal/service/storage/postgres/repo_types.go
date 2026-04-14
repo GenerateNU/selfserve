@@ -28,6 +28,7 @@ type UsersRepository interface {
 	SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
 	AddEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error
 	RemoveEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error
+	CompleteOnboarding(ctx context.Context, id string, data *models.OnboardUser) (*models.User, error)
 }
 
 type GuestsRepository interface {

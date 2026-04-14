@@ -108,6 +108,10 @@ func (m *mockUsersRepository) RemoveEmployeeDepartment(ctx context.Context, empl
 	return nil
 }
 
+func (m *mockUsersRepository) CompleteOnboarding(ctx context.Context, id string, data *models.OnboardUser) (*models.User, error) {
+	return nil, nil
+}
+
 // Makes the compiler verify the mock
 var _ storage.UsersRepository = (*mockUsersRepository)(nil)
 
