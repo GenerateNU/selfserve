@@ -21,6 +21,9 @@ type CursorPage[T any] struct {
 }
 
 func BuildCursorPage[T any](items []T, limit int, cursorFn func(T) string) CursorPage[T] {
+	if items == nil {
+		items = []T{}
+	}
 	limit = ResolveLimit(limit)
 	hasMore := len(items) > limit
 	if hasMore {

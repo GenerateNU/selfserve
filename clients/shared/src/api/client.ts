@@ -18,15 +18,19 @@ export const createRequest = (
 
     try {
       const token = await getToken();
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...config.headers,
+      };
+      const hotel = hotelId?.trim();
+      if (hotel) {
+        headers["X-Hotel-ID"] = hotel;
+      }
 
       const response = await fetch(fullUrl, {
         method: config.method,
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-          "X-Hotel-ID": hotelId,
-          ...config.headers,
-        },
+        headers,
         body: config.data ? JSON.stringify(config.data) : undefined,
         signal: config.signal,
       });

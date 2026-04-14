@@ -43,6 +43,11 @@ func Conflict(title string, withKey string, withValue any) HTTPError {
 	return NewHTTPError(http.StatusConflict, fmt.Errorf("conflict: %s with %s='%s' already exists", title, withKey, withValue))
 }
 
+// TaskStateHTTPConflict is returned when claim/drop or similar task preconditions fail.
+func TaskStateHTTPConflict() HTTPError {
+	return NewHTTPError(http.StatusConflict, errors.New("task state conflict"))
+}
+
 func InvalidRequestData(errors map[string]string) HTTPError {
 	return HTTPError{
 		Code:    http.StatusUnprocessableEntity,
