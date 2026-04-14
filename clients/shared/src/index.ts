@@ -54,24 +54,29 @@ export {
 } from "./api/generated/endpoints/users/users";
 
 export {
-  usePostApiV1Hotels,
-  useGetApiV1HotelsId,
+  usePostHotels,
+  useGetHotelsId,
 } from "./api/generated/endpoints/hotels/hotels";
 
 export { useGetDevsName } from "./api/generated/endpoints/devs/devs";
 
 export {
-  usePostApiV1Guests,
-  useGetApiV1GuestsId,
-  usePutApiV1GuestsId,
+  usePostGuests,
+  useGetGuestsId,
+  usePutGuestsId,
+  usePostGuestsSearchHook,
+  useGetGuestsStaysId,
 } from "./api/generated/endpoints/guests/guests";
 
-export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
+export type {
+  GuestWithBooking,
+  GuestWithStays,
+  GuestFilters,
+  Stay,
+} from "./api/generated/models";
 
-export {
-  usePostRooms,
-  useGetRoomsFloors,
-} from "./api/generated/endpoints/rooms/rooms";
+export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
+export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
 
 export type {
   RoomWithOptionalGuestBooking,
