@@ -12,12 +12,18 @@ type DepartmentPickerProps = {
   onChange: (department: Department | undefined) => void;
 };
 
-export function DepartmentPicker({ hotelId, value, onChange }: DepartmentPickerProps) {
+export function DepartmentPicker({
+  hotelId,
+  value,
+  onChange,
+}: DepartmentPickerProps) {
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const inputRef = useRef<TextInput>(null);
 
-  const { data: departments, isLoading } = useGetDepartments(expanded ? hotelId : undefined);
+  const { data: departments, isLoading } = useGetDepartments(
+    expanded ? hotelId : undefined,
+  );
 
   const filtered = (departments ?? []).filter((d) =>
     search ? d.name.toLowerCase().includes(search.toLowerCase()) : true,
@@ -115,7 +121,11 @@ export function DepartmentPicker({ hotelId, value, onChange }: DepartmentPickerP
                 key={d.id}
                 onPress={() => handleSelect(d)}
                 className="px-4 py-2"
-                style={value?.id === d.id ? { backgroundColor: "#f5f5f5" } : undefined}
+                style={
+                  value?.id === d.id
+                    ? { backgroundColor: "#f5f5f5" }
+                    : undefined
+                }
               >
                 <Text className="text-[12px] text-text-default tracking-tight">
                   {d.name}

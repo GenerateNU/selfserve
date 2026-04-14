@@ -71,7 +71,9 @@ export default function CreateTaskManualScreen() {
   const [priority, setPriority] = useState<MakeRequestPriority | undefined>(
     undefined,
   );
-  const [department, setDepartment] = useState<Department | undefined>(undefined);
+  const [department, setDepartment] = useState<Department | undefined>(
+    undefined,
+  );
   const [floor, setFloor] = useState<number | undefined>(undefined);
   const [floorExpanded, setFloorExpanded] = useState(false);
   const [floorSearch, setFloorSearch] = useState("");
