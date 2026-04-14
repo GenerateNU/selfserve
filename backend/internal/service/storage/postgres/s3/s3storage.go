@@ -49,7 +49,7 @@ func (s *Storage) GeneratePresignedURL(ctx context.Context, key string, expirati
 	}, func(opts *s3.PresignOptions) {
 		opts.Expires = expiration
 	},
-)
+	)
 
 	if err != nil {
 		return "", err
@@ -63,15 +63,14 @@ func (s *Storage) GeneratePresignedGetURL(ctx context.Context, key string, expir
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
 	}, func(opts *s3.PresignOptions) { opts.Expires = expiration },
-)
+	)
 	if err != nil {
 		return "", err
 	}
 	return presignedURL.URL, nil
 }
 
-
-func (s *Storage) DeleteFile(ctx context.Context, key string) (error) {
+func (s *Storage) DeleteFile(ctx context.Context, key string) error {
 	_, err := s.Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(key),
@@ -82,5 +81,3 @@ func (s *Storage) DeleteFile(ctx context.Context, key string) (error) {
 
 	return nil
 }
-
-
