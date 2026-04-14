@@ -14,6 +14,7 @@ import (
 	"github.com/generate/selfserve/internal/httpx"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
+	temporalclient "github.com/generate/selfserve/internal/temporal"
 	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -30,6 +31,7 @@ type NotificationSender interface {
 type RequestsHandler struct {
 	RequestRepository      storage.RequestsRepository
 	GenerateRequestService aiflows.GenerateRequestService
+	WorkflowClient         temporalclient.GenerateRequestWorkflowClient
 	NotificationSender     NotificationSender
 }
 
@@ -311,6 +313,86 @@ func warningFromAI(w *aiflows.GenerateRequestWarning) *models.GenerateRequestWar
 		Code:    w.Code,
 		Message: w.Message,
 	}
+}
+
+// StartGenerateRequestAsync godoc
+// @Summary      starts request generation workflow
+// @Description  Starts async request generation via Temporal workflow
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param  request  body  models.GenerateRequestInput  true  "Request data with raw text"
+// @Success      202   {object}  map[string]string
+// @Failure      400   {object}  map[string]string
+// @Failure      503   {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /request/generate/async [post]
+func (r *RequestsHandler) StartGenerateRequestAsync(c *fiber.Ctx) error {
+	if r.WorkflowClient == nil {
+		return errs.NewHTTPError(fiber.StatusServiceUnavailable, errors.New("temporal workflow client unavailable"))
+	}
+
+	var input models.GenerateRequestInput
+	if err := c.BodyParser(&input); err != nil {
+		return errs.InvalidJSON()
+	}
+	if err := httpx.Validate(&input); err != nil {
+		return err
+	}
+	if err := validateGenerateRequest(&input); err != nil {
+		return err
+	}
+
+	workflowID, err := r.WorkflowClient.StartGenerateRequest(c.Context(), aiflows.GenerateRequestInput{
+		RawText: input.RawText,
+		HotelID: input.HotelID,
+	})
+	if err != nil {
+		slog.Error("failed to start generate request workflow", "error", err)
+		return errs.InternalServerError()
+	}
+
+	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+		"workflow_id": workflowID,
+	})
+}
+
+// GetGenerateRequestStatus godoc
+// @Summary      gets request generation workflow status
+// @Description  Gets async request generation workflow status/result
+// @Tags         requests
+// @Produce      json
+// @Param        workflowId  path  string  true  "Workflow ID"
+// @Success      200   {object}  map[string]interface{}
+// @Failure      404   {object}  map[string]string
+// @Failure      503   {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /request/generate/async/{workflowId} [get]
+func (r *RequestsHandler) GetGenerateRequestStatus(c *fiber.Ctx) error {
+	if r.WorkflowClient == nil {
+		return errs.NewHTTPError(fiber.StatusServiceUnavailable, errors.New("temporal workflow client unavailable"))
+	}
+
+	workflowID := c.Params("workflowId")
+	if workflowID == "" {
+		return errs.BadRequest("workflow id is required")
+	}
+
+	result, err := r.WorkflowClient.GetGenerateRequestResult(c.Context(), workflowID)
+	if err != nil {
+		if temporalclient.IsWorkflowNotFound(err) {
+			return errs.NotFound("workflow", "id", workflowID)
+		}
+		slog.Error("failed to get generate request workflow status", "error", err, "workflow_id", workflowID)
+		return errs.InternalServerError()
+	}
+
+	statusCode := fiber.StatusOK
+	if result.Status == "pending" {
+		statusCode = fiber.StatusAccepted
+	}
+
+	return c.Status(statusCode).JSON(result)
 }
 
 // GetRequestsByGuest godoc

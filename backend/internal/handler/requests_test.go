@@ -12,6 +12,7 @@ import (
 	"github.com/generate/selfserve/internal/aiflows"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	temporalclient "github.com/generate/selfserve/internal/temporal"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -66,6 +67,19 @@ type mockLLMService struct {
 
 func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
 	return m.runGenerateRequestFunc(ctx, input)
+}
+
+type mockWorkflowClient struct {
+	startGenerateRequestFunc   func(ctx context.Context, input aiflows.GenerateRequestInput) (workflowID string, err error)
+	getGenerateRequestResultFn func(ctx context.Context, workflowID string) (temporalclient.GenerateRequestResult, error)
+}
+
+func (m *mockWorkflowClient) StartGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (string, error) {
+	return m.startGenerateRequestFunc(ctx, input)
+}
+
+func (m *mockWorkflowClient) GetGenerateRequestResult(ctx context.Context, workflowID string) (temporalclient.GenerateRequestResult, error) {
+	return m.getGenerateRequestResultFn(ctx, workflowID)
 }
 
 func TestRequestHandler_GetRequest(t *testing.T) {
@@ -1843,5 +1857,111 @@ func TestRequestHandler_GetRequestsByRoomID(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, 500, resp.StatusCode)
+	})
+}
+
+func TestRequestHandler_StartGenerateRequestAsync(t *testing.T) {
+	t.Parallel()
+
+	validBody := `{
+		"hotel_id": "org_550e8400-e29b-41d4-a716-446655440000",
+		"raw_text": "Room 302 needs extra towels urgently"
+	}`
+
+	t.Run("returns 202 with workflow id on success", func(t *testing.T) {
+		t.Parallel()
+
+		workflowClient := &mockWorkflowClient{
+			startGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (string, error) {
+				assert.Equal(t, "Room 302 needs extra towels urgently", input.RawText)
+				return "generate-request-123", nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{}, nil)
+		h.WorkflowClient = workflowClient
+		app.Post("/request/generate/async", h.StartGenerateRequestAsync)
+
+		req := httptest.NewRequest("POST", "/request/generate/async", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusAccepted, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "workflow_id")
+		assert.Contains(t, string(body), "generate-request-123")
+	})
+
+	t.Run("returns 503 when workflow client is unavailable", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{}, nil)
+		app.Post("/request/generate/async", h.StartGenerateRequestAsync)
+
+		req := httptest.NewRequest("POST", "/request/generate/async", bytes.NewBufferString(validBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
+	})
+}
+
+func TestRequestHandler_GetGenerateRequestStatus(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns 202 while workflow is pending", func(t *testing.T) {
+		t.Parallel()
+		workflowClient := &mockWorkflowClient{
+			getGenerateRequestResultFn: func(ctx context.Context, workflowID string) (temporalclient.GenerateRequestResult, error) {
+				assert.Equal(t, "generate-request-123", workflowID)
+				return temporalclient.GenerateRequestResult{
+					Status: "pending",
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{}, nil)
+		h.WorkflowClient = workflowClient
+		app.Get("/request/generate/async/:workflowId", h.GetGenerateRequestStatus)
+
+		req := httptest.NewRequest("GET", "/request/generate/async/generate-request-123", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusAccepted, resp.StatusCode)
+	})
+
+	t.Run("returns completed result", func(t *testing.T) {
+		t.Parallel()
+		workflowClient := &mockWorkflowClient{
+			getGenerateRequestResultFn: func(ctx context.Context, workflowID string) (temporalclient.GenerateRequestResult, error) {
+				return temporalclient.GenerateRequestResult{
+					Status: "completed",
+					Output: &aiflows.GenerateRequestOutput{
+						Name:        "Extra Towels Request",
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "high",
+					},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(&mockRequestRepository{}, &mockLLMService{}, nil)
+		h.WorkflowClient = workflowClient
+		app.Get("/request/generate/async/:workflowId", h.GetGenerateRequestStatus)
+
+		req := httptest.NewRequest("GET", "/request/generate/async/generate-request-123", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "completed")
+		assert.Contains(t, string(body), "Extra Towels Request")
 	})
 }
