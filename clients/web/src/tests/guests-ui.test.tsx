@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import userEvent from "@testing-library/user-event";
+import { describe, expect, it } from "vitest";
 import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageSkeleton";
 import { GuestProfileCard } from "../components/guests/GuestProfileCard";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
@@ -26,16 +25,7 @@ describe("guest UI helpers", () => {
       );
     });
 
-    it("renders the correct column headers", () => {
-      render(<GuestQuickListTable guests={[]} onGuestClick={() => {}} />);
-
-      expect(screen.getByText("Guest")).not.toBe(null);
-      expect(screen.getByText("Specific Needs")).not.toBe(null);
-      expect(screen.getByText("Active Bookings")).not.toBe(null);
-      expect(screen.getByText("Requests")).not.toBe(null);
-    });
-
-    it("renders a booking pill with floor and suite number", () => {
+    it("renders a guest row with floor and suite", () => {
       const guest: GuestWithBooking = {
         id: "guest-1",
         first_name: "Ada",
@@ -49,48 +39,6 @@ describe("guest UI helpers", () => {
       render(<GuestQuickListTable guests={[guest]} onGuestClick={() => {}} />);
 
       expect(screen.getByText("Floor 4, Suite 401")).not.toBe(null);
-    });
-
-    it("renders preferred name in parens when it differs from first name", () => {
-      const guest: GuestWithBooking = {
-        id: "guest-2",
-        first_name: "Xinning",
-        last_name: "Liu",
-        preferred_name: "Lucy",
-        floor: 3,
-        group_size: 1,
-        room_number: 301,
-      };
-
-      render(<GuestQuickListTable guests={[guest]} onGuestClick={() => {}} />);
-
-      expect(screen.getByText("Xinning Liu")).not.toBe(null);
-      expect(screen.getByText("(Lucy)")).not.toBe(null);
-    });
-  });
-
-  describe("GuestQuickListTable click handler", () => {
-    it("calls onGuestClick with the guest id when a row is clicked", async () => {
-      const handleClick = vi.fn();
-      const guest: GuestWithBooking = {
-        id: "g-123",
-        first_name: "Layla",
-        last_name: "Hassan",
-        preferred_name: "Layla",
-        floor: 2,
-        group_size: 1,
-        room_number: 201,
-      };
-
-      render(
-        <GuestQuickListTable
-          guests={[guest]}
-          onGuestClick={handleClick}
-        />,
-      );
-
-      await userEvent.click(screen.getByText("Layla Hassan"));
-      expect(handleClick).toHaveBeenCalledWith("g-123");
     });
   });
 

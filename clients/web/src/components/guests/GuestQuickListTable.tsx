@@ -40,13 +40,9 @@ export function GuestQuickListTable({
             <p className="text-sm text-text-subtle">—</p>
 
             <div className="flex min-w-0 flex-wrap gap-1.5">
-              {guest.room_number != null ? (
-                <span className="inline-flex items-center rounded px-2 py-1 text-xs bg-bg-selected text-primary">
-                  Floor {guest.floor}, Suite {guest.room_number}
-                </span>
-              ) : (
-                <span className="text-base text-text-default">None</span>
-              )}
+              <span className="inline-flex items-center rounded px-2 py-1 text-xs bg-bg-selected text-primary">
+                Floor {guest.floor}, Suite {guest.room_number}
+              </span>
             </div>
 
             <p className="text-sm text-primary">—</p>
