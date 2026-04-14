@@ -7,22 +7,25 @@ import (
 )
 
 type GuestDocument struct {
-	ID            string    `json:"id"`
-	HotelID       string    `json:"hotel_id"`
-	FullName      string    `json:"full_name"`
-	FirstName     string    `json:"first_name"`
-	LastName      string    `json:"last_name"`
-	PreferredName string    `json:"preferred_name"`
-	Email         *string   `json:"email,omitempty"`
-	Phone         *string   `json:"phone,omitempty"`
-	Preferences   *string   `json:"preferences,omitempty"`
-	Notes         *string   `json:"notes,omitempty"`
-	Floor         int       `json:"floor"`
-	RoomNumber    int       `json:"room_number"`
-	GroupSize     *int      `json:"group_size,omitempty"`
-	BookingStatus string    `json:"booking_status"`
-	ArrivalDate   time.Time `json:"arrival_date"`
-	DepartureDate time.Time `json:"departure_date"`
+	ID            string      `json:"id"`
+	HotelID       string      `json:"hotel_id"`
+	FullName      string      `json:"full_name"`
+	FirstName     string      `json:"first_name"`
+	LastName      string      `json:"last_name"`
+	PreferredName string      `json:"preferred_name"`
+	Email         *string     `json:"email,omitempty"`
+	Phone         *string     `json:"phone,omitempty"`
+	Preferences   *string     `json:"preferences,omitempty"`
+	Notes         *string     `json:"notes,omitempty"`
+	Assistance    *Assistance `json:"assistance,omitempty"`
+	Floor         int         `json:"floor"`
+	RoomNumber    int         `json:"room_number"`
+	GroupSize     *int        `json:"group_size,omitempty"`
+	BookingStatus string      `json:"booking_status"`
+	ArrivalDate   time.Time   `json:"arrival_date"`
+	DepartureDate time.Time   `json:"departure_date"`
+	RequestCount  int         `json:"request_count"`
+	HasUrgent     bool        `json:"has_urgent"`
 } //@name GuestDocument
 
 type CreateGuest struct {
@@ -47,13 +50,6 @@ type Guest struct {
 	Notes     *string   `json:"notes,omitempty" example:"VIP guest"`
 	CreateGuest
 } //@name Guest
-
-type GuestSortOrder string
-
-const (
-	GuestSortHighToLow GuestSortOrder = "high_to_low"
-	GuestSortLowToHigh GuestSortOrder = "low_to_high"
-)
 
 type RequestSortOrder string
 
@@ -81,7 +77,6 @@ const (
 type GuestFilters struct {
 	HotelID     string             `json:"hotel_id"     validate:"required,startswith=org_" swaggerignore:"true"`
 	Status      []BookingStatus    `json:"status"       validate:"omitempty,dive,oneof=active inactive"`
-	BookingSort GuestSortOrder     `json:"booking_sort" validate:"omitempty,oneof=high_to_low low_to_high"`
 	RequestSort RequestSortOrder   `json:"request_sort" validate:"omitempty,oneof=high_to_low low_to_high urgent"`
 	FloorSort   FloorSortOrder     `json:"floor_sort"   validate:"omitempty,oneof=ascending descending"`
 	Floors      []int              `json:"floors"`
@@ -99,15 +94,35 @@ type GuestPage struct {
 	NextCursor *string             `json:"next_cursor"`
 } // @name GuestPage
 
+type ActiveBooking struct {
+	Floor      int `json:"floor"`
+	RoomNumber int `json:"room_number"`
+} //@name ActiveBooking
+
+type ActiveBookings []ActiveBooking
+
+func (a *ActiveBookings) Scan(src any) error {
+	if src == nil {
+		*a = []ActiveBooking{}
+		return nil
+	}
+	rawBytes, ok := src.([]byte)
+	if !ok {
+		return fmt.Errorf("ActiveBookings.Scan: expected []byte from JSON column, got %T", src)
+	}
+	return json.Unmarshal(rawBytes, a)
+}
+
 type GuestWithBooking struct {
-	ID            string `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`
-	FirstName     string `json:"first_name" validate:"required" example:"Jane"`
-	LastName      string `json:"last_name" validate:"required" example:"Doe"`
-	PreferredName string `json:"preferred_name" validate:"required" example:"Jane"`
-	Floor         int    `json:"floor" validate:"required" example:"3"`
-	RoomNumber    int    `json:"room_number" validate:"required" example:"301"`
-	GroupSize     *int   `json:"group_size" example:"2"`
-} // @name GuestWithBooking
+	ID             string         `json:"id"`
+	FirstName      string         `json:"first_name"`
+	LastName       string         `json:"last_name"`
+	PreferredName  string         `json:"preferred_name"`
+	RequestCount   int            `json:"request_count"`
+	HasUrgent      bool           `json:"has_urgent"`
+	Assistance     *Assistance    `json:"assistance,omitempty"`
+	ActiveBookings ActiveBookings `json:"active_bookings"`
+} //@name GuestWithBooking
 
 type GuestWithStays struct {
 	ID                  string      `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`

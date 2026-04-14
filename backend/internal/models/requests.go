@@ -93,6 +93,11 @@ type GetRequestsByGuestInput struct {
 	Limit   int    `json:"limit" validate:"omitempty,min=1,max=100"`
 } //@name GetRequestsByGuestInput
 
+type GuestRequestPage struct {
+	Data       []*GuestRequest `json:"data"`
+	NextCursor *string         `json:"next_cursor"`
+} //@name GuestRequestPage
+
 type GetRequestsByRoomInput struct {
 	RoomID  string `json:"room_id" validate:"required,uuid"`
 	HotelID string `json:"hotel_id" validate:"required"`

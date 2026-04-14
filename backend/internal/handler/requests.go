@@ -283,7 +283,7 @@ func warningFromAI(w *aiflows.GenerateRequestWarning) *models.GenerateRequestWar
 // @Tags         requests
 // @Produce      json
 // @Param        id  path  string  true  "Guest ID (UUID)"
-// @Success      200  {object}  []models.GuestRequest
+// @Success      200  {object}  utils.CursorPage[models.GuestRequest]
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth

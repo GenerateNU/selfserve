@@ -191,10 +191,10 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// Guest Routes
 	api.Route("/guests", func(r fiber.Router) {
 		r.Post("/", guestsHandler.CreateGuest)
-		r.Get("/:id", guestsHandler.GetGuest)
-		r.Put("/:id", guestsHandler.UpdateGuest)
 		r.Post("/search", guestsHandler.GetGuests)
 		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
+		r.Get("/:id", guestsHandler.GetGuest)
+		r.Put("/:id", guestsHandler.UpdateGuest)
 	})
 
 	// Request routes
