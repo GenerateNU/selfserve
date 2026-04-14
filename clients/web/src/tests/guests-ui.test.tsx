@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 import { GuestProfilePageSkeleton } from "../components/guests/GuestProfilePageSkeleton";
 import { GuestProfileCard } from "../components/guests/GuestProfileCard";
 import { GuestQuickListTable } from "../components/guests/GuestQuickListTable";
@@ -17,17 +18,7 @@ describe("guest UI helpers", () => {
   describe("GuestQuickListTable", () => {
     it("does not show the empty state while the first page is loading", () => {
       render(
-        <GuestQuickListTable
-          guests={[]}
-          floorOptions={[]}
-          groupSizeOptions={[]}
-          groupFilter="all"
-          floorFilter="all"
-          isLoading
-          onGroupFilterChange={() => {}}
-          onFloorFilterChange={() => {}}
-          onGuestClick={() => {}}
-        />,
+        <GuestQuickListTable guests={[]} isLoading onGuestClick={() => {}} />,
       );
 
       expect(screen.queryByText("No guests match your current filters.")).toBe(
@@ -35,49 +26,71 @@ describe("guest UI helpers", () => {
       );
     });
 
-    it("renders backend-provided filter options", () => {
-      render(
-        <GuestQuickListTable
-          guests={[]}
-          floorOptions={[2, 4]}
-          groupSizeOptions={[1, 3, 6]}
-          groupFilter="all"
-          floorFilter="all"
-          onGroupFilterChange={() => {}}
-          onFloorFilterChange={() => {}}
-          onGuestClick={() => {}}
-        />,
-      );
+    it("renders the correct column headers", () => {
+      render(<GuestQuickListTable guests={[]} onGuestClick={() => {}} />);
 
-      expect(screen.getByRole("option", { name: "2" })).not.toBe(null);
-      expect(screen.getByRole("option", { name: "6" })).not.toBe(null);
+      expect(screen.getByText("Guest")).not.toBe(null);
+      expect(screen.getByText("Specific Needs")).not.toBe(null);
+      expect(screen.getByText("Active Bookings")).not.toBe(null);
+      expect(screen.getByText("Requests")).not.toBe(null);
     });
 
-    it("renders an em dash for a null group size", () => {
-      const guest = {
+    it("renders a booking pill with floor and suite number", () => {
+      const guest: GuestWithBooking = {
         id: "guest-1",
         first_name: "Ada",
         last_name: "Lovelace",
         preferred_name: "Ada",
         floor: 4,
-        group_size: null as unknown as GuestWithBooking["group_size"],
+        group_size: 2,
         room_number: 401,
+      };
+
+      render(<GuestQuickListTable guests={[guest]} onGuestClick={() => {}} />);
+
+      expect(screen.getByText("Floor 4, Suite 401")).not.toBe(null);
+    });
+
+    it("renders preferred name in parens when it differs from first name", () => {
+      const guest: GuestWithBooking = {
+        id: "guest-2",
+        first_name: "Xinning",
+        last_name: "Liu",
+        preferred_name: "Lucy",
+        floor: 3,
+        group_size: 1,
+        room_number: 301,
+      };
+
+      render(<GuestQuickListTable guests={[guest]} onGuestClick={() => {}} />);
+
+      expect(screen.getByText("Xinning Liu")).not.toBe(null);
+      expect(screen.getByText("(Lucy)")).not.toBe(null);
+    });
+  });
+
+  describe("GuestQuickListTable click handler", () => {
+    it("calls onGuestClick with the guest id when a row is clicked", async () => {
+      const handleClick = vi.fn();
+      const guest: GuestWithBooking = {
+        id: "g-123",
+        first_name: "Layla",
+        last_name: "Hassan",
+        preferred_name: "Layla",
+        floor: 2,
+        group_size: 1,
+        room_number: 201,
       };
 
       render(
         <GuestQuickListTable
           guests={[guest]}
-          floorOptions={[]}
-          groupSizeOptions={[]}
-          groupFilter="all"
-          floorFilter="all"
-          onGroupFilterChange={() => {}}
-          onFloorFilterChange={() => {}}
-          onGuestClick={() => {}}
+          onGuestClick={handleClick}
         />,
       );
 
-      expect(screen.getByText("—")).not.toBe(null);
+      await userEvent.click(screen.getByText("Layla Hassan"));
+      expect(handleClick).toHaveBeenCalledWith("g-123");
     });
   });
 

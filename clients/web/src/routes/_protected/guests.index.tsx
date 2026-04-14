@@ -2,13 +2,13 @@ import {
   MakeRequestPriority,
   useGetGuestBookingsGroupSizes,
   useGetRoomsFloors,
+  usePostGuestsSearchHook,
 } from "@shared";
-import { usePostGuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { GuestListHeader } from "../../components/guests/GuestListHeader";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
-import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { useDebounce } from "../../hooks/use-debounce";
 import type { Request } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
@@ -68,13 +68,7 @@ function GuestsQuickListPage() {
       <>
         <GuestQuickListTable
           guests={allGuests}
-          floorOptions={availableFloors}
-          groupSizeOptions={availableGroupSizes}
-          groupFilter={groupFilter}
-          floorFilter={floorFilter}
           isLoading={isLoading}
-          onGroupFilterChange={setGroupFilter}
-          onFloorFilterChange={setFloorFilter}
           onGuestClick={(guestId) =>
             navigate({ to: "/guests/$guestId", params: { guestId } })
           }
@@ -116,7 +110,18 @@ function GuestsQuickListPage() {
         ) : null
       }
     >
-      <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
+      <GuestListHeader
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        availableFloors={availableFloors}
+        availableGroupSizes={availableGroupSizes}
+        selectedFloor={floorFilter}
+        selectedGroupSize={groupFilter}
+        onApplyFilters={(floor, groupSize) => {
+          setFloorFilter(floor);
+          setGroupFilter(groupSize);
+        }}
+      />
       {guestsContent}
       {generatedData === null && (
         <GlobalTaskInput
