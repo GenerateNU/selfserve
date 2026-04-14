@@ -7,6 +7,7 @@ import {
   saveProfilePictureKey,
   uploadFileToS3,
 } from "@shared";
+import { StartupStatus, useStartup } from "@/context/startup";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useProfilePicture(userId: string): {
@@ -17,6 +18,7 @@ export function useProfilePicture(userId: string): {
   handleUpload: (file: File) => Promise<void>;
   handleRemove: () => Promise<void>;
 } {
+  const startupStatus = useStartup();
   const api = useAPIClient();
   const apiRef = useRef(api);
   apiRef.current = api;
@@ -27,6 +29,13 @@ export function useProfilePicture(userId: string): {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
+    if (startupStatus !== StartupStatus.Ready) {
+      if (startupStatus !== StartupStatus.Loading) {
+        setIsInitialLoading(false);
+      }
+      return;
+    }
+
     const ac = new AbortController();
     setIsInitialLoading(true);
     void (async () => {
@@ -42,10 +51,13 @@ export function useProfilePicture(userId: string): {
       }
     })();
     return () => ac.abort();
-  }, [userId]);
+  }, [userId, startupStatus]);
 
   const handleUpload = useCallback(
     async (file: File) => {
+      if (startupStatus !== StartupStatus.Ready) {
+        return;
+      }
       setIsLoading(true);
       setStatus("Getting upload URL...");
       try {
@@ -70,10 +82,13 @@ export function useProfilePicture(userId: string): {
         setIsLoading(false);
       }
     },
-    [api, userId],
+    [api, userId, startupStatus],
   );
 
   const handleRemove = useCallback(async () => {
+    if (startupStatus !== StartupStatus.Ready) {
+      return;
+    }
     setIsLoading(true);
     setStatus("Removing profile picture...");
     try {
@@ -87,7 +102,7 @@ export function useProfilePicture(userId: string): {
     } finally {
       setIsLoading(false);
     }
-  }, [api, userId]);
+  }, [api, userId, startupStatus]);
 
   return {
     profilePicUrl,
