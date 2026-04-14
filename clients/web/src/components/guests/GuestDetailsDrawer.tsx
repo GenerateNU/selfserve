@@ -1,7 +1,9 @@
 import { X } from "lucide-react";
-import { useGetGuestsStaysId } from "@shared/api/generated/endpoints/guests/guests";
-import { useGetRequestGuestId } from "@shared/api/generated/endpoints/requests/requests";
-import { usePutApiV1GuestsId } from "@shared/api/generated/endpoints/guests/guests";
+import {
+  useGetGuestsStaysId,
+  useGetRequestGuestId,
+  usePutGuestsId,
+} from "@shared";
 import { cn } from "@/lib/utils";
 import { GuestProfileTab } from "./GuestProfileTab";
 import { GuestVisitActivityTab } from "./GuestVisitActivityTab";
@@ -33,7 +35,7 @@ export function GuestDetailsDrawer({
   } = useGetGuestsStaysId(guestId);
   const { data: requestsData } = useGetRequestGuestId(guestId);
   const requests = (requestsData as any)?.items ?? requestsData ?? [];
-  const updateGuest = usePutApiV1GuestsId();
+  const updateGuest = usePutGuestsId();
 
   const handleSaveNotes = async (notes: string) => {
     await updateGuest.mutateAsync({ id: guestId, data: { notes } });

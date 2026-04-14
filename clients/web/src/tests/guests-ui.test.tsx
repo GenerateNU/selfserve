@@ -189,7 +189,7 @@ describe("GuestDetailsDrawer", () => {
       refetch: vi.fn(),
     } as any);
 
-    vi.spyOn(guestsEndpoints, "usePutApiV1GuestsId").mockReturnValue({
+    vi.spyOn(guestsEndpoints, "usePutGuestsId").mockReturnValue({
       mutateAsync: vi.fn(),
       isPending: false,
     } as any);

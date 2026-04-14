@@ -2,8 +2,8 @@ import {
   MakeRequestPriority,
   useGetGuestBookingsGroupSizes,
   useGetRoomsFloors,
+  usePostGuestsSearchHook,
 } from "@shared";
-import { usePostGuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
