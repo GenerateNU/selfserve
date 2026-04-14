@@ -10,6 +10,7 @@ jest.mock("expo-notifications", () => ({
   setNotificationChannelAsync: jest.fn(),
   addNotificationResponseReceivedListener: jest.fn(),
   AndroidImportance: { MAX: 5 },
+  PermissionStatus: { GRANTED: "granted", UNDETERMINED: "undetermined", DENIED: "denied" },
 }));
 
 const mockRouterPush = jest.fn();

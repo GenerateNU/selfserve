@@ -6,6 +6,7 @@ import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { usePostDeviceToken } from "@shared/api/notifications";
 import type { RegisterDeviceTokenInput } from "@shared/types/notifications";
+import { NotificationType, DevicePlatform } from "@shared/types/notifications";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -28,8 +29,11 @@ export const usePushNotifications = () => {
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
         const data = response.notification.request.content.data;
-        const type = data?.type as string | undefined;
-        if (type === "task_assigned" || type === "high_priority_task") {
+        const type = data?.type as NotificationType | undefined;
+        if (
+          type === NotificationType.TaskAssigned ||
+          type === NotificationType.HighPriorityTask
+        ) {
           router.push("/(tabs)/tasks");
         }
       });
@@ -49,6 +53,8 @@ export async function registerForPushNotificationsAsync(
   deps = {
     isDevice: Device.isDevice,
     platformOS: Platform.OS,
+    // Constants.expoConfig.extra is typed as Record<string, unknown> by Expo,
+    // so a cast is unavoidable here — the shape is defined in app.json.
     projectId: Constants.expoConfig?.extra?.eas?.projectId as
       | string
       | undefined,
@@ -58,7 +64,7 @@ export async function registerForPushNotificationsAsync(
     return;
   }
 
-  if (deps.platformOS === "android") {
+  if (deps.platformOS === DevicePlatform.Android) {
     await Notifications.setNotificationChannelAsync("default", {
       name: "default",
       importance: Notifications.AndroidImportance.MAX,
@@ -70,12 +76,12 @@ export async function registerForPushNotificationsAsync(
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
 
-  if (existingStatus !== "granted") {
+  if (existingStatus !== Notifications.PermissionStatus.GRANTED) {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
 
-  if (finalStatus !== "granted") {
+  if (finalStatus !== Notifications.PermissionStatus.GRANTED) {
     return;
   }
 
@@ -87,7 +93,7 @@ export async function registerForPushNotificationsAsync(
     const { data: token } = await Notifications.getExpoPushTokenAsync({
       projectId: deps.projectId,
     });
-    const platform = deps.platformOS as "ios" | "android";
+    const platform = deps.platformOS as DevicePlatform;
     registerToken({ token, platform });
   } catch {
     // Push notifications are non-critical; silently skip on failure.
