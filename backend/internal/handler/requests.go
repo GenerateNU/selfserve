@@ -346,20 +346,3 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 		Unassigned: unassigned,
 	})
 }
-
-// parseRequestCursor splits a "id|request_version" cursor string.
-// Returns zero values and nil error when cursor is empty (first page).
-func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
-	if cursor == "" {
-		return "", time.Time{}, nil
-	}
-	parts := strings.SplitN(cursor, "|", 2)
-	if len(parts) != 2 {
-		return "", time.Time{}, errors.New("invalid cursor")
-	}
-	version, err = time.Parse(time.RFC3339Nano, parts[1])
-	if err != nil {
-		return "", time.Time{}, errors.New("invalid cursor")
-	}
-	return parts[0], version, nil
-}
