@@ -102,6 +102,7 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 // @Failure      400   {object}  map[string]string "Invalid guest ID format"
 // @Failure      404  {object}  errs.HTTPError  "Guest not found"
 // @Failure      500   {object}  map[string]string "Internal server error"
+// @ID           getGuestsStaysId
 // @Security     BearerAuth
 // @Router       /guests/stays/{id} [get]
 func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
@@ -116,6 +117,7 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 			return errs.NotFound("guest", "id", id)
 
 		}
+		slog.Error("failed to get guest with stays", "id", id, "error", err)
 		return errs.InternalServerError()
 	}
 	return c.JSON(guest)

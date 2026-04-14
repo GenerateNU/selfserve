@@ -75,7 +75,7 @@ const (
 )
 
 type GuestFilters struct {
-	HotelID     string             `json:"hotel_id"     validate:"required,startswith=org_"`
+	HotelID     string             `json:"hotel_id"     validate:"required,startswith=org_" swaggerignore:"true"`
 	Status      []BookingStatus    `json:"status"       validate:"omitempty,dive,oneof=active inactive"`
 	RequestSort RequestSortOrder   `json:"request_sort" validate:"omitempty,oneof=high_to_low low_to_high urgent"`
 	FloorSort   FloorSortOrder     `json:"floor_sort"   validate:"omitempty,oneof=ascending descending"`
@@ -133,8 +133,8 @@ type GuestWithStays struct {
 	Preferences         *string     `json:"preferences,omitempty" example:"extra pillows"`
 	Notes               *string     `json:"notes,omitempty" example:"VIP"`
 	Pronouns            *string     `json:"pronouns,omitempty" example:"she/her"`
-	DoNotDisturbStart   *time.Time  `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
-	DoNotDisturbEnd     *time.Time  `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
+	DoNotDisturbStart   *string     `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
+	DoNotDisturbEnd     *string     `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
 	HousekeepingCadence *string     `json:"housekeeping_cadence,omitempty" example:"daily"`
 	Assistance          *Assistance `json:"assistance,omitempty"`
 	CurrentStays        []Stay      `json:"current_stays" validate:"required"`

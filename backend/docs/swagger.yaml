@@ -201,8 +201,6 @@ definitions:
         items:
           type: integer
         type: array
-      hotel_id:
-        type: string
       limit:
         maximum: 100
         minimum: 1
@@ -220,8 +218,6 @@ definitions:
         items:
           $ref: '#/definitions/github_com_generate_selfserve_internal_models.BookingStatus'
         type: array
-    required:
-    - hotel_id
     type: object
   GuestPage:
     properties:
@@ -997,6 +993,7 @@ paths:
       consumes:
       - application/json
       description: Retrieves a single guest with previous stays given an id
+      operationId: getGuestsStaysId
       parameters:
       - description: Guest ID (UUID)
         in: path

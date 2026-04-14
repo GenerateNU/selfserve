@@ -61,14 +61,18 @@ export {
   useGetGuestsId,
   usePutGuestsId,
   getGetGuestsStaysIdQueryKey,
+  usePostGuestsSearchHook,
+  useGetGuestsStaysId,
 } from "./api/generated/endpoints/guests/guests";
 
-export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
+export type {
+  GuestWithBooking,
+  GuestWithStays,
+  GuestFilters,
+} from "./api/generated/models";
 
-export {
-  usePostRooms,
-  useGetRoomsFloors,
-} from "./api/generated/endpoints/rooms/rooms";
+export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
+export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
 
 export type {
   RoomWithOptionalGuestBooking,
