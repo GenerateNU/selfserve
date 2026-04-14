@@ -266,23 +266,6 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 	})
 }
 
-// parseRequestCursor splits a "id|request_version" cursor string.
-// Returns zero values and nil error when cursor is empty (first page).
-func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
-	if cursor == "" {
-		return "", time.Time{}, nil
-	}
-	parts := strings.SplitN(cursor, "|", 2)
-	if len(parts) != 2 {
-		return "", time.Time{}, errors.New("invalid cursor")
-	}
-	version, err = time.Parse(time.RFC3339Nano, parts[1])
-	if err != nil {
-		return "", time.Time{}, errors.New("invalid cursor")
-	}
-	return parts[0], version, nil
-}
-
 func warningFromAI(w *aiflows.GenerateRequestWarning) *models.GenerateRequestWarning {
 	if w == nil {
 		return nil
@@ -374,4 +357,63 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 		Assigned:   assigned,
 		Unassigned: unassigned,
 	})
+}
+
+// GetRequestsFeed godoc
+// @Summary      Get requests feed
+// @Description  Returns a paginated list of requests for the hotel, optionally filtered by assigned user
+// @Tags         requests
+// @Produce      json
+// @Param        X-Hotel-ID  header  string  true   "Hotel ID (UUID)"
+// @Param        cursor      query   string  false  "Pagination cursor"
+// @Param        limit       query   int     false  "Page size (default 20, max 100)"
+// @Param        user_id     query   string  false  "Filter by assigned user ID"
+// @Success      200  {object}  utils.CursorPage[models.GuestRequest]
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /requests [get]
+func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
+	hotelID := c.Get("X-Hotel-ID")
+	if hotelID == "" {
+		return errs.BadRequest("X-Hotel-ID header is required")
+	}
+
+	cursor := c.Query("cursor")
+	limit := c.QueryInt("limit")
+	userID := c.Query("user_id")
+
+	cursorID, cursorVersion, err := parseRequestCursor(cursor)
+	if err != nil {
+		return errs.BadRequest("invalid cursor")
+	}
+
+	resolvedLimit := utils.ResolveLimit(limit)
+	requests, err := r.RequestRepository.FindRequestsPaginated(c.Context(), hotelID, userID, cursorID, cursorVersion, resolvedLimit+1)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	page := utils.BuildCursorPage(requests, resolvedLimit, func(req *models.GuestRequest) string {
+		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
+	})
+
+	return c.JSON(page)
+}
+
+// parseRequestCursor splits a "id|request_version" cursor string.
+// Returns zero values and nil error when cursor is empty (first page).
+func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
+	if cursor == "" {
+		return "", time.Time{}, nil
+	}
+	parts := strings.SplitN(cursor, "|", 2)
+	if len(parts) != 2 {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	version, err = time.Parse(time.RFC3339Nano, parts[1])
+	if err != nil {
+		return "", time.Time{}, errors.New("invalid cursor")
+	}
+	return parts[0], version, nil
 }
