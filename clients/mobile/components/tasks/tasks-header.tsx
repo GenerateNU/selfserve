@@ -4,7 +4,9 @@ import { Pressable, Text, View } from "react-native";
 export function TasksHeader() {
   return (
     <View className="flex-row justify-between items-center px-[22px] pt-3 pb-2">
-      <Text className="text-2xl font-medium tracking-tight text-black">Tasks</Text>
+      <Text className="text-2xl font-medium tracking-tight text-black">
+        Tasks
+      </Text>
       <View className="flex-row items-center gap-2">
         <Pressable
           onPress={() => {}}
