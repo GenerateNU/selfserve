@@ -1,4 +1,4 @@
-import { useGetRequestRoomId } from "@shared";
+import { useAssignRequestToSelf, useGetRequestRoomId } from "@shared";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { RoomAccordion } from "@/components/rooms/RoomAccordion";
@@ -14,6 +14,7 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
   const { data } = useGetRequestRoomId(room?.id ?? "", {
     query: { enabled: room?.id != null },
   });
+  const { mutate: assignRequestToSelf } = useAssignRequestToSelf(room?.id);
 
   if (!room) return null;
 
@@ -32,7 +33,12 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
     {
       value: "Unassigned Tasks",
       trigger: "Unassigned Tasks",
-      content: <RoomRequestList requests={unassignedItems} />,
+      content: (
+        <RoomRequestList
+          onAssignToSelf={assignRequestToSelf}
+          requests={unassignedItems}
+        />
+      ),
     },
   ];
 

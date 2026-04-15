@@ -29,6 +29,26 @@ export const useInfiniteRequestsByGuest = (guestId: string) => {
 
 export const REQUESTS_FEED_QUERY_KEY = ["requests-feed"] as const;
 
+export const getRoomRequestsByRoomIdQueryKey = (roomId: string) =>
+  [`/request/room/${roomId}`] as const;
+
+export const useAssignRequestToSelf = (roomId: string | undefined) => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (requestId: string) =>
+      api.post<unknown>(`/request/${requestId}/assign`, { assign_to_self: true }),
+    onSettled: () => {
+      if (roomId) {
+        queryClient.invalidateQueries({
+          queryKey: getRoomRequestsByRoomIdQueryKey(roomId),
+        });
+      }
+    },
+  });
+};
+
 export type RequestFeedItem = {
   id: string;
   name: string;
