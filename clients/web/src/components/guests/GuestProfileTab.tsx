@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { AssistanceChip } from "./AssistanceChip";
 import type { GuestWithStays } from "@shared";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -9,15 +9,6 @@ type GuestProfileTabProps = {
   onSaveNotes: (notes: string) => Promise<void>;
   isSavingNotes: boolean;
 };
-
-function AssistanceChip({ label }: { label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded border border-high-priority bg-bg-high-priority px-2 py-1 text-xs text-high-priority">
-      {label}
-      <X className="size-3.5 text-high-priority" strokeWidth={2} />
-    </span>
-  );
-}
 
 function AssistanceCategory({
   title,

@@ -4,16 +4,21 @@ import { GuestProfileTab } from "./GuestProfileTab";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
+export enum GuestDrawerTab {
+  Profile = "profile",
+  Activity = "activity",
+}
+
 type GuestDetailsDrawerProps = {
   guestId: string;
-  activeTab: "profile" | "activity";
-  onTabChange: (tab: "profile" | "activity") => void;
+  activeTab: GuestDrawerTab;
+  onTabChange: (tab: GuestDrawerTab) => void;
   onClose: () => void;
 };
 
-const TABS: Array<{ key: "profile" | "activity"; label: string }> = [
-  { key: "profile", label: "Profile" },
-  { key: "activity", label: "Visit Activity" },
+const TABS: Array<{ key: GuestDrawerTab; label: string }> = [
+  { key: GuestDrawerTab.Profile, label: "Profile" },
+  { key: GuestDrawerTab.Activity, label: "Visit Activity" },
 ];
 
 export function GuestDetailsDrawer({
@@ -99,14 +104,14 @@ export function GuestDetailsDrawer({
         )}
         {!isLoading && !isError && guest && (
           <>
-            {activeTab === "profile" && (
+            {activeTab === GuestDrawerTab.Profile && (
               <GuestProfileTab
                 guest={guest}
                 onSaveNotes={handleSaveNotes}
                 isSavingNotes={updateGuest.isPending}
               />
             )}
-            {activeTab === "activity" && (
+            {activeTab === GuestDrawerTab.Activity && (
               <div className="p-6 text-sm text-text-subtle">Coming soon.</div>
             )}
           </>

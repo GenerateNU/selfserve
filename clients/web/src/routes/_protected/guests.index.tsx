@@ -11,7 +11,10 @@ import { GuestListHeader } from "../../components/guests/GuestListHeader";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { useDebounce } from "../../hooks/use-debounce";
 import type { Request } from "@shared";
-import { GuestDetailsDrawer } from "@/components/guests/GuestDetailsDrawer";
+import {
+  GuestDetailsDrawer,
+  GuestDrawerTab,
+} from "@/components/guests/GuestDetailsDrawer";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { PageShell } from "@/components/ui/PageShell";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
@@ -20,7 +23,9 @@ export const Route = createFileRoute("/_protected/guests/")({
   validateSearch: (search: Record<string, unknown>) => ({
     guestId: typeof search.guestId === "string" ? search.guestId : undefined,
     tab:
-      search.tab === "activity" ? ("activity" as const) : ("profile" as const),
+      search.tab === GuestDrawerTab.Activity
+        ? GuestDrawerTab.Activity
+        : GuestDrawerTab.Profile,
   }),
   component: GuestsQuickListPage,
 });
@@ -65,14 +70,20 @@ function GuestsQuickListPage() {
   const allGuests = data?.pages.flatMap((page) => page.data ?? []) ?? [];
 
   const handleGuestClick = (id: string) => {
-    navigate({ to: "/guests", search: { guestId: id, tab: "profile" } });
+    navigate({
+      to: "/guests",
+      search: { guestId: id, tab: GuestDrawerTab.Profile },
+    });
   };
 
   const handleDrawerClose = () => {
-    navigate({ to: "/guests", search: { guestId: undefined, tab: "profile" } });
+    navigate({
+      to: "/guests",
+      search: { guestId: undefined, tab: GuestDrawerTab.Profile },
+    });
   };
 
-  const handleTabChange = (newTab: "profile" | "activity") => {
+  const handleTabChange = (newTab: GuestDrawerTab) => {
     if (!guestId) return;
     navigate({ to: "/guests", search: { guestId, tab: newTab } });
   };
@@ -155,7 +166,7 @@ function GuestsQuickListPage() {
             if (guestId) {
               navigate({
                 to: "/guests",
-                search: { guestId: undefined, tab: "profile" },
+                search: { guestId: undefined, tab: GuestDrawerTab.Profile },
               });
             }
             const p = r.priority;
