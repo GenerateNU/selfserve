@@ -255,12 +255,16 @@ func (r *RequestsRepository) FindRequestsPaginated(
 	hotelID, userID string,
 	unassigned bool,
 	status string,
+	departments []string,
 	sort models.RequestFeedSort,
 	cursorID string,
 	cursorCreatedAt time.Time,
 	cursorPriorityRank int,
 	limit int,
 ) ([]*models.GuestRequest, error) {
+	if departments == nil {
+		departments = []string{}
+	}
 	const baseFilter = `
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
@@ -272,6 +276,7 @@ func (r *RequestsRepository) FindRequestsPaginated(
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.hotel_id = $1
 			  AND ($4::text = '' OR r.status = $4)
+			  AND (cardinality($5::text[]) = 0 OR r.department = ANY($5))
 			  AND (
 			    ($3::bool AND r.user_id IS NULL)
 			    OR (NOT $3::bool AND ($2::text = '' OR r.user_id = $2))
@@ -292,24 +297,24 @@ func (r *RequestsRepository) FindRequestsPaginated(
 	switch sort {
 	case models.SortByNewest:
 		rows, err = r.db.Query(ctx, baseFilter+`
-			WHERE ($5::text = '' OR (created_at, id::text) < ($6, $5))
+			WHERE ($6::text = '' OR (created_at, id::text) < ($7, $6))
 			ORDER BY created_at DESC, id DESC
-			LIMIT $7
-		`, hotelID, userID, unassigned, status, cursorID, cursorCreatedAt, limit)
+			LIMIT $8
+		`, hotelID, userID, unassigned, status, departments, cursorID, cursorCreatedAt, limit)
 
 	case models.SortByOldest:
 		rows, err = r.db.Query(ctx, baseFilter+`
-			WHERE ($5::text = '' OR (created_at, id::text) > ($6, $5))
+			WHERE ($6::text = '' OR (created_at, id::text) > ($7, $6))
 			ORDER BY created_at ASC, id ASC
-			LIMIT $7
-		`, hotelID, userID, unassigned, status, cursorID, cursorCreatedAt, limit)
+			LIMIT $8
+		`, hotelID, userID, unassigned, status, departments, cursorID, cursorCreatedAt, limit)
 
 	default: // SortByPriority
 		rows, err = r.db.Query(ctx, baseFilter+`
-			WHERE ($5::text = '' OR (priority_rank, id::text) > ($6::int, $5))
+			WHERE ($6::text = '' OR (priority_rank, id::text) > ($7::int, $6))
 			ORDER BY priority_rank ASC, id ASC
-			LIMIT $7
-		`, hotelID, userID, unassigned, status, cursorID, cursorPriorityRank, limit)
+			LIMIT $8
+		`, hotelID, userID, unassigned, status, departments, cursorID, cursorPriorityRank, limit)
 	}
 
 	if err != nil {

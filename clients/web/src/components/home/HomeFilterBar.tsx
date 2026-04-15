@@ -2,6 +2,7 @@ import { ChevronDown, LayoutGrid, User } from "lucide-react";
 import { useRef, useState } from "react";
 import { FilterSortMenu } from "./FilterSortMenu";
 import { AssigneeFilterMenu } from "./AssigneeFilterMenu";
+import { DepartmentFilterMenu } from "./DepartmentFilterMenu";
 import type { RequestFeedSort } from "@shared/api/requests";
 import type { User as UserModel } from "@shared";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,8 @@ type HomeFilterBarProps = {
   onSortChange?: (sort: RequestFeedSort | undefined) => void;
   selectedUser?: UserModel;
   onUserChange?: (user: UserModel | undefined) => void;
+  selectedDepartments?: Array<string>;
+  onDepartmentsChange?: (departments: Array<string>) => void;
   hotelId?: string;
   currentUserId?: string;
 };
@@ -80,14 +83,18 @@ export function HomeFilterBar({
   onSortChange,
   selectedUser,
   onUserChange,
+  selectedDepartments = [],
+  onDepartmentsChange,
   hotelId,
   currentUserId,
 }: HomeFilterBarProps) {
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false);
+  const [departmentMenuOpen, setDepartmentMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 });
   const sortButtonRef = useRef<HTMLButtonElement>(null);
   const assigneeButtonRef = useRef<HTMLButtonElement>(null);
+  const departmentButtonRef = useRef<HTMLButtonElement>(null);
 
   function openSortMenu() {
     if (sortButtonRef.current) {
@@ -106,10 +113,25 @@ export function HomeFilterBar({
     setAssigneeMenuOpen(true);
   }
 
+  function openDepartmentMenu() {
+    if (!hotelId) return;
+    if (departmentButtonRef.current) {
+      const rect = departmentButtonRef.current.getBoundingClientRect();
+      setMenuAnchor({ x: rect.left, y: rect.bottom + 6 });
+    }
+    setDepartmentMenuOpen(true);
+  }
+
   const activeSortLabel = sort ? SORT_LABELS[sort] : undefined;
   const activeAssigneeName = selectedUser
     ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
     : undefined;
+  const activeDepartmentLabel =
+    selectedDepartments.length === 1
+      ? selectedDepartments[0]
+      : selectedDepartments.length > 1
+        ? `${selectedDepartments.length} departments`
+        : undefined;
 
   return (
     <>
@@ -133,6 +155,13 @@ export function HomeFilterBar({
               activeValue={activeAssigneeName}
               icon="user"
               onClick={openAssigneeMenu}
+            />
+            <FilterChip
+              ref={departmentButtonRef}
+              label="Department"
+              active={selectedDepartments.length > 0}
+              activeValue={activeDepartmentLabel}
+              onClick={openDepartmentMenu}
             />
             <FilterChip label="Priority" />
             <FilterChip label="Location" />
@@ -175,6 +204,16 @@ export function HomeFilterBar({
           anchor={menuAnchor}
           onApply={(user) => onUserChange?.(user)}
           onClose={() => setAssigneeMenuOpen(false)}
+        />
+      )}
+
+      {departmentMenuOpen && hotelId && (
+        <DepartmentFilterMenu
+          hotelId={hotelId}
+          selectedNames={selectedDepartments}
+          anchor={menuAnchor}
+          onApply={(names) => onDepartmentsChange?.(names)}
+          onClose={() => setDepartmentMenuOpen(false)}
         />
       )}
     </>
