@@ -7,6 +7,7 @@ type RequestCardProps = {
   status: RequestStatus;
   children: ReactNode;
   className?: string;
+  onClick?: () => void;
 };
 
 const accentClass: Record<RequestStatus, string> = {
@@ -15,11 +16,13 @@ const accentClass: Record<RequestStatus, string> = {
   completed: "bg-request-completed",
 };
 
-export function RequestCard({ status, children, className }: RequestCardProps) {
+export function RequestCard({ status, children, className, onClick }: RequestCardProps) {
   return (
     <div
+      onClick={onClick}
       className={cn(
         "relative flex flex-col rounded-xl border border-stroke-disabled bg-white pt-3 pb-4 pl-4 pr-4 shadow-sm overflow-hidden",
+        onClick && "cursor-pointer",
         className,
       )}
     >

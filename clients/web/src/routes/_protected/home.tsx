@@ -7,6 +7,7 @@ import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
 import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
+import { ViewRequestDrawer } from "@/components/requests/ViewRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
 import { useKanbanRequests } from "@/hooks/use-kanban-requests";
@@ -24,9 +25,11 @@ const KANBAN_COLUMNS = [
 function KanbanColumnData({
   hotelId,
   status,
+  onCardClick,
 }: {
   hotelId: string;
   status: string;
+  onCardClick: (request: Request) => void;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -61,7 +64,7 @@ function KanbanColumnData({
   return (
     <>
       {requests.map((request: Request) => (
-        <RequestCardItem key={request.id} request={request} />
+        <RequestCardItem key={request.id} request={request} onClick={() => onCardClick(request)} />
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
     </>
@@ -75,13 +78,16 @@ function HomePage() {
     priority?: MakeRequestPriority;
     room_id?: string;
   } | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
 
   function handleCreateRequest() {
+    setSelectedRequest(null);
     setDrawerData({});
   }
 
   function handleRequestGenerated(request: Request) {
     const p = request.priority;
+    setSelectedRequest(null);
     setDrawerData({
       name: request.name,
       description: request.description,
@@ -91,14 +97,25 @@ function HomePage() {
     });
   }
 
+  function handleCardClick(request: Request) {
+    setDrawerData(null);
+    setSelectedRequest(request);
+  }
+
   const drawer =
     drawerData !== null ? (
       <CreateRequestDrawer
         initialData={drawerData}
         onClose={() => setDrawerData(null)}
       />
+    ) : selectedRequest !== null ? (
+      <ViewRequestDrawer
+        request={selectedRequest}
+        onClose={() => setSelectedRequest(null)}
+      />
     ) : null;
 
+  const drawerOpen = drawerData !== null || selectedRequest !== null;
   const hotelId = getConfig().hotelId;
 
   return (
@@ -107,7 +124,7 @@ function HomePage() {
         title: "Home",
         description: "Overview of all tasks currently at play",
       }}
-      drawerOpen={drawerData !== null}
+      drawerOpen={drawerOpen}
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
@@ -118,13 +135,17 @@ function HomePage() {
           {KANBAN_COLUMNS.map((col) => (
             <KanbanColumn key={col.status} title={col.title}>
               {hotelId && (
-                <KanbanColumnData hotelId={hotelId} status={col.status} />
+                <KanbanColumnData
+                  hotelId={hotelId}
+                  status={col.status}
+                  onCardClick={handleCardClick}
+                />
               )}
             </KanbanColumn>
           ))}
         </div>
       </div>
-      {drawerData === null && (
+      {!drawerOpen && (
         <GlobalTaskInput onRequestGenerated={handleRequestGenerated} />
       )}
     </PageShell>
