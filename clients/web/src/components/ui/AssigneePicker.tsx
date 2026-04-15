@@ -39,12 +39,12 @@ export function AssigneePicker({
       queryKey: ["users", "search", hotelId, debouncedSearch],
       queryFn: ({ pageParam }) =>
         searchUsers({
-          url: "/users",
-          method: "GET",
-          params: {
+          url: "/users/search",
+          method: "POST",
+          data: {
             hotel_id: hotelId,
-            cursor: pageParam,
-            q: debouncedSearch,
+            cursor: pageParam || undefined,
+            q: debouncedSearch || undefined,
           },
         }),
       initialPageParam: "",

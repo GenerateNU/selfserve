@@ -11,11 +11,19 @@ type GlobalTaskInputProps = {
 };
 
 const fallbackHotelId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const hotelIdPattern =
+  /^([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|org_.+)$/i;
+
+// Persist input text across route navigations (SPA module state)
+let persistedValue = "";
 
 export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(persistedValue);
+
+  const handleChange = (next: string) => {
+    persistedValue = next;
+    setValue(next);
+  };
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -28,7 +36,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
     enabled: !!clerkUser?.id,
   });
   const hotelId = backendUser?.hotel_id?.trim() || fallbackHotelId;
-  const hasValidHotelId = uuidPattern.test(hotelId);
+  const hasValidHotelId = hotelIdPattern.test(hotelId);
 
   const { mutate: generateRequest, isPending } = useMutation({
     mutationFn: (rawText: string) => {
@@ -50,7 +58,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
       if (result.warning) {
         window.alert(result.warning.message);
       }
-      setValue("");
+      handleChange("");
       queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
     },
     onError: (error) => {
@@ -82,7 +90,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
       <input
         type="text"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         placeholder="Start typing to create new task..."
         className="flex-1 bg-transparent text-sm text-text-default placeholder:text-text-subtle outline-none"

@@ -15,6 +15,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { StartupProvider, StartupStatus, useStartup } from "@/context/startup";
 import NoUserInfo from "@/components/ui/NoUserInfo";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 const queryClient = new QueryClient({
@@ -74,18 +75,20 @@ function PushNotificationRegistrar() {
 
 export default function RootLayout() {
   return (
-    <ClerkProvider
-      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-      tokenCache={tokenCache}
-    >
-      <QueryClientProvider client={queryClient}>
-        <PushNotificationRegistrar />
-        <StartupProvider>
-          <SafeAreaProvider>
-            <AppLayout />
-          </SafeAreaProvider>
-        </StartupProvider>
-      </QueryClientProvider>
-    </ClerkProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ClerkProvider
+        publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+        tokenCache={tokenCache}
+      >
+        <QueryClientProvider client={queryClient}>
+          <PushNotificationRegistrar />
+          <StartupProvider>
+            <SafeAreaProvider>
+              <AppLayout />
+            </SafeAreaProvider>
+          </StartupProvider>
+        </QueryClientProvider>
+      </ClerkProvider>
+    </GestureHandlerRootView>
   );
 }
