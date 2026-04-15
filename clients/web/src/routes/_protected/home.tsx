@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
-import { useGetRequestsFeed, useGetRequestById } from "@shared/api/requests";
+import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
 import type { Request, User } from "@shared";
