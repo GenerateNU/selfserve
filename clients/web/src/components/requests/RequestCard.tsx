@@ -16,7 +16,12 @@ const accentClass: Record<RequestStatus, string> = {
   completed: "bg-request-completed",
 };
 
-export function RequestCard({ status, children, className, onClick }: RequestCardProps) {
+export function RequestCard({
+  status,
+  children,
+  className,
+  onClick,
+}: RequestCardProps) {
   return (
     <div
       onClick={onClick}

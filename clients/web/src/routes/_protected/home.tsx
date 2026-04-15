@@ -64,7 +64,11 @@ function KanbanColumnData({
   return (
     <>
       {requests.map((request: Request) => (
-        <RequestCardItem key={request.id} request={request} onClick={() => onCardClick(request)} />
+        <RequestCardItem
+          key={request.id}
+          request={request}
+          onClick={() => onCardClick(request)}
+        />
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
     </>

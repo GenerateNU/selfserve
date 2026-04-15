@@ -49,9 +49,16 @@ function FieldRow({ label, value, valueClassName }: FieldRowProps) {
     <div className="flex items-center gap-8">
       <div className="flex w-36 shrink-0 items-center gap-1">
         <GripHorizontal className="size-4.5 text-text-subtle" />
-        <span className="text-sm text-text-subtle whitespace-nowrap">{label}</span>
+        <span className="text-sm text-text-subtle whitespace-nowrap">
+          {label}
+        </span>
       </div>
-      <span className={cn("rounded-md px-2 py-1 text-sm text-text-subtle", valueClassName)}>
+      <span
+        className={cn(
+          "rounded-md px-2 py-1 text-sm text-text-subtle",
+          valueClassName,
+        )}
+      >
         {value}
       </span>
     </div>
@@ -63,7 +70,10 @@ type ViewRequestDrawerProps = {
   onClose: () => void;
 };
 
-export function ViewRequestDrawer({ request, onClose }: ViewRequestDrawerProps) {
+export function ViewRequestDrawer({
+  request,
+  onClose,
+}: ViewRequestDrawerProps) {
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
 
   const getUserById = useGetUsersIdHook();
@@ -102,15 +112,36 @@ export function ViewRequestDrawer({ request, onClose }: ViewRequestDrawerProps) 
         )}
         {assigneeName && <FieldRow label="Assignee" value={assigneeName} />}
         {roomLabel && <FieldRow label="Room" value={roomLabel} />}
-        {request.department && <FieldRow label="Department" value={request.department} />}
-        {request.request_type && <FieldRow label="Type" value={request.request_type} />}
-        {request.request_category && <FieldRow label="Category" value={request.request_category} />}
-        {request.scheduled_time && <FieldRow label="Scheduled" value={formatDate(request.scheduled_time)} />}
-        {request.estimated_completion_time && (
-          <FieldRow label="Est. Completion" value={`${request.estimated_completion_time} min`} />
+        {request.department && (
+          <FieldRow label="Department" value={request.department} />
         )}
-        {request.created_at && <FieldRow label="Created" value={formatDate(request.created_at)} />}
-        {request.completed_at && <FieldRow label="Completed" value={formatDate(request.completed_at)} />}
+        {request.request_type && (
+          <FieldRow label="Type" value={request.request_type} />
+        )}
+        {request.request_category && (
+          <FieldRow label="Category" value={request.request_category} />
+        )}
+        {request.scheduled_time && (
+          <FieldRow
+            label="Scheduled"
+            value={formatDate(request.scheduled_time)}
+          />
+        )}
+        {request.estimated_completion_time && (
+          <FieldRow
+            label="Est. Completion"
+            value={`${request.estimated_completion_time} min`}
+          />
+        )}
+        {request.created_at && (
+          <FieldRow label="Created" value={formatDate(request.created_at)} />
+        )}
+        {request.completed_at && (
+          <FieldRow
+            label="Completed"
+            value={formatDate(request.completed_at)}
+          />
+        )}
       </div>
 
       {request.description && (
