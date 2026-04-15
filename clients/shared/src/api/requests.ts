@@ -67,14 +67,10 @@ export const useCompleteTask = () => {
   return useMutation({
     mutationFn: (taskId: string) =>
       api.put<RequestFeedItem>(`/request/${taskId}`, { status: "completed" }),
-    onMutate: async (taskId) => {
-      await queryClient.cancelQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
-      const previous = queryClient.getQueriesData<{ pages: RequestFeedPage[] }>({
-        queryKey: REQUESTS_FEED_QUERY_KEY,
-      });
-      queryClient.setQueriesData(
+    onSuccess: (_data, taskId) => {
+      queryClient.setQueriesData<{ pages: RequestFeedPage[]; pageParams: unknown[] }>(
         { queryKey: REQUESTS_FEED_QUERY_KEY },
-        (old: { pages: RequestFeedPage[] } | undefined) => {
+        (old) => {
           if (!old) return old;
           return {
             ...old,
@@ -87,12 +83,6 @@ export const useCompleteTask = () => {
           };
         },
       );
-      return { previous };
-    },
-    onError: (_err, _taskId, context) => {
-      context?.previous.forEach(([queryKey, data]) => {
-        queryClient.setQueryData(queryKey, data);
-      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
