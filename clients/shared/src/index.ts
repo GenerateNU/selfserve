@@ -34,6 +34,7 @@ export type {
   Guest,
   GuestPage,
   Dev,
+  ActiveBooking,
   Assistance,
   Stay,
   UpdateGuest,

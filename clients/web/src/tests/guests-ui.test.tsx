@@ -59,8 +59,7 @@ describe("guest UI helpers", () => {
         first_name: "Ada",
         last_name: "Lovelace",
         preferred_name: "Ada",
-        floor: 4,
-        room_number: 401,
+        active_bookings: [{ floor: 4, room_number: 401 }],
       };
 
       render(
