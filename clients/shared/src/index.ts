@@ -94,7 +94,7 @@ export type {
   RoomRequestsResponse,
 } from "./api/generated/models";
 
-export { useInfiniteRequestsByGuest, getGuestRequestsQueryKey } from "./api/requests";
+export { useInfiniteRequestsByGuest, getGuestRequestsQueryKey, useCompleteTask } from "./api/requests";
 
 
 // User hooks

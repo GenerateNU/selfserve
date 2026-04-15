@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,8 +18,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
-
-const defaultPageSize = 20
 
 const msgTaskAssigned = "New task assigned to you"
 
@@ -74,19 +73,108 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+// UpdateRequest godoc
+// @Summary      Update a request
+// @Description  Partially updates a request — only fields present in the body are applied; omitted fields keep their current values
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string              true  "Request ID (UUID)"
+// @Param        request  body  models.RequestUpdateInput  true  "Fields to update"
+// @Success      200  {object}  models.Request
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      404  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /request/{id} [put]
 func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if !validUUID(id) {
 		return errs.BadRequest("request id is not a valid UUID")
 	}
 
-	var requestBody models.MakeRequest
-	if err := httpx.BindAndValidate(c, &requestBody); err != nil {
+	var patchInput models.RequestUpdateInput
+	if err := httpx.BindAndValidate(c, &patchInput); err != nil {
 		return err
 	}
 
-	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: id, MakeRequest: requestBody})
+	res, err := r.RequestRepository.UpdateRequest(c.Context(), id, &patchInput)
 	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("Request", "id", id)
+		}
+		slog.Error("failed to update request", "err", err, "requestID", id)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(res)
+}
+
+// AssignRequest godoc
+// @Summary      Assign a request to a user
+// @Description  Sets user_id on the latest request version. Set assign_to_self to true to assign to the caller. Omit assign_to_self (or set to false) and provide user_id to assign to another user. Requires X-Hotel-ID to match the request's hotel.
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        id          path    string                    true  "Request ID (UUID)"
+// @Param        X-Hotel-ID  header  string                    true  "Hotel ID (UUID)"
+// @Param        body        body    models.AssignRequestInput true  "Self-assign flag and optional assignee"
+// @Success      200  {object}  models.Request
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      401  {object}  errs.HTTPError
+// @Failure      404  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /request/{id}/assign [post]
+func (r *RequestsHandler) AssignRequest(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userId").(string)
+	if !ok || userID == "" {
+		return errs.Unauthorized()
+	}
+
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
+	requestID := c.Params("id")
+	if !validUUID(requestID) {
+		return errs.BadRequest("request id is not a valid UUID")
+	}
+
+	var body models.AssignRequestInput
+	if err := httpx.BindAndValidate(c, &body); err != nil {
+		return err
+	}
+
+	var assigneeID string
+	if body.AssignToSelf != nil && *body.AssignToSelf {
+		assigneeID = userID
+	} else {
+		if body.UserID == nil || strings.TrimSpace(*body.UserID) == "" {
+			return errs.BadRequest("user_id is required when assign_to_self is false or not provided")
+		}
+		assigneeID = strings.TrimSpace(*body.UserID)
+	}
+
+	request, err := r.RequestRepository.FindRequest(c.Context(), requestID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request", "id", requestID)
+		}
+		return errs.InternalServerError()
+	}
+	if request.HotelID != hotelID {
+		return errs.NotFound("request", "id", requestID)
+	}
+
+	update := models.RequestUpdateInput{UserID: &assigneeID}
+	res, err := r.RequestRepository.UpdateRequest(c.Context(), requestID, &update)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request", "id", requestID)
+		}
+		slog.Error("failed to assign request", "err", err, "requestID", requestID)
 		return errs.InternalServerError()
 	}
 
@@ -142,58 +230,6 @@ func validateGenerateRequest(input *models.GenerateRequestInput) error {
 	}
 
 	return nil
-}
-
-// GetRequestByCursor godoc
-// @Summary      Get requests by cursor
-// @Description  Gets 20 requests starting after the cursor position, filtered by status
-// @Tags         requests
-// @Accept       json
-// @Produce      json
-// @Param        X-Hotel-ID  header  string                          true   "Hotel UUID"
-// @Param        body        body    models.GetRequestsByStatusInput  false  "Cursor position and status filter"
-// @Success      200     {object}  map[string]interface{}  "Returns requests array, next_cursor_time, and next_cursor_id"
-// @Failure      400     {object}  map[string]string
-// @Failure      500     {object}  map[string]string
-// @Security     BearerAuth
-// @Router       /request/cursor [post]
-func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
-	var body models.GetRequestsByStatusInput
-	if err := c.BodyParser(&body); err != nil {
-		return errs.InvalidJSON()
-	}
-	body.HotelID = c.Get("X-Hotel-ID")
-	if err := httpx.Validate(&body); err != nil {
-		return err
-	}
-
-	var cursorTime time.Time
-	if body.CursorTime != nil {
-		cursorTime = time.UnixMilli(*body.CursorTime).UTC()
-	} else {
-		cursorTime = time.UnixMilli(0).UTC()
-	}
-
-	cursorID := "00000000-0000-0000-0000-000000000000"
-	if body.CursorID != nil {
-		cursorID = *body.CursorID
-	}
-
-	requests, nextCursorTime, nextCursorID, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursorTime, cursorID, body.Status, body.HotelID, defaultPageSize)
-	if err != nil {
-		if errors.Is(err, errs.ErrNotFoundInDB) {
-			return errs.NotFound("requests", "cursor", body.CursorTime)
-		}
-		return c.SendStatus(fiber.ErrInternalServerError.Code)
-	}
-
-	resp := fiber.Map{"requests": requests}
-	if !nextCursorTime.IsZero() {
-		resp["next_cursor_time"] = nextCursorTime.UnixMilli()
-		resp["next_cursor_id"] = nextCursorID
-	}
-
-	return c.JSON(resp)
 }
 
 // GenerateRequest godoc
@@ -343,12 +379,12 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 		return err
 	}
 
-	assigned, err := r.RequestRepository.FindMyRequestsByRoomID(c.Context(), input.RoomID, input.HotelID, userID, "", time.Time{}, utils.DefaultPageLimit)
+	assigned, err := r.RequestRepository.FindRequestsByRoomIDAndUserID(c.Context(), input.RoomID, input.HotelID, userID, "", time.Time{}, utils.DefaultPageLimit)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	unassigned, err := r.RequestRepository.FindUnassignedRequestsByRoomID(c.Context(), input.RoomID, input.HotelID, "", time.Time{}, utils.DefaultPageLimit)
+	unassigned, err := r.RequestRepository.FindUnassignedRequestsByRoomIDAndUserID(c.Context(), input.RoomID, input.HotelID, "", time.Time{}, utils.DefaultPageLimit)
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -369,6 +405,7 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 // @Param        limit       query   int     false  "Page size (default 20, max 100)"
 // @Param        user_id     query   string  false  "Filter by assigned user ID"
 // @Param        unassigned  query   bool    false  "If true, return only requests with no assigned user"
+// @Param        sort        query   string  false  "Sort order: priority (default), newest, oldest"
 // @Success      200  {object}  utils.CursorPage[models.GuestRequest]
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
@@ -384,23 +421,75 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	limit := c.QueryInt("limit")
 	userID := c.Query("user_id")
 	unassigned := c.QueryBool("unassigned")
+	status := c.Query("status")
 
-	cursorID, cursorVersion, err := parseRequestCursor(cursor)
+	var departments []string
+	if raw := c.Query("departments"); raw != "" {
+		departments = strings.Split(raw, ",")
+	}
+
+	feedSort := models.RequestFeedSort(c.Query("sort"))
+	if feedSort == "" {
+		feedSort = models.SortByPriority
+	}
+	if !feedSort.IsValid() {
+		return errs.BadRequest("invalid sort: must be priority, newest, or oldest")
+	}
+
+	cursorID, cursorCreatedAt, cursorPriorityRank, err := parseFeedCursor(cursor)
 	if err != nil {
 		return errs.BadRequest("invalid cursor")
 	}
 
 	resolvedLimit := utils.ResolveLimit(limit)
-	requests, err := r.RequestRepository.FindRequestsPaginated(c.Context(), hotelID, userID, unassigned, cursorID, cursorVersion, resolvedLimit+1)
+	requests, err := r.RequestRepository.FindRequestsPaginated(
+		c.Context(), hotelID, userID, unassigned, status, departments,
+		feedSort, cursorID, cursorCreatedAt, cursorPriorityRank,
+		resolvedLimit+1,
+	)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	page := utils.BuildCursorPage(requests, resolvedLimit, func(req *models.GuestRequest) string {
-		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
-	})
+	page := utils.BuildCursorPage(requests, resolvedLimit, buildFeedCursor)
 
 	return c.JSON(page)
+}
+
+// parseFeedCursor decodes a universal cursor: "priority_rank|created_at_nano|id".
+// Returns zero values and nil error for an empty cursor (first page).
+func parseFeedCursor(cursor string) (id string, createdAt time.Time, priorityRank int, err error) {
+	if cursor == "" {
+		return "", time.Time{}, 0, nil
+	}
+	parts := strings.SplitN(cursor, "|", 3)
+	if len(parts) != 3 {
+		return "", time.Time{}, 0, errors.New("invalid cursor")
+	}
+	rank, rankErr := strconv.Atoi(parts[0])
+	nano, nanoErr := strconv.ParseInt(parts[1], 10, 64)
+	if rankErr != nil || nanoErr != nil {
+		return "", time.Time{}, 0, errors.New("invalid cursor")
+	}
+	return parts[2], time.Unix(0, nano).UTC(), rank, nil
+}
+
+// buildFeedCursor encodes all sort fields into a single universal cursor.
+func buildFeedCursor(req *models.GuestRequest) string {
+	return strconv.Itoa(priorityRankOf(req.Priority)) + "|" +
+		strconv.FormatInt(req.CreatedAt.UnixNano(), 10) + "|" +
+		req.ID
+}
+
+func priorityRankOf(priority string) int {
+	switch priority {
+	case "high":
+		return 1
+	case "medium":
+		return 2
+	default:
+		return 3
+	}
 }
 
 // parseRequestCursor splits a "id|request_version" cursor string.
