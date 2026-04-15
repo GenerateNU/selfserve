@@ -29,19 +29,21 @@ func hotelIDFromHeader(c *fiber.Ctx) (string, error) {
 	return hotelID, nil
 }
 
-func requireAdmin(c *fiber.Ctx, usersRepo storage.UsersRepository) error {
-	userID, ok := c.Locals("userId").(string)
-	if !ok || userID == "" {
-		return errs.Unauthorized()
+func AdminMiddleware(usersRepo storage.UsersRepository) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userID, ok := c.Locals("userId").(string)
+		if !ok || userID == "" {
+			return errs.Unauthorized()
+		}
+		user, err := usersRepo.FindUser(c.Context(), userID)
+		if err != nil {
+			return errs.Forbidden()
+		}
+		if user.Role == nil || *user.Role != "admin" {
+			return errs.Forbidden()
+		}
+		return c.Next()
 	}
-	user, err := usersRepo.FindUser(c.Context(), userID)
-	if err != nil {
-		return errs.Forbidden()
-	}
-	if user.Role == nil || *user.Role != "admin" {
-		return errs.Forbidden()
-	}
-	return nil
 }
 
 func AggregateErrors(errors map[string]string) error {

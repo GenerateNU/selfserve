@@ -164,6 +164,8 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	verifier := clerk.NewClerkJWTVerifier()
 	app.Use(clerk.NewAuthMiddleware(verifier))
 
+	adminOnly := handler.AdminMiddleware(repository.NewUsersRepository(repo.DB))
+
 	// Hello routes
 	api.Route("/hello", func(r fiber.Router) {
 		r.Get("/", helloHandler.GetHello)
@@ -191,11 +193,11 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// Guest Routes
 	api.Route("/guests", func(r fiber.Router) {
-		r.Post("/", guestsHandler.CreateGuest)
+		r.Post("/", adminOnly, guestsHandler.CreateGuest)
 		r.Post("/search", guestsHandler.GetGuests)
 		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
 		r.Get("/:id", guestsHandler.GetGuest)
-		r.Put("/:id", guestsHandler.UpdateGuest)
+		r.Put("/:id", adminOnly, guestsHandler.UpdateGuest)
 	})
 
 	// Request routes
@@ -216,9 +218,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/", hotelsHandler.CreateHotel)
 		r.Get("/:id/users", hotelsHandler.GetHotelUsers)
 		r.Get("/:id/departments", hotelsHandler.GetDepartmentsByHotelID)
-		r.Post("/:id/departments", hotelsHandler.CreateDepartment)
-		r.Put("/:id/departments/:deptId", hotelsHandler.UpdateDepartment)
-		r.Delete("/:id/departments/:deptId", hotelsHandler.DeleteDepartment)
+		r.Post("/:id/departments", adminOnly, hotelsHandler.CreateDepartment)
+		r.Put("/:id/departments/:deptId", adminOnly, hotelsHandler.UpdateDepartment)
+		r.Delete("/:id/departments/:deptId", adminOnly, hotelsHandler.DeleteDepartment)
 	})
 
 	// s3 routes

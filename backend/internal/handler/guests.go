@@ -44,10 +44,6 @@ func NewGuestsHandler(repo storage.GuestsRepository, usersRepo storage.UsersRepo
 // @Security     BearerAuth
 // @Router       /guests [post]
 func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
-	if err := requireAdmin(c, h.UsersRepository); err != nil {
-		return err
-	}
-
 	var CreateGuestRequest models.CreateGuest
 	if err := httpx.BindAndValidate(c, &CreateGuestRequest); err != nil {
 		return err
@@ -143,10 +139,6 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Router       /guests/{id} [put]
 func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
-	if err := requireAdmin(c, h.UsersRepository); err != nil {
-		return err
-	}
-
 	id := c.Params("id")
 
 	if _, err := uuid.Parse(id); err != nil {
