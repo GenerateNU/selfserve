@@ -287,16 +287,16 @@ func (r *RequestsRepository) FindRequestsPaginated(
 			  AND (cardinality($5::text[]) = 0 OR r.priority = ANY($5))
 			  AND (cardinality($6::text[]) = 0 OR r.department = ANY($6))
 			  AND (cardinality($7::int[]) = 0 OR rm.floor = ANY($7))
-			  AND (
-			    ($3::bool AND r.user_id IS NULL)
-			    OR (NOT $3::bool AND ($2::text = '' OR r.user_id = $2))
-			  )
 			ORDER BY r.id ASC, r.request_version DESC
 		)
 		SELECT id, name, priority, status, description, notes, room_number,
 		       request_type, request_category, created_at, request_version,
 		       department, user_id, floor
 		FROM latest
+		WHERE (
+		    ($3::bool AND user_id IS NULL)
+		    OR (NOT $3::bool AND ($2::text = '' OR user_id = $2))
+		)
 	`
 
 	var (
@@ -307,21 +307,21 @@ func (r *RequestsRepository) FindRequestsPaginated(
 	switch sort {
 	case models.SortByNewest:
 		rows, err = r.db.Query(ctx, baseFilter+`
-			WHERE ($8::text = '' OR (created_at, id::text) < ($9, $8))
+			AND ($8::text = '' OR (created_at, id::text) < ($9, $8))
 			ORDER BY created_at DESC, id DESC
 			LIMIT $10
 		`, hotelID, userID, unassigned, status, priorities, departments, floors, cursorID, cursorCreatedAt, limit)
 
 	case models.SortByOldest:
 		rows, err = r.db.Query(ctx, baseFilter+`
-			WHERE ($8::text = '' OR (created_at, id::text) > ($9, $8))
+			AND ($8::text = '' OR (created_at, id::text) > ($9, $8))
 			ORDER BY created_at ASC, id ASC
 			LIMIT $10
 		`, hotelID, userID, unassigned, status, priorities, departments, floors, cursorID, cursorCreatedAt, limit)
 
 	default: // SortByPriority
 		rows, err = r.db.Query(ctx, baseFilter+`
-			WHERE ($8::text = '' OR (priority_rank, id::text) > ($9::int, $8))
+			AND ($8::text = '' OR (priority_rank, id::text) > ($9::int, $8))
 			ORDER BY priority_rank ASC, id ASC
 			LIMIT $10
 		`, hotelID, userID, unassigned, status, priorities, departments, floors, cursorID, cursorPriorityRank, limit)
