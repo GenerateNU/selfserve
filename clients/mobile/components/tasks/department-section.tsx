@@ -21,7 +21,10 @@ const DEPT_RIGHT = [
   Department.Management,
   Department.Security,
 ];
-const DEPT_CHECKED = new Set([Department.FoodAndBeverage, Department.FrontOffice]);
+const DEPT_CHECKED = new Set([
+  Department.FoodAndBeverage,
+  Department.FrontOffice,
+]);
 
 type DepartmentSectionProps = {
   expanded: boolean;
