@@ -2,7 +2,9 @@ import Feather from "@expo/vector-icons/Feather";
 import { Colors } from "@/constants/theme";
 import * as Haptics from "expo-haptics";
 import { useRef } from "react";
-import ReanimatedSwipeable, { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
+import ReanimatedSwipeable, {
+  SwipeableMethods,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 
 import { TaskRow } from "@/components/tasks/task-row";
@@ -32,7 +34,9 @@ function SwipeCompleteAction() {
       <View className="bg-primary rounded-lg w-9 h-9 items-center justify-center">
         <Feather name="check" size={18} color="white" />
       </View>
-      <Text className="text-primary text-base font-medium">Task completed!</Text>
+      <Text className="text-primary text-base font-medium">
+        Task completed!
+      </Text>
     </View>
   );
 }
@@ -43,7 +47,11 @@ type SwipeableRowProps = {
   onComplete: (taskId: string) => void;
 };
 
-function SwipeableTaskRow({ item, onTaskPress, onComplete }: SwipeableRowProps) {
+function SwipeableTaskRow({
+  item,
+  onTaskPress,
+  onComplete,
+}: SwipeableRowProps) {
   const swipeableRef = useRef<SwipeableMethods>(null);
   const touchStartX = useRef(0);
   const hasSwiped = useRef(false);

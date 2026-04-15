@@ -10,7 +10,7 @@ import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
 import { TAB, TabName } from "@/constants/tasks";
 import {
-  useCompleteTask, 
+  useCompleteTask,
   useGetRequestsFeed,
   type RequestFeedItem,
   type RequestFeedSort,
@@ -64,7 +64,11 @@ export default function TasksScreen() {
             onEndReached={handleEndReached}
             isLoadingMore={activeQuery.isFetchingNextPage}
             onTaskPress={setSelectedTask}
-            onComplete={activeTab === TAB.MY_TASKS ? (id: string) => completeTask(id) : undefined}
+            onComplete={
+              activeTab === TAB.MY_TASKS
+                ? (id: string) => completeTask(id)
+                : undefined
+            }
           />
         )}
       </View>

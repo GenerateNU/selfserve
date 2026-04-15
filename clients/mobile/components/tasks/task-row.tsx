@@ -48,7 +48,11 @@ export function TaskRow({ task, onPress, onCheckboxPress }: TaskRowProps) {
               <Feather
                 name="home"
                 size={12}
-                color={isCompleted ? Colors.light.iconDisabled : Colors.light.iconMuted}
+                color={
+                  isCompleted
+                    ? Colors.light.iconDisabled
+                    : Colors.light.iconMuted
+                }
               />
               <Text
                 className={`text-xs ${isCompleted ? "text-text-disabled" : "text-text-secondary"}`}
@@ -76,7 +80,11 @@ export function TaskRow({ task, onPress, onCheckboxPress }: TaskRowProps) {
             <Feather
               name="clock"
               size={14}
-              color={isCompleted ? Colors.light.iconDisabled : Colors.light.iconSubtle}
+              color={
+                isCompleted
+                  ? Colors.light.iconDisabled
+                  : Colors.light.iconSubtle
+              }
             />
             <Text
               className={`text-sm leading-snug ${
@@ -91,7 +99,11 @@ export function TaskRow({ task, onPress, onCheckboxPress }: TaskRowProps) {
             <Feather
               name="map-pin"
               size={14}
-              color={isCompleted ? Colors.light.iconDisabled : Colors.light.iconSubtle}
+              color={
+                isCompleted
+                  ? Colors.light.iconDisabled
+                  : Colors.light.iconSubtle
+              }
             />
             <Text
               className={`text-sm leading-snug ${

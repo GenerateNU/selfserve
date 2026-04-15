@@ -74,7 +74,11 @@ type TaskDetailSheetProps = {
   onComplete?: (taskId: string) => void;
 };
 
-export function TaskDetailSheet({ task, onClose, onComplete }: TaskDetailSheetProps) {
+export function TaskDetailSheet({
+  task,
+  onClose,
+  onComplete,
+}: TaskDetailSheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const isFullScreenRef = useRef(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -201,17 +205,29 @@ export function TaskDetailSheet({ task, onClose, onComplete }: TaskDetailSheetPr
                   className="flex-row items-center gap-2.5 flex-1"
                   hitSlop={8}
                 >
-                  <Feather name="chevron-left" size={22} color={Colors.light.text} />
+                  <Feather
+                    name="chevron-left"
+                    size={22}
+                    color={Colors.light.text}
+                  />
                   <Text className="text-2xl font-bold text-black tracking-tight">
                     Tasks
                   </Text>
                 </Pressable>
                 <View className="flex-row gap-1">
                   <View className="w-9 h-9 items-center justify-center rounded">
-                    <Feather name="search" size={18} color={Colors.light.text} />
+                    <Feather
+                      name="search"
+                      size={18}
+                      color={Colors.light.text}
+                    />
                   </View>
                   <View className="w-9 h-9 items-center justify-center rounded">
-                    <Feather name="sliders" size={18} color={Colors.light.text} />
+                    <Feather
+                      name="sliders"
+                      size={18}
+                      color={Colors.light.text}
+                    />
                   </View>
                 </View>
               </View>
@@ -295,7 +311,9 @@ export function TaskDetailSheet({ task, onClose, onComplete }: TaskDetailSheetPr
             {task.status !== "completed" ? (
               <Pressable
                 onPress={() => {
-                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  Haptics.notificationAsync(
+                    Haptics.NotificationFeedbackType.Success,
+                  );
                   onComplete?.(task.id);
                   close();
                 }}
