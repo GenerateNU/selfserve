@@ -81,8 +81,12 @@ function KanbanColumnData({
 function HomePage() {
   const [sort, setSort] = useState<RequestFeedSort | undefined>("priority");
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
-  const [selectedPriorities, setSelectedPriorities] = useState<Array<string>>([]);
-  const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>([]);
+  const [selectedPriorities, setSelectedPriorities] = useState<Array<string>>(
+    [],
+  );
+  const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>(
+    [],
+  );
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();

@@ -143,7 +143,8 @@ export function HomeFilterBar({
     : undefined;
   const activePriorityLabel =
     selectedPriorities.length === 1
-      ? selectedPriorities[0].charAt(0).toUpperCase() + selectedPriorities[0].slice(1)
+      ? selectedPriorities[0].charAt(0).toUpperCase() +
+        selectedPriorities[0].slice(1)
       : selectedPriorities.length > 1
         ? `${selectedPriorities.length} priorities`
         : undefined;
