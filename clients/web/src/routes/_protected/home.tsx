@@ -169,7 +169,7 @@ function HomePage() {
         description: "Overview of all tasks currently at play",
       }}
       headerBorder={false}
-      drawerOpen={drawerData !== null}
+      drawerOpen={drawerOpen}
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
