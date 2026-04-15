@@ -1,4 +1,4 @@
-import { Flag } from "lucide-react";
+import { Accessibility, BriefcaseMedical, Flag, Utensils } from "lucide-react";
 import type { GuestWithBooking } from "@shared";
 
 type GuestQuickListTableProps = {
@@ -31,7 +31,6 @@ export function GuestQuickListTable({
           const hasAccessibility = !!guest.assistance?.accessibility?.length;
           const hasDietary = !!guest.assistance?.dietary?.length;
           const hasMedical = !!guest.assistance?.medical?.length;
-          const hasNeeds = hasAccessibility || hasDietary || hasMedical;
 
           return (
             <button
@@ -44,28 +43,19 @@ export function GuestQuickListTable({
                 {guest.first_name} {guest.last_name}
               </p>
 
-              <div className="flex min-w-0 flex-wrap gap-1">
-                {hasNeeds ? (
-                  <>
-                    {hasAccessibility && (
-                      <span className="inline-flex items-center rounded border border-high-priority bg-bg-high-priority px-1.5 py-0.5 text-xs text-high-priority">
-                        Accessibility
-                      </span>
-                    )}
-                    {hasDietary && (
-                      <span className="inline-flex items-center rounded border border-high-priority bg-bg-high-priority px-1.5 py-0.5 text-xs text-high-priority">
-                        Dietary
-                      </span>
-                    )}
-                    {hasMedical && (
-                      <span className="inline-flex items-center rounded border border-high-priority bg-bg-high-priority px-1.5 py-0.5 text-xs text-high-priority">
-                        Medical
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-sm text-text-subtle">—</span>
-                )}
+              <div className="flex items-center gap-3">
+                <Accessibility
+                  className={`size-5 ${hasAccessibility ? "text-text-default" : "text-bg-disabled"}`}
+                  strokeWidth={1.5}
+                />
+                <Utensils
+                  className={`size-5 ${hasDietary ? "text-text-default" : "text-bg-disabled"}`}
+                  strokeWidth={1.5}
+                />
+                <BriefcaseMedical
+                  className={`size-5 ${hasMedical ? "text-text-default" : "text-bg-disabled"}`}
+                  strokeWidth={1.5}
+                />
               </div>
 
               <div className="flex min-w-0 flex-wrap gap-1.5">
