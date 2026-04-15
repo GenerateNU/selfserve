@@ -1092,7 +1092,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 	t.Run("returns 200 and updated request on success", func(t *testing.T) {
 		t.Parallel()
 
-		updated := "assigned"
+		updated := "completed"
 		var gotUpdate *models.RequestUpdateInput
 		mock := &mockRequestRepository{
 			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {

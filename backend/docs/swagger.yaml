@@ -395,10 +395,9 @@ definitions:
       status:
         enum:
         - pending
-        - assigned
         - in progress
         - completed
-        example: assigned
+        example: pending
         type: string
       user_id:
         example: 521ee400-e458-41d4-a716-446655440000
@@ -507,10 +506,9 @@ definitions:
       status:
         enum:
         - pending
-        - assigned
         - in progress
         - completed
-        example: assigned
+        example: pending
         type: string
       user_id:
         example: 521ee400-e458-41d4-a716-446655440000
@@ -551,7 +549,6 @@ definitions:
       status:
         enum:
         - pending
-        - assigned
         - in progress
         - completed
         type: string

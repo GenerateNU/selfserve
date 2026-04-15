@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_protected/home")({
 
 const KANBAN_COLUMNS = [
   { title: "Pending", status: "pending" },
-  { title: "Assigned", status: "assigned" },
+  { title: "Assigned", status: "pending" }, // will be changed when this col is removed
   { title: "Completed", status: "completed" },
 ] as const;
 

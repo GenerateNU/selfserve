@@ -72,13 +72,13 @@ type seedRequest struct {
 var seedRequests = []seedRequest{
 	// High priority
 	{"Fix broken AC in suite", "Guest reported AC not working since check-in", "Maintenance", models.PriorityHigh, models.StatusPending, false},
-	{"Flooding in room 204", "Toilet overflow — housekeeping and maintenance needed immediately", "Housekeeping", models.PriorityHigh, models.StatusAssigned, true},
+	{"Flooding in room 204", "Toilet overflow — housekeeping and maintenance needed immediately", "Housekeeping", models.PriorityHigh, models.StatusInProgress, true},
 	{"Medical equipment needed", "Guest requires wheelchair for lobby transit", "Front Desk", models.PriorityHigh, models.StatusInProgress, true},
 	{"Fire alarm panel fault", "Panel showing fault on floor 3 — inspect before end of shift", "Maintenance", models.PriorityHigh, models.StatusPending, false},
 
 	// Medium priority
 	{"Extra towels and toiletries", "Room 401 — guest requested two sets of towels and extra shampoo", "Housekeeping", models.PriorityMedium, models.StatusPending, false},
-	{"Room service delivery", "Breakfast for two to room 312 at 8am", "Food & Beverage", models.PriorityMedium, models.StatusAssigned, true},
+	{"Room service delivery", "Breakfast for two to room 312 at 8am", "Food & Beverage", models.PriorityMedium, models.StatusInProgress, true},
 	{"Late checkout request", "Guest in 509 requesting checkout at 2pm instead of 11am", "Front Desk", models.PriorityMedium, models.StatusPending, false},
 	{"Replace burnt-out bulbs", "Two bulbs out in room 118 bathroom", "Maintenance", models.PriorityMedium, models.StatusInProgress, true},
 	{"Minibar restock", "Room 220 minibar needs full restock after checkout", "Housekeeping", models.PriorityMedium, models.StatusPending, false},
@@ -87,7 +87,7 @@ var seedRequests = []seedRequest{
 	// Low priority
 	{"Extra pillow request", "Room 305 — guest requested two additional pillows", "Housekeeping", models.PriorityLow, models.StatusPending, false},
 	{"Lost & found inquiry", "Guest asking about a left-behind phone charger from yesterday", "Front Desk", models.PriorityLow, models.StatusCompleted, false},
-	{"Pool towel replenishment", "Pool deck running low on towels — restock from laundry", "Housekeeping", models.PriorityLow, models.StatusAssigned, true},
+	{"Pool towel replenishment", "Pool deck running low on towels — restock from laundry", "Housekeeping", models.PriorityLow, models.StatusInProgress, true},
 	{"Newspaper delivery", "Room 102 — daily newspaper delivery requested for the week", "Front Desk", models.PriorityLow, models.StatusPending, false},
 	{"Gym equipment wipe-down", "Routine sanitisation of gym equipment requested by guest", "Maintenance", models.PriorityLow, models.StatusCompleted, false},
 	{"Wine pairing recommendation", "Couple in room 410 would like a wine pairing for their dinner", "Food & Beverage", models.PriorityLow, models.StatusPending, false},

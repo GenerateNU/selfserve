@@ -20,7 +20,7 @@ export type {
 } from "./api/profile-picture";
 
 // Generated Types - Models
-export { MakeRequestPriority, RequestPriority } from "./api/generated/models";
+export { MakeRequestPriority, RequestPriority, RequestStatus } from "./api/generated/models";
 
 export type {
   User,
