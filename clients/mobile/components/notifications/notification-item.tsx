@@ -35,7 +35,8 @@ function formatDueTime(dueAt?: unknown): string | null {
   if (diffMs <= 0) return "Overdue";
   const diffHours = Math.floor(diffMs / 3_600_000);
   const diffMins = Math.floor((diffMs % 3_600_000) / 60_000);
-  if (diffHours >= 1) return `Due in ${diffHours} hour${diffHours > 1 ? "s" : ""}`;
+  if (diffHours >= 1)
+    return `Due in ${diffHours} hour${diffHours > 1 ? "s" : ""}`;
   return `Due in ${diffMins}m`;
 }
 
@@ -52,7 +53,9 @@ function UrgentTaskBadge() {
   return (
     <View className="bg-bg-selected flex-row items-center gap-1.5 h-6 px-2 py-1 rounded">
       <Feather name="alert-circle" size={12} color={PRIMARY} />
-      <Text className="text-[12px] text-primary tracking-tight">urgent task</Text>
+      <Text className="text-[12px] text-primary tracking-tight">
+        urgent task
+      </Text>
     </View>
   );
 }
@@ -62,7 +65,10 @@ type NotificationItemProps = {
   showUnreadDot: boolean;
 };
 
-export function NotificationItem({ notification, showUnreadDot }: NotificationItemProps) {
+export function NotificationItem({
+  notification,
+  showUnreadDot,
+}: NotificationItemProps) {
   const router = useRouter();
   const isUrgent = notification.type === NotificationType.HighPriorityTask;
 
@@ -86,7 +92,9 @@ export function NotificationItem({ notification, showUnreadDot }: NotificationIt
       <View className="border-b border-text-disabled px-6 py-5 gap-2.5">
         {/* Title */}
         <View className="flex-row items-center gap-1">
-          {showUnreadDot && <View className="size-2 rounded-full bg-primary mr-1" />}
+          {showUnreadDot && (
+            <View className="size-2 rounded-full bg-primary mr-1" />
+          )}
           <Text className="text-[15px] font-semibold text-black tracking-tight">
             {notification.title}
           </Text>
@@ -96,16 +104,21 @@ export function NotificationItem({ notification, showUnreadDot }: NotificationIt
         {dueTime !== null && (
           <View className="flex-row items-center gap-1">
             <Feather name="clock" size={16} color={PRIORITY_HIGH} />
-            <Text className="text-[12px] text-priority-high tracking-tight">{dueTime}</Text>
+            <Text className="text-[12px] text-priority-high tracking-tight">
+              {dueTime}
+            </Text>
           </View>
         )}
 
         {/* Body */}
         <View className="flex-row flex-wrap items-center gap-1">
-          <Text className="text-[15px] text-text-default tracking-tight">An</Text>
+          <Text className="text-[15px] text-text-default tracking-tight">
+            An
+          </Text>
           <UrgentTaskBadge />
           <Text className="flex-1 text-[15px] text-text-default tracking-tight">
-            {" "}for your department needs your attention. Claim it now!
+            {" "}
+            for your department needs your attention. Claim it now!
           </Text>
         </View>
 
@@ -122,7 +135,8 @@ export function NotificationItem({ notification, showUnreadDot }: NotificationIt
 
   // Split "New Tasks Assigned for Monday" → bold prefix + regular suffix
   const forIndex = notification.title.indexOf(" for ");
-  const titleBold = forIndex >= 0 ? notification.title.slice(0, forIndex) : notification.title;
+  const titleBold =
+    forIndex >= 0 ? notification.title.slice(0, forIndex) : notification.title;
   const titleSuffix = forIndex >= 0 ? notification.title.slice(forIndex) : "";
   const timestamp = formatTimestamp(notification.created_at, showUnreadDot);
 
@@ -142,11 +156,15 @@ export function NotificationItem({ notification, showUnreadDot }: NotificationIt
         </View>
 
         {/* Timestamp */}
-        <Text className="text-[12px] text-primary tracking-tight">{timestamp}</Text>
+        <Text className="text-[12px] text-primary tracking-tight">
+          {timestamp}
+        </Text>
 
         {/* Body */}
         <View className="flex-row flex-wrap items-center gap-1">
-          <Text className="text-[15px] text-text-default tracking-tight">Your</Text>
+          <Text className="text-[15px] text-text-default tracking-tight">
+            Your
+          </Text>
           <NewTasksBadge />
           <Text className="text-[15px] text-text-default tracking-tight">
             have been assigned for the day
