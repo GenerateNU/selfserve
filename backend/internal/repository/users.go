@@ -275,6 +275,59 @@ func (r *UsersRepository) RemoveEmployeeDepartment(ctx context.Context, employee
 	return err
 }
 
+func (r *UsersRepository) CompleteOnboarding(ctx context.Context, id string, data *models.OnboardUser) (*models.User, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var hotelID *string
+
+	if data.Role == "manager" {
+		if data.HotelName == nil {
+			return nil, errs.BadRequest("hotel_name is required for managers")
+		}
+		var newHotelID string
+		err = tx.QueryRow(ctx, `
+			INSERT INTO hotels (name) VALUES ($1) RETURNING id
+		`, data.HotelName).Scan(&newHotelID)
+		if err != nil {
+			return nil, err
+		}
+		hotelID = &newHotelID
+	}
+
+	var user models.User
+	err = tx.QueryRow(ctx, `
+		UPDATE users
+		SET
+			role         = $2,
+			department   = $3,
+			hotel_id     = COALESCE($4, hotel_id),
+			is_onboarded = TRUE,
+			updated_at   = NOW()
+		WHERE id = $1
+		RETURNING id, first_name, last_name, hotel_id, employee_id, profile_picture, role, department, timezone, phone_number, primary_email, is_onboarded, created_at, updated_at
+	`, id, data.Role, data.Department, hotelID).Scan(
+		&user.ID, &user.FirstName, &user.LastName, &user.HotelID, &user.EmployeeID,
+		&user.ProfilePicture, &user.Role, &user.Department, &user.Timezone,
+		&user.PhoneNumber, &user.PrimaryEmail, &user.IsOnboarded, &user.CreatedAt, &user.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
 	batch := &pgx.Batch{}
 

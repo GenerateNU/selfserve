@@ -28,6 +28,7 @@ type UsersRepository interface {
 	SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
 	AddEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error
 	RemoveEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error
+	CompleteOnboarding(ctx context.Context, id string, data *models.OnboardUser) (*models.User, error)
 }
 
 type GuestsRepository interface {
@@ -54,7 +55,7 @@ type RequestsRepository interface {
 	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindMyRequestsByRoomID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
-	FindRequestsPaginated(ctx context.Context, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
 type HotelsRepository interface {

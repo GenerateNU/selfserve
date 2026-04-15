@@ -67,6 +67,10 @@ func (m *mockUsersRepositoryClerk) RemoveEmployeeDepartment(ctx context.Context,
 	return nil
 }
 
+func (m *mockUsersRepositoryClerk) CompleteOnboarding(ctx context.Context, id string, data *models.OnboardUser) (*models.User, error) {
+	return nil, nil
+}
+
 var _ storage.UsersRepository = (*mockUsersRepositoryClerk)(nil)
 
 type mockHotelsRepositoryClerk struct {

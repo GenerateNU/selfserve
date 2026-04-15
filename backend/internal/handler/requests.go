@@ -368,6 +368,7 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 // @Param        cursor      query   string  false  "Pagination cursor"
 // @Param        limit       query   int     false  "Page size (default 20, max 100)"
 // @Param        user_id     query   string  false  "Filter by assigned user ID"
+// @Param        unassigned  query   bool    false  "If true, return only requests with no assigned user"
 // @Success      200  {object}  utils.CursorPage[models.GuestRequest]
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
@@ -382,6 +383,7 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	cursor := c.Query("cursor")
 	limit := c.QueryInt("limit")
 	userID := c.Query("user_id")
+	unassigned := c.QueryBool("unassigned")
 
 	cursorID, cursorVersion, err := parseRequestCursor(cursor)
 	if err != nil {
@@ -389,7 +391,7 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	}
 
 	resolvedLimit := utils.ResolveLimit(limit)
-	requests, err := r.RequestRepository.FindRequestsPaginated(c.Context(), hotelID, userID, cursorID, cursorVersion, resolvedLimit+1)
+	requests, err := r.RequestRepository.FindRequestsPaginated(c.Context(), hotelID, userID, unassigned, cursorID, cursorVersion, resolvedLimit+1)
 	if err != nil {
 		return errs.InternalServerError()
 	}
