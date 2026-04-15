@@ -74,19 +74,36 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+// UpdateRequest godoc
+// @Summary      Update a request
+// @Description  Partially updates a request — only provided fields are changed, omitted fields keep their current value
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string               true  "Request ID (UUID)"
+// @Param        body  body  models.UpdateRequest  true  "Fields to update"
+// @Success      200   {object}  models.Request
+// @Failure      400   {object}  map[string]string
+// @Failure      404   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /request/{id} [put]
 func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if !validUUID(id) {
 		return errs.BadRequest("request id is not a valid UUID")
 	}
 
-	var requestBody models.MakeRequest
-	if err := httpx.BindAndValidate(c, &requestBody); err != nil {
+	var body models.UpdateRequest
+	if err := httpx.BindAndValidate(c, &body); err != nil {
 		return err
 	}
 
-	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: id, MakeRequest: requestBody})
+	res, err := r.RequestRepository.UpdateRequest(c.Context(), id, &body)
 	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request", "id", id)
+		}
 		return errs.InternalServerError()
 	}
 

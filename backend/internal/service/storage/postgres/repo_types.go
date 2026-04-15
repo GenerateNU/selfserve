@@ -49,6 +49,7 @@ type GuestsSearchRepository interface {
 
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
+	UpdateRequest(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error)
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
 	FindRequests(ctx context.Context) ([]models.Request, error)
 	FindRequestsByStatusPaginated(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error)

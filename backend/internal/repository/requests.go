@@ -48,6 +48,62 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 	return req, nil
 }
 
+func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+	var req models.Request
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO requests (
+			id, hotel_id, guest_id, user_id, reservation_id, name, description,
+			room_id, request_category, request_type, department, status,
+			priority, estimated_completion_time, scheduled_time, completed_at,
+			notes, request_version, created_at
+		)
+		SELECT
+			id,
+			hotel_id,
+			COALESCE($2, guest_id),
+			COALESCE($3, user_id),
+			COALESCE($4, reservation_id),
+			COALESCE($5, name),
+			COALESCE($6, description),
+			COALESCE($7, room_id),
+			COALESCE($8, request_category),
+			COALESCE($9, request_type),
+			COALESCE($10, department),
+			COALESCE($11, status),
+			COALESCE($12, priority),
+			COALESCE($13, estimated_completion_time),
+			COALESCE($14, scheduled_time),
+			CASE WHEN $11 = 'completed' THEN NOW() ELSE COALESCE($15, completed_at) END,
+			COALESCE($16, notes),
+			NOW(),
+			created_at
+		FROM (
+			SELECT DISTINCT ON (id) * FROM requests WHERE id = $1 ORDER BY id, request_version DESC
+		) latest
+		RETURNING id, hotel_id, guest_id, reservation_id, name, description,
+		          room_id, request_category, request_type, department, status,
+		          priority, estimated_completion_time, scheduled_time, completed_at,
+		          notes, created_at, user_id, request_version
+	`, id,
+		update.GuestID, update.UserID, update.ReservationID, update.Name,
+		update.Description, update.RoomID, update.RequestCategory, update.RequestType,
+		update.Department, update.Status, update.Priority, update.EstimatedCompletionTime,
+		update.ScheduledTime, update.CompletedAt, update.Notes,
+	).Scan(
+		&req.ID, &req.HotelID, &req.GuestID, &req.ReservationID, &req.Name, &req.Description,
+		&req.RoomID, &req.RequestCategory, &req.RequestType, &req.Department, &req.Status,
+		&req.Priority, &req.EstimatedCompletionTime, &req.ScheduledTime, &req.CompletedAt,
+		&req.Notes, &req.CreatedAt, &req.UserID, &req.RequestVersion,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+	return &req, nil
+}
+
 func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
 
 	row := r.db.QueryRow(ctx, `

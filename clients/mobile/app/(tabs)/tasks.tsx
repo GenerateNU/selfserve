@@ -8,7 +8,7 @@ import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
 import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
 import { TAB, TabName } from "@/constants/tasks";
-import { useGetRequestsFeed, type RequestFeedItem } from "@shared/api/requests";
+import { useCompleteTask, useGetRequestsFeed, type RequestFeedItem } from "@shared/api/requests";
 
 export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
@@ -16,6 +16,7 @@ export default function TasksScreen() {
     null,
   );
   const { userId } = useAuth();
+  const { mutate: completeTask } = useCompleteTask();
 
   const myTasksQuery = useGetRequestsFeed({ userId: userId ?? undefined });
   const myTaskItems =
@@ -49,12 +50,14 @@ export default function TasksScreen() {
             onEndReached={handleEndReached}
             isLoadingMore={activeQuery.isFetchingNextPage}
             onTaskPress={setSelectedTask}
+            onComplete={activeTab === TAB.MY_TASKS ? (id: string) => completeTask(id) : undefined}
           />
         )}
       </View>
       <TaskDetailSheet
         task={selectedTask}
         onClose={() => setSelectedTask(null)}
+        onComplete={(id) => completeTask(id)}
       />
     </SafeAreaView>
   );

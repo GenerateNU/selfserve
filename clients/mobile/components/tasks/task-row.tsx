@@ -2,11 +2,13 @@ import Feather from "@expo/vector-icons/Feather";
 import { Pressable, Text, View } from "react-native";
 
 import { PriorityTag } from "@/components/tasks/priority-tag";
+import { Colors } from "@/constants/theme";
 import type { RequestFeedItem } from "@shared/api/requests";
 
 type TaskRowProps = {
   task: RequestFeedItem;
   onPress?: (task: RequestFeedItem) => void;
+  onCheckboxPress?: () => void;
 };
 
 function formatTime(iso: string): string {
@@ -28,7 +30,7 @@ function formatLocation(roomNumber?: number | null): string {
   return roomNumber != null ? `Room ${roomNumber}` : "—";
 }
 
-export function TaskRow({ task, onPress }: TaskRowProps) {
+export function TaskRow({ task, onPress, onCheckboxPress }: TaskRowProps) {
   const isCompleted = task.status === "completed";
 
   return (
@@ -42,14 +44,14 @@ export function TaskRow({ task, onPress }: TaskRowProps) {
         <View className="flex-row flex-wrap gap-2 items-start">
           <PriorityTag priority={task.priority} dimmed={isCompleted} />
           {task.request_category ? (
-            <View className="bg-[#f8f8f8] flex-row items-center gap-1.5 h-6 px-2 rounded">
+            <View className="bg-bg-input flex-row items-center gap-1.5 h-6 px-2 rounded">
               <Feather
                 name="home"
                 size={12}
-                color={isCompleted ? "#bababa" : "#464646"}
+                color={isCompleted ? Colors.light.iconDisabled : Colors.light.iconMuted}
               />
               <Text
-                className={`text-xs ${isCompleted ? "text-text-disabled" : "text-[#464646]"}`}
+                className={`text-xs ${isCompleted ? "text-text-disabled" : "text-text-secondary"}`}
                 numberOfLines={1}
               >
                 {task.request_category}
@@ -60,8 +62,8 @@ export function TaskRow({ task, onPress }: TaskRowProps) {
 
         {/* Title */}
         <Text
-          className={`text-[15px] font-bold leading-snug tracking-tight ${
-            isCompleted ? "text-[#979797]" : "text-[#040506]"
+          className={`text-base font-bold leading-snug tracking-tight ${
+            isCompleted ? "text-text-subtle" : "text-text-default"
           }`}
           numberOfLines={2}
         >
@@ -74,10 +76,10 @@ export function TaskRow({ task, onPress }: TaskRowProps) {
             <Feather
               name="clock"
               size={14}
-              color={isCompleted ? "#bababa" : "#808080"}
+              color={isCompleted ? Colors.light.iconDisabled : Colors.light.iconSubtle}
             />
             <Text
-              className={`text-[13px] leading-snug ${
+              className={`text-sm leading-snug ${
                 isCompleted ? "text-text-disabled" : "text-text-subtle"
               }`}
               numberOfLines={1}
@@ -89,10 +91,10 @@ export function TaskRow({ task, onPress }: TaskRowProps) {
             <Feather
               name="map-pin"
               size={14}
-              color={isCompleted ? "#bababa" : "#808080"}
+              color={isCompleted ? Colors.light.iconDisabled : Colors.light.iconSubtle}
             />
             <Text
-              className={`text-[13px] leading-snug ${
+              className={`text-sm leading-snug ${
                 isCompleted ? "text-text-disabled" : "text-text-subtle"
               }`}
               numberOfLines={1}
@@ -105,7 +107,7 @@ export function TaskRow({ task, onPress }: TaskRowProps) {
         {/* Description */}
         {task.description ? (
           <Text
-            className={`text-[13px] leading-snug ${
+            className={`text-sm leading-snug ${
               isCompleted ? "text-text-disabled" : "text-text-secondary"
             }`}
             numberOfLines={2}
@@ -117,12 +119,14 @@ export function TaskRow({ task, onPress }: TaskRowProps) {
 
       {/* Checkbox */}
       {isCompleted ? (
-        <View className="w-[30px] h-[30px] rounded bg-primary-surface items-center justify-center p-1.5 shrink-0">
-          <Feather name="check" size={16} color="white" />
+        <View className="w-8 h-8 rounded bg-primary-surface items-center justify-center p-1.5 shrink-0">
+          <Feather name="check" size={16} color={Colors.light.white} />
         </View>
       ) : (
-        <View
-          className="w-[30px] h-[30px] rounded border border-[#2e2e2e] shrink-0"
+        <Pressable
+          onPress={onCheckboxPress}
+          hitSlop={8}
+          className="w-8 h-8 rounded border border-text-default shrink-0 items-center justify-center"
           style={{ opacity: 0.5 }}
         />
       )}

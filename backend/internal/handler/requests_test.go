@@ -19,6 +19,7 @@ import (
 
 type mockRequestRepository struct {
 	makeRequestFunc                    func(ctx context.Context, req *models.Request) (*models.Request, error)
+	updateRequestFunc                  func(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error)
 	findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
 	findRequestsByCursorFunc           func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error)
@@ -30,6 +31,13 @@ type mockRequestRepository struct {
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
 	return m.makeRequestFunc(ctx, req)
+}
+
+func (m *mockRequestRepository) UpdateRequest(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
+	if m.updateRequestFunc != nil {
+		return m.updateRequestFunc(ctx, id, update)
+	}
+	return nil, nil
 }
 
 func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {

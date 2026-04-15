@@ -587,6 +587,48 @@ definitions:
         example: America/New_York
         type: string
     type: object
+  UpdateRequest:
+    properties:
+      completed_at:
+        type: string
+      department:
+        type: string
+      description:
+        type: string
+      estimated_completion_time:
+        type: integer
+      guest_id:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      priority:
+        enum:
+        - low
+        - medium
+        - high
+        type: string
+      request_category:
+        type: string
+      request_type:
+        type: string
+      reservation_id:
+        type: string
+      room_id:
+        type: string
+      scheduled_time:
+        type: string
+      status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
+        type: string
+      user_id:
+        type: string
+    type: object
   UpdateUser:
     properties:
       phone_number:
@@ -1441,6 +1483,54 @@ paths:
       summary: creates a request
       tags:
       - requests
+  /request/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Partially updates a request — only provided fields are changed,
+        omitted fields keep their current value
+      parameters:
+      - description: Request ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Request'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a request
+      tags:
+      - requests
   /request/cursor:
     post:
       consumes:
@@ -1613,6 +1703,10 @@ paths:
         in: query
         name: user_id
         type: string
+      - description: If true, return only requests with no assigned user
+        in: query
+        name: unassigned
+        type: boolean
       produces:
       - application/json
       responses:

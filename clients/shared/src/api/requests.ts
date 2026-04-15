@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { GuestRequest } from "./generated/models";
 import { useAPIClient } from "./client";
 
@@ -51,6 +51,46 @@ export type RequestFeedPage = {
 export type RequestFeedParams = {
   userId?: string;
   unassigned?: boolean;
+};
+
+export const useCompleteTask = () => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      api.put<RequestFeedItem>(`/request/${taskId}`, { status: "completed" }),
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+      const previous = queryClient.getQueriesData<{ pages: RequestFeedPage[] }>({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+      });
+      queryClient.setQueriesData(
+        { queryKey: REQUESTS_FEED_QUERY_KEY },
+        (old: { pages: RequestFeedPage[] } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              items: (page.items ?? []).map((item) =>
+                item.id === taskId ? { ...item, status: "completed" } : item,
+              ),
+            })),
+          };
+        },
+      );
+      return { previous };
+    },
+    onError: (_err, _taskId, context) => {
+      context?.previous.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+    },
+  });
 };
 
 export const useGetRequestsFeed = (params: RequestFeedParams) => {

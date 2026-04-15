@@ -86,6 +86,25 @@ type Request struct {
 	MakeRequest
 } //@name Request
 
+// UpdateRequest is used by PUT /request/:id — all fields optional, only provided fields are updated.
+type UpdateRequest struct {
+	GuestID                 *string    `json:"guest_id"                  validate:"omitempty,uuid"`
+	UserID                  *string    `json:"user_id"`
+	ReservationID           *string    `json:"reservation_id"`
+	Name                    *string    `json:"name"`
+	Description             *string    `json:"description"`
+	RoomID                  *string    `json:"room_id"`
+	RequestCategory         *string    `json:"request_category"`
+	RequestType             *string    `json:"request_type"`
+	Department              *string    `json:"department"`
+	Status                  *string    `json:"status"                    validate:"omitempty,oneof='pending' 'assigned' 'in progress' 'completed'"`
+	Priority                *string    `json:"priority"                  validate:"omitempty,oneof=low medium high"`
+	EstimatedCompletionTime *int       `json:"estimated_completion_time"`
+	ScheduledTime           *time.Time `json:"scheduled_time"`
+	CompletedAt             *time.Time `json:"completed_at"`
+	Notes                   *string    `json:"notes"`
+} //@name UpdateRequest
+
 type GetRequestsByGuestInput struct {
 	GuestID string `json:"guest_id" validate:"required,uuid"`
 	HotelID string `json:"hotel_id" validate:"required"`
