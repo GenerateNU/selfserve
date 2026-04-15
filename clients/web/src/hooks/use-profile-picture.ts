@@ -7,7 +7,8 @@ import {
   saveProfilePictureKey,
   uploadFileToS3,
 } from "@shared";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
 import { StartupStatus, useStartup } from "@/context/startup";
 
 export function useProfilePicture(userId: string): {
@@ -20,94 +21,100 @@ export function useProfilePicture(userId: string): {
 } {
   const startupStatus = useStartup();
   const api = useAPIClient();
-  const apiRef = useRef(api);
-  apiRef.current = api;
+  const queryClient = useQueryClient();
+  const queryKey = useMemo(
+    () => ["profile-picture", userId] as const,
+    [userId],
+  );
 
-  const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
   const [status, setStatus] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isMutating, setIsMutating] = useState(false);
 
-  useEffect(() => {
-    if (startupStatus !== StartupStatus.Ready) {
-      if (startupStatus !== StartupStatus.Loading) {
-        setIsInitialLoading(false);
-      }
-      return;
-    }
+  const { data: profilePicUrl = null, isLoading: isInitialLoading } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const data = await getProfilePicture(api, userId);
+      return data?.presigned_url ?? null;
+    },
+    enabled: startupStatus === StartupStatus.Ready && !!userId,
+  });
 
-    const ac = new AbortController();
-    setIsInitialLoading(true);
-    void (async () => {
-      try {
-        const data = await getProfilePicture(apiRef.current, userId);
-        if (!ac.signal.aborted) {
-          setProfilePicUrl(data?.presigned_url ?? null);
-        }
-      } finally {
-        if (!ac.signal.aborted) {
-          setIsInitialLoading(false);
-        }
-      }
-    })();
-    return () => ac.abort();
-  }, [userId, startupStatus]);
-
-  const handleUpload = useCallback(
-    async (file: File) => {
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
       if (startupStatus !== StartupStatus.Ready) {
         return;
       }
-      setIsLoading(true);
       setStatus("Getting upload URL...");
+      const ext = getExtFromMime(file.type);
+      const { presigned_url, key } = await getUploadUrl(api, userId, ext);
+
+      setStatus("Uploading to S3...");
+      await uploadFileToS3(presigned_url, file);
+
+      setStatus("Saving to profile...");
+      await saveProfilePictureKey(api, userId, key);
+
+      setStatus("Fetching display URL...");
+      const refreshed = await getProfilePicture(api, userId);
+      return refreshed?.presigned_url ?? null;
+    },
+    onSuccess: (newUrl) => {
+      queryClient.setQueryData(queryKey, newUrl);
+      setStatus("Upload complete!");
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async () => {
+      if (startupStatus !== StartupStatus.Ready) {
+        return;
+      }
+      setStatus("Removing profile picture...");
+      await deleteProfilePictureApi(api, userId);
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(queryKey, null);
+      setStatus("Profile picture removed!");
+    },
+  });
+
+  const handleUpload = useCallback(
+    async (file: File) => {
+      setIsMutating(true);
       try {
-        const ext = getExtFromMime(file.type);
-        const { presigned_url, key } = await getUploadUrl(api, userId, ext);
-
-        setStatus("Uploading to S3...");
-        await uploadFileToS3(presigned_url, file);
-
-        setStatus("Saving to profile...");
-        await saveProfilePictureKey(api, userId, key);
-
-        setStatus("Fetching display URL...");
-        const refreshed = await getProfilePicture(api, userId);
-        setProfilePicUrl(refreshed?.presigned_url ?? null);
-        setStatus("Upload complete!");
+        const newUrl = await uploadMutation.mutateAsync(file);
+        if (typeof newUrl === "string" || newUrl === null) {
+          queryClient.setQueryData(queryKey, newUrl);
+          setStatus("Upload complete!");
+        }
       } catch (err) {
         setStatus(
           `Error: ${err instanceof Error ? err.message : "Unknown error"}`,
         );
       } finally {
-        setIsLoading(false);
+        setIsMutating(false);
       }
     },
-    [api, userId, startupStatus],
+    [queryClient, queryKey, uploadMutation],
   );
 
   const handleRemove = useCallback(async () => {
-    if (startupStatus !== StartupStatus.Ready) {
-      return;
-    }
-    setIsLoading(true);
-    setStatus("Removing profile picture...");
+    setIsMutating(true);
     try {
-      await deleteProfilePictureApi(api, userId);
-      setProfilePicUrl(null);
-      setStatus("Profile picture removed!");
+      await removeMutation.mutateAsync();
     } catch (err) {
       setStatus(
         `Error: ${err instanceof Error ? err.message : "Unknown error"}`,
       );
     } finally {
-      setIsLoading(false);
+      setIsMutating(false);
     }
-  }, [api, userId, startupStatus]);
+  }, [removeMutation]);
 
   return {
     profilePicUrl,
     status,
-    isLoading,
+    isLoading: isMutating,
     isInitialLoading,
     handleUpload,
     handleRemove,

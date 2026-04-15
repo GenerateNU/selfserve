@@ -12,6 +12,7 @@ import {
   ProfileInfoCardSkeleton,
 } from "@/components/profile/ProfileInfoCard";
 import { NotesFromManagerCard } from "@/components/profile/NotesFromManagerCard";
+import { useProfilePicture } from "@/hooks/use-profile-picture";
 
 export const Route = createFileRoute("/_protected/profile")({
   component: ProfilePage,
@@ -20,6 +21,11 @@ export const Route = createFileRoute("/_protected/profile")({
 function ProfilePage() {
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
+  const {
+    profilePicUrl,
+    isLoading: isProfilePictureLoading,
+    handleUpload,
+  } = useProfilePicture(clerkUser?.id ?? "");
 
   const { data: user, isLoading } = useQuery({
     queryKey: ["user", clerkUser?.id],
@@ -30,7 +36,8 @@ function ProfilePage() {
   const firstName = user?.first_name ?? "";
   const lastName = user?.last_name ?? "";
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || "User";
-  const avatarUrl = user?.profile_picture || clerkUser?.imageUrl;
+  const avatarUrl =
+    profilePicUrl ?? user?.profile_picture ?? clerkUser?.imageUrl;
 
   return (
     <main className="flex h-screen flex-col overflow-hidden">
@@ -60,6 +67,8 @@ function ProfilePage() {
               firstName={firstName}
               lastName={lastName}
               avatarUrl={avatarUrl}
+              onPickFile={handleUpload}
+              isUploading={isProfilePictureLoading}
             />
             <div className="flex items-stretch gap-4">
               <div className="flex-1">
