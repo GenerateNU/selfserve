@@ -1,14 +1,6 @@
 import { useEffect, useRef } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import Feather from "@expo/vector-icons/Feather";
 
 import {
   useGetNotifications,
@@ -16,9 +8,9 @@ import {
 } from "@shared/api/notifications";
 import type { Notification } from "@shared/types/notifications";
 import { NotificationItem } from "@/components/notifications/notification-item";
+import { ScreenHeader } from "@/components/ui/screen-header";
 
 export default function NotificationsScreen() {
-  const router = useRouter();
   const { data: notifications = [], isLoading } = useGetNotifications();
   const { mutate: markAllRead } = useMarkAllNotificationsRead();
 
@@ -37,19 +29,8 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg-surface" edges={["top"]}>
-      {/* Header */}
-      <View className="flex-row items-center gap-2.5 px-[22px] pt-3 pb-2">
-        <Pressable onPress={() => router.back()} hitSlop={8}>
-          <Feather name="chevron-left" size={20} color="#000" />
-        </Pressable>
-        <Text className="flex-1 text-2xl font-medium text-text-default tracking-tight">
-          Notifications
-        </Text>
-      </View>
+      <ScreenHeader title="Notifications" />
 
-      <View className="border-b border-[#E5E9ED]" />
-
-      {/* Content */}
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator />

@@ -5,6 +5,9 @@ import { useRouter } from "expo-router";
 import type { Notification } from "@shared/types/notifications";
 import { NotificationType } from "@shared/types/notifications";
 
+const PRIMARY = "#15502c";
+const PRIORITY_HIGH = "#a21313";
+
 function formatTimestamp(iso: string, showUnreadDot: boolean): string {
   const date = new Date(iso);
   const now = new Date();
@@ -39,7 +42,7 @@ function formatDueTime(dueAt?: unknown): string | null {
 function NewTasksBadge() {
   return (
     <View className="bg-bg-selected flex-row items-center gap-1.5 h-6 px-2 py-1 rounded">
-      <Feather name="check-square" size={12} color="#15502c" />
+      <Feather name="check-square" size={12} color={PRIMARY} />
       <Text className="text-[12px] text-primary tracking-tight">new tasks</Text>
     </View>
   );
@@ -48,7 +51,7 @@ function NewTasksBadge() {
 function UrgentTaskBadge() {
   return (
     <View className="bg-bg-selected flex-row items-center gap-1.5 h-6 px-2 py-1 rounded">
-      <Feather name="alert-circle" size={12} color="#15502c" />
+      <Feather name="alert-circle" size={12} color={PRIMARY} />
       <Text className="text-[12px] text-primary tracking-tight">urgent task</Text>
     </View>
   );
@@ -80,7 +83,7 @@ export function NotificationItem({ notification, showUnreadDot }: NotificationIt
     const dueTime = formatDueTime(notification.data?.due_at);
 
     return (
-      <View className="border-b border-[#bababa] px-6 py-5 gap-2.5">
+      <View className="border-b border-text-disabled px-6 py-5 gap-2.5">
         {/* Title */}
         <View className="flex-row items-center gap-1">
           {showUnreadDot && <View className="size-2 rounded-full bg-primary mr-1" />}
@@ -92,8 +95,8 @@ export function NotificationItem({ notification, showUnreadDot }: NotificationIt
         {/* Due time */}
         {dueTime !== null && (
           <View className="flex-row items-center gap-1">
-            <Feather name="clock" size={16} color="#a21313" />
-            <Text className="text-[12px] text-[#a21313] tracking-tight">{dueTime}</Text>
+            <Feather name="clock" size={16} color={PRIORITY_HIGH} />
+            <Text className="text-[12px] text-priority-high tracking-tight">{dueTime}</Text>
           </View>
         )}
 
@@ -126,7 +129,7 @@ export function NotificationItem({ notification, showUnreadDot }: NotificationIt
   return (
     <Pressable
       onPress={handlePress}
-      className="border-b border-[#bababa] px-6 py-5"
+      className="border-b border-text-disabled px-6 py-5"
     >
       <View className="gap-2">
         {/* Title */}

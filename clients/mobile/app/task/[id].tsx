@@ -1,10 +1,13 @@
 import Feather from "@expo/vector-icons/Feather";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 
 import { useGetRequest } from "@shared/api/requests";
 import { PriorityTag } from "@/components/tasks/priority-tag";
+import { ScreenHeader } from "@/components/ui/screen-header";
+
+const TEXT_SECONDARY = "#5d5d5d";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -27,22 +30,11 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
   const { data: task, isLoading, isError } = useGetRequest(id);
 
   return (
     <SafeAreaView className="flex-1 bg-bg-surface" edges={["top"]}>
-      {/* Header */}
-      <View className="flex-row items-center gap-2.5 px-[22px] pt-3 pb-2">
-        <Pressable onPress={() => router.back()} hitSlop={8}>
-          <Feather name="chevron-left" size={20} color="#000" />
-        </Pressable>
-        <Text className="flex-1 text-2xl font-medium text-text-default tracking-tight">
-          Task Detail
-        </Text>
-      </View>
-
-      <View className="border-b border-[#E5E9ED]" />
+      <ScreenHeader title="Task Detail" />
 
       {isLoading && (
         <View className="flex-1 items-center justify-center">
@@ -72,8 +64,8 @@ export default function TaskDetailScreen() {
             </Text>
             {task.request_category && (
               <View className="flex-row items-center gap-1.5">
-                <Feather name="home" size={13} color="#464646" />
-                <Text className="text-[13px] text-[#464646] tracking-tight">
+                <Feather name="home" size={13} color={TEXT_SECONDARY} />
+                <Text className="text-[13px] text-text-secondary tracking-tight">
                   {task.request_category}
                 </Text>
               </View>
