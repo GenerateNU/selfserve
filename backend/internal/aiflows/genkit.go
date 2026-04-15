@@ -8,6 +8,7 @@ import (
 	"github.com/firebase/genkit/go/genkit"
 	"github.com/firebase/genkit/go/plugins/googlegenai"
 	"github.com/generate/selfserve/config"
+	"google.golang.org/genai"
 )
 
 const defaultGeminiModel = "gemini-3-flash-preview"
@@ -40,7 +41,11 @@ func InitGenkit(ctx context.Context, llmConfig *config.LLM, roomLookupRepo RoomL
 		panic(fmt.Errorf("InitGenkit: define model %q: %w", modelName, err))
 	}
 
-	generateRequestFlow := DefineGenerateRequest(genkitInstance, model, roomLookupRepo, guestLookupRepo)
+	generationConfig := &genai.GenerateContentConfig{
+		MaxOutputTokens: int32(llmConfig.MaxOutputTokens),
+	}
+
+	generateRequestFlow := DefineGenerateRequest(genkitInstance, model, generationConfig, roomLookupRepo, guestLookupRepo)
 
 	return &GenkitService{
 		genkit:              genkitInstance,
