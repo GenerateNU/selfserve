@@ -1,6 +1,12 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type { GithubComGenerateSelfserveInternalUtilsCursorPageGuestRequest as GuestRequestPage } from "./generated/models";
+import type { GuestRequest } from "./generated/models";
 import { useAPIClient } from "./client";
+
+type GuestRequestPage = {
+  items: GuestRequest[] | null;
+  next_cursor: string | null;
+  has_more: boolean;
+};
 
 export const getGuestRequestsQueryKey = (guestId: string) =>
   ["requests", "guest", guestId] as const;

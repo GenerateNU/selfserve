@@ -22,7 +22,6 @@ export type {
   GuestPage,
   Dev,
   Assistance,
-  ActiveBooking,
   Stay,
   UpdateGuest,
   GithubComGenerateSelfserveInternalModelsBookingStatus as BookingStatus,
@@ -79,7 +78,6 @@ export type {
   FilterRoomsRequest,
   GuestRequest,
   RoomRequestsResponse,
-  GithubComGenerateSelfserveInternalUtilsCursorPageGuestRequest,
 } from "./api/generated/models";
 
 export { useInfiniteRequestsByGuest, getGuestRequestsQueryKey } from "./api/requests";
