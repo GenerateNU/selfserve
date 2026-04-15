@@ -39,12 +39,12 @@ export function AssigneePicker({
       queryKey: ["users", "search", hotelId, debouncedSearch],
       queryFn: ({ pageParam }) =>
         searchUsers({
-          url: "/users",
-          method: "GET",
-          params: {
+          url: "/users/search",
+          method: "POST",
+          data: {
             hotel_id: hotelId,
-            cursor: pageParam,
-            q: debouncedSearch,
+            cursor: pageParam || undefined,
+            q: debouncedSearch || undefined,
           },
         }),
       initialPageParam: "",
@@ -100,7 +100,7 @@ export function AssigneePicker({
               No staff found
             </p>
           )}
-          {users.map((user) => (
+          {users && users.map((user) => (
             <button
               key={user.id}
               type="button"

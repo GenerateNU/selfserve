@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useUser } from "@clerk/clerk-react";
+import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
 import { useGetRequestsFeed } from "@shared/api/requests";
 import type { RequestFeedSort } from "@shared/api/requests";
-import type { Request } from "@shared";
+import type { Request, User } from "@shared";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
@@ -25,13 +28,15 @@ const KANBAN_COLUMNS = [
 function KanbanColumnData({
   status,
   sort,
+  userId,
 }: {
   status: string;
   sort: RequestFeedSort | undefined;
+  userId?: string;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetRequestsFeed({ status, sort });
+    useGetRequestsFeed({ status, sort, userId });
 
   const hasNextPageRef = useRef(hasNextPage);
   const isFetchingRef = useRef(isFetchingNextPage);
@@ -71,6 +76,15 @@ function KanbanColumnData({
 
 function HomePage() {
   const [sort, setSort] = useState<RequestFeedSort | undefined>("priority");
+  const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
+
+  const { user: clerkUser } = useUser();
+  const getUsersId = useGetUsersIdHook();
+  const { data: backendUser } = useQuery({
+    queryKey: ["user", clerkUser?.id],
+    queryFn: () => getUsersId(clerkUser!.id),
+    enabled: !!clerkUser?.id,
+  });
 
   const [drawerData, setDrawerData] = useState<{
     name?: string;
@@ -114,12 +128,23 @@ function HomePage() {
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
       <HomeToolbar className="mt-2" onCreateRequest={handleCreateRequest} />
-      <HomeFilterBar sort={sort} onSortChange={setSort} />
+      <HomeFilterBar
+        sort={sort}
+        onSortChange={setSort}
+        selectedUser={selectedUser}
+        onUserChange={setSelectedUser}
+        hotelId={backendUser?.hotel_id}
+        currentUserId={backendUser?.id}
+      />
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
           {KANBAN_COLUMNS.map((col) => (
             <KanbanColumn key={col.status} title={col.title}>
-              <KanbanColumnData status={col.status} sort={sort} />
+              <KanbanColumnData
+                status={col.status}
+                sort={sort}
+                userId={selectedUser?.id}
+              />
             </KanbanColumn>
           ))}
         </div>
