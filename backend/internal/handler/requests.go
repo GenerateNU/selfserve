@@ -19,8 +19,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const defaultPageSize = 20
-
 const msgTaskAssigned = "New task assigned to you"
 
 // NotificationSender is implemented by the notifications service.
