@@ -24,8 +24,8 @@ export function InviteMemberModal({ open, onClose }: InviteMemberModalProps) {
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  function handleOpenChange(open: boolean) {
-    if (!open) handleClose();
+  function handleOpenChange(opened: boolean) {
+    if (!opened) handleClose();
   }
 
   function handleClose() {
