@@ -73,19 +73,108 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+// UpdateRequest godoc
+// @Summary      Update a request
+// @Description  Partially updates a request — only fields present in the body are applied; omitted fields keep their current values
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string              true  "Request ID (UUID)"
+// @Param        request  body  models.RequestUpdateInput  true  "Fields to update"
+// @Success      200  {object}  models.Request
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      404  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /request/{id} [put]
 func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if !validUUID(id) {
 		return errs.BadRequest("request id is not a valid UUID")
 	}
 
-	var requestBody models.MakeRequest
-	if err := httpx.BindAndValidate(c, &requestBody); err != nil {
+	var patchInput models.RequestUpdateInput
+	if err := httpx.BindAndValidate(c, &patchInput); err != nil {
 		return err
 	}
 
-	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: id, MakeRequest: requestBody})
+	res, err := r.RequestRepository.UpdateRequest(c.Context(), id, &patchInput)
 	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("Request", "id", id)
+		}
+		slog.Error("failed to update request", "err", err, "requestID", id)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(res)
+}
+
+// AssignRequest godoc
+// @Summary      Assign a request to a user
+// @Description  Sets user_id on the latest request version. Set assign_to_self to true to assign to the caller. Omit assign_to_self (or set to false) and provide user_id to assign to another user. Requires X-Hotel-ID to match the request's hotel.
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        id          path    string                    true  "Request ID (UUID)"
+// @Param        X-Hotel-ID  header  string                    true  "Hotel ID (UUID)"
+// @Param        body        body    models.AssignRequestInput true  "Self-assign flag and optional assignee"
+// @Success      200  {object}  models.Request
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      401  {object}  errs.HTTPError
+// @Failure      404  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /request/{id}/assign [post]
+func (r *RequestsHandler) AssignRequest(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userId").(string)
+	if !ok || userID == "" {
+		return errs.Unauthorized()
+	}
+
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
+	requestID := c.Params("id")
+	if !validUUID(requestID) {
+		return errs.BadRequest("request id is not a valid UUID")
+	}
+
+	var body models.AssignRequestInput
+	if err := httpx.BindAndValidate(c, &body); err != nil {
+		return err
+	}
+
+	var assigneeID string
+	if body.AssignToSelf != nil && *body.AssignToSelf {
+		assigneeID = userID
+	} else {
+		if body.UserID == nil || strings.TrimSpace(*body.UserID) == "" {
+			return errs.BadRequest("user_id is required when assign_to_self is false or not provided")
+		}
+		assigneeID = strings.TrimSpace(*body.UserID)
+	}
+
+	request, err := r.RequestRepository.FindRequest(c.Context(), requestID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request", "id", requestID)
+		}
+		return errs.InternalServerError()
+	}
+	if request.HotelID != hotelID {
+		return errs.NotFound("request", "id", requestID)
+	}
+
+	update := models.RequestUpdateInput{UserID: &assigneeID}
+	res, err := r.RequestRepository.UpdateRequest(c.Context(), requestID, &update)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request", "id", requestID)
+		}
+		slog.Error("failed to assign request", "err", err, "requestID", requestID)
 		return errs.InternalServerError()
 	}
 
@@ -290,12 +379,12 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 		return err
 	}
 
-	assigned, err := r.RequestRepository.FindMyRequestsByRoomID(c.Context(), input.RoomID, input.HotelID, userID, "", time.Time{}, utils.DefaultPageLimit)
+	assigned, err := r.RequestRepository.FindRequestsByRoomIDAndUserID(c.Context(), input.RoomID, input.HotelID, userID, "", time.Time{}, utils.DefaultPageLimit)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	unassigned, err := r.RequestRepository.FindUnassignedRequestsByRoomID(c.Context(), input.RoomID, input.HotelID, "", time.Time{}, utils.DefaultPageLimit)
+	unassigned, err := r.RequestRepository.FindUnassignedRequestsByRoomIDAndUserID(c.Context(), input.RoomID, input.HotelID, "", time.Time{}, utils.DefaultPageLimit)
 	if err != nil {
 		return errs.InternalServerError()
 	}
