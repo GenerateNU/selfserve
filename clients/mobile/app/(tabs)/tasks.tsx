@@ -24,6 +24,7 @@ export default function TasksScreen() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [sort, setSort] = useState<RequestFeedSort>("priority");
   const [priorities, setPriorities] = useState<string[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
   const { userId } = useAuth();
   const { mutate: completeTask } = useCompleteTask();
 
@@ -31,6 +32,7 @@ export default function TasksScreen() {
     userId: userId ?? undefined,
     sort,
     priorities,
+    departments,
   });
   const myTaskItems =
     myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
@@ -39,6 +41,7 @@ export default function TasksScreen() {
     unassigned: true,
     sort,
     priorities,
+    departments,
   });
   const unassignedItems =
     unassignedQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
@@ -90,6 +93,8 @@ export default function TasksScreen() {
         onSortChange={setSort}
         priorities={priorities}
         onPrioritiesChange={setPriorities}
+        departments={departments}
+        onDepartmentsChange={setDepartments}
       />
     </SafeAreaView>
   );

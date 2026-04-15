@@ -1,31 +1,43 @@
-import { View } from "react-native";
+import { ActivityIndicator } from "react-native";
+
+import { getConfig } from "@shared/api/config";
+import { useGetDepartments } from "@shared/api/departments";
 
 import { CheckboxRow, Section } from "./filter-section-header";
 
-const DEPARTMENTS = [
-  "Food & Beverage",
-  "Front Office",
-  "Housekeeping",
-  "Maintenance",
-  "Management",
-  "Security",
-];
+type DepartmentSectionProps = {
+  departments: string[];
+  onDepartmentsChange: (departments: string[]) => void;
+};
 
-const DEFAULT_CHECKED = new Set(["Food & Beverage", "Front Office"]);
+export function DepartmentSection({
+  departments,
+  onDepartmentsChange,
+}: DepartmentSectionProps) {
+  const { hotelId } = getConfig();
+  const { data: allDepartments = [], isLoading } = useGetDepartments(hotelId);
 
-export function DepartmentSection() {
+  function toggle(name: string) {
+    const next = departments.includes(name)
+      ? departments.filter((d) => d !== name)
+      : [...departments, name];
+    onDepartmentsChange(next);
+  }
+
   return (
     <Section title="Department">
-      <View className="flex-row flex-wrap gap-x-[8vw]">
-        {DEPARTMENTS.map((dept) => (
+      {isLoading ? (
+        <ActivityIndicator size="small" />
+      ) : (
+        allDepartments.map((dept) => (
           <CheckboxRow
-            key={dept}
-            label={dept}
-            selected={DEFAULT_CHECKED.has(dept)}
-            onPress={() => {}}
+            key={dept.id}
+            label={dept.name}
+            selected={departments.includes(dept.name)}
+            onPress={() => toggle(dept.name)}
           />
-        ))}
-      </View>
+        ))
+      )}
     </Section>
   );
 }
