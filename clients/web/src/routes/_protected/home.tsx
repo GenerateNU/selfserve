@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { MakeRequestPriority } from "@shared";
+import { useGetRequestsFeed } from "@shared/api/requests";
+import type { RequestFeedSort } from "@shared/api/requests";
 import type { Request } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
@@ -9,7 +11,6 @@ import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
-import { useGetRequestsFeed, type RequestFeedSort } from "@shared/api/requests";
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,

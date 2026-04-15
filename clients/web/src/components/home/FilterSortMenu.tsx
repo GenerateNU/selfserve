@@ -2,7 +2,7 @@ import { Check, X } from "lucide-react";
 import { useState } from "react";
 
 type FilterSortMenuProps = {
-  options: { label: string; value: string }[];
+  options: Array<{ label: string; value: string }>;
   selected: string | undefined;
   anchor: { x: number; y: number };
   onApply: (value: string | undefined) => void;

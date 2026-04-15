@@ -61,7 +61,7 @@ export function RequestCardItem({ request }: RequestCardItemProps) {
       <div className="mt-3 flex flex-col gap-2">
         <div className="flex flex-col gap-1">
           <span className="text-base font-medium leading-snug text-text-default">
-            {request.name ?? "Untitled Request"}
+            {request.name}
           </span>
 
           {tags.length > 0 && (

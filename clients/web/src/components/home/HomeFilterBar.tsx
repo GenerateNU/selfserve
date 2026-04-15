@@ -1,10 +1,10 @@
 import { ChevronDown, LayoutGrid, User } from "lucide-react";
 import { useRef, useState } from "react";
-import { cn } from "@/lib/utils";
-import type { RequestFeedSort } from "@shared/api/requests";
 import { FilterSortMenu } from "./FilterSortMenu";
+import type { RequestFeedSort } from "@shared/api/requests";
+import { cn } from "@/lib/utils";
 
-const SORT_OPTIONS: { label: string; value: string }[] = [
+const SORT_OPTIONS: Array<{ label: string; value: string }> = [
   { label: "Priority", value: "priority" },
   { label: "Newest", value: "newest" },
   { label: "Oldest", value: "oldest" },
