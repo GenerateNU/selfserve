@@ -77,7 +77,7 @@ export function TaskFilterSheet({ visible, onClose }: TaskFilterSheetProps) {
           }).start();
         }
       },
-    })
+    }),
   ).current;
 
   return (
