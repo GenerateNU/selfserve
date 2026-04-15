@@ -4,13 +4,15 @@ import { ActivityIndicator, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TabBar } from "@/components/tasks/tab-bar";
+import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
 import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
 import { TAB, TabName } from "@/constants/tasks";
-import { useGetRequestsFeed } from "@shared/api/requests";
+import { useGetRequestsFeed, type RequestFeedItem } from "@shared/api/requests";
 
 export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
+  const [selectedTask, setSelectedTask] = useState<RequestFeedItem | null>(null);
   const { userId } = useAuth();
 
   const myTasksQuery = useGetRequestsFeed({ userId: userId ?? undefined });
@@ -44,9 +46,14 @@ export default function TasksScreen() {
             tasks={activeTab === TAB.MY_TASKS ? myTaskItems : unassignedItems}
             onEndReached={handleEndReached}
             isLoadingMore={activeQuery.isFetchingNextPage}
+            onTaskPress={setSelectedTask}
           />
         )}
       </View>
+      <TaskDetailSheet
+        task={selectedTask}
+        onClose={() => setSelectedTask(null)}
+      />
     </SafeAreaView>
   );
 }
