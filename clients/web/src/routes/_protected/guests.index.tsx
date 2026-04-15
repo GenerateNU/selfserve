@@ -42,6 +42,7 @@ function GuestsQuickListPage() {
     priority?: MakeRequestPriority;
     room_id?: string;
     guest_id?: string;
+    user_id?: string;
   } | null>(null);
 
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -180,6 +181,7 @@ function GuestsQuickListPage() {
                   : undefined,
               room_id: r.room_id,
               guest_id: r.guest_id,
+              user_id: r.user_id,
             });
           }}
         />
