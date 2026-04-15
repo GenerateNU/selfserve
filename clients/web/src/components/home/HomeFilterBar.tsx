@@ -53,7 +53,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-colors",
+        "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm whitespace-nowrap transition-colors",
         active
           ? "bg-[#edf5f1] border-primary text-primary"
           : "bg-white border-stroke-default text-text-secondary hover:bg-bg-container",
@@ -135,40 +135,36 @@ export function HomeFilterBar({
 
   return (
     <>
-      <div className="flex items-center justify-between px-6 py-2 border-b border-stroke-subtle">
-        <div className="flex items-center gap-5">
-          <div className="flex items-center gap-3">
-            <FilterChip
-              ref={sortButtonRef}
-              label="Sorting"
-              active={!!activeSortLabel}
-              activeValue={activeSortLabel}
-              onClick={openSortMenu}
-            />
-            <FilterChip label="Grouping" />
-          </div>
-          <div className="flex items-center gap-3">
-            <FilterChip
-              ref={assigneeButtonRef}
-              label="Assignee"
-              active={!!activeAssigneeName}
-              activeValue={activeAssigneeName}
-              icon="user"
-              onClick={openAssigneeMenu}
-            />
-            <FilterChip
-              ref={departmentButtonRef}
-              label="Department"
-              active={selectedDepartments.length > 0}
-              activeValue={activeDepartmentLabel}
-              onClick={openDepartmentMenu}
-            />
-            <FilterChip label="Priority" />
-            <FilterChip label="Location" />
-            <FilterChip label="Deadline" />
-          </div>
+      <div className="flex items-start justify-between px-6 py-2 border-b border-stroke-subtle">
+        <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0 mr-4">
+          <FilterChip
+            ref={sortButtonRef}
+            label="Sorting"
+            active={!!activeSortLabel}
+            activeValue={activeSortLabel}
+            onClick={openSortMenu}
+          />
+          <FilterChip label="Grouping" />
+          <FilterChip
+            ref={assigneeButtonRef}
+            label="Assignee"
+            active={!!activeAssigneeName}
+            activeValue={activeAssigneeName}
+            icon="user"
+            onClick={openAssigneeMenu}
+          />
+          <FilterChip
+            ref={departmentButtonRef}
+            label="Department"
+            active={selectedDepartments.length > 0}
+            activeValue={activeDepartmentLabel}
+            onClick={openDepartmentMenu}
+          />
+          <FilterChip label="Priority" />
+          <FilterChip label="Location" />
+          <FilterChip label="Deadline" />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3 pt-1">
           <button
             type="button"
             className="text-sm text-text-secondary hover:text-text-default transition-colors"
