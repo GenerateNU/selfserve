@@ -7,6 +7,7 @@ import { GuestProfilePageSkeleton } from "../../components/guests/GuestProfilePa
 import { GuestSpecialNeedsCard } from "../../components/guests/GuestSpecialNeedsCard";
 import { HousekeepingPreferencesCard } from "../../components/guests/HousekeepingPreferencesCard";
 import { PreviousStaysCard } from "../../components/guests/PreviousStaysCard";
+import { GuestDrawerTab } from "@/components/guests/GuestDetailsDrawer";
 
 export const Route = createFileRoute("/_protected/guests/$guestId")({
   component: GuestProfilePage,
@@ -52,6 +53,7 @@ function GuestProfilePage() {
           <p className="text-[1vw] text-black">{detailErrorMessage}</p>
           <Link
             to="/guests"
+            search={{ guestId: undefined, tab: GuestDrawerTab.Profile }}
             className="mt-[1vh] inline-block text-[1vw] text-primary underline"
           >
             Return to guest list

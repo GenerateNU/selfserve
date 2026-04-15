@@ -27,7 +27,7 @@ type mockRequestRepository struct {
 	findRequestsByRoomIDAndUserIDFunc  func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findUnassignedRequestsByRoomIDFunc func(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findUnassignedRequestsFunc         func(ctx context.Context, hotelID, cursorID string, cursorCreatedAt time.Time, limit int) ([]*models.GuestRequest, error)
-	findRequestsPaginatedFunc          func(ctx context.Context, hotelID, userID string, unassigned bool, status string, departments []string, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
+	findRequestsPaginatedFunc          func(ctx context.Context, hotelID, userID string, unassigned bool, status string, priorities []string, departments []string, floors []int, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -62,8 +62,8 @@ func (m *mockRequestRepository) FindUnassignedRequests(ctx context.Context, hote
 	return m.findUnassignedRequestsFunc(ctx, hotelID, cursorID, cursorCreatedAt, limit)
 }
 
-func (m *mockRequestRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, status string, departments []string, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error) {
-	return m.findRequestsPaginatedFunc(ctx, hotelID, userID, unassigned, status, departments, sort, cursorID, cursorCreatedAt, cursorPriorityRank, limit)
+func (m *mockRequestRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, status string, priorities []string, departments []string, floors []int, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error) {
+	return m.findRequestsPaginatedFunc(ctx, hotelID, userID, unassigned, status, priorities, departments, floors, sort, cursorID, cursorCreatedAt, cursorPriorityRank, limit)
 }
 
 func TestRequestHandler_GetUnassignedRequests(t *testing.T) {
