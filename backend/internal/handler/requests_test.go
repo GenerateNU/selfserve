@@ -1453,8 +1453,8 @@ func TestRequestHandler_AssignRequest(t *testing.T) {
 
 	const (
 		validRequestID = "530e8400-e458-41d4-a716-446655440000"
-		validHotelID   = "521e8400-e458-41d4-a716-446655440000"
-		otherHotelID   = "621e8400-e458-41d4-a716-446655440000"
+		validHotelID   = "org_521e8400-e458-41d4-a716-446655440000"
+		otherHotelID   = "org_621e8400-e458-41d4-a716-446655440000"
 		callerID       = "user_caller"
 		otherUserID    = "user_other"
 	)
