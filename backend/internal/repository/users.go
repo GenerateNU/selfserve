@@ -328,6 +328,29 @@ func (r *UsersRepository) CompleteOnboarding(ctx context.Context, id string, dat
 	return &user, nil
 }
 
+func (r *UsersRepository) FindUserByName(ctx context.Context, hotelID, name string) ([]string, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT u.id
+		FROM users u
+		WHERE u.hotel_id = $1
+		  AND CONCAT_WS(' ', u.first_name, u.last_name) ILIKE '%' || $2 || '%'
+	`, hotelID, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
 func (r *UsersRepository) BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error {
 	batch := &pgx.Batch{}
 

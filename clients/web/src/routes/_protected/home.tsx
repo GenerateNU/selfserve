@@ -119,6 +119,7 @@ function HomePage() {
     priority?: MakeRequestPriority;
     room_id?: string;
     guest_id?: string;
+    user_id?: string;
   } | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
     null,
@@ -141,6 +142,7 @@ function HomePage() {
         p && p in MakeRequestPriority ? (p as MakeRequestPriority) : undefined,
       room_id: request.room_id,
       guest_id: request.guest_id,
+      user_id: request.user_id,
     });
   }
 

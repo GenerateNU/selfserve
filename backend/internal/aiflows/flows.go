@@ -8,9 +8,10 @@ import (
 	"github.com/firebase/genkit/go/core"
 	"github.com/firebase/genkit/go/genkit"
 	"github.com/generate/selfserve/internal/aiflows/prompts"
+	"google.golang.org/genai"
 )
 
-func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig any, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository) *core.Flow[GenerateRequestInput, EnrichedGenerateRequestOutput, struct{}] {
+func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *genai.GenerateContentConfig, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository, userLookupRepo UserLookupRepository) *core.Flow[GenerateRequestInput, EnrichedGenerateRequestOutput, struct{}] {
 	generateRequestFlow := genkit.DefineFlow(genkitInstance, "generateRequestFlow",
 		func(ctx context.Context, input GenerateRequestInput) (EnrichedGenerateRequestOutput, error) {
 			prompt := fmt.Sprintf(prompts.GenerateRequestPrompt, input.RawText)
@@ -28,7 +29,12 @@ func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, genera
 				return EnrichedGenerateRequestOutput{}, err
 			}
 
-			return enrichWithGuestLookup(ctx, guestLookupRepo, input.HotelID, output)
+			output, err = enrichWithGuestLookup(ctx, guestLookupRepo, input.HotelID, output)
+			if err != nil {
+				return EnrichedGenerateRequestOutput{}, err
+			}
+
+			return enrichWithUserLookup(ctx, userLookupRepo, input.HotelID, output)
 		},
 	)
 
@@ -81,6 +87,30 @@ func enrichWithGuestLookup(ctx context.Context, guestLookupRepo GuestLookupRepos
 	if warning != nil {
 		output.Warning = &GenerateRequestWarning{
 			Code:    "guest_not_found",
+			Message: *warning,
+		}
+	}
+
+	return output, nil
+}
+
+func enrichWithUserLookup(ctx context.Context, userLookupRepo UserLookupRepository, hotelID string, output EnrichedGenerateRequestOutput) (EnrichedGenerateRequestOutput, error) {
+	if output.UserName == nil {
+		return output, nil
+	}
+
+	userID, warning, err := LookupUser(ctx, userLookupRepo, UserLookupInput{
+		HotelID:  hotelID,
+		UserName: *output.UserName,
+	})
+	if err != nil {
+		return EnrichedGenerateRequestOutput{}, err
+	}
+
+	output.UserID = userID
+	if warning != nil {
+		output.Warning = &GenerateRequestWarning{
+			Code:    "user_not_found",
 			Message: *warning,
 		}
 	}

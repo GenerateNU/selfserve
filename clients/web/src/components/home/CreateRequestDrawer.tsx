@@ -61,6 +61,7 @@ type CreateRequestDrawerProps = {
     priority?: MakeRequestPriority;
     room_id?: string;
     guest_id?: string;
+    user_id?: string;
   };
 };
 
@@ -117,7 +118,7 @@ export function CreateRequestDrawer({
       status: "pending",
       request_type: "general",
       description: description.trim() || undefined,
-      user_id: assignee?.id,
+      user_id: assignee?.id ?? initialData?.user_id,
       room_id: room?.id ?? initialData?.room_id,
       department: department?.id,
       guest_id: initialData?.guest_id,
