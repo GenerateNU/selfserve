@@ -24,8 +24,8 @@ function formatRequestTime(isoString?: string): string {
 }
 
 type RequestCardItemProps = {
- onClick?: () => void;  
-request: RequestFeedItem;
+  onClick?: () => void;  
+  request: RequestFeedItem;
 };
 
 export function RequestCardItem({ request, onClick }: RequestCardItemProps) {

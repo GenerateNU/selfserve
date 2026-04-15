@@ -1,4 +1,9 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { GuestRequest, Request } from "./generated/models";
 import { RequestStatus } from "./generated/models";
 import { useAPIClient } from "./client";
@@ -24,8 +29,8 @@ export const useInfiniteRequestsByGuest = (guestId: string) => {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next_cursor,
     enabled: !!guestId,
-})
-}
+  });
+};
 
 export const REQUESTS_FEED_QUERY_KEY = ["requests-feed"] as const;
 
@@ -68,23 +73,27 @@ export const useCompleteTask = () => {
 
   return useMutation({
     mutationFn: (taskId: string) =>
-      api.put<RequestFeedItem>(`/request/${taskId}`, { status: RequestStatus.completed }),
+      api.put<RequestFeedItem>(`/request/${taskId}`, {
+        status: RequestStatus.completed,
+      }),
     onSuccess: (_data, taskId) => {
-      queryClient.setQueriesData<{ pages: RequestFeedPage[]; pageParams: unknown[] }>(
-        { queryKey: REQUESTS_FEED_QUERY_KEY },
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page) => ({
-              ...page,
-              items: (page.items ?? []).map((item) =>
-                item.id === taskId ? { ...item, status: RequestStatus.completed } : item,
-              ),
-            })),
-          };
-        },
-      );
+      queryClient.setQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: (page.items ?? []).map((item) =>
+              item.id === taskId
+                ? { ...item, status: RequestStatus.completed }
+                : item,
+            ),
+          })),
+        };
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
@@ -113,7 +122,8 @@ export const useGetRequestsFeed = (params: RequestFeedParams) => {
       if (params.unassigned) query.unassigned = "true";
       if (params.sort) query.sort = params.sort;
       if (params.status) query.status = params.status;
-      if (params.departments?.length) query.departments = params.departments.join(",");
+      if (params.departments?.length)
+        query.departments = params.departments.join(",");
       return api.get<RequestFeedPage>("/requests", query);
     },
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
