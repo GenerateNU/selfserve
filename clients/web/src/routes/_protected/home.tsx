@@ -42,7 +42,14 @@ function KanbanColumnData({
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetRequestsFeed({ status, sort, userId, priorities, departments, floors });
+    useGetRequestsFeed({
+      status,
+      sort,
+      userId,
+      priorities,
+      departments,
+      floors,
+    });
 
   const hasNextPageRef = useRef(hasNextPage);
   const isFetchingRef = useRef(isFetchingNextPage);
