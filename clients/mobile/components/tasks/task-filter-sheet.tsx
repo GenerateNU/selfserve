@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   Animated,
   Dimensions,
@@ -9,7 +9,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { RequestFeedSort } from "@shared/api/requests";
 
@@ -34,18 +33,6 @@ export function TaskFilterSheet({
   onSortChange,
 }: TaskFilterSheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const insets = useSafeAreaInsets();
-
-  const [expanded, setExpanded] = useState({
-    sortBy: false,
-    priority: false,
-    department: false,
-    location: false,
-  });
-
-  function toggle(key: keyof typeof expanded) {
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
-  }
 
   useEffect(() => {
     if (visible) {
@@ -110,67 +97,36 @@ export function TaskFilterSheet({
           onStartShouldSetResponder={() => true}
         >
           {/* Drag handle */}
-          <View
-            {...panResponder.panHandlers}
-            className="items-center pt-4 pb-3"
-          >
-            <View className="w-11 h-1 rounded-full bg-text-disabled" />
+          <View {...panResponder.panHandlers} className="items-center pt-3 pb-2">
+            <View className="w-10 h-1 rounded-full bg-stroke-subtle" />
           </View>
 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: 24,
-              paddingTop: 8,
-              paddingBottom: insets.bottom + 48,
-              gap: 24,
-            }}
-          >
-            {/* Title */}
-            <Text className="text-2xl font-medium text-[#464646] tracking-tight">
-              Filters
-            </Text>
+          {/* Title */}
+          <View className="px-[5vw] pb-[1.5vh]">
+            <Text className="text-2xl font-bold text-text-default">Filters</Text>
+          </View>
 
-            {/* Filter sections */}
-            <SortBySection
-              expanded={expanded.sortBy}
-              onToggle={() => toggle("sortBy")}
-              sort={sort}
-              onSortChange={onSortChange}
-            />
-            <PrioritySection
-              expanded={expanded.priority}
-              onToggle={() => toggle("priority")}
-            />
-            <DepartmentSection
-              expanded={expanded.department}
-              onToggle={() => toggle("department")}
-            />
-            <LocationSection
-              expanded={expanded.location}
-              onToggle={() => toggle("location")}
-            />
-
-            {/* Actions */}
-            <View className="gap-2">
-              <Pressable
-                onPress={close}
-                className="bg-primary rounded items-center justify-center py-2.5 w-full"
-              >
-                <Text className="text-white text-[14px] leading-5">
-                  Show Results
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={close}
-                className="items-center justify-center py-2.5 w-full"
-              >
-                <Text className="text-primary text-[14px] leading-5">
-                  Clear all
-                </Text>
-              </Pressable>
-            </View>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <SortBySection sort={sort} onSortChange={onSortChange} />
+            <PrioritySection />
+            <DepartmentSection />
+            <LocationSection />
           </ScrollView>
+
+          {/* Actions */}
+          <View className="px-[5vw] py-[2vh] border-t border-stroke-subtle gap-[1.5vh]">
+            <Pressable
+              onPress={close}
+              className="bg-primary rounded-xl py-[1.8vh] items-center"
+            >
+              <Text className="text-white font-semibold text-sm">
+                Show Results
+              </Text>
+            </Pressable>
+            <Pressable onPress={close} className="items-center py-[1vh]">
+              <Text className="text-sm text-primary font-medium">Clear all</Text>
+            </Pressable>
+          </View>
         </Animated.View>
       </View>
     </Modal>
