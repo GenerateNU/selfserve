@@ -6,6 +6,7 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -26,6 +27,21 @@ func hotelIDFromHeader(c *fiber.Ctx) (string, error) {
 		return "", errs.BadRequest("hotel_id header is invalid")
 	}
 	return hotelID, nil
+}
+
+func requireAdmin(c *fiber.Ctx, usersRepo storage.UsersRepository) error {
+	userID, ok := c.Locals("userId").(string)
+	if !ok || userID == "" {
+		return errs.Unauthorized()
+	}
+	user, err := usersRepo.FindUser(c.Context(), userID)
+	if err != nil {
+		return errs.Forbidden()
+	}
+	if user.Role == nil || *user.Role != "admin" {
+		return errs.Forbidden()
+	}
+	return nil
 }
 
 func AggregateErrors(errors map[string]string) error {

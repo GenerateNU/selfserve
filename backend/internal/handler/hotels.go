@@ -135,6 +135,10 @@ func (h *HotelsHandler) GetDepartmentsByHotelID(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Router       /hotels/{id}/departments [post]
 func (h *HotelsHandler) CreateDepartment(c *fiber.Ctx) error {
+	if err := requireAdmin(c, h.usersRepo); err != nil {
+		return err
+	}
+
 	hotelID := c.Params("id")
 	if strings.TrimSpace(hotelID) == "" {
 		return errs.BadRequest("hotel id is required")
