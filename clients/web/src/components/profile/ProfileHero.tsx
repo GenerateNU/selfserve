@@ -1,7 +1,8 @@
+import { useRef } from "react";
+import { Camera, Loader2 } from "lucide-react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, hashNameToColor } from "@/lib/utils";
-import { Camera, Loader2 } from "lucide-react";
-import { useRef } from "react";
 
 type ProfileHeroProps = {
   firstName: string;
@@ -78,7 +79,7 @@ export function ProfileHero({
             onChange={(event) => {
               const file = event.target.files?.[0];
               if (file) {
-                onPickFile?.(file);
+                onPickFile(file);
               }
               event.target.value = "";
             }}
