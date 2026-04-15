@@ -9,6 +9,11 @@ export function TasksHeader() {
   const { data: notifications } = useGetNotifications();
   const unreadCount = notifications?.filter((n) => !n.read_at).length ?? 0;
 
+type TasksHeaderProps = {
+  onFilterPress?: () => void;
+};
+
+export function TasksHeader({ onFilterPress }: TasksHeaderProps) {
   return (
     <View className="flex-row justify-between items-center px-[22px] pt-3 pb-2">
       <Text className="text-2xl font-medium tracking-tight text-black">
@@ -22,7 +27,7 @@ export function TasksHeader() {
           <Feather name="search" size={19} color="#000" />
         </Pressable>
         <Pressable
-          onPress={() => {}}
+          onPress={onFilterPress}
           className="w-[34px] h-[34px] items-center justify-center rounded"
         >
           <Feather name="sliders" size={19} color="#000" />
