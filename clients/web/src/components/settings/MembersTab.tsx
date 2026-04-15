@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
+import { InviteMemberModal } from "./InviteMemberModal";
 import { useUser } from "@clerk/clerk-react";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { useCustomInstance } from "@shared/api/orval-mutator";
@@ -161,6 +162,7 @@ type MembersTabProps = {
 export function MembersTab({ onSelectMember }: MembersTabProps) {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(
@@ -211,6 +213,11 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
 
   return (
     <div>
+      <InviteMemberModal
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+      />
+
       {/* Toolbar */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-text-subtle">
@@ -218,6 +225,7 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
         </p>
         <button
           type="button"
+          onClick={() => setInviteOpen(true)}
           className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-default hover:bg-bg-selected transition-colors"
         >
           <UserPlus className="size-3.5" />
