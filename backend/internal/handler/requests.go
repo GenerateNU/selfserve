@@ -423,6 +423,27 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	unassigned := c.QueryBool("unassigned")
 	status := c.Query("status")
 
+	var priorities []string
+	if raw := c.Query("priorities"); raw != "" {
+		priorities = strings.Split(raw, ",")
+	}
+
+	var departments []string
+	if raw := c.Query("departments"); raw != "" {
+		departments = strings.Split(raw, ",")
+	}
+
+	var floors []int
+	if raw := c.Query("floors"); raw != "" {
+		for _, part := range strings.Split(raw, ",") {
+			n, convErr := strconv.Atoi(strings.TrimSpace(part))
+			if convErr != nil {
+				return errs.BadRequest("invalid floors: must be comma-separated integers")
+			}
+			floors = append(floors, n)
+		}
+	}
+
 	feedSort := models.RequestFeedSort(c.Query("sort"))
 	if feedSort == "" {
 		feedSort = models.SortByPriority
@@ -438,7 +459,7 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 
 	resolvedLimit := utils.ResolveLimit(limit)
 	requests, err := r.RequestRepository.FindRequestsPaginated(
-		c.Context(), hotelID, userID, unassigned, status,
+		c.Context(), hotelID, userID, unassigned, status, priorities, departments, floors,
 		feedSort, cursorID, cursorCreatedAt, cursorPriorityRank,
 		resolvedLimit+1,
 	)

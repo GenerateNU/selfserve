@@ -201,16 +201,15 @@ func (r *RequestsRepository) FindRequestsByRoomIDAndUserID(ctx context.Context, 
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
-				r.user_id, rm.room_number, r.request_type, r.request_category,
-				r.created_at, r.request_version
+				rm.room_number, r.request_type, r.request_category, r.created_at,
+				r.request_version, r.department, r.user_id, rm.floor
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.room_id = $1
 			  AND r.hotel_id = $2
 			ORDER BY r.id ASC, r.request_version DESC
 		)
-		SELECT id, name, priority, status, description, notes, room_number, request_type, request_category, created_at, request_version
-		FROM latest
+		SELECT * FROM latest
 		WHERE user_id = $3
 		  AND ($4::text = '' OR (id::text, request_version) > ($4, $5))
 		ORDER BY id ASC
@@ -229,16 +228,15 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
-				r.user_id, rm.room_number, r.request_type, r.request_category,
-				r.created_at, r.request_version
+				rm.room_number, r.request_type, r.request_category, r.created_at,
+				r.request_version, r.department, r.user_id, rm.floor
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.room_id = $1
 			  AND r.hotel_id = $2
 			ORDER BY r.id ASC, r.request_version DESC
 		)
-		SELECT id, name, priority, status, description, notes, room_number, request_type, request_category, created_at, request_version
-		FROM latest
+		SELECT * FROM latest
 		WHERE user_id IS NULL
 		  AND ($3::text = '' OR (id::text, request_version) > ($3, $4))
 		ORDER BY id ASC
@@ -257,12 +255,24 @@ func (r *RequestsRepository) FindRequestsPaginated(
 	hotelID, userID string,
 	unassigned bool,
 	status string,
+	priorities []string,
+	departments []string,
+	floors []int,
 	sort models.RequestFeedSort,
 	cursorID string,
 	cursorCreatedAt time.Time,
 	cursorPriorityRank int,
 	limit int,
 ) ([]*models.GuestRequest, error) {
+	if priorities == nil {
+		priorities = []string{}
+	}
+	if departments == nil {
+		departments = []string{}
+	}
+	if floors == nil {
+		floors = []int{}
+	}
 	const baseFilter = `
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
@@ -274,6 +284,9 @@ func (r *RequestsRepository) FindRequestsPaginated(
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.hotel_id = $1
 			  AND ($4::text = '' OR r.status = $4)
+			  AND (cardinality($5::text[]) = 0 OR r.priority = ANY($5))
+			  AND (cardinality($6::text[]) = 0 OR r.department = ANY($6))
+			  AND (cardinality($7::int[]) = 0 OR rm.floor = ANY($7))
 			  AND (
 			    ($3::bool AND r.user_id IS NULL)
 			    OR (NOT $3::bool AND ($2::text = '' OR r.user_id = $2))
@@ -294,24 +307,24 @@ func (r *RequestsRepository) FindRequestsPaginated(
 	switch sort {
 	case models.SortByNewest:
 		rows, err = r.db.Query(ctx, baseFilter+`
-			WHERE ($5::text = '' OR (created_at, id::text) < ($6, $5))
+			WHERE ($8::text = '' OR (created_at, id::text) < ($9, $8))
 			ORDER BY created_at DESC, id DESC
-			LIMIT $7
-		`, hotelID, userID, unassigned, status, cursorID, cursorCreatedAt, limit)
+			LIMIT $10
+		`, hotelID, userID, unassigned, status, priorities, departments, floors, cursorID, cursorCreatedAt, limit)
 
 	case models.SortByOldest:
 		rows, err = r.db.Query(ctx, baseFilter+`
-			WHERE ($5::text = '' OR (created_at, id::text) > ($6, $5))
+			WHERE ($8::text = '' OR (created_at, id::text) > ($9, $8))
 			ORDER BY created_at ASC, id ASC
-			LIMIT $7
-		`, hotelID, userID, unassigned, status, cursorID, cursorCreatedAt, limit)
+			LIMIT $10
+		`, hotelID, userID, unassigned, status, priorities, departments, floors, cursorID, cursorCreatedAt, limit)
 
 	default: // SortByPriority
 		rows, err = r.db.Query(ctx, baseFilter+`
-			WHERE ($5::text = '' OR (priority_rank, id::text) > ($6::int, $5))
+			WHERE ($8::text = '' OR (priority_rank, id::text) > ($9::int, $8))
 			ORDER BY priority_rank ASC, id ASC
-			LIMIT $7
-		`, hotelID, userID, unassigned, status, cursorID, cursorPriorityRank, limit)
+			LIMIT $10
+		`, hotelID, userID, unassigned, status, priorities, departments, floors, cursorID, cursorPriorityRank, limit)
 	}
 
 	if err != nil {

@@ -59,6 +59,9 @@ export type RequestFeedParams = {
   unassigned?: boolean;
   sort?: RequestFeedSort;
   status?: string;
+  priorities?: string[];
+  departments?: string[];
+  floors?: number[];
 };
 
 export const useCompleteTask = () => {
@@ -103,6 +106,9 @@ export const useGetRequestsFeed = (params: RequestFeedParams) => {
       if (params.unassigned) query.unassigned = "true";
       if (params.sort) query.sort = params.sort;
       if (params.status) query.status = params.status;
+      if (params.priorities?.length) query.priorities = params.priorities.join(",");
+      if (params.departments?.length) query.departments = params.departments.join(",");
+      if (params.floors?.length) query.floors = params.floors.join(",");
       return api.get<RequestFeedPage>("/requests", query);
     },
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
