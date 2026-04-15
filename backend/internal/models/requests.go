@@ -73,7 +73,6 @@ type MakeRequest struct {
 	Notes                   *string    `json:"notes" example:"No special requests"`
 } //@name MakeRequest
 
-
 type GenerateRequestInput struct {
 	RawText string `json:"raw_text" example:"Guest in room 504 needs extra towels urgently"`
 	HotelID string `json:"hotel_id" validate:"notblank,startswith=org_" example:"org_521e8400-e458-41d4-a716-446655440000"`
