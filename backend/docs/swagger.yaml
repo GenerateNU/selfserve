@@ -1617,6 +1617,10 @@ paths:
         in: query
         name: unassigned
         type: boolean
+      - description: 'Sort order: priority (default), newest, oldest'
+        in: query
+        name: sort
+        type: string
       produces:
       - application/json
       responses:

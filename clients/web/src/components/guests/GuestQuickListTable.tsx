@@ -1,101 +1,102 @@
-import { UserRound } from "lucide-react";
+import { Flag } from "lucide-react";
 import type { GuestWithBooking } from "@shared";
 
 type GuestQuickListTableProps = {
   guests: Array<GuestWithBooking>;
-  floorOptions: Array<number>;
-  groupSizeOptions: Array<number>;
-  groupFilter: string;
-  floorFilter: string;
   isLoading?: boolean;
-  onGroupFilterChange: (value: string) => void;
-  onFloorFilterChange: (value: string) => void;
   onGuestClick: (guestId: string) => void;
 };
 
-function avatarPill() {
-  return (
-    <div className="flex h-[2vw] w-[2vw] items-center justify-center rounded-full border border-black">
-      <UserRound className="h-[2vh] w-[2vh] text-black" />
-    </div>
-  );
-}
+const COL_CLASSES =
+  "grid-cols-[minmax(0,3fr)_minmax(0,2fr)_minmax(0,5fr)_minmax(5rem,1fr)]";
 
 export function GuestQuickListTable({
   guests,
-  floorOptions,
-  groupSizeOptions,
-  groupFilter,
-  floorFilter,
   isLoading = false,
-  onGroupFilterChange,
-  onFloorFilterChange,
   onGuestClick,
 }: GuestQuickListTableProps) {
   return (
     <section className="w-full">
-      <div className="mb-[1vh] grid grid-cols-[5fr_5fr_2fr_2fr_2fr] items-center gap-[1vw] px-[1vw] text-[1vw] text-black">
-        <p>Government Name</p>
-        <p>Preferred Name</p>
-        <select
-          value={groupFilter}
-          onChange={(event) => onGroupFilterChange(event.target.value)}
-          className="h-[3vh] min-h-[3vh] border border-black bg-white px-[1vw] text-[1vw]"
-          aria-label="Group filter"
-        >
-          <option value="all">Group</option>
-          {groupSizeOptions.map((size) => (
-            <option key={size} value={String(size)}>
-              {size}
-            </option>
-          ))}
-        </select>
-        <select
-          value={floorFilter}
-          onChange={(event) => onFloorFilterChange(event.target.value)}
-          className="h-[3vh] min-h-[3vh] border border-black bg-white px-[1vw] text-[1vw]"
-          aria-label="Floor filter"
-        >
-          <option value="all">Floor</option>
-          {floorOptions.map((floor) => (
-            <option key={floor} value={String(floor)}>
-              {floor}
-            </option>
-          ))}
-        </select>
-        <p>Room</p>
+      <div
+        className={`mb-2 grid ${COL_CLASSES} items-center gap-4 px-4 py-2 text-sm font-medium text-primary`}
+      >
+        <p>Guest</p>
+        <p>Specific Needs</p>
+        <p>Active Bookings</p>
+        <p>Requests</p>
       </div>
 
-      <div className="overflow-hidden border border-black bg-white">
+      <div className="overflow-hidden rounded-xl border border-stroke-subtle bg-white">
         {guests.map((guest) => {
-          const firstBooking = guest.active_bookings?.[0];
+          const hasAccessibility = !!guest.assistance?.accessibility?.length;
+          const hasDietary = !!guest.assistance?.dietary?.length;
+          const hasMedical = !!guest.assistance?.medical?.length;
+          const hasNeeds = hasAccessibility || hasDietary || hasMedical;
 
           return (
             <button
               key={guest.id}
               type="button"
               onClick={() => onGuestClick(guest.id ?? "")}
-              className="grid w-full grid-cols-[auto_5fr_5fr_2fr_2fr_2fr] items-center gap-[1vw] border-b border-black px-[1vw] py-[1vh] text-left last:border-b-0 hover:bg-neutral-50"
+              className={`grid w-full ${COL_CLASSES} items-center gap-4 border-b border-stroke-subtle px-4 py-4 text-left last:border-b-0 hover:bg-bg-container`}
             >
-              {avatarPill()}
-              <p className="truncate text-[1vw] text-black">
+              <p className="truncate text-sm font-medium text-primary">
                 {guest.first_name} {guest.last_name}
               </p>
-              <p className="truncate text-[1vw] text-black">
-                {guest.preferred_name}
-              </p>
-              <p className="text-[1vw] text-black">—</p>
-              <p className="text-[1vw] text-black">
-                {firstBooking?.floor ?? "—"}
-              </p>
-              <p className="text-[1vw] text-black">
-                {firstBooking?.room_number ?? "—"}
-              </p>
+
+              <div className="flex min-w-0 flex-wrap gap-1">
+                {hasNeeds ? (
+                  <>
+                    {hasAccessibility && (
+                      <span className="inline-flex items-center rounded border border-[#a21313] bg-[#ffeded] px-1.5 py-0.5 text-xs text-[#a21313]">
+                        Accessibility
+                      </span>
+                    )}
+                    {hasDietary && (
+                      <span className="inline-flex items-center rounded border border-[#a21313] bg-[#ffeded] px-1.5 py-0.5 text-xs text-[#a21313]">
+                        Dietary
+                      </span>
+                    )}
+                    {hasMedical && (
+                      <span className="inline-flex items-center rounded border border-[#a21313] bg-[#ffeded] px-1.5 py-0.5 text-xs text-[#a21313]">
+                        Medical
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-sm text-text-subtle">—</span>
+                )}
+              </div>
+
+              <div className="flex min-w-0 flex-wrap gap-1.5">
+                {(guest.active_bookings?.length ?? 0) > 0 ? (
+                  guest.active_bookings!.map((booking, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center rounded bg-bg-selected px-2 py-1 text-xs text-primary"
+                    >
+                      Floor {booking.floor}, Suite {booking.room_number}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-sm text-text-subtle">None</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {guest.has_urgent && (
+                  <Flag className="size-3.5 text-[#a21313]" strokeWidth={2} />
+                )}
+                <span className="text-sm text-primary">
+                  {guest.request_count ?? 0}
+                </span>
+              </div>
             </button>
           );
         })}
+
         {!isLoading && guests.length === 0 && (
-          <div className="px-[1vw] py-[2vh] text-[1vw] text-neutral-600">
+          <div className="px-4 py-6 text-sm text-text-subtle">
             No guests match your current filters.
           </div>
         )}
