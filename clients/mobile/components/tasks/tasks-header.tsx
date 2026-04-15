@@ -6,9 +6,10 @@ import { useGetNotifications } from "@shared/api/notifications";
 
 type TasksHeaderProps = {
   onFilterPress?: () => void;
+  filterActive?: boolean;
 };
 
-export function TasksHeader({ onFilterPress }: TasksHeaderProps) {
+export function TasksHeader({ onFilterPress, filterActive }: TasksHeaderProps) {
   const router = useRouter();
   const { data: notifications } = useGetNotifications();
   const unreadCount = notifications?.filter((n) => !n.read_at).length ?? 0;
@@ -28,8 +29,13 @@ export function TasksHeader({ onFilterPress }: TasksHeaderProps) {
         <Pressable
           onPress={onFilterPress}
           className="w-[34px] h-[34px] items-center justify-center rounded"
+          style={filterActive ? { backgroundColor: "#edf5f1" } : undefined}
         >
-          <Feather name="sliders" size={19} color="#000" />
+          <Feather
+            name="sliders"
+            size={19}
+            color={filterActive ? "#124425" : "#000"}
+          />
         </Pressable>
         <Pressable
           onPress={() => router.push("/notifications")}
