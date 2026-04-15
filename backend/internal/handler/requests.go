@@ -395,7 +395,7 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 		return errs.BadRequest("invalid sort: must be priority, newest, or oldest")
 	}
 
-	cursorID, cursorCreatedAt, cursorPriorityRank, err := parseFeedCursor(cursor, feedSort)
+	cursorID, cursorCreatedAt, cursorPriorityRank, err := parseFeedCursor(cursor)
 	if err != nil {
 		return errs.BadRequest("invalid cursor")
 	}
@@ -410,50 +410,34 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 		return errs.InternalServerError()
 	}
 
-	page := utils.BuildCursorPage(requests, resolvedLimit, func(req *models.GuestRequest) string {
-		return buildFeedCursor(req, feedSort)
-	})
+	page := utils.BuildCursorPage(requests, resolvedLimit, buildFeedCursor)
 
 	return c.JSON(page)
 }
 
-// parseFeedCursor decodes a cursor for the requests feed based on the active sort.
+// parseFeedCursor decodes a universal cursor: "priority_rank|created_at_nano|id".
 // Returns zero values and nil error for an empty cursor (first page).
-func parseFeedCursor(cursor string, feedSort models.RequestFeedSort) (id string, createdAt time.Time, priorityRank int, err error) {
+func parseFeedCursor(cursor string) (id string, createdAt time.Time, priorityRank int, err error) {
 	if cursor == "" {
 		return "", time.Time{}, 0, nil
 	}
-	parts := strings.SplitN(cursor, "|", 2)
-	if len(parts) != 2 {
+	parts := strings.SplitN(cursor, "|", 3)
+	if len(parts) != 3 {
 		return "", time.Time{}, 0, errors.New("invalid cursor")
 	}
-	id = parts[1]
-
-	switch feedSort {
-	case models.SortByNewest, models.SortByOldest:
-		nano, parseErr := strconv.ParseInt(parts[0], 10, 64)
-		if parseErr != nil {
-			return "", time.Time{}, 0, errors.New("invalid cursor")
-		}
-		createdAt = time.Unix(0, nano).UTC()
-	default: // SortByPriority
-		rank, parseErr := strconv.Atoi(parts[0])
-		if parseErr != nil {
-			return "", time.Time{}, 0, errors.New("invalid cursor")
-		}
-		priorityRank = rank
+	rank, rankErr := strconv.Atoi(parts[0])
+	nano, nanoErr := strconv.ParseInt(parts[1], 10, 64)
+	if rankErr != nil || nanoErr != nil {
+		return "", time.Time{}, 0, errors.New("invalid cursor")
 	}
-	return id, createdAt, priorityRank, nil
+	return parts[2], time.Unix(0, nano).UTC(), rank, nil
 }
 
-// buildFeedCursor encodes the cursor for the next page based on the active sort.
-func buildFeedCursor(req *models.GuestRequest, feedSort models.RequestFeedSort) string {
-	switch feedSort {
-	case models.SortByNewest, models.SortByOldest:
-		return strconv.FormatInt(req.CreatedAt.UnixNano(), 10) + "|" + req.ID
-	default: // SortByPriority
-		return strconv.Itoa(priorityRankOf(req.Priority)) + "|" + req.ID
-	}
+// buildFeedCursor encodes all sort fields into a single universal cursor.
+func buildFeedCursor(req *models.GuestRequest) string {
+	return strconv.Itoa(priorityRankOf(req.Priority)) + "|" +
+		strconv.FormatInt(req.CreatedAt.UnixNano(), 10) + "|" +
+		req.ID
 }
 
 func priorityRankOf(priority string) int {
