@@ -10,7 +10,7 @@ import (
 	"github.com/generate/selfserve/internal/aiflows/prompts"
 )
 
-func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *ai.GenerationCommonConfig, roomLookupRepo RoomLookupRepository) *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}] {
+func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *ai.GenerationCommonConfig, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository) *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}] {
 	generateRequestFlow := genkit.DefineFlow(genkitInstance, "generateRequestFlow",
 		func(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error) {
 			prompt := fmt.Sprintf(prompts.GenerateRequestPrompt, input.RawText)
@@ -19,7 +19,18 @@ func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, genera
 				return GenerateRequestOutput{}, err
 			}
 
-			return enrichWithRoomLookup(ctx, roomLookupRepo, input.HotelID, *resp)
+			// Clear ID fields the LLM should never set, only enrichment populates these
+			resp.GuestID = nil
+			resp.UserID = nil
+			resp.ReservationID = nil
+			resp.RoomID = nil
+
+			output, err := enrichWithRoomLookup(ctx, roomLookupRepo, input.HotelID, *resp)
+			if err != nil {
+				return GenerateRequestOutput{}, err
+			}
+
+			return enrichWithGuestLookup(ctx, guestLookupRepo, input.HotelID, output)
 		},
 	)
 
@@ -48,6 +59,30 @@ func enrichWithRoomLookup(ctx context.Context, roomLookupRepo RoomLookupReposito
 		output.Warning = &GenerateRequestWarning{
 			Code:    code,
 			Message: *roomResult.Message,
+		}
+	}
+
+	return output, nil
+}
+
+func enrichWithGuestLookup(ctx context.Context, guestLookupRepo GuestLookupRepository, hotelID string, output GenerateRequestOutput) (GenerateRequestOutput, error) {
+	if output.GuestName == nil {
+		return output, nil
+	}
+
+	guestID, warning, err := LookupGuest(ctx, guestLookupRepo, GuestLookupInput{
+		HotelID:   hotelID,
+		GuestName: *output.GuestName,
+	})
+	if err != nil {
+		return GenerateRequestOutput{}, err
+	}
+
+	output.GuestID = guestID
+	if warning != nil {
+		output.Warning = &GenerateRequestWarning{
+			Code:    "guest_not_found",
+			Message: *warning,
 		}
 	}
 

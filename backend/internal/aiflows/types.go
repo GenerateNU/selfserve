@@ -22,6 +22,11 @@ type RoomLookupResult struct {
 	RoomID    *string `json:"room_id,omitempty"`
 }
 
+type GuestLookupInput struct {
+	HotelID   string `json:"hotel_id"`
+	GuestName string `json:"guest_name"`
+}
+
 type GenerateRequestOutput struct {
 	GuestID                 *string                 `json:"guest_id,omitempty" validate:"omitempty,uuid"`
 	UserID                  *string                 `json:"user_id,omitempty" validate:"omitempty,uuid"`
@@ -38,5 +43,6 @@ type GenerateRequestOutput struct {
 	Notes                   *string                 `json:"notes,omitempty"`
 	RoomMentioned           *bool                   `json:"room_mentioned,omitempty"`
 	RoomReference           *string                 `json:"room_reference,omitempty"`
+	GuestName               *string                 `json:"guest_name,omitempty"`
 	Warning                 *GenerateRequestWarning `json:"warning,omitempty"`
 }

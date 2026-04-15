@@ -64,7 +64,8 @@ func InitApp(cfg *config.Config) (*App, error) {
 	openSearchRepos := tryInitOpenSearchRepositories(cfg)
 
 	roomsRepo := repository.NewRoomsRepository(repo.DB)
-	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM, roomsRepo)
+	guestsRepo := repository.NewGuestsRepository(repo.DB)
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM, roomsRepo, guestsRepo)
 	app := setupApp()
 	setupClerk(cfg)
 
