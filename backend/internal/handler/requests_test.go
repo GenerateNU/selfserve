@@ -21,11 +21,10 @@ type mockRequestRepository struct {
 	makeRequestFunc                    func(ctx context.Context, req *models.Request) (*models.Request, error)
 	findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
-	findRequestsByCursorFunc           func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error)
 	findRequestsByGuestIDFunc          func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findMyRequestsByRoomIDFunc         func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findUnassignedRequestsByRoomIDFunc func(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
-	findRequestsPaginatedFunc          func(ctx context.Context, hotelID, userID string, unassigned bool, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
+	findRequestsPaginatedFunc          func(ctx context.Context, hotelID, userID string, unassigned bool, status string, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -40,10 +39,6 @@ func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Requ
 	return m.findRequestsFunc(ctx)
 }
 
-func (m *mockRequestRepository) FindRequestsByStatusPaginated(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
-	return m.findRequestsByCursorFunc(ctx, cursorTime, cursorID, status, hotelID, pageSize)
-}
-
 func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	return m.findRequestsByGuestIDFunc(ctx, guestID, hotelID, cursorID, cursorVersion, limit)
 }
@@ -56,8 +51,8 @@ func (m *mockRequestRepository) FindUnassignedRequestsByRoomID(ctx context.Conte
 	return m.findUnassignedRequestsByRoomIDFunc(ctx, roomID, hotelID, cursorID, cursorVersion, limit)
 }
 
-func (m *mockRequestRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error) {
-	return m.findRequestsPaginatedFunc(ctx, hotelID, userID, unassigned, sort, cursorID, cursorCreatedAt, cursorPriorityRank, limit)
+func (m *mockRequestRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, status string, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error) {
+	return m.findRequestsPaginatedFunc(ctx, hotelID, userID, unassigned, status, sort, cursorID, cursorCreatedAt, cursorPriorityRank, limit)
 }
 
 type mockLLMService struct {
@@ -868,136 +863,6 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		assert.Contains(t, string(body), warningMessage)
 	})
 
-}
-
-func TestRequestHandler_GetRequestByCursor(t *testing.T) {
-	t.Parallel()
-
-	t.Run("returns 200 with requests and next cursor", func(t *testing.T) {
-		t.Parallel()
-
-		nextTime := time.Date(2026, 3, 31, 1, 0, 0, 0, time.UTC)
-		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
-				return []*models.Request{
-					{
-						ID:             "530e8400-e458-41d4-a716-446655440001",
-						CreatedAt:      time.Now(),
-						RequestVersion: time.Now(),
-						MakeRequest: models.MakeRequest{
-							HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
-							Name:        "room cleaning",
-							RequestType: "recurring",
-							Status:      "pending",
-							Priority:    "urgent",
-						},
-					},
-					{
-						ID:             "530e8400-e458-41d4-a716-446655440002",
-						CreatedAt:      time.Now(),
-						RequestVersion: time.Now(),
-						MakeRequest: models.MakeRequest{
-							HotelID:     "org_521e8400-e458-41d4-a716-446655440000",
-							Name:        "towel request",
-							RequestType: "one-time",
-							Status:      "pending",
-							Priority:    "normal",
-						},
-					},
-				}, nextTime, "530e8400-e458-41d4-a716-446655440002", nil
-			},
-		}
-
-		app := fiber.New()
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Post("/request/cursor", h.GetRequestByCursor)
-
-		body := `{"status":"pending"}`
-		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "org_521e8400-e458-41d4-a716-446655440000")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 200, resp.StatusCode)
-
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "530e8400-e458-41d4-a716-446655440001")
-		assert.Contains(t, string(respBody), "530e8400-e458-41d4-a716-446655440002")
-		assert.Contains(t, string(respBody), "next_cursor_time")
-	})
-
-	t.Run("returns 400 when status is invalid", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
-				return nil, time.Time{}, "", errors.New("should not be called")
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Post("/request/cursor", h.GetRequestByCursor)
-
-		body := `{"status":"invalid"}`
-		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "org_521e8400-e458-41d4-a716-446655440000")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-
-		respBody, _ := io.ReadAll(resp.Body)
-		assert.Contains(t, string(respBody), "Status")
-	})
-
-	t.Run("returns 404 when not found in db", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
-				return nil, time.Time{}, "", errs.ErrNotFoundInDB
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Post("/request/cursor", h.GetRequestByCursor)
-
-		body := `{"status":"pending"}`
-		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "org_521e8400-e458-41d4-a716-446655440000")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 404, resp.StatusCode)
-	})
-
-	t.Run("returns 500 on db error", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{
-			findRequestsByCursorFunc: func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
-				return nil, time.Time{}, "", errors.New("db connection failed")
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Post("/request/cursor", h.GetRequestByCursor)
-
-		body := `{"status":"pending"}`
-		req := httptest.NewRequest("POST", "/request/cursor", bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "org_521e8400-e458-41d4-a716-446655440000")
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 500, resp.StatusCode)
-	})
 }
 
 func TestRequestHandler_GetRequestsByGuest(t *testing.T) {
