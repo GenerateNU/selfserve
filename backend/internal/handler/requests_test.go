@@ -19,6 +19,7 @@ import (
 
 type mockRequestRepository struct {
 	makeRequestFunc                    func(ctx context.Context, req *models.Request) (*models.Request, error)
+	updateRequestFunc                  func(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error)
 	findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
 	findRequestsByCursorFunc           func(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error)
@@ -30,6 +31,10 @@ type mockRequestRepository struct {
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
 	return m.makeRequestFunc(ctx, req)
+}
+
+func (m *mockRequestRepository) UpdateRequest(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+	return m.updateRequestFunc(ctx, id, update)
 }
 
 func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
@@ -1155,12 +1160,13 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 
 	const validID = "530e8400-e458-41d4-a716-446655440000"
 
-	t.Run("returns 200 when body is empty object (no fields to patch)", func(t *testing.T) {
+	t.Run("returns 200 when body is empty object (no fields to update)", func(t *testing.T) {
 		t.Parallel()
 
-		var inserted *models.Request
+		var gotUpdate *models.RequestUpdateInput
 		mock := &mockRequestRepository{
-			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+				gotUpdate = update
 				return &models.Request{
 					ID:             id,
 					CreatedAt:      time.Now(),
@@ -1173,10 +1179,6 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 						Priority:    "high",
 					},
 				}, nil
-			},
-			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
-				inserted = req
-				return req, nil
 			},
 		}
 
@@ -1190,16 +1192,32 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
 
-		require.NotNil(t, inserted)
+		require.NotNil(t, gotUpdate)
+		assert.Nil(t, gotUpdate.UserID)
+		assert.Nil(t, gotUpdate.GuestID)
+		assert.Nil(t, gotUpdate.ReservationID)
+		assert.Nil(t, gotUpdate.Name)
+		assert.Nil(t, gotUpdate.Description)
+		assert.Nil(t, gotUpdate.RoomID)
+		assert.Nil(t, gotUpdate.RequestCategory)
+		assert.Nil(t, gotUpdate.RequestType)
+		assert.Nil(t, gotUpdate.Department)
+		assert.Nil(t, gotUpdate.Status)
+		assert.Nil(t, gotUpdate.Priority)
+		assert.Nil(t, gotUpdate.EstimatedCompletionTime)
+		assert.Nil(t, gotUpdate.ScheduledTime)
+		assert.Nil(t, gotUpdate.CompletedAt)
+		assert.Nil(t, gotUpdate.Notes)
 	})
 
 	t.Run("returns 200 and updated request on success", func(t *testing.T) {
 		t.Parallel()
 
 		updated := "assigned"
-		insertedStatus := ""
+		var gotUpdate *models.RequestUpdateInput
 		mock := &mockRequestRepository{
-			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+				gotUpdate = update
 				return &models.Request{
 					ID:             id,
 					CreatedAt:      time.Now(),
@@ -1208,14 +1226,10 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 						HotelID:     "521e8400-e458-41d4-a716-446655440000",
 						Name:        "room cleaning",
 						RequestType: "recurring",
-						Status:      "pending",
+						Status:      updated,
 						Priority:    "high",
 					},
 				}, nil
-			},
-			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
-				insertedStatus = req.Status
-				return req, nil
 			},
 		}
 
@@ -1233,30 +1247,31 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 
 		b, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(b), validID)
-		assert.Equal(t, updated, insertedStatus)
+		require.NotNil(t, gotUpdate)
+		require.NotNil(t, gotUpdate.Status)
+		assert.Equal(t, updated, *gotUpdate.Status)
 	})
 
-	t.Run("passes only provided fields to patch", func(t *testing.T) {
+	t.Run("passes only provided fields to update", func(t *testing.T) {
 		t.Parallel()
 
-		var inserted *models.Request
+		var gotUpdate *models.RequestUpdateInput
 
 		mock := &mockRequestRepository{
-			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+				gotUpdate = update
 				return &models.Request{
-					ID: id,
+					ID:             id,
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
 					MakeRequest: models.MakeRequest{
 						HotelID:     "521e8400-e458-41d4-a716-446655440000",
-						Name:        "old name",
+						Name:        "new name",
 						Status:      "pending",
 						Priority:    "low",
 						RequestType: "one-time",
 					},
 				}, nil
-			},
-			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
-				inserted = req
-				return req, nil
 			},
 		}
 
@@ -1270,10 +1285,11 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
 
-		require.NotNil(t, inserted)
-		assert.Equal(t, "new name", inserted.Name)
-		assert.Equal(t, "pending", inserted.Status)
-		assert.Equal(t, "low", inserted.Priority)
+		require.NotNil(t, gotUpdate)
+		require.NotNil(t, gotUpdate.Name)
+		assert.Equal(t, "new name", *gotUpdate.Name)
+		assert.Nil(t, gotUpdate.Status)
+		assert.Nil(t, gotUpdate.Priority)
 	})
 
 	t.Run("returns 400 when id is not a valid UUID", func(t *testing.T) {
@@ -1325,7 +1341,9 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+				require.NotNil(t, update.Status)
+				require.Equal(t, "in progress", *update.Status)
 				return &models.Request{
 					ID:             id,
 					CreatedAt:      time.Now(),
@@ -1334,14 +1352,10 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 						HotelID:     "521e8400-e458-41d4-a716-446655440000",
 						Name:        "room cleaning",
 						RequestType: "recurring",
-						Status:      "pending",
+						Status:      "in progress",
 						Priority:    "high",
 					},
 				}, nil
-			},
-			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
-				require.Equal(t, "in progress", req.Status)
-				return req, nil
 			},
 		}
 
@@ -1411,7 +1425,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestFunc: func(_ context.Context, _ string) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, _ string, _ *models.RequestUpdateInput) (*models.Request, error) {
 				return nil, errs.ErrNotFoundInDB
 			},
 		}
@@ -1431,7 +1445,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			findRequestFunc: func(_ context.Context, _ string) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, _ string, _ *models.RequestUpdateInput) (*models.Request, error) {
 				return nil, errors.New("db connection failed")
 			},
 		}
@@ -1540,14 +1554,26 @@ func TestRequestHandler_AssignRequest(t *testing.T) {
 	t.Run("assigns to caller when assign_to_self is true", func(t *testing.T) {
 		t.Parallel()
 
-		var inserted *models.Request
+		var gotUpdate *models.RequestUpdateInput
 		mock := &mockRequestRepository{
 			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return baseRequest(), nil
 			},
-			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
-				inserted = req
-				return req, nil
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+				gotUpdate = update
+				return &models.Request{
+					ID:             id,
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     validHotelID,
+						UserID:      update.UserID,
+						Name:        "room cleaning",
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "high",
+					},
+				}, nil
 			},
 		}
 
@@ -1562,22 +1588,34 @@ func TestRequestHandler_AssignRequest(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
-		require.NotNil(t, inserted)
-		require.NotNil(t, inserted.UserID)
-		assert.Equal(t, callerID, *inserted.UserID)
+		require.NotNil(t, gotUpdate)
+		require.NotNil(t, gotUpdate.UserID)
+		assert.Equal(t, callerID, *gotUpdate.UserID)
 	})
 
 	t.Run("assigns to body user_id when assign_to_self is false", func(t *testing.T) {
 		t.Parallel()
 
-		var inserted *models.Request
+		var gotUpdate *models.RequestUpdateInput
 		mock := &mockRequestRepository{
 			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return baseRequest(), nil
 			},
-			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
-				inserted = req
-				return req, nil
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+				gotUpdate = update
+				return &models.Request{
+					ID:             id,
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     validHotelID,
+						UserID:      update.UserID,
+						Name:        "room cleaning",
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "high",
+					},
+				}, nil
 			},
 		}
 
@@ -1593,22 +1631,34 @@ func TestRequestHandler_AssignRequest(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
-		require.NotNil(t, inserted)
-		require.NotNil(t, inserted.UserID)
-		assert.Equal(t, otherUserID, *inserted.UserID)
+		require.NotNil(t, gotUpdate)
+		require.NotNil(t, gotUpdate.UserID)
+		assert.Equal(t, otherUserID, *gotUpdate.UserID)
 	})
 
 	t.Run("assigns to body user_id when assign_to_self is omitted", func(t *testing.T) {
 		t.Parallel()
 
-		var inserted *models.Request
+		var gotUpdate *models.RequestUpdateInput
 		mock := &mockRequestRepository{
 			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return baseRequest(), nil
 			},
-			makeRequestFunc: func(_ context.Context, req *models.Request) (*models.Request, error) {
-				inserted = req
-				return req, nil
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+				gotUpdate = update
+				return &models.Request{
+					ID:             id,
+					CreatedAt:      time.Now(),
+					RequestVersion: time.Now(),
+					MakeRequest: models.MakeRequest{
+						HotelID:     validHotelID,
+						UserID:      update.UserID,
+						Name:        "room cleaning",
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "high",
+					},
+				}, nil
 			},
 		}
 
@@ -1624,9 +1674,9 @@ func TestRequestHandler_AssignRequest(t *testing.T) {
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, 200, resp.StatusCode)
-		require.NotNil(t, inserted)
-		require.NotNil(t, inserted.UserID)
-		assert.Equal(t, otherUserID, *inserted.UserID)
+		require.NotNil(t, gotUpdate)
+		require.NotNil(t, gotUpdate.UserID)
+		assert.Equal(t, otherUserID, *gotUpdate.UserID)
 	})
 
 	t.Run("returns 400 when assign_to_self is omitted and user_id is not provided", func(t *testing.T) {

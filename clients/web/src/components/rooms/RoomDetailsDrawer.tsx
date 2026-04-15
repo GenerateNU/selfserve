@@ -22,10 +22,7 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
     isAssigned: true,
   }));
   const unassignedItems = data?.unassigned ?? [];
-  const onAssignToSelf = (id: string) => {
-    console.log("assigning to self", id);
-  };
-  
+
   const roomAccordionItems = [
     {
       value: "Your Tasks",
@@ -35,7 +32,7 @@ export function RoomDetailsDrawer({ room, onClose }: RoomDetailsDrawerProps) {
     {
       value: "Unassigned Tasks",
       trigger: "Unassigned Tasks",
-      content: <RoomRequestList onAssignToSelf={onAssignToSelf} requests={unassignedItems} />,
+      content: <RoomRequestList requests={unassignedItems} />,
     },
   ];
 

@@ -524,7 +524,7 @@ definitions:
         example: 521ee400-e458-41d4-a716-446655440000
         type: string
     type: object
-  RequestPatchInput:
+  RequestUpdateInput:
     properties:
       completed_at:
         type: string
@@ -1507,7 +1507,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/RequestPatchInput'
+          $ref: '#/definitions/RequestUpdateInput'
       produces:
       - application/json
       responses:
@@ -1756,6 +1756,14 @@ paths:
       - description: Filter by assigned user ID
         in: query
         name: user_id
+        type: string
+      - description: If true, return only requests with no assigned user
+        in: query
+        name: unassigned
+        type: boolean
+      - description: 'Sort order: priority (default), newest, oldest'
+        in: query
+        name: sort
         type: string
       produces:
       - application/json

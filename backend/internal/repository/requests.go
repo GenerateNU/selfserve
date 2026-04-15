@@ -48,6 +48,72 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 	return req, nil
 }
 
+func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+	row := r.db.QueryRow(ctx, `
+		WITH current AS (
+			SELECT *
+			FROM requests
+			WHERE id = $1
+			ORDER BY request_version DESC
+			LIMIT 1
+		)
+		INSERT INTO requests (
+			id, hotel_id, guest_id, user_id, reservation_id, name, description,
+			room_id, request_category, request_type, department, status,
+			priority, estimated_completion_time, scheduled_time, completed_at, notes,
+			request_version, created_at
+		)
+		SELECT
+			current.id,
+			current.hotel_id,
+			COALESCE($2, current.guest_id),
+			COALESCE($3, current.user_id),
+			COALESCE($4, current.reservation_id),
+			COALESCE($5, current.name),
+			COALESCE($6, current.description),
+			COALESCE($7, current.room_id),
+			COALESCE($8, current.request_category),
+			COALESCE($9, current.request_type),
+			COALESCE($10, current.department),
+			COALESCE($11, current.status),
+			COALESCE($12, current.priority),
+			COALESCE($13, current.estimated_completion_time),
+			COALESCE($14, current.scheduled_time),
+			COALESCE($15, current.completed_at),
+			COALESCE($16, current.notes),
+			NOW(),
+			current.created_at
+		FROM current
+		RETURNING id, created_at, request_version
+	`, id,
+		update.GuestID,
+		update.UserID,
+		update.ReservationID,
+		update.Name,
+		update.Description,
+		update.RoomID,
+		update.RequestCategory,
+		update.RequestType,
+		update.Department,
+		update.Status,
+		update.Priority,
+		update.EstimatedCompletionTime,
+		update.ScheduledTime,
+		update.CompletedAt,
+		update.Notes,
+	)
+
+	var req models.Request
+	if err := row.Scan(&req.ID, &req.CreatedAt, &req.RequestVersion); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFoundInDB
+		}
+		return nil, err
+	}
+
+	return r.FindRequest(ctx, id)
+}
+
 func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
 
 	row := r.db.QueryRow(ctx, `
