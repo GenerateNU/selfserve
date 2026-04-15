@@ -52,8 +52,8 @@ type seedGuest struct {
 }
 
 var seedGuests = []seedGuest{
-	{"Alice", "Johnson", "America/New_York", 1},  // room 102
-	{"Bob", "Smith", "America/Chicago", 5},        // room 202
+	{"Alice", "Johnson", "America/New_York", 1},      // room 102
+	{"Bob", "Smith", "America/Chicago", 5},           // room 202
 	{"Carol", "Williams", "America/Los_Angeles", 10}, // room 303
 	{"David", "Brown", "Europe/London", -1},
 	{"Emma", "Davis", "America/New_York", -1},
@@ -61,11 +61,11 @@ var seedGuests = []seedGuest{
 }
 
 type seedRequest struct {
-	name        string
-	description string
-	department  string
-	priority    models.RequestPriority
-	status      models.RequestStatus
+	name         string
+	description  string
+	department   string
+	priority     models.RequestPriority
+	status       models.RequestStatus
 	assignToUser bool
 }
 
