@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { MakeRequestPriority, getConfig } from "@shared";
+import { MakeRequestPriority } from "@shared";
+import { useGetRequestsFeed } from "@shared/api/requests";
+import type { RequestFeedSort } from "@shared/api/requests";
 import type { Request } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
@@ -9,7 +11,6 @@ import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
-import { useKanbanRequests } from "@/hooks/use-kanban-requests";
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
@@ -22,15 +23,15 @@ const KANBAN_COLUMNS = [
 ] as const;
 
 function KanbanColumnData({
-  hotelId,
   status,
+  sort,
 }: {
-  hotelId: string;
   status: string;
+  sort: RequestFeedSort | undefined;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useKanbanRequests(hotelId, status);
+    useGetRequestsFeed({ status, sort });
 
   const hasNextPageRef = useRef(hasNextPage);
   const isFetchingRef = useRef(isFetchingNextPage);
@@ -56,11 +57,11 @@ function KanbanColumnData({
     return () => observer.disconnect();
   }, [fetchNextPage]);
 
-  const requests = (data?.pages ?? []).flatMap((page) => page.requests);
+  const requests = (data?.pages ?? []).flatMap((page) => page.items ?? []);
 
   return (
     <>
-      {requests.map((request: Request) => (
+      {requests.map((request) => (
         <RequestCardItem key={request.id} request={request} />
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
@@ -69,6 +70,8 @@ function KanbanColumnData({
 }
 
 function HomePage() {
+  const [sort, setSort] = useState<RequestFeedSort | undefined>("priority");
+
   const [drawerData, setDrawerData] = useState<{
     name?: string;
     description?: string;
@@ -99,27 +102,24 @@ function HomePage() {
       />
     ) : null;
 
-  const hotelId = getConfig().hotelId;
-
   return (
     <PageShell
       header={{
         title: "Home",
         description: "Overview of all tasks currently at play",
       }}
+      headerBorder={false}
       drawerOpen={drawerData !== null}
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
       <HomeToolbar className="mt-2" onCreateRequest={handleCreateRequest} />
-      <HomeFilterBar />
+      <HomeFilterBar sort={sort} onSortChange={setSort} />
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
           {KANBAN_COLUMNS.map((col) => (
             <KanbanColumn key={col.status} title={col.title}>
-              {hotelId && (
-                <KanbanColumnData hotelId={hotelId} status={col.status} />
-              )}
+              <KanbanColumnData status={col.status} sort={sort} />
             </KanbanColumn>
           ))}
         </div>

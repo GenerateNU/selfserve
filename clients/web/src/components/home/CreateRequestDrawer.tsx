@@ -4,6 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
+import { REQUESTS_FEED_QUERY_KEY } from "@shared/api/requests";
 import type {
   Department,
   MakeRequest,
@@ -93,19 +94,16 @@ export function CreateRequestDrawer({
   const { mutate: createRequest, isPending } = useMutation({
     mutationFn: (data: MakeRequest) => postRequest(data),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["/request/cursor"] });
-      await queryClient.cancelQueries({ queryKey: ["requests", "kanban"] });
+      await queryClient.cancelQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
     },
     onError: () => {
-      queryClient.invalidateQueries({ queryKey: ["/request/cursor"] });
-      queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
+      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
     },
     onSuccess: () => {
       onClose();
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/request/cursor"] });
-      queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
+      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
     },
   });
 

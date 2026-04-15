@@ -19,8 +19,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const defaultPageSize = 20
-
 const msgTaskAssigned = "New task assigned to you"
 
 // NotificationSender is implemented by the notifications service.
@@ -234,58 +232,6 @@ func validateGenerateRequest(input *models.GenerateRequestInput) error {
 	return nil
 }
 
-// GetRequestByCursor godoc
-// @Summary      Get requests by cursor
-// @Description  Gets 20 requests starting after the cursor position, filtered by status
-// @Tags         requests
-// @Accept       json
-// @Produce      json
-// @Param        X-Hotel-ID  header  string                          true   "Hotel UUID"
-// @Param        body        body    models.GetRequestsByStatusInput  false  "Cursor position and status filter"
-// @Success      200     {object}  map[string]interface{}  "Returns requests array, next_cursor_time, and next_cursor_id"
-// @Failure      400     {object}  map[string]string
-// @Failure      500     {object}  map[string]string
-// @Security     BearerAuth
-// @Router       /request/cursor [post]
-func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
-	var body models.GetRequestsByStatusInput
-	if err := c.BodyParser(&body); err != nil {
-		return errs.InvalidJSON()
-	}
-	body.HotelID = c.Get("X-Hotel-ID")
-	if err := httpx.Validate(&body); err != nil {
-		return err
-	}
-
-	var cursorTime time.Time
-	if body.CursorTime != nil {
-		cursorTime = time.UnixMilli(*body.CursorTime).UTC()
-	} else {
-		cursorTime = time.UnixMilli(0).UTC()
-	}
-
-	cursorID := "00000000-0000-0000-0000-000000000000"
-	if body.CursorID != nil {
-		cursorID = *body.CursorID
-	}
-
-	requests, nextCursorTime, nextCursorID, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursorTime, cursorID, body.Status, body.HotelID, defaultPageSize)
-	if err != nil {
-		if errors.Is(err, errs.ErrNotFoundInDB) {
-			return errs.NotFound("requests", "cursor", body.CursorTime)
-		}
-		return c.SendStatus(fiber.ErrInternalServerError.Code)
-	}
-
-	resp := fiber.Map{"requests": requests}
-	if !nextCursorTime.IsZero() {
-		resp["next_cursor_time"] = nextCursorTime.UnixMilli()
-		resp["next_cursor_id"] = nextCursorID
-	}
-
-	return c.JSON(resp)
-}
-
 // GenerateRequest godoc
 // @Summary      generates a request
 // @Description  Generates a request using AI
@@ -475,6 +421,7 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	limit := c.QueryInt("limit")
 	userID := c.Query("user_id")
 	unassigned := c.QueryBool("unassigned")
+	status := c.Query("status")
 
 	feedSort := models.RequestFeedSort(c.Query("sort"))
 	if feedSort == "" {
@@ -491,7 +438,7 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 
 	resolvedLimit := utils.ResolveLimit(limit)
 	requests, err := r.RequestRepository.FindRequestsPaginated(
-		c.Context(), hotelID, userID, unassigned,
+		c.Context(), hotelID, userID, unassigned, status,
 		feedSort, cursorID, cursorCreatedAt, cursorPriorityRank,
 		resolvedLimit+1,
 	)
@@ -540,7 +487,7 @@ func priorityRankOf(priority string) int {
 	}
 }
 
-// parseRequestCursor splits a "id|request_version" cursor string (used by GetRequestByCursor).
+// parseRequestCursor splits a "id|request_version" cursor string.
 // Returns zero values and nil error when cursor is empty (first page).
 func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
 	if cursor == "" {

@@ -52,11 +52,10 @@ type RequestsRepository interface {
 	UpdateRequest(ctx context.Context, id string, patch *models.RequestUpdateInput) (*models.Request, error)
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
 	FindRequests(ctx context.Context) ([]models.Request, error)
-	FindRequestsByStatusPaginated(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error)
 	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindUnassignedRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
-	FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
+	FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, status string, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
 }
 
 type HotelsRepository interface {
