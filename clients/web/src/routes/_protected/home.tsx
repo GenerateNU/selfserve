@@ -31,16 +31,18 @@ function KanbanColumnData({
   userId,
   priorities,
   departments,
+  floors,
 }: {
   status: string;
   sort: RequestFeedSort | undefined;
   userId?: string;
   priorities?: Array<string>;
   departments?: Array<string>;
+  floors?: Array<number>;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetRequestsFeed({ status, sort, userId, priorities, departments });
+    useGetRequestsFeed({ status, sort, userId, priorities, departments, floors });
 
   const hasNextPageRef = useRef(hasNextPage);
   const isFetchingRef = useRef(isFetchingNextPage);
@@ -87,6 +89,7 @@ function HomePage() {
   const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>(
     [],
   );
+  const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -147,6 +150,8 @@ function HomePage() {
         onPrioritiesChange={setSelectedPriorities}
         selectedDepartments={selectedDepartments}
         onDepartmentsChange={setSelectedDepartments}
+        selectedFloors={selectedFloors}
+        onFloorsChange={setSelectedFloors}
         hotelId={backendUser?.hotel_id}
         currentUserId={backendUser?.id}
       />
@@ -160,6 +165,7 @@ function HomePage() {
                 userId={selectedUser?.id}
                 priorities={selectedPriorities}
                 departments={selectedDepartments}
+                floors={selectedFloors}
               />
             </KanbanColumn>
           ))}
