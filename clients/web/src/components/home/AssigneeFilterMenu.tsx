@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Check, Search, X } from "lucide-react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useCustomInstance } from "@shared/api/orval-mutator";
-import { useDebounce } from "@/lib/utils";
 import type { User } from "@shared";
+import { useDebounce } from "@/lib/utils";
 
 type SearchUsersResponse = {
   users: Array<User>;
