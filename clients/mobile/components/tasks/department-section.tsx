@@ -2,9 +2,26 @@ import { View } from "react-native";
 
 import { CheckboxItem, SectionHeader } from "./filter-section-header";
 
-const DEPT_LEFT = ["Food & Beverage", "Front Office", "Housekeeping"];
-const DEPT_RIGHT = ["Maintenance", "Management", "Security"];
-const DEPT_CHECKED = new Set(["Food & Beverage", "Front Office"]);
+enum Department {
+  FoodAndBeverage = "Food & Beverage",
+  FrontOffice = "Front Office",
+  Housekeeping = "Housekeeping",
+  Maintenance = "Maintenance",
+  Management = "Management",
+  Security = "Security",
+}
+
+const DEPT_LEFT = [
+  Department.FoodAndBeverage,
+  Department.FrontOffice,
+  Department.Housekeeping,
+];
+const DEPT_RIGHT = [
+  Department.Maintenance,
+  Department.Management,
+  Department.Security,
+];
+const DEPT_CHECKED = new Set([Department.FoodAndBeverage, Department.FrontOffice]);
 
 type DepartmentSectionProps = {
   expanded: boolean;
