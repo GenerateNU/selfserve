@@ -1,5 +1,5 @@
 import { Filter } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +52,6 @@ export function GuestFilterPopover({
     useState<Array<number>>(selectedFloors);
   const [pendingGroupSizes, setPendingGroupSizes] =
     useState<Array<number>>(selectedGroupSizes);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleOpen = () => {
     setPendingFloors(selectedFloors);
@@ -60,9 +59,9 @@ export function GuestFilterPopover({
     setOpen(true);
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setOpen(false);
-  };
+  }, []);
 
   const handleApply = () => {
     onApply(pendingFloors, pendingGroupSizes);
@@ -74,37 +73,10 @@ export function GuestFilterPopover({
     setOpen(false);
   };
 
-  // Close on click-outside or Escape
-  useEffect(() => {
-    if (!open) return;
-
-    const handleMouseDown = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        handleClose();
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleClose();
-      }
-    };
-
-    document.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open]);
-
   const activeFilterCount = selectedFloors.length + selectedGroupSizes.length;
 
   return (
-    <div className="relative shrink-0" ref={containerRef}>
+    <div className="relative shrink-0">
       <button
         type="button"
         onClick={open ? handleClose : handleOpen}
@@ -126,72 +98,88 @@ export function GuestFilterPopover({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 flex w-80 flex-col overflow-hidden rounded-2xl bg-white px-6 shadow-xl">
-          <div className="flex items-center justify-between pt-5">
-            <span className="text-base font-medium text-text-default">
-              Filters
-            </span>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-sm text-text-subtle transition-colors hover:text-text-default"
-            >
-              Reset
-            </button>
-          </div>
+        <>
+          {/* Backdrop — captures click-outside */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={handleClose}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") handleClose();
+            }}
+            className="absolute right-0 top-[calc(100%+0.5rem)] z-50 flex w-80 flex-col overflow-hidden rounded-2xl bg-white px-6 shadow-xl"
+          >
+            <div className="flex items-center justify-between pt-5">
+              <span className="text-base font-medium text-text-default">
+                Filters
+              </span>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-sm text-text-subtle transition-colors hover:text-text-default"
+              >
+                Reset
+              </button>
+            </div>
 
-          <div className="flex flex-col gap-5 py-5">
-            {availableFloors.length > 0 && (
-              <section className="flex flex-col gap-3">
-                <h3 className="text-sm font-medium text-text-default">Floor</h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableFloors.map((floor) => (
-                    <FilterChip
-                      key={floor}
-                      label={`Floor ${floor}`}
-                      selected={pendingFloors.includes(floor)}
-                      onClick={() =>
-                        setPendingFloors(toggleItem(pendingFloors, floor))
-                      }
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
+            <div className="flex flex-col gap-5 py-5">
+              {availableFloors.length > 0 && (
+                <section className="flex flex-col gap-3">
+                  <h3 className="text-sm font-medium text-text-default">
+                    Floor
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {availableFloors.map((floor) => (
+                      <FilterChip
+                        key={floor}
+                        label={`Floor ${floor}`}
+                        selected={pendingFloors.includes(floor)}
+                        onClick={() =>
+                          setPendingFloors(toggleItem(pendingFloors, floor))
+                        }
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
 
-            {availableGroupSizes.length > 0 && (
-              <section className="flex flex-col gap-3">
-                <h3 className="text-sm font-medium text-text-default">
-                  Group Size
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableGroupSizes.map((size) => (
-                    <FilterChip
-                      key={size}
-                      label={String(size)}
-                      selected={pendingGroupSizes.includes(size)}
-                      onClick={() =>
-                        setPendingGroupSizes(
-                          toggleItem(pendingGroupSizes, size),
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
+              {availableGroupSizes.length > 0 && (
+                <section className="flex flex-col gap-3">
+                  <h3 className="text-sm font-medium text-text-default">
+                    Group Size
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {availableGroupSizes.map((size) => (
+                      <FilterChip
+                        key={size}
+                        label={String(size)}
+                        selected={pendingGroupSizes.includes(size)}
+                        onClick={() =>
+                          setPendingGroupSizes(
+                            toggleItem(pendingGroupSizes, size),
+                          )
+                        }
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
 
-          <div className="border-t border-stroke-subtle" />
-          <div className="flex justify-end gap-3 py-4">
-            <Button variant="secondary" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleApply}>
-              Apply
-            </Button>
+            <div className="border-t border-stroke-subtle" />
+            <div className="flex justify-end gap-3 py-4">
+              <Button variant="secondary" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleApply}>
+                Apply
+              </Button>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
