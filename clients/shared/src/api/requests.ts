@@ -1,5 +1,6 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { GuestRequest } from "./generated/models";
+import { RequestStatus } from "./generated/models";
 import { useAPIClient } from "./client";
 
 type GuestRequestPage = {
@@ -32,7 +33,7 @@ export type RequestFeedItem = {
   id: string;
   name: string;
   priority: string;
-  status: string;
+  status: RequestStatus;
   description?: string | null;
   notes?: string | null;
   room_number?: number | null;
@@ -58,6 +59,36 @@ export type RequestFeedParams = {
   unassigned?: boolean;
   sort?: RequestFeedSort;
   status?: string;
+};
+
+export const useCompleteTask = () => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      api.put<RequestFeedItem>(`/request/${taskId}`, { status: RequestStatus.completed }),
+    onSuccess: (_data, taskId) => {
+      queryClient.setQueriesData<{ pages: RequestFeedPage[]; pageParams: unknown[] }>(
+        { queryKey: REQUESTS_FEED_QUERY_KEY },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              items: (page.items ?? []).map((item) =>
+                item.id === taskId ? { ...item, status: RequestStatus.completed } : item,
+              ),
+            })),
+          };
+        },
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+    },
+  });
 };
 
 export const useGetRequestsFeed = (params: RequestFeedParams) => {
