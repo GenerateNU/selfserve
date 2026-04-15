@@ -1,14 +1,14 @@
 import { Filter } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 type GuestFilterPopoverProps = {
   availableFloors: Array<number>;
   availableGroupSizes: Array<number>;
-  selectedFloor: string;
-  selectedGroupSize: string;
-  onApply: (floor: string, groupSize: string) => void;
+  selectedFloors: Array<number>;
+  selectedGroupSizes: Array<number>;
+  onApply: (floors: Array<number>, groupSizes: Array<number>) => void;
 };
 
 function FilterChip({
@@ -36,45 +36,78 @@ function FilterChip({
   );
 }
 
+function toggleItem(arr: Array<number>, item: number): Array<number> {
+  return arr.includes(item) ? arr.filter((v) => v !== item) : [...arr, item];
+}
+
 export function GuestFilterPopover({
   availableFloors,
   availableGroupSizes,
-  selectedFloor,
-  selectedGroupSize,
+  selectedFloors,
+  selectedGroupSizes,
   onApply,
 }: GuestFilterPopoverProps) {
   const [open, setOpen] = useState(false);
-  const [pendingFloor, setPendingFloor] = useState(selectedFloor);
-  const [pendingGroupSize, setPendingGroupSize] = useState(selectedGroupSize);
+  const [pendingFloors, setPendingFloors] = useState<Array<number>>(selectedFloors);
+  const [pendingGroupSizes, setPendingGroupSizes] =
+    useState<Array<number>>(selectedGroupSizes);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleOpen = () => {
-    setPendingFloor(selectedFloor);
-    setPendingGroupSize(selectedGroupSize);
+    setPendingFloors(selectedFloors);
+    setPendingGroupSizes(selectedGroupSizes);
     setOpen(true);
   };
 
-  const handleCancel = () => {
+  const handleClose = () => {
     setOpen(false);
   };
 
   const handleApply = () => {
-    onApply(pendingFloor, pendingGroupSize);
+    onApply(pendingFloors, pendingGroupSizes);
     setOpen(false);
   };
 
   const handleReset = () => {
-    setPendingFloor("all");
-    setPendingGroupSize("all");
+    onApply([], []);
+    setOpen(false);
   };
 
-  const activeFilterCount =
-    (selectedFloor !== "all" ? 1 : 0) + (selectedGroupSize !== "all" ? 1 : 0);
+  // Close on click-outside or Escape
+  useEffect(() => {
+    if (!open) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        handleClose();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const activeFilterCount = selectedFloors.length + selectedGroupSizes.length;
 
   return (
-    <div className="relative shrink-0">
+    <div className="relative shrink-0" ref={containerRef}>
       <button
         type="button"
-        onClick={open ? handleCancel : handleOpen}
+        onClick={open ? handleClose : handleOpen}
+        aria-expanded={open}
         className={cn(
           "flex h-11 items-center gap-2 rounded-lg border px-4 text-sm font-medium transition-colors",
           activeFilterCount > 0
@@ -115,13 +148,9 @@ export function GuestFilterPopover({
                     <FilterChip
                       key={floor}
                       label={`Floor ${floor}`}
-                      selected={pendingFloor === String(floor)}
+                      selected={pendingFloors.includes(floor)}
                       onClick={() =>
-                        setPendingFloor(
-                          pendingFloor === String(floor)
-                            ? "all"
-                            : String(floor),
-                        )
+                        setPendingFloors(toggleItem(pendingFloors, floor))
                       }
                     />
                   ))}
@@ -139,12 +168,10 @@ export function GuestFilterPopover({
                     <FilterChip
                       key={size}
                       label={String(size)}
-                      selected={pendingGroupSize === String(size)}
+                      selected={pendingGroupSizes.includes(size)}
                       onClick={() =>
-                        setPendingGroupSize(
-                          pendingGroupSize === String(size)
-                            ? "all"
-                            : String(size),
+                        setPendingGroupSizes(
+                          toggleItem(pendingGroupSizes, size),
                         )
                       }
                     />
@@ -156,7 +183,7 @@ export function GuestFilterPopover({
 
           <div className="border-t border-stroke-subtle" />
           <div className="flex justify-end gap-3 py-4">
-            <Button variant="secondary" onClick={handleCancel}>
+            <Button variant="secondary" onClick={handleClose}>
               Cancel
             </Button>
             <Button variant="primary" onClick={handleApply}>
