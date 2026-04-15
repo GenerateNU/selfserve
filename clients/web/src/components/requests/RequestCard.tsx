@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import type { RequestStatus } from "@shared";
 import { cn } from "@/lib/utils";
 
-
 type RequestCardProps = {
   status: RequestStatus;
   children: ReactNode;
