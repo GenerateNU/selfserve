@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { RequestFeedSort } from "@shared/api/requests";
+
 import { DepartmentSection } from "./department-section";
 import { LocationSection } from "./location-section";
 import { PrioritySection } from "./priority-section";
@@ -21,9 +23,11 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 type TaskFilterSheetProps = {
   visible: boolean;
   onClose: () => void;
+  sort: RequestFeedSort;
+  onSortChange: (sort: RequestFeedSort) => void;
 };
 
-export function TaskFilterSheet({ visible, onClose }: TaskFilterSheetProps) {
+export function TaskFilterSheet({ visible, onClose, sort, onSortChange }: TaskFilterSheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const insets = useSafeAreaInsets();
 
@@ -126,6 +130,8 @@ export function TaskFilterSheet({ visible, onClose }: TaskFilterSheetProps) {
             <SortBySection
               expanded={expanded.sortBy}
               onToggle={() => toggle("sortBy")}
+              sort={sort}
+              onSortChange={onSortChange}
             />
             <PrioritySection
               expanded={expanded.priority}

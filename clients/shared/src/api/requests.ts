@@ -48,9 +48,12 @@ export type RequestFeedPage = {
   has_more: boolean;
 };
 
+export type RequestFeedSort = "priority" | "newest" | "oldest";
+
 export type RequestFeedParams = {
   userId?: string;
   unassigned?: boolean;
+  sort?: RequestFeedSort;
 };
 
 export const useGetRequestsFeed = (params: RequestFeedParams) => {
@@ -63,6 +66,7 @@ export const useGetRequestsFeed = (params: RequestFeedParams) => {
       if (pageParam) query.cursor = pageParam;
       if (params.userId) query.user_id = params.userId;
       if (params.unassigned) query.unassigned = "true";
+      if (params.sort) query.sort = params.sort;
       return api.get<RequestFeedPage>("/requests", query);
     },
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,

@@ -80,12 +80,14 @@ function RadioUnselected() {
 export function RadioItem({
   label,
   selected,
+  onPress,
 }: {
   label: string;
   selected: boolean;
+  onPress?: () => void;
 }) {
   return (
-    <View className="flex-row items-center gap-1">
+    <Pressable className="flex-row items-center gap-1" onPress={onPress}>
       {selected ? <RadioSelected /> : <RadioUnselected />}
       <Text
         className="text-[15px] tracking-tight"
@@ -93,7 +95,7 @@ export function RadioItem({
       >
         {label}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
