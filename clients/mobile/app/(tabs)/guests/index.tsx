@@ -74,15 +74,11 @@ export default function GuestsList() {
         keyExtractor={(g, index) => g.id ?? `guest-${index}`}
         renderItem={({ item }) => (
           <GuestCard
-            firstName={item.first_name ?? ""}
-            lastName={item.last_name ?? ""}
-            activeBookings={item.active_bookings ?? []}
-            requestCount={item.request_count ?? 0}
-            hasUrgent={item.has_urgent ?? false}
-            assistance={item.assistance}
-            onPress={() => {
-              if (item.id) router.push(`/guests/${item.id}`);
-            }}
+            firstName={item.first_name}
+            lastName={item.last_name}
+            floor={item.floor}
+            roomNumber={item.room_number}
+            onPress={() => router.push(`/guests/${item.id}`)}
           />
         )}
         onEndReached={() => {
