@@ -201,16 +201,15 @@ func (r *RequestsRepository) FindRequestsByRoomIDAndUserID(ctx context.Context, 
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
-				r.user_id, rm.room_number, r.request_type, r.request_category,
-				r.created_at, r.request_version
+				rm.room_number, r.request_type, r.request_category, r.created_at,
+				r.request_version, r.department, r.user_id, rm.floor
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.room_id = $1
 			  AND r.hotel_id = $2
 			ORDER BY r.id ASC, r.request_version DESC
 		)
-		SELECT id, name, priority, status, description, notes, room_number, request_type, request_category, created_at, request_version
-		FROM latest
+		SELECT * FROM latest
 		WHERE user_id = $3
 		  AND ($4::text = '' OR (id::text, request_version) > ($4, $5))
 		ORDER BY id ASC
@@ -229,16 +228,15 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
-				r.user_id, rm.room_number, r.request_type, r.request_category,
-				r.created_at, r.request_version
+				rm.room_number, r.request_type, r.request_category, r.created_at,
+				r.request_version, r.department, r.user_id, rm.floor
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.room_id = $1
 			  AND r.hotel_id = $2
 			ORDER BY r.id ASC, r.request_version DESC
 		)
-		SELECT id, name, priority, status, description, notes, room_number, request_type, request_category, created_at, request_version
-		FROM latest
+		SELECT * FROM latest
 		WHERE user_id IS NULL
 		  AND ($3::text = '' OR (id::text, request_version) > ($3, $4))
 		ORDER BY id ASC
