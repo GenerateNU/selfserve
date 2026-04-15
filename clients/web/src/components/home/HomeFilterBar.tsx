@@ -1,7 +1,9 @@
 import { ChevronDown, LayoutGrid, User } from "lucide-react";
 import { useRef, useState } from "react";
 import { FilterSortMenu } from "./FilterSortMenu";
+import { AssigneeFilterMenu } from "./AssigneeFilterMenu";
 import type { RequestFeedSort } from "@shared/api/requests";
+import type { User as UserModel } from "@shared";
 import { cn } from "@/lib/utils";
 
 const SORT_OPTIONS: Array<{ label: string; value: string }> = [
@@ -13,6 +15,10 @@ const SORT_OPTIONS: Array<{ label: string; value: string }> = [
 type HomeFilterBarProps = {
   sort?: RequestFeedSort;
   onSortChange?: (sort: RequestFeedSort | undefined) => void;
+  selectedUser?: UserModel;
+  onUserChange?: (user: UserModel | undefined) => void;
+  hotelId?: string;
+  currentUserId?: string;
 };
 
 const SORT_LABELS: Record<RequestFeedSort, string> = {
@@ -69,10 +75,19 @@ function FilterChip({
   );
 }
 
-export function HomeFilterBar({ sort, onSortChange }: HomeFilterBarProps) {
+export function HomeFilterBar({
+  sort,
+  onSortChange,
+  selectedUser,
+  onUserChange,
+  hotelId,
+  currentUserId,
+}: HomeFilterBarProps) {
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 });
   const sortButtonRef = useRef<HTMLButtonElement>(null);
+  const assigneeButtonRef = useRef<HTMLButtonElement>(null);
 
   function openSortMenu() {
     if (sortButtonRef.current) {
@@ -82,7 +97,19 @@ export function HomeFilterBar({ sort, onSortChange }: HomeFilterBarProps) {
     setSortMenuOpen(true);
   }
 
+  function openAssigneeMenu() {
+    if (!hotelId) return;
+    if (assigneeButtonRef.current) {
+      const rect = assigneeButtonRef.current.getBoundingClientRect();
+      setMenuAnchor({ x: rect.left, y: rect.bottom + 6 });
+    }
+    setAssigneeMenuOpen(true);
+  }
+
   const activeSortLabel = sort ? SORT_LABELS[sort] : undefined;
+  const activeAssigneeName = selectedUser
+    ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
+    : undefined;
 
   return (
     <>
@@ -100,10 +127,12 @@ export function HomeFilterBar({ sort, onSortChange }: HomeFilterBarProps) {
           </div>
           <div className="flex items-center gap-3">
             <FilterChip
+              ref={assigneeButtonRef}
               label="Assignee"
-              active
-              activeValue="Rohan K"
+              active={!!activeAssigneeName}
+              activeValue={activeAssigneeName}
               icon="user"
+              onClick={openAssigneeMenu}
             />
             <FilterChip label="Priority" />
             <FilterChip label="Location" />
@@ -135,6 +164,17 @@ export function HomeFilterBar({ sort, onSortChange }: HomeFilterBarProps) {
             onSortChange?.(value as RequestFeedSort | undefined)
           }
           onClose={() => setSortMenuOpen(false)}
+        />
+      )}
+
+      {assigneeMenuOpen && hotelId && (
+        <AssigneeFilterMenu
+          hotelId={hotelId}
+          currentUserId={currentUserId}
+          selectedUser={selectedUser}
+          anchor={menuAnchor}
+          onApply={(user) => onUserChange?.(user)}
+          onClose={() => setAssigneeMenuOpen(false)}
         />
       )}
     </>
