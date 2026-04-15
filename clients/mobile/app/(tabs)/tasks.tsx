@@ -21,7 +21,8 @@ export default function TasksScreen() {
   const unassignedItems =
     unassignedQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
 
-  const activeQuery = activeTab === TAB.MY_TASKS ? myTasksQuery : unassignedQuery;
+  const activeQuery =
+    activeTab === TAB.MY_TASKS ? myTasksQuery : unassignedQuery;
 
   function handleEndReached() {
     if (activeQuery.hasNextPage && !activeQuery.isFetchingNextPage) {
