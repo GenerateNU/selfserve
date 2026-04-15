@@ -1613,10 +1613,6 @@ paths:
         in: query
         name: user_id
         type: string
-      - description: If true, return only requests with no assigned user
-        in: query
-        name: unassigned
-        type: boolean
       produces:
       - application/json
       responses:
