@@ -1,3 +1,4 @@
+import { useAssignRequestToSelf } from "@shared";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { OverviewCard } from "@/components/rooms/OverviewCard";
 import { RoomRequestList } from "@/components/rooms/RoomRequestList";
@@ -9,6 +10,7 @@ type RoomsOverviewProps = {
 // TODO: Replace with hifi (this is just to confirm the data is correct for us to ship rooms list)
 export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const { tasks: unassignedTasks } = useUnassignedTasks();
+  const { mutate: onAssignToSelf } = useAssignRequestToSelf(undefined);
   const totalRooms = rooms.length;
 
   const occupiedRooms = rooms.filter(
@@ -24,10 +26,6 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
     (r) => r.booking_status === "active" && r.room_status === "cleaning",
   ).length;
   const vacantRooms = totalRooms - occupiedRooms;
-
-  const onAssignToSelf = (taskId: string) => {
-    console.log("assigning task to self", taskId);
-  };
 
   return (
     <aside className="w-full max-w-[24.875rem] shrink-0 min-h-0 overflow-y-auto px-6">

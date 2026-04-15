@@ -40,6 +40,10 @@ export const useAssignRequestToSelf = (roomId: string | undefined) => {
     mutationFn: (requestId: string) =>
       api.post<unknown>(`/request/${requestId}/assign`, { assign_to_self: true }),
     onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
       if (roomId) {
         queryClient.invalidateQueries({
           queryKey: getRoomRequestsByRoomIdQueryKey(roomId),
