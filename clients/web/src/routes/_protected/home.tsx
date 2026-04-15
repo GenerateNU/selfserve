@@ -34,7 +34,7 @@ function KanbanColumnData({
   status: string;
   sort: RequestFeedSort | undefined;
   userId?: string;
-  departments?: string[];
+  departments?: Array<string>;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -79,7 +79,9 @@ function KanbanColumnData({
 function HomePage() {
   const [sort, setSort] = useState<RequestFeedSort | undefined>("priority");
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>(
+    [],
+  );
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();

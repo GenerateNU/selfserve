@@ -18,8 +18,8 @@ type HomeFilterBarProps = {
   onSortChange?: (sort: RequestFeedSort | undefined) => void;
   selectedUser?: UserModel;
   onUserChange?: (user: UserModel | undefined) => void;
-  selectedDepartments?: string[];
-  onDepartmentsChange?: (departments: string[]) => void;
+  selectedDepartments?: Array<string>;
+  onDepartmentsChange?: (departments: Array<string>) => void;
   hotelId?: string;
   currentUserId?: string;
 };

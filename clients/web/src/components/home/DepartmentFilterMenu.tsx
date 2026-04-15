@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 
 type DepartmentFilterMenuProps = {
   hotelId: string;
-  selectedNames: string[];
+  selectedNames: Array<string>;
   anchor: { x: number; y: number };
-  onApply: (names: string[]) => void;
+  onApply: (names: Array<string>) => void;
   onClose: () => void;
 };
 
@@ -18,7 +18,7 @@ export function DepartmentFilterMenu({
   onApply,
   onClose,
 }: DepartmentFilterMenuProps) {
-  const [draft, setDraft] = useState<string[]>(selectedNames);
+  const [draft, setDraft] = useState<Array<string>>(selectedNames);
 
   const { data: departments = [], isLoading } = useGetDepartments(hotelId);
 
