@@ -35,14 +35,15 @@ func TestEnrichWithRoomLookup(t *testing.T) {
 			},
 		}
 
-		output, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", GenerateRequestOutput{
+		output, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", EnrichedGenerateRequestOutput{
+			GenerateRequestOutput: GenerateRequestOutput{
 			Name:          "Soda Delivery",
 			RequestType:   "one-time",
 			Status:        "pending",
 			Priority:      "medium",
 			RoomMentioned: &roomMentioned,
 			RoomReference: &roomReference,
-		})
+		}})
 
 		require.NoError(t, err)
 		require.NotNil(t, output.RoomID)
@@ -61,14 +62,15 @@ func TestEnrichWithRoomLookup(t *testing.T) {
 			},
 		}
 
-		output, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", GenerateRequestOutput{
+		output, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", EnrichedGenerateRequestOutput{
+			GenerateRequestOutput: GenerateRequestOutput{
 			Name:          "Soda Delivery",
 			RequestType:   "one-time",
 			Status:        "pending",
 			Priority:      "medium",
 			RoomMentioned: &roomMentioned,
 			RoomReference: &roomReference,
-		})
+		}})
 
 		require.NoError(t, err)
 		assert.Nil(t, output.RoomID)
@@ -88,14 +90,15 @@ func TestEnrichWithRoomLookup(t *testing.T) {
 			},
 		}
 
-		output, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", GenerateRequestOutput{
+		output, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", EnrichedGenerateRequestOutput{
+			GenerateRequestOutput: GenerateRequestOutput{
 			Name:          "Soda Delivery",
 			RequestType:   "one-time",
 			Status:        "pending",
 			Priority:      "medium",
 			RoomMentioned: &roomMentioned,
 			RoomReference: &roomReference,
-		})
+		}})
 
 		require.NoError(t, err)
 		assert.Nil(t, output.RoomID)
@@ -115,12 +118,13 @@ func TestEnrichWithRoomLookup(t *testing.T) {
 			},
 		}
 
-		output, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", GenerateRequestOutput{
+		output, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", EnrichedGenerateRequestOutput{
+			GenerateRequestOutput: GenerateRequestOutput{
 			Name:        "Lobby Cleanup",
 			RequestType: "one-time",
 			Status:      "pending",
 			Priority:    "low",
-		})
+		}})
 
 		require.NoError(t, err)
 		assert.False(t, called)
@@ -139,14 +143,15 @@ func TestEnrichWithRoomLookup(t *testing.T) {
 			},
 		}
 
-		_, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", GenerateRequestOutput{
+		_, err := enrichWithRoomLookup(context.Background(), repo, "550e8400-e29b-41d4-a716-446655440000", EnrichedGenerateRequestOutput{
+			GenerateRequestOutput: GenerateRequestOutput{
 			Name:          "Soda Delivery",
 			RequestType:   "one-time",
 			Status:        "pending",
 			Priority:      "medium",
 			RoomMentioned: &roomMentioned,
 			RoomReference: &roomReference,
-		})
+		}})
 
 		require.Error(t, err)
 		assert.EqualError(t, err, "db offline")

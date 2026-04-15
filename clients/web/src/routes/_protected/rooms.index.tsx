@@ -27,6 +27,7 @@ function RoomsPage() {
     description?: string;
     priority?: MakeRequestPriority;
     room_id?: string;
+    guest_id?: string;
   } | null>(null);
 
   const postRooms = usePostRoomsHook();
@@ -97,6 +98,7 @@ function RoomsPage() {
                 ? (p as MakeRequestPriority)
                 : undefined,
             room_id: r.room_id,
+            guest_id: r.guest_id,
           });
         }}
       />

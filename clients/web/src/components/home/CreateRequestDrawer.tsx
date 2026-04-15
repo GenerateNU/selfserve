@@ -60,6 +60,7 @@ type CreateRequestDrawerProps = {
     description?: string;
     priority?: MakeRequestPriority;
     room_id?: string;
+    guest_id?: string;
   };
 };
 
@@ -119,6 +120,7 @@ export function CreateRequestDrawer({
       user_id: assignee?.id,
       room_id: room?.id ?? initialData?.room_id,
       department: department?.id,
+      guest_id: initialData?.guest_id,
     });
   }
 
