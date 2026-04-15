@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -369,6 +370,7 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 // @Param        limit       query   int     false  "Page size (default 20, max 100)"
 // @Param        user_id     query   string  false  "Filter by assigned user ID"
 // @Param        unassigned  query   bool    false  "If true, return only requests with no assigned user"
+// @Param        sort        query   string  false  "Sort order: priority (default), newest, oldest"
 // @Success      200  {object}  utils.CursorPage[models.GuestRequest]
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
@@ -385,25 +387,87 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	userID := c.Query("user_id")
 	unassigned := c.QueryBool("unassigned")
 
-	cursorID, cursorVersion, err := parseRequestCursor(cursor)
+	feedSort := models.RequestFeedSort(c.Query("sort"))
+	if feedSort == "" {
+		feedSort = models.SortByPriority
+	}
+	if !feedSort.IsValid() {
+		return errs.BadRequest("invalid sort: must be priority, newest, or oldest")
+	}
+
+	cursorID, cursorCreatedAt, cursorPriorityRank, err := parseFeedCursor(cursor, feedSort)
 	if err != nil {
 		return errs.BadRequest("invalid cursor")
 	}
 
 	resolvedLimit := utils.ResolveLimit(limit)
-	requests, err := r.RequestRepository.FindRequestsPaginated(c.Context(), hotelID, userID, unassigned, cursorID, cursorVersion, resolvedLimit+1)
+	requests, err := r.RequestRepository.FindRequestsPaginated(
+		c.Context(), hotelID, userID, unassigned,
+		feedSort, cursorID, cursorCreatedAt, cursorPriorityRank,
+		resolvedLimit+1,
+	)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
 	page := utils.BuildCursorPage(requests, resolvedLimit, func(req *models.GuestRequest) string {
-		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
+		return buildFeedCursor(req, feedSort)
 	})
 
 	return c.JSON(page)
 }
 
-// parseRequestCursor splits a "id|request_version" cursor string.
+// parseFeedCursor decodes a cursor for the requests feed based on the active sort.
+// Returns zero values and nil error for an empty cursor (first page).
+func parseFeedCursor(cursor string, feedSort models.RequestFeedSort) (id string, createdAt time.Time, priorityRank int, err error) {
+	if cursor == "" {
+		return "", time.Time{}, 0, nil
+	}
+	parts := strings.SplitN(cursor, "|", 2)
+	if len(parts) != 2 {
+		return "", time.Time{}, 0, errors.New("invalid cursor")
+	}
+	id = parts[1]
+
+	switch feedSort {
+	case models.SortByNewest, models.SortByOldest:
+		nano, parseErr := strconv.ParseInt(parts[0], 10, 64)
+		if parseErr != nil {
+			return "", time.Time{}, 0, errors.New("invalid cursor")
+		}
+		createdAt = time.Unix(0, nano).UTC()
+	default: // SortByPriority
+		rank, parseErr := strconv.Atoi(parts[0])
+		if parseErr != nil {
+			return "", time.Time{}, 0, errors.New("invalid cursor")
+		}
+		priorityRank = rank
+	}
+	return id, createdAt, priorityRank, nil
+}
+
+// buildFeedCursor encodes the cursor for the next page based on the active sort.
+func buildFeedCursor(req *models.GuestRequest, feedSort models.RequestFeedSort) string {
+	switch feedSort {
+	case models.SortByNewest, models.SortByOldest:
+		return strconv.FormatInt(req.CreatedAt.UnixNano(), 10) + "|" + req.ID
+	default: // SortByPriority
+		return strconv.Itoa(priorityRankOf(req.Priority)) + "|" + req.ID
+	}
+}
+
+func priorityRankOf(priority string) int {
+	switch priority {
+	case "high":
+		return 1
+	case "medium":
+		return 2
+	default:
+		return 3
+	}
+}
+
+// parseRequestCursor splits a "id|request_version" cursor string (used by GetRequestByCursor).
 // Returns zero values and nil error when cursor is empty (first page).
 func parseRequestCursor(cursor string) (id string, version time.Time, err error) {
 	if cursor == "" {

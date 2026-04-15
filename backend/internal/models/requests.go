@@ -2,6 +2,22 @@ package models
 
 import "time"
 
+type RequestFeedSort string
+
+const (
+	SortByPriority RequestFeedSort = "priority"
+	SortByNewest   RequestFeedSort = "newest"
+	SortByOldest   RequestFeedSort = "oldest"
+)
+
+func (s RequestFeedSort) IsValid() bool {
+	switch s {
+	case SortByPriority, SortByNewest, SortByOldest:
+		return true
+	}
+	return false
+}
+
 type RequestStatus string
 
 const (
