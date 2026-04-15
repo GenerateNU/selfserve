@@ -391,6 +391,31 @@ func buildNextCursor(guests []*models.GuestWithBooking, limit int) ([]*models.Gu
 	return guests, &encoded
 }
 
+func (r *GuestsRepository) FindGuestByName(ctx context.Context, hotelID, name string) ([]string, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT g.id
+		FROM guests g
+		JOIN guest_bookings gb ON gb.guest_id = g.id
+		WHERE gb.hotel_id = $1
+		  AND gb.status = 'active'
+		  AND CONCAT_WS(' ', g.first_name, g.last_name) ILIKE '%' || $2 || '%'
+	`, hotelID, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
 func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
 	orderBy := buildGuestOrderBy(filters)
 

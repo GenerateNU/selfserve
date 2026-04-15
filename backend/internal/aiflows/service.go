@@ -10,14 +10,14 @@ import (
 // GenerateRequestService defines the interface for generating requests via GenKit.
 // Handlers should depend on this interface to allow for mocking in tests.
 type GenerateRequestService interface {
-	RunGenerateRequest(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error)
+	RunGenerateRequest(ctx context.Context, input GenerateRequestInput) (EnrichedGenerateRequestOutput, error)
 }
 
 type GenkitService struct {
 	genkit              *genkit.Genkit
-	generateRequestFlow *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}]
+	generateRequestFlow *core.Flow[GenerateRequestInput, EnrichedGenerateRequestOutput, struct{}]
 }
 
-func (s *GenkitService) RunGenerateRequest(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error) {
+func (s *GenkitService) RunGenerateRequest(ctx context.Context, input GenerateRequestInput) (EnrichedGenerateRequestOutput, error) {
 	return s.generateRequestFlow.Run(ctx, input)
 }
