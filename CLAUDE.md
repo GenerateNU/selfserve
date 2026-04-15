@@ -49,13 +49,12 @@ const variantStyles: Record<ButtonVariant, string> = {
   secondary: "bg-bg-container text-text-default hover:bg-bg-selected",
 };
 
-export function Button({
-  variant = "secondary",
-  className = "",
-  ...props
-}: ButtonProps) {
+export function Button({ variant = "secondary", className = "", ...props }: ButtonProps) {
   return (
-    <button className={cn(variantStyles[variant], className)} {...props} />
+    <button
+      className={cn(variantStyles[variant], className)}
+      {...props}
+    />
   );
 }
 ```
@@ -91,7 +90,6 @@ const variantStyles: Record<Variant, string> = { ... };
 ```
 
 **Custom theme tokens** (use these instead of raw colors):
-
 - Text: `text-text-default`, `text-text-subtle`, `text-text-secondary`
 - Background: `bg-bg-primary`, `bg-bg-container`, `bg-bg-selected`, `bg-bg-disabled`
 - Stroke: `stroke-default`, `stroke-subtle`, `stroke-disabled`
@@ -127,14 +125,9 @@ const { data } = useQuery({
 
 ```ts
 const { mutate } = useMutation({
-  mutationFn: (value: string) =>
-    request({ url: `/resource/${id}`, method: "PUT", data: { field: value } }),
-  onSuccess: (result) => {
-    /* handle success */
-  },
-  onError: (error) => {
-    /* handle error */
-  },
+  mutationFn: (value: string) => request({ url: `/resource/${id}`, method: "PUT", data: { field: value } }),
+  onSuccess: (result) => { /* handle success */ },
+  onError: (error) => { /* handle error */ },
   onSettled: () => {
     queryClient.invalidateQueries({ queryKey: ["resource", id] });
   },
@@ -177,10 +170,7 @@ const { mutate } = useMutation({
 Follow `use*` naming. Generic hooks accept type parameters.
 
 ```ts
-export const useDropdown = <T>({
-  selected,
-  onChangeSelectedItems,
-}: UseDropdownOptions<T>) => {
+export const useDropdown = <T>({ selected, onChangeSelectedItems }: UseDropdownOptions<T>) => {
   // implementation
 };
 ```
@@ -264,7 +254,6 @@ if errors.Is(err, errs.ErrNotFoundInDB) {
 ```
 
 Available HTTP error constructors in `errs` package:
-
 - `BadRequest(msg string) HTTPError`
 - `NotFound(title, withKey string, withValue any) HTTPError`
 - `InvalidRequestData(errors map[string]string) HTTPError`
@@ -341,7 +330,6 @@ Use `slog` package for structured logging. No `fmt.Println` in production paths.
 Commands are registered in `main.go` and implemented in per-topic files (e.g. `guests.go`).
 
 **Registering a command:**
-
 ```go
 // main.go
 var commands = map[string]command{

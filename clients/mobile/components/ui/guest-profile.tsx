@@ -1,180 +1,250 @@
-import { View, Text, Pressable } from "react-native";
-import { Box } from "./box";
-import { ChevronLeft, User } from "lucide-react-native";
-import { Collapsible } from "./collapsible";
-import { router } from "expo-router";
+import { useState, useEffect } from "react";
+import { View, Text, TextInput, Pressable } from "react-native";
+import { Calendar, Clock, Users } from "lucide-react-native";
+import { useQueryClient } from "@tanstack/react-query";
+import { Colors } from "@/constants/theme";
+import { usePutGuestsId, getGetGuestsStaysIdQueryKey } from "@shared";
+import type { Stay, Assistance } from "@shared";
+import { formatDate, formatTime } from "@/utils/time";
 
-interface GuestProfileProps {
-  name: string;
-  pronouns: string;
-  dateOfBirth: Date;
-  room: number;
-  groupSize: number;
-  arrival: Date;
-  departure: Date;
-  notes: string;
-  preferences: string;
-  needs: string;
-  previousStays: Stay[];
+interface GuestProfileTabProps {
+  guestId: string;
+  firstName: string;
+  lastName: string;
+  pronouns?: string | null;
+  doNotDisturbStart?: string | null;
+  doNotDisturbEnd?: string | null;
+  housekeepingCadence?: string | null;
+  notes?: string | null;
+  assistance?: Assistance;
+  currentStays: Stay[];
+  onViewAllBookings: () => void;
 }
 
-type Stay = {
-  notes: string;
-  arrival: Date;
-  departure: Date;
-};
-
-export default function GuestProfile(props: GuestProfileProps) {
+export function GuestProfileTab(props: GuestProfileTabProps) {
   return (
-    <Box>
-      <HeaderWithBackArrow />
-      <Box>
-        <GuestDescription {...props} />
-        <GuestInfoCollapsibles {...props} />
-      </Box>
-    </Box>
-  );
-}
-
-function HeaderWithBackArrow() {
-  return (
-    <Box className="flex-row items-center px-[4vw] py-[3vh] border-b border-gray-200">
-      <Pressable onPress={() => router.back()}>
-        <ChevronLeft className="w-[6vw] h-[6vw]" color="#000" />
-      </Pressable>
-      <Text className="flex-1 text-center text-[5vw] font-semibold text-gray-900">
-        Guest Profile
-      </Text>
-
-      <View className="w-[6vw]" />
-    </Box>
-  );
-}
-
-function GuestDescription(props: GuestProfileProps) {
-  return (
-    <Box className="p-[4vw] border-b border-gray-200">
-      <View className="flex-row items-center mb-[3vh]">
-        <View
-          className="w-[15vw] h-[15vw] rounded-full border-2 border-gray-400
-                items-center justify-center mr-[3vw]"
-        >
-          <User className="w-[10vw] h-[10vw]" color="#374151" />
-        </View>
-        <View>
-          <Text className="text-[5vw] font-semibold text-gray-900">
-            {props.name}
-          </Text>
-          <Text className="text-[3.5vw] text-gray-600">{props.pronouns}</Text>
-        </View>
-      </View>
-
-      <View className="gap-[2vh]">
-        {GUEST_PROFILE_CONFIG.infoFields.map((field, index) => (
-          <InfoRow
-            key={index}
-            label={field.label}
-            value={field.format(props)}
-          />
-        ))}
-      </View>
-    </Box>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: unknown }) {
-  return (
-    <View className="flex-row">
-      <Text className="text-[3.5vw] text-gray-400 w-[35vw]">{label}</Text>
-      <Text className="text-[3.5vw] text-gray-900 flex-1">{String(value)}</Text>
+    <View>
+      <InfoSection {...props} />
+      <ActiveBookingsSection
+        currentStays={props.currentStays}
+        onViewAll={props.onViewAllBookings}
+      />
+      <SpecificAssistanceSection assistance={props.assistance} />
+      <NotesSection guestId={props.guestId} notes={props.notes} />
     </View>
   );
 }
 
-function GuestInfoCollapsibles(props: GuestProfileProps) {
-  return (
-    <Box className="p-[4vw] gap-[2vh]">
-      {GUEST_PROFILE_CONFIG.collapsibles.map((item, index) => (
-        <Collapsible key={index} title={item.title}>
-          <Text className="text-[3.5vw] text-gray-900">
-            {item.format(props)}
-          </Text>
-        </Collapsible>
-      ))}
+function InfoSection({
+  firstName,
+  lastName,
+  pronouns,
+  doNotDisturbStart,
+  doNotDisturbEnd,
+  housekeepingCadence,
+}: GuestProfileTabProps) {
+  const dnd =
+    doNotDisturbStart && doNotDisturbEnd
+      ? `${formatTime(doNotDisturbStart)} - ${formatTime(doNotDisturbEnd)}`
+      : null;
 
-      <Collapsible title="Previous Stays">
-        {props.previousStays.length === 0 ? (
-          <Text className="text-[3.5vw] text-gray-400">No previous stays</Text>
-        ) : (
-          <View className="gap-[1vh]">
-            {props.previousStays.map((stay, index) => (
-              <View key={index} className="border-b border-gray-200 pb-[1vh]">
-                <Text className="text-[3.5vw] text-gray-900">{stay.notes}</Text>
-                <Text className="text-[3vw] text-gray-600">
-                  {stay.arrival.toLocaleDateString()}-{" "}
-                  {stay.departure.toLocaleDateString()}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </Collapsible>
-    </Box>
+  const capitalize = (s?: string | null) =>
+    s ? s.charAt(0).toUpperCase() + s.slice(1) : null;
+
+  const fields = [
+    { label: "Government Name", value: `${firstName} ${lastName}` },
+    { label: "Pronouns", value: pronouns },
+    { label: "Do Not Disturb", value: dnd },
+    { label: "Housekeeping", value: capitalize(housekeepingCadence) },
+  ].filter((f) => f.value);
+
+  return (
+    <View className="px-[4vw] py-[3vh] border-b border-stroke-subtle gap-[2vh]">
+      {fields.map((field) => (
+        <View key={field.label} className="flex-row">
+          <Text className="text-[3.5vw] text-text-subtle w-[40vw]">
+            {field.label}
+          </Text>
+          <Text className="text-[3.5vw] font-semibold text-black flex-1">
+            {String(field.value)}
+          </Text>
+        </View>
+      ))}
+    </View>
   );
 }
 
-// to provide a label and formatting of the data for each piece of data concerning the guest
-const GUEST_PROFILE_CONFIG = {
-  infoFields: [
-    {
-      key: "governmentName",
-      label: "Government Name",
-      format: (props: GuestProfileProps) => props.name,
-    },
-    {
-      key: "dateOfBirth",
-      label: "Date of Birth",
-      format: (props: GuestProfileProps) =>
-        props.dateOfBirth.toLocaleDateString(),
-    },
-    {
-      key: "room",
-      label: "Room",
-      format: (props: GuestProfileProps) => props.room,
-    },
-    {
-      key: "groupSize",
-      label: "Group Size",
-      format: (props: GuestProfileProps) => props.groupSize.toString(),
-    },
-    {
-      key: "arrival",
-      label: "Arrival",
-      format: (props: GuestProfileProps) =>
-        `${props.arrival.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} ${props.arrival.toLocaleDateString()}`,
-    },
-    {
-      key: "departure",
-      label: "Departure",
-      format: (props: GuestProfileProps) =>
-        `${props.departure.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} ${props.departure.toLocaleDateString()}`,
-    },
-  ],
-  collapsibles: [
-    {
-      key: "notes",
-      title: "Notes",
-      format: (props: GuestProfileProps) => props.notes,
-    },
-    {
-      key: "preferences",
-      title: "Housekeeping Preferences",
-      format: (props: GuestProfileProps) => props.preferences,
-    },
-    {
-      key: "needs",
-      title: "Special Needs",
-      format: (props: GuestProfileProps) => props.needs,
-    },
-  ],
-};
+function ActiveBookingsSection({
+  currentStays,
+  onViewAll,
+}: {
+  currentStays: Stay[];
+  onViewAll: () => void;
+}) {
+  return (
+    <View className="px-[4vw] py-[3vh] border-b border-stroke-subtle gap-[2vh]">
+      <Text className="text-[4vw] font-semibold text-black">
+        Active Bookings ({currentStays.length})
+      </Text>
+
+      {currentStays.map((stay, i) => (
+        <View
+          key={i}
+          className="bg-success-accent border border-success-stroke rounded-xl p-[4vw] gap-[1.5vh]"
+        >
+          <View className="flex-row items-center justify-between">
+            <Text className="text-[5.5vw] font-bold text-primary">
+              Suite {stay.room_number}
+            </Text>
+            <View className="flex-row items-center gap-[1.5vw]">
+              <Users size={16} color={Colors.light.tabBarActive} />
+              <Text className="text-[4vw] text-primary font-medium">
+                {stay.group_size ?? 1}
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex-row items-center gap-[2vw]">
+            <Text className="text-[3.5vw] text-primary w-[22vw]">Arrival:</Text>
+            <Calendar size={13} color={Colors.light.tabBarActive} />
+            <Text className="text-[3.5vw] text-primary">
+              {formatDate(stay.arrival_date)}
+            </Text>
+            <Clock size={13} color={Colors.light.tabBarActive} />
+            <Text className="text-[3.5vw] text-primary">
+              {formatTime(stay.arrival_date)}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center gap-[2vw]">
+            <Text className="text-[3.5vw] text-primary w-[22vw]">
+              Departure:
+            </Text>
+            <Calendar size={13} color={Colors.light.tabBarActive} />
+            <Text className="text-[3.5vw] text-primary">
+              {formatDate(stay.departure_date)}
+            </Text>
+            <Clock size={13} color={Colors.light.tabBarActive} />
+            <Text className="text-[3.5vw] text-primary">
+              {formatTime(stay.departure_date)}
+            </Text>
+          </View>
+        </View>
+      ))}
+
+      <Pressable
+        onPress={onViewAll}
+        className="bg-primary rounded-xl py-[1.8vh] items-center"
+      >
+        <Text className="text-white text-[3.5vw] font-medium">
+          View All Bookings
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function SpecificAssistanceSection({
+  assistance,
+}: {
+  assistance?: Assistance;
+}) {
+  const categories = [
+    { label: "Accessibility", items: assistance?.accessibility ?? [] },
+    { label: "Dietary Restrictions", items: assistance?.dietary ?? [] },
+    { label: "Medical Needs", items: assistance?.medical ?? [] },
+  ];
+
+  return (
+    <View className="px-[4vw] py-[3vh] border-b border-stroke-subtle">
+      <Text className="text-[4vw] font-semibold text-black mb-[2vh]">
+        Specific Assistance
+      </Text>
+      <View className="border border-stroke-subtle rounded-xl p-[3vw] gap-[2vh]">
+        {categories.map((cat, i) => (
+          <View key={cat.label}>
+            <Text className="text-[3.5vw] font-medium text-black mb-[1vh]">
+              {cat.label}
+            </Text>
+            {cat.items.length === 0 ? (
+              <Text className="text-[3.5vw] text-text-subtle">None</Text>
+            ) : (
+              <View className="flex-row flex-wrap gap-[2vw]">
+                {cat.items.map((item, j) => (
+                  <View
+                    key={j}
+                    className="bg-danger-accent border border-danger rounded-md px-[3vw] py-[0.5vh]"
+                  >
+                    <Text className="text-[3vw] text-danger">{item}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            {i < categories.length - 1 && (
+              <View className="border-b border-stroke-subtle mt-[1.5vh]" />
+            )}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function NotesSection({
+  guestId,
+  notes,
+}: {
+  guestId: string;
+  notes?: string | null;
+}) {
+  const [value, setValue] = useState(notes ?? "");
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setValue(notes ?? "");
+  }, [notes]);
+
+  const isDirty = value !== (notes ?? "");
+  const { mutate: updateGuest, isPending } = usePutGuestsId();
+
+  const save = () => {
+    updateGuest(
+      { id: guestId, data: { notes: value } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: getGetGuestsStaysIdQueryKey(guestId),
+          });
+        },
+      },
+    );
+  };
+
+  return (
+    <View className="px-[4vw] py-[3vh]">
+      <View className="flex-row items-center justify-between mb-[2vh]">
+        <Text className="text-[4vw] font-semibold text-black">Notes</Text>
+        {isDirty && (
+          <Pressable
+            onPress={save}
+            disabled={isPending}
+            className="bg-primary rounded-lg px-[3vw] py-[0.6vh]"
+          >
+            <Text className="text-white text-[3vw] font-medium">
+              {isPending ? "Saving..." : "Save"}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+      <TextInput
+        value={value}
+        onChangeText={setValue}
+        placeholder="Add a note..."
+        placeholderTextColor={Colors.light.icon}
+        multiline
+        className="border border-stroke-subtle rounded-xl p-[3vw] min-h-[15vh] text-[3.5vw] text-black"
+        textAlignVertical="top"
+      />
+    </View>
+  );
+}
