@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/Button";
 
-
 type InviteMemberModalProps = {
   open: boolean;
   onClose: () => void;
@@ -51,9 +50,7 @@ export function InviteMemberModal({ open, onClose }: InviteMemberModalProps) {
       setEmail("");
     } catch (err: unknown) {
       if (isClerkAPIResponseError(err)) {
-        setError(
-          err.errors[0]?.longMessage ?? "Failed to send invite",
-        );
+        setError(err.errors[0]?.longMessage ?? "Failed to send invite");
       } else {
         setError("Failed to send invite");
       }
