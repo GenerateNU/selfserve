@@ -1,11 +1,10 @@
 import { Home, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users";
-import type { Request } from "@shared";
+import type { RequestFeedItem } from "@shared/api/requests";
 import type { RequestStatus } from "@/components/requests/RequestCard";
 import { RequestCard } from "@/components/requests/RequestCard";
 import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
-import { useRoomById } from "@/hooks/use-room-by-id";
 
 function formatRequestTime(isoString?: string): string {
   if (!isoString) return "";
@@ -25,7 +24,7 @@ function formatRequestTime(isoString?: string): string {
 }
 
 type RequestCardItemProps = {
-  request: Request;
+  request: RequestFeedItem;
 };
 
 export function RequestCardItem({ request }: RequestCardItemProps) {
@@ -38,15 +37,16 @@ export function RequestCardItem({ request }: RequestCardItemProps) {
     enabled: !!request.user_id,
   });
 
-  const { data: room } = useRoomById(request.room_id);
-
   const assigneeName = assignee
     ? `${assignee.first_name ?? ""} ${assignee.last_name ?? ""}`.trim()
     : null;
 
-  const roomLabel = room
-    ? `Floor ${room.floor}, Room ${room.room_number}`
-    : null;
+  const roomLabel =
+    request.room_number != null
+      ? request.floor != null
+        ? `Floor ${request.floor}, Room ${request.room_number}`
+        : `Room ${request.room_number}`
+      : null;
 
   const tags = [assigneeName].filter(Boolean) as Array<string>;
   const hasBottomRow = roomLabel || request.department;
@@ -55,7 +55,7 @@ export function RequestCardItem({ request }: RequestCardItemProps) {
     <RequestCard status={status} className="w-full">
       <RequestCardTimestamp
         status={status}
-        time={formatRequestTime(request.scheduled_time ?? request.created_at)}
+        time={formatRequestTime(request.created_at)}
       />
 
       <div className="mt-3 flex flex-col gap-2">
