@@ -1,4 +1,16 @@
-export type NotificationType = "task_assigned" | "high_priority_task";
+export const NotificationType = {
+  TaskAssigned: "task_assigned",
+  HighPriorityTask: "high_priority_task",
+} as const;
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
+
+export const DevicePlatform = {
+  iOS: "ios",
+  Android: "android",
+} as const;
+
+export type DevicePlatform = (typeof DevicePlatform)[keyof typeof DevicePlatform];
 
 export type Notification = {
   id: string;
@@ -13,5 +25,5 @@ export type Notification = {
 
 export type RegisterDeviceTokenInput = {
   token: string;
-  platform: "ios" | "android";
+  platform: DevicePlatform;
 };

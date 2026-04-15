@@ -1,118 +1,125 @@
-import { useState, useRef } from "react";
 import {
-  View,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-  Text,
   Pressable,
+  ScrollView,
+  TouchableOpacity,
+  View,
+  Text,
 } from "react-native";
+import { SearchBar } from "./search-bar";
 import { SlidersHorizontal, X } from "lucide-react-native";
+import { GuestFilterState } from "./guest-filter-sheet";
 import { Colors } from "@/constants/theme";
-import { SearchBar } from "@/components/ui/search-bar";
-import { Filters, Filter } from "@/components/ui/filters";
 
 interface GuestListHeaderProps {
   search: string;
   setSearch: (s: string) => void;
-  filterConfig: Filter<number>[];
-  activeFloors: number[];
-  activeGroupSizes: number[];
-  onFloorChange: (f: number) => void;
-  onGroupSizeChange: (g: number) => void;
+  filters: GuestFilterState;
+  onFiltersChange: (f: GuestFilterState) => void;
+  onOpenFilterSheet: () => void;
 }
 
 export function GuestListHeader({
   search,
   setSearch,
-  filterConfig,
-  activeFloors,
-  activeGroupSizes,
-  onFloorChange,
-  onGroupSizeChange,
+  filters,
+  onFiltersChange,
+  onOpenFilterSheet,
 }: GuestListHeaderProps) {
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [dropdownTop, setDropdownTop] = useState(0);
-  const searchRowRef = useRef<View>(null);
+  const removeChip = (patch: Partial<GuestFilterState>) =>
+    onFiltersChange({ ...filters, ...patch });
 
-  const onSearchRowLayout = () => {
-    searchRowRef.current?.measureInWindow((_x, y, _w, h) => {
-      setDropdownTop(y + h + 4);
-    });
-  };
-
-  const hasActiveTags = activeFloors.length > 0 || activeGroupSizes.length > 0;
+  const hasActiveFilters =
+    filters.floors.length > 0 ||
+    filters.status.length > 0 ||
+    filters.assistance.length > 0 ||
+    filters.requestSort !== null ||
+    filters.floorSort !== null;
 
   return (
     <View className="px-[4vw] pt-[5vh] pb-[2vh] border-b border-stroke-subtle">
-      <View
-        ref={searchRowRef}
-        onLayout={onSearchRowLayout}
-        className="flex-row items-center gap-3"
-      >
+      <View className="flex-row items-center gap-3">
         <View className="flex-1">
           <SearchBar value={search} onChangeText={setSearch} />
         </View>
-        <TouchableOpacity
-          onPress={() => setFiltersOpen(!filtersOpen)}
-          className="p-2"
-        >
+        <TouchableOpacity onPress={onOpenFilterSheet} className="p-2">
           <SlidersHorizontal size={22} className="text-primary" />
         </TouchableOpacity>
       </View>
 
-      {hasActiveTags && (
+      {hasActiveFilters && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           className="mt-[1.5vh]"
           contentContainerStyle={{ gap: 8 }}
         >
-          {activeFloors.map((f) => (
-            <Pressable
-              key={f}
-              onPress={() => onFloorChange(f)}
-              className="flex-row items-center gap-1 bg-card border border-primary rounded-md px-3 py-1"
-            >
-              <Text className="text-primary text-sm">Floor {f}</Text>
-              <X size={12} color={Colors.light.tabBarActive} />
-            </Pressable>
+          {filters.floors.map((f) => (
+            <Chip
+              key={`floor-${f}`}
+              label={`Floor ${f}`}
+              onRemove={() =>
+                removeChip({ floors: filters.floors.filter((x) => x !== f) })
+              }
+            />
           ))}
-          {activeGroupSizes.map((g) => (
-            <Pressable
-              key={g}
-              onPress={() => onGroupSizeChange(g)}
-              className="flex-row items-center gap-1 bg-card border border-primary rounded-md px-3 py-1"
-            >
-              <Text className="text-primary text-sm">Group Size: {g}</Text>
-              <X size={12} color={Colors.light.tabBarActive} />
-            </Pressable>
+          {filters.status.map((s) => (
+            <Chip
+              key={`status-${s}`}
+              label={s === "active" ? "Active" : "Inactive"}
+              onRemove={() =>
+                removeChip({
+                  status: filters.status.filter((x) => x !== s),
+                })
+              }
+            />
           ))}
+          {filters.assistance.map((a) => (
+            <Chip
+              key={`assist-${a}`}
+              label={a.charAt(0).toUpperCase() + a.slice(1)}
+              onRemove={() =>
+                removeChip({
+                  assistance: filters.assistance.filter((x) => x !== a),
+                })
+              }
+            />
+          ))}
+          {filters.requestSort && (
+            <Chip
+              label={
+                filters.requestSort === "high_to_low"
+                  ? "Requests: High to Low"
+                  : filters.requestSort === "low_to_high"
+                    ? "Requests: Low to High"
+                    : "Requests: Urgent"
+              }
+              onRemove={() => removeChip({ requestSort: null })}
+            />
+          )}
+          {filters.floorSort && (
+            <Chip
+              label={
+                filters.floorSort === "ascending"
+                  ? "Floors: Ascending"
+                  : "Floors: Descending"
+              }
+              onRemove={() => removeChip({ floorSort: null })}
+            />
+          )}
         </ScrollView>
       )}
-
-      <Modal
-        visible={filtersOpen}
-        transparent
-        animationType="none"
-        presentationStyle="overFullScreen"
-        onRequestClose={() => setFiltersOpen(false)}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setFiltersOpen(false)}
-          className="flex-1"
-        >
-          <View
-            className="absolute left-[4vw] right-[4vw] bg-white rounded-xl border border-stroke-subtle shadow"
-            style={{ top: dropdownTop }}
-          >
-            <TouchableOpacity activeOpacity={1}>
-              <Filters filters={filterConfig} />
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </View>
+  );
+}
+
+function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <Pressable
+      onPress={onRemove}
+      className="flex-row items-center gap-1 bg-card border border-primary rounded-md px-3 py-1"
+    >
+      <Text className="text-primary text-sm">{label}</Text>
+      <X size={12} color={Colors.light.tabBarActive} />
+    </Pressable>
   );
 }

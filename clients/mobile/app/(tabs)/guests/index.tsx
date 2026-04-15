@@ -1,42 +1,31 @@
 import { useState } from "react";
-import { View, FlatList, ActivityIndicator } from "react-native";
-import { Header } from "@/components/ui/header";
+import { View, FlatList, ActivityIndicator, Text } from "react-native";
 import { GuestCard } from "@/components/ui/guest-card";
 import { router } from "expo-router";
 import { useAPIClient } from "@shared/api/client";
 import { useInfiniteQuery, InfiniteData } from "@tanstack/react-query";
 import type { GuestPage } from "@shared";
-import { useGetRoomsFloors, useGetGuestBookingsGroupSizes } from "@shared";
+import { useGetRoomsFloors } from "@shared";
 import { GuestListHeader } from "@/components/ui/guest-list-header";
-import { getFloorConfig, getGroupSizeConfig } from "@/utils";
+import {
+  GuestFilterSheet,
+  GuestFilterState,
+} from "@/components/ui/guest-filter-sheet";
 
 export default function GuestsList() {
   const [search, setSearch] = useState("");
-  const [floors, setFloor] = useState<number[] | null>(null);
-  const [groupSizes, setGroupSize] = useState<number[] | null>(null);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [filters, setFilters] = useState<GuestFilterState>({
+    status: [],
+    requestSort: null,
+    floorSort: null,
+    assistance: [],
+    floors: [],
+  });
 
   const { data: floorOptions } = useGetRoomsFloors({
     query: { staleTime: Infinity },
   });
-  const { data: groupSizeOptions } = useGetGuestBookingsGroupSizes({
-    query: { staleTime: Infinity },
-  });
-
-  const onFloorChange = (floor: number) => {
-    if (floors?.includes(floor)) {
-      setFloor(floors.filter((f) => f !== floor));
-    } else {
-      setFloor([...(floors ?? []), floor]);
-    }
-  };
-
-  const onGroupSizeChange = (groupSize: number) => {
-    if (groupSizes?.includes(groupSize)) {
-      setGroupSize(groupSizes.filter((g) => g !== groupSize));
-    } else {
-      setGroupSize([...(groupSizes ?? []), groupSize]);
-    }
-  };
 
   const api = useAPIClient();
   const {
@@ -48,14 +37,17 @@ export default function GuestsList() {
     GuestPage,
     Error,
     InfiniteData<GuestPage>,
-    (string | number[] | null)[],
+    unknown[],
     string | undefined
   >({
-    queryKey: ["guests", floors, groupSizes, search],
+    queryKey: ["guests", filters, search],
     queryFn: ({ pageParam }) =>
       api.post<GuestPage>("/guests/search", {
-        floors: floors ?? undefined,
-        group_size: groupSizes ?? undefined,
+        floors: filters.floors.length ? filters.floors : undefined,
+        status: filters.status.length ? filters.status : undefined,
+        assistance: filters.assistance.length ? filters.assistance : undefined,
+        request_sort: filters.requestSort ?? undefined,
+        floor_sort: filters.floorSort ?? undefined,
         search: search || undefined,
         cursor: pageParam,
         limit: 20,
@@ -66,6 +58,15 @@ export default function GuestsList() {
 
   const allGuests = guestData?.pages.flatMap((page) => page.data ?? []) ?? [];
 
+  const clearAll = () =>
+    setFilters({
+      status: [],
+      requestSort: null,
+      floorSort: null,
+      assistance: [],
+      floors: [],
+    });
+
   return (
     <View className="flex-1 bg-white">
       <FlatList
@@ -75,8 +76,10 @@ export default function GuestsList() {
           <GuestCard
             firstName={item.first_name ?? ""}
             lastName={item.last_name ?? ""}
-            floor={item.floor ?? 0}
-            room={item.room_number ?? 0}
+            activeBookings={item.active_bookings ?? []}
+            requestCount={item.request_count ?? 0}
+            hasUrgent={item.has_urgent ?? false}
+            assistance={item.assistance}
             onPress={() => {
               if (item.id) router.push(`/guests/${item.id}`);
             }}
@@ -90,29 +93,32 @@ export default function GuestsList() {
           <GuestListHeader
             search={search}
             setSearch={setSearch}
-            filterConfig={[
-              ...getFloorConfig(
-                floorOptions ?? [],
-                floors ?? [],
-                onFloorChange,
-              ),
-              ...getGroupSizeConfig(
-                groupSizeOptions ?? [],
-                groupSizes ?? [],
-                onGroupSizeChange,
-              ),
-            ]}
-            activeFloors={floors ?? []}
-            activeGroupSizes={groupSizes ?? []}
-            onFloorChange={onFloorChange}
-            onGroupSizeChange={onGroupSizeChange}
+            filters={filters}
+            onFiltersChange={setFilters}
+            onOpenFilterSheet={() => setFilterSheetOpen(true)}
           />
+        }
+        ListEmptyComponent={
+          guestData ? (
+            <Text className="text-[5vw] font-semibold text-black px-[4vw] pt-[3vh]">
+              No Guests Found
+            </Text>
+          ) : null
         }
         ListFooterComponent={
           isFetchingNextPage ? <ActivityIndicator className="py-[2vh]" /> : null
         }
         contentContainerStyle={{ gap: 8 }}
         className="flex-1"
+      />
+      <GuestFilterSheet
+        visible={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        filters={filters}
+        onFiltersChange={setFilters}
+        floorOptions={floorOptions ?? []}
+        onShowResults={() => setFilterSheetOpen(false)}
+        onClearAll={clearAll}
       />
     </View>
   );

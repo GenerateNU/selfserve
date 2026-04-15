@@ -6,6 +6,19 @@ export type { Config } from "./api/config";
 // config functions
 export { setConfig, getConfig } from "./api/config";
 
+export { getExtFromMime } from "./utils";
+export {
+  getProfilePicture,
+  getUploadUrl,
+  saveProfilePictureKey,
+  deleteProfilePicture,
+  uploadFileToS3,
+} from "./api/profile-picture";
+export type {
+  UploadUrlResponse,
+  ProfilePictureResponse,
+} from "./api/profile-picture";
+
 // Generated Types - Models
 export { MakeRequestPriority } from "./api/generated/models";
 
@@ -21,6 +34,14 @@ export type {
   Guest,
   GuestPage,
   Dev,
+  ActiveBooking,
+  Assistance,
+  Stay,
+  UpdateGuest,
+  GithubComGenerateSelfserveInternalModelsBookingStatus as BookingStatus,
+  GithubComGenerateSelfserveInternalModelsAssistanceFilter as AssistanceFilter,
+  GuestFiltersRequestSort as RequestSort,
+  GuestFiltersFloorSort as FloorSort,
 } from "./api/generated/models";
 
 // Generated API Functions
@@ -33,6 +54,7 @@ export {
   usePostRequest,
   usePostRequestGenerate,
   useGetRequestRoomId,
+  useGetRequestGuestId,
 } from "./api/generated/endpoints/requests/requests";
 
 export {
@@ -51,6 +73,7 @@ export {
   usePostGuests,
   useGetGuestsId,
   usePutGuestsId,
+  getGetGuestsStaysIdQueryKey,
   usePostGuestsSearchHook,
   useGetGuestsStaysId,
 } from "./api/generated/endpoints/guests/guests";
@@ -59,7 +82,6 @@ export type {
   GuestWithBooking,
   GuestWithStays,
   GuestFilters,
-  Stay,
 } from "./api/generated/models";
 
 export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
@@ -71,6 +93,9 @@ export type {
   GuestRequest,
   RoomRequestsResponse,
 } from "./api/generated/models";
+
+export { useInfiniteRequestsByGuest, getGuestRequestsQueryKey } from "./api/requests";
+
 
 // User hooks
 export { getUserQueryKey, useGetUser, useUpdateUser } from "./api/users";
