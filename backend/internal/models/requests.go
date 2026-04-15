@@ -2,6 +2,22 @@ package models
 
 import "time"
 
+type RequestFeedSort string
+
+const (
+	SortByPriority RequestFeedSort = "priority"
+	SortByNewest   RequestFeedSort = "newest"
+	SortByOldest   RequestFeedSort = "oldest"
+)
+
+func (s RequestFeedSort) IsValid() bool {
+	switch s {
+	case SortByPriority, SortByNewest, SortByOldest:
+		return true
+	}
+	return false
+}
+
 type RequestStatus string
 
 const (
@@ -56,6 +72,34 @@ type MakeRequest struct {
 	CompletedAt             *time.Time `json:"completed_at" example:"2024-01-01T00:30:00Z"`
 	Notes                   *string    `json:"notes" example:"No special requests"`
 } //@name MakeRequest
+
+// RequestUpdateInput is the body for PUT /request/:id — all fields are optional.
+// Only non-nil fields are applied; the rest are copied from the current version.
+type RequestUpdateInput struct {
+	UserID                  *string    `json:"user_id"`
+	GuestID                 *string    `json:"guest_id"`
+	ReservationID           *string    `json:"reservation_id"`
+	Name                    *string    `json:"name" validate:"omitempty,notblank"`
+	Description             *string    `json:"description"`
+	RoomID                  *string    `json:"room_id"`
+	RequestCategory         *string    `json:"request_category"`
+	RequestType             *string    `json:"request_type" validate:"omitempty,notblank"`
+	Department              *string    `json:"department"`
+	Status                  *string    `json:"status" validate:"omitempty,oneof='pending' 'assigned' 'in progress' 'completed'"`
+	Priority                *string    `json:"priority" validate:"omitempty,oneof=low medium high"`
+	EstimatedCompletionTime *int       `json:"estimated_completion_time"`
+	ScheduledTime           *time.Time `json:"scheduled_time"`
+	CompletedAt             *time.Time `json:"completed_at"`
+	Notes                   *string    `json:"notes"`
+} //@name RequestUpdateInput
+
+// AssignRequestInput is the body for POST /request/:id/assign.
+// Set assign_to_self to true to assign to the authenticated caller.
+// Omit assign_to_self (or set to false) and provide user_id to assign to another user.
+type AssignRequestInput struct {
+	AssignToSelf *bool   `json:"assign_to_self"`
+	UserID       *string `json:"user_id"`
+} //@name AssignRequestInput
 
 type GetRequestsByStatusInput struct {
 	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank"`
@@ -116,8 +160,11 @@ type GuestRequest struct {
 	Description     *string   `json:"description,omitempty"`
 	Notes           *string   `json:"notes,omitempty"`
 	RoomNumber      *int      `json:"room_number,omitempty"`
+	Floor           *int      `json:"floor,omitempty"`
 	RequestType     string    `json:"request_type"`
 	RequestCategory *string   `json:"request_category,omitempty"`
+	Department      *string   `json:"department,omitempty"`
+	UserID          *string   `json:"user_id,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
 	RequestVersion  time.Time `json:"request_version"`
 } //@name GuestRequest

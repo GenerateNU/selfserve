@@ -1,12 +1,16 @@
+import { useAssignRequestToSelf } from "@shared";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { OverviewCard } from "@/components/rooms/OverviewCard";
 import { RoomRequestList } from "@/components/rooms/RoomRequestList";
+import { useUnassignedTasks } from "@/hooks/use-unassigned-tasks";
 
 type RoomsOverviewProps = {
   rooms: Array<RoomWithOptionalGuestBooking>;
 };
 // TODO: Replace with hifi (this is just to confirm the data is correct for us to ship rooms list)
 export function RoomsOverview({ rooms }: RoomsOverviewProps) {
+  const { tasks: unassignedTasks } = useUnassignedTasks();
+  const { mutate: onAssignToSelf } = useAssignRequestToSelf(undefined);
   const totalRooms = rooms.length;
 
   const occupiedRooms = rooms.filter(
@@ -71,22 +75,8 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
         />
         <RoomRequestList
           title="Unassigned Tasks"
-          requests={[
-            {
-              id: "1",
-              name: "Room 101",
-              room_number: 101,
-              request_category: "Maintenance",
-              priority: "low",
-            },
-            {
-              id: "2",
-              name: "Room 102",
-              room_number: 102,
-              request_category: "Maintenance",
-              priority: "medium",
-            },
-          ]}
+          onAssignToSelf={onAssignToSelf}
+          requests={unassignedTasks}
         />
       </div>
     </aside>

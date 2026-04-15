@@ -1,34 +1,33 @@
-import Feather from "@expo/vector-icons/Feather";
 import { View } from "react-native";
 
-import { RadioItem, SectionHeader } from "./filter-section-header";
+import type { RequestFeedSort } from "@shared/api/requests";
+
+import { RadioRow, Section } from "./filter-section-header";
 
 type SortBySectionProps = {
-  expanded: boolean;
-  onToggle: () => void;
+  sort: RequestFeedSort;
+  onSortChange: (sort: RequestFeedSort) => void;
 };
 
-export function SortBySection({ expanded, onToggle }: SortBySectionProps) {
+const SORT_OPTIONS: { label: string; value: RequestFeedSort }[] = [
+  { label: "Priority", value: "priority" },
+  { label: "Newest", value: "newest" },
+  { label: "Oldest", value: "oldest" },
+];
+
+export function SortBySection({ sort, onSortChange }: SortBySectionProps) {
   return (
-    <View className="gap-2">
-      <SectionHeader
-        label="Sort By"
-        expanded={expanded}
-        onToggle={onToggle}
-        customIcon={
-          <View style={{ width: 18, height: 16, alignItems: "center" }}>
-            <Feather name="arrow-up" size={9} color="#464646" />
-            <Feather name="arrow-down" size={9} color="#464646" />
-          </View>
-        }
-      />
-      {expanded && (
-        <View className="flex-row justify-between px-1">
-          <RadioItem label="Priority" selected />
-          <RadioItem label="Newest" selected={false} />
-          <RadioItem label="Oldest" selected={false} />
-        </View>
-      )}
-    </View>
+    <Section title="Sort By">
+      <View className="flex-row gap-[4vw]">
+        {SORT_OPTIONS.map((option) => (
+          <RadioRow
+            key={option.value}
+            label={option.label}
+            selected={sort === option.value}
+            onPress={() => onSortChange(option.value)}
+          />
+        ))}
+      </View>
+    </Section>
   );
 }

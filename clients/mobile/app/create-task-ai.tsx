@@ -50,6 +50,7 @@ type GeneratedTask = {
   room_id?: string;
   department?: string;
   description?: string;
+  user_id?: string;
 };
 
 type TaskFieldRowProps = {
@@ -115,6 +116,7 @@ export default function CreateTaskAIScreen() {
         room_id: req?.room_id,
         department: req?.department,
         description: req?.description,
+        user_id: req?.user_id,
       });
       setScreenState("complete");
       setTaskSheetVisible(true);
@@ -149,6 +151,7 @@ export default function CreateTaskAIScreen() {
       room_id: generatedTask.room_id,
       department: generatedTask.department,
       description: generatedTask.description,
+      user_id: generatedTask.user_id,
     });
   };
 

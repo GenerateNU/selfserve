@@ -1,62 +1,43 @@
-import { View } from "react-native";
+import { ActivityIndicator } from "react-native";
 
-import { CheckboxItem, SectionHeader } from "./filter-section-header";
+import { getConfig } from "@shared/api/config";
+import { useGetDepartments } from "@shared/api/departments";
 
-enum Department {
-  FoodAndBeverage = "Food & Beverage",
-  FrontOffice = "Front Office",
-  Housekeeping = "Housekeeping",
-  Maintenance = "Maintenance",
-  Management = "Management",
-  Security = "Security",
-}
-
-const DEPT_LEFT = [
-  Department.FoodAndBeverage,
-  Department.FrontOffice,
-  Department.Housekeeping,
-];
-const DEPT_RIGHT = [
-  Department.Maintenance,
-  Department.Management,
-  Department.Security,
-];
-const DEPT_CHECKED = new Set([
-  Department.FoodAndBeverage,
-  Department.FrontOffice,
-]);
+import { CheckboxRow, Section } from "./filter-section-header";
 
 type DepartmentSectionProps = {
-  expanded: boolean;
-  onToggle: () => void;
+  departments: string[];
+  onDepartmentsChange: (departments: string[]) => void;
 };
 
 export function DepartmentSection({
-  expanded,
-  onToggle,
+  departments,
+  onDepartmentsChange,
 }: DepartmentSectionProps) {
+  const { hotelId } = getConfig();
+  const { data: allDepartments = [], isLoading } = useGetDepartments(hotelId);
+
+  function toggle(name: string) {
+    const next = departments.includes(name)
+      ? departments.filter((d) => d !== name)
+      : [...departments, name];
+    onDepartmentsChange(next);
+  }
+
   return (
-    <View className="gap-2">
-      <SectionHeader
-        label="Department"
-        expanded={expanded}
-        onToggle={onToggle}
-        icon="home"
-      />
-      {expanded && (
-        <View className="flex-row justify-between px-1">
-          <View className="gap-1">
-            {DEPT_LEFT.map((d) => (
-              <CheckboxItem key={d} label={d} checked={DEPT_CHECKED.has(d)} />
-            ))}
-          </View>
-          <View className="gap-1">
-            {DEPT_RIGHT.map((d) => (
-              <CheckboxItem key={d} label={d} checked={DEPT_CHECKED.has(d)} />
-            ))}
-          </View>
-        </View>
+    <Section title="Department">
+      {isLoading ? (
+        <ActivityIndicator size="small" />
+      ) : (
+        allDepartments.map((dept) => (
+          <CheckboxRow
+            key={dept.id}
+            label={dept.name}
+            selected={departments.includes(dept.name)}
+            onPress={() => toggle(dept.name)}
+          />
+        ))
       )}
-    </View>
+    </Section>
   );
 }

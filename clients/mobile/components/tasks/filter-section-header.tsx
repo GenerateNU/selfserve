@@ -1,158 +1,92 @@
-import Feather from "@expo/vector-icons/Feather";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { Check, ChevronDown, ChevronUp } from "lucide-react-native";
+import { Colors } from "@/constants/theme";
 
-// ─── Primitives ────────────────────────────────────────────────────────────────
+interface SectionProps {
+  title: string;
+  children: React.ReactNode;
+}
 
-function CheckedBox() {
+export function Section({ title, children }: SectionProps) {
+  const [expanded, setExpanded] = useState(true);
+
   return (
-    <View
-      style={{
-        width: 16,
-        height: 16,
-        backgroundColor: "#124425",
-        borderRadius: 4,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Feather name="check" size={9} color="white" />
+    <View className="border-b border-stroke-subtle">
+      <Pressable
+        onPress={() => setExpanded(!expanded)}
+        className="flex-row items-center justify-between px-[5vw] py-[2vh]"
+      >
+        <Text className="text-sm font-medium text-text-default">{title}</Text>
+        {expanded ? (
+          <ChevronUp size={16} color={Colors.light.textDefault} />
+        ) : (
+          <ChevronDown size={16} color={Colors.light.textDefault} />
+        )}
+      </Pressable>
+      {expanded && <View className="px-[5vw] pb-[2vh]">{children}</View>}
     </View>
   );
 }
 
-function UncheckedBox() {
-  return (
-    <View
-      style={{
-        width: 16,
-        height: 16,
-        borderWidth: 0.8,
-        borderColor: "#2e2e2e",
-        borderRadius: 4,
-        opacity: 0.5,
-      }}
-    />
-  );
-}
-
-function RadioSelected() {
-  return (
-    <View
-      style={{
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        borderWidth: 0.8,
-        borderColor: "#124425",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <View
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: 5,
-          backgroundColor: "#124425",
-        }}
-      />
-    </View>
-  );
-}
-
-function RadioUnselected() {
-  return (
-    <View
-      style={{
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        borderWidth: 0.8,
-        borderColor: "#2e2e2e",
-        opacity: 0.4,
-      }}
-    />
-  );
-}
-
-// ─── Row items ─────────────────────────────────────────────────────────────────
-
-export function RadioItem({
+export function CheckboxRow({
   label,
   selected,
+  onPress,
 }: {
   label: string;
   selected: boolean;
+  onPress: () => void;
 }) {
-  return (
-    <View className="flex-row items-center gap-1">
-      {selected ? <RadioSelected /> : <RadioUnselected />}
-      <Text
-        className="text-[15px] tracking-tight"
-        style={{ color: selected ? "#15502c" : "#040506" }}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-export function CheckboxItem({
-  label,
-  checked,
-}: {
-  label: string;
-  checked: boolean;
-}) {
-  return (
-    <View className="flex-row items-center gap-1">
-      {checked ? <CheckedBox /> : <UncheckedBox />}
-      <Text
-        className="text-[15px] tracking-tight"
-        style={{ color: checked ? "#15502c" : "#040506" }}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-// ─── Section header ─────────────────────────────────────────────────────────────
-
-export type SectionHeaderProps = {
-  label: string;
-  expanded: boolean;
-  onToggle: () => void;
-  icon?: React.ComponentProps<typeof Feather>["name"];
-  customIcon?: React.ReactNode;
-};
-
-export function SectionHeader({
-  label,
-  expanded,
-  onToggle,
-  icon,
-  customIcon,
-}: SectionHeaderProps) {
   return (
     <Pressable
-      onPress={onToggle}
-      className="flex-row items-center justify-between"
+      onPress={onPress}
+      className="flex-row items-center gap-3 py-[1vh]"
     >
-      <View className="flex-row items-center gap-1.5">
-        {customIcon ??
-          (icon ? <Feather name={icon} size={14} color="#464646" /> : null)}
-        <Text className="text-[15px] text-[#464646] tracking-tight">
-          {label}
-        </Text>
+      <View
+        className={`w-5 h-5 rounded border items-center justify-center ${
+          selected
+            ? "bg-primary border-primary"
+            : "bg-white border-stroke-subtle"
+        }`}
+      >
+        {selected && <Check size={12} color={Colors.light.white} />}
       </View>
-      <View className="w-6 h-6 items-center justify-center">
-        <Feather
-          name={expanded ? "chevron-up" : "chevron-down"}
-          size={14}
-          color="#464646"
-        />
+      <Text
+        className={`text-sm ${selected ? "text-primary font-medium" : "text-text-default"}`}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+export function RadioRow({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center gap-3 py-[1vh]"
+    >
+      <View
+        className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
+          selected ? "border-primary" : "border-stroke-subtle"
+        }`}
+      >
+        {selected && <View className="w-2.5 h-2.5 rounded-full bg-primary" />}
       </View>
+      <Text
+        className={`text-sm ${selected ? "text-primary font-medium" : "text-text-default"}`}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }

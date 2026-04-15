@@ -64,7 +64,9 @@ func InitApp(cfg *config.Config) (*App, error) {
 	openSearchRepos := tryInitOpenSearchRepositories(cfg)
 
 	roomsRepo := repository.NewRoomsRepository(repo.DB)
-	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM, roomsRepo)
+	guestsRepo := repository.NewGuestsRepository(repo.DB)
+	usersLookupRepo := repository.NewUsersRepository(repo.DB)
+	genkitInstance := aiflows.InitGenkit(context.Background(), &cfg.LLM, roomsRepo, guestsRepo, usersLookupRepo)
 	app := setupApp()
 	setupClerk(cfg)
 
@@ -205,9 +207,9 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Put("/:id", reqsHandler.UpdateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
-		r.Post("/cursor", reqsHandler.GetRequestByCursor)
 		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
 		r.Get("/room/:id", reqsHandler.GetRequestsByRoomID)
+		r.Post("/:id/assign", reqsHandler.AssignRequest)
 	})
 
 	// Hotel routes

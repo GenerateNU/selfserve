@@ -1,4 +1,5 @@
 import Feather from "@expo/vector-icons/Feather";
+import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -12,6 +13,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Colors } from "@/constants/theme";
+
 import type { RequestFeedItem } from "@shared/api/requests";
 
 type DetailRowProps = {
@@ -24,12 +27,12 @@ function DetailRow({ icon, label, value }: DetailRowProps) {
   return (
     <View className="flex-row items-center justify-between">
       <View className="flex-row items-center gap-1.5">
-        <Feather name={icon} size={14} color="#8b8b8b" />
-        <Text className="text-[15px] text-[#8b8b8b] tracking-tight">
+        <Feather name={icon} size={14} color={Colors.light.icon} />
+        <Text className="text-base text-text-subtle tracking-tight">
           {label}
         </Text>
       </View>
-      <Text className="text-[15px] text-text-default tracking-tight">
+      <Text className="text-base text-text-default tracking-tight">
         {value}
       </Text>
     </View>
@@ -68,9 +71,14 @@ const SNAP_DOWN_THRESHOLD = 80;
 type TaskDetailSheetProps = {
   task: RequestFeedItem | null;
   onClose: () => void;
+  onComplete?: (taskId: string) => void;
 };
 
-export function TaskDetailSheet({ task, onClose }: TaskDetailSheetProps) {
+export function TaskDetailSheet({
+  task,
+  onClose,
+  onComplete,
+}: TaskDetailSheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const isFullScreenRef = useRef(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -177,7 +185,7 @@ export function TaskDetailSheet({ task, onClose }: TaskDetailSheetProps) {
               right: 0,
               top: 0,
               height: SCREEN_HEIGHT,
-              backgroundColor: "white",
+              backgroundColor: Colors.light.white,
               borderTopLeftRadius: isFullScreen ? 0 : 24,
               borderTopRightRadius: isFullScreen ? 0 : 24,
               transform: [{ translateY }],
@@ -190,24 +198,36 @@ export function TaskDetailSheet({ task, onClose }: TaskDetailSheetProps) {
             <View style={{ paddingTop: insets.top }}>
               <View
                 {...handlePan.panHandlers}
-                className="flex-row items-center justify-between px-[22px] pt-3 pb-2 h-14"
+                className="flex-row items-center justify-between px-6 pt-3 pb-2 h-14"
               >
                 <Pressable
                   onPress={snapToPartial}
                   className="flex-row items-center gap-2.5 flex-1"
                   hitSlop={8}
                 >
-                  <Feather name="chevron-left" size={22} color="black" />
+                  <Feather
+                    name="chevron-left"
+                    size={22}
+                    color={Colors.light.text}
+                  />
                   <Text className="text-2xl font-bold text-black tracking-tight">
                     Tasks
                   </Text>
                 </Pressable>
                 <View className="flex-row gap-1">
-                  <View className="w-[34px] h-[34px] items-center justify-center rounded">
-                    <Feather name="search" size={18} color="black" />
+                  <View className="w-9 h-9 items-center justify-center rounded">
+                    <Feather
+                      name="search"
+                      size={18}
+                      color={Colors.light.text}
+                    />
                   </View>
-                  <View className="w-[34px] h-[34px] items-center justify-center rounded">
-                    <Feather name="sliders" size={18} color="black" />
+                  <View className="w-9 h-9 items-center justify-center rounded">
+                    <Feather
+                      name="sliders"
+                      size={18}
+                      color={Colors.light.text}
+                    />
                   </View>
                 </View>
               </View>
@@ -288,14 +308,22 @@ export function TaskDetailSheet({ task, onClose }: TaskDetailSheetProps) {
             ) : null}
 
             {/* Mark as Done */}
-            <Pressable
-              onPress={close}
-              className="bg-primary rounded items-center justify-center py-2.5 w-full"
-            >
-              <Text className="text-white text-[14px] leading-5">
-                Mark as Done
-              </Text>
-            </Pressable>
+            {task.status !== "completed" ? (
+              <Pressable
+                onPress={() => {
+                  Haptics.notificationAsync(
+                    Haptics.NotificationFeedbackType.Success,
+                  );
+                  onComplete?.(task.id);
+                  close();
+                }}
+                className="bg-primary rounded items-center justify-center py-2.5 w-full"
+              >
+                <Text className="text-white text-[14px] leading-5">
+                  Mark as Done
+                </Text>
+              </Pressable>
+            ) : null}
           </ScrollView>
         </Animated.View>
       </View>

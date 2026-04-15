@@ -6,6 +6,7 @@ type PageShellProps = {
     title: string;
     description: string;
   };
+  headerBorder?: boolean;
   drawer?: ReactNode;
   drawerOpen?: boolean;
   children: ReactNode;
@@ -15,6 +16,7 @@ type PageShellProps = {
 
 export function PageShell({
   header,
+  headerBorder = true,
   drawer,
   drawerOpen = false,
   children,
@@ -27,13 +29,16 @@ export function PageShell({
     <main className="relative flex h-screen w-full min-w-0 overflow-hidden">
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         {header ? (
-          <header className="shrink-0 bg-white border-b border-stroke-subtle px-6 py-4 flex flex-col gap-1.5">
-            <h1 className="text-2xl font-semibold text-text-default">
+          <header
+            className={cn(
+              "shrink-0 bg-white px-6 pt-4 pb-3 flex flex-col gap-1.5",
+              headerBorder && "border-b border-stroke-subtle",
+            )}
+          >
+            <h1 className="text-2xl font-bold tracking-tight text-text-default">
               {header.title}
             </h1>
-            <h2 className="text-sm font-medium text-text-subtle">
-              {header.description}
-            </h2>
+            <h2 className="text-sm text-text-subtle">{header.description}</h2>
           </header>
         ) : null}
 

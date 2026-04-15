@@ -9,7 +9,12 @@ import { TaskFilterSheet } from "@/components/tasks/task-filter-sheet";
 import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
 import { TAB, TabName } from "@/constants/tasks";
-import { useGetRequestsFeed, type RequestFeedItem } from "@shared/api/requests";
+import {
+  useCompleteTask,
+  useGetRequestsFeed,
+  type RequestFeedItem,
+  type RequestFeedSort,
+} from "@shared/api/requests";
 
 export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
@@ -17,13 +22,30 @@ export default function TasksScreen() {
     null,
   );
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [sort, setSort] = useState<RequestFeedSort>("priority");
+  const [priorities, setPriorities] = useState<string[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
+  const [floors, setFloors] = useState<number[]>([]);
   const { userId } = useAuth();
+  const { mutate: completeTask } = useCompleteTask();
 
-  const myTasksQuery = useGetRequestsFeed({ userId: userId ?? undefined });
+  const myTasksQuery = useGetRequestsFeed({
+    userId: userId ?? undefined,
+    sort,
+    priorities,
+    departments,
+    floors,
+  });
   const myTaskItems =
     myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
 
-  const unassignedQuery = useGetRequestsFeed({ unassigned: true });
+  const unassignedQuery = useGetRequestsFeed({
+    unassigned: true,
+    sort,
+    priorities,
+    departments,
+    floors,
+  });
   const unassignedItems =
     unassignedQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
 
@@ -38,7 +60,10 @@ export default function TasksScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg-surface" edges={["top"]}>
-      <TasksHeader onFilterPress={() => setFilterSheetOpen(true)} />
+      <TasksHeader
+        onFilterPress={() => setFilterSheetOpen(true)}
+        filterActive={filterSheetOpen}
+      />
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
       <View className="flex-1">
         {activeQuery.isLoading ? (
@@ -51,16 +76,30 @@ export default function TasksScreen() {
             onEndReached={handleEndReached}
             isLoadingMore={activeQuery.isFetchingNextPage}
             onTaskPress={setSelectedTask}
+            onComplete={
+              activeTab === TAB.MY_TASKS
+                ? (id: string) => completeTask(id)
+                : undefined
+            }
           />
         )}
       </View>
       <TaskDetailSheet
         task={selectedTask}
         onClose={() => setSelectedTask(null)}
+        onComplete={(id) => completeTask(id)}
       />
       <TaskFilterSheet
         visible={filterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
+        sort={sort}
+        onSortChange={setSort}
+        priorities={priorities}
+        onPrioritiesChange={setPriorities}
+        departments={departments}
+        onDepartmentsChange={setDepartments}
+        floors={floors}
+        onFloorsChange={setFloors}
       />
     </SafeAreaView>
   );
