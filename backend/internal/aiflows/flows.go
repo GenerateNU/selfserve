@@ -8,9 +8,10 @@ import (
 	"github.com/firebase/genkit/go/core"
 	"github.com/firebase/genkit/go/genkit"
 	"github.com/generate/selfserve/internal/aiflows/prompts"
+	"google.golang.org/genai"
 )
 
-func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *ai.GenerationCommonConfig, roomLookupRepo RoomLookupRepository) *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}] {
+func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *genai.GenerateContentConfig, roomLookupRepo RoomLookupRepository) *core.Flow[GenerateRequestInput, GenerateRequestOutput, struct{}] {
 	generateRequestFlow := genkit.DefineFlow(genkitInstance, "generateRequestFlow",
 		func(ctx context.Context, input GenerateRequestInput) (GenerateRequestOutput, error) {
 			prompt := fmt.Sprintf(prompts.GenerateRequestPrompt, input.RawText)
