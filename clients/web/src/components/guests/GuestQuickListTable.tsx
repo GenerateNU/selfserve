@@ -1,4 +1,4 @@
-import { Accessibility, BriefcaseMedical, Flag, Utensils } from "lucide-react";
+import { Accessibility, BriefcaseMedical, Utensils } from "lucide-react";
 import type { GuestWithBooking } from "@shared";
 
 type GuestQuickListTableProps = {
@@ -73,17 +73,9 @@ export function GuestQuickListTable({
                 )}
               </div>
 
-              <div className="flex items-center gap-1.5">
-                {guest.has_urgent && (
-                  <Flag
-                    className="size-3.5 text-high-priority"
-                    strokeWidth={2}
-                  />
-                )}
-                <span className="text-sm text-primary">
-                  {guest.request_count ?? 0}
-                </span>
-              </div>
+              <span className="text-sm text-primary">
+                {guest.request_count ?? 0}
+              </span>
             </button>
           );
         })}

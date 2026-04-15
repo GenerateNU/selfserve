@@ -13,7 +13,7 @@ export function ActiveBookingCard({ stay, compact }: ActiveBookingCardProps) {
     <div
       className={cn(
         "flex flex-col gap-2 rounded-lg border border-primary bg-bg-selected p-4",
-        compact && "w-[231px] shrink-0",
+        compact && "flex-1 min-w-0",
       )}
     >
       <div className="flex items-start justify-between">
