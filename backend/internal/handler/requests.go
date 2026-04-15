@@ -208,42 +208,6 @@ func (r *RequestsHandler) GetRequests(c *fiber.Ctx) error {
 	return c.JSON(dev)
 }
 
-// GetUnassignedRequests godoc
-// @Summary      Get unassigned requests
-// @Description  Returns a paginated list of requests for the hotel that have no assigned user, ordered by newest first
-// @Tags         requests
-// @Produce      json
-// @Param        X-Hotel-ID  header  string  true   "Hotel ID (UUID)"
-// @Param        cursor      query   string  false  "Pagination cursor: created_at_unix_nano|id"
-// @Param        limit       query   int     false  "Page size (default 20, max 100)"
-// @Success      200  {object}  utils.CursorPage[models.GuestRequest]
-// @Failure      400  {object}  errs.HTTPError
-// @Failure      500  {object}  errs.HTTPError
-// @Security     BearerAuth
-// @Router       /requests/unassigned [get]
-func (r *RequestsHandler) GetUnassignedRequests(c *fiber.Ctx) error {
-	hotelID, err := hotelIDFromHeader(c)
-	if err != nil {
-		return err
-	}
-
-	cursorID, cursorCreatedAt, err := parseCreatedAtCursor(c.Query("cursor"))
-	if err != nil {
-		return errs.BadRequest("invalid cursor")
-	}
-
-	resolvedLimit := utils.ResolveLimit(c.QueryInt("limit"))
-	requests, err := r.RequestRepository.FindUnassignedRequests(c.Context(), hotelID, cursorID, cursorCreatedAt, resolvedLimit+1)
-	if err != nil {
-		slog.Error("failed to fetch unassigned requests", "err", err, "hotelID", hotelID)
-		return errs.InternalServerError()
-	}
-
-	page := utils.BuildCursorPage(requests, resolvedLimit, buildCreatedAtCursor)
-
-	return c.JSON(page)
-}
-
 func validateGenerateRequest(input *models.GenerateRequestInput) error {
 	errors := make(map[string]string)
 
@@ -531,28 +495,6 @@ func buildFeedCursor(req *models.GuestRequest) string {
 	return strconv.Itoa(priorityRankOf(req.Priority)) + "|" +
 		strconv.FormatInt(req.CreatedAt.UnixNano(), 10) + "|" +
 		req.ID
-}
-
-// parseCreatedAtCursor decodes a cursor: "created_at|id".
-// Returns zero values and nil error for an empty cursor (first page).
-func parseCreatedAtCursor(cursor string) (id string, createdAt time.Time, err error) {
-	if cursor == "" {
-		return "", time.Time{}, nil
-	}
-	parts := strings.SplitN(cursor, "|", 2)
-	if len(parts) != 2 {
-		return "", time.Time{}, errors.New("invalid cursor")
-	}
-	nano, err := strconv.ParseInt(parts[0], 10, 64)
-	if err != nil {
-		return "", time.Time{}, errors.New("invalid cursor")
-	}
-	return parts[1], time.Unix(0, nano).UTC(), nil
-}
-
-// buildCreatedAtCursor encodes sort fields into a single cursor.
-func buildCreatedAtCursor(req *models.GuestRequest) string {
-	return strconv.FormatInt(req.CreatedAt.UnixNano(), 10) + "|" + req.ID
 }
 
 func priorityRankOf(priority string) int {
