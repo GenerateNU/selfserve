@@ -1,7 +1,6 @@
 import Feather from "@expo/vector-icons/Feather";
 import { Text, View } from "react-native";
-
-type Priority = "high" | "medium" | "low";
+import type { RequestPriority } from "@shared";
 
 type PriorityConfig = {
   containerClass: string;
@@ -10,7 +9,7 @@ type PriorityConfig = {
   iconColor: string;
 };
 
-const PRIORITY_CONFIG: Record<Priority, PriorityConfig> = {
+const PRIORITY_CONFIG: Record<RequestPriority, PriorityConfig> = {
   high: {
     containerClass: "bg-priority-high-bg",
     textClass: "text-priority-high",
@@ -38,7 +37,8 @@ type PriorityTagProps = {
 
 export function PriorityTag({ priority, dimmed = false }: PriorityTagProps) {
   const config =
-    PRIORITY_CONFIG[priority.toLowerCase() as Priority] ?? PRIORITY_CONFIG.low;
+    PRIORITY_CONFIG[priority.toLowerCase() as RequestPriority] ??
+    PRIORITY_CONFIG.low;
 
   return (
     <View
