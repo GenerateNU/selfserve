@@ -12,6 +12,7 @@ import (
 )
 
 const hotelIDHeader = "X-Hotel-ID"
+const roleAdmin = "admin"
 
 func validUUID(s string) bool {
 	_, err := uuid.Parse(s)
@@ -39,7 +40,7 @@ func AdminMiddleware(usersRepo storage.UsersRepository) fiber.Handler {
 		if err != nil {
 			return errs.Forbidden()
 		}
-		if user.Role == nil || *user.Role != "admin" {
+		if user.Role == nil || *user.Role != roleAdmin {
 			return errs.Forbidden()
 		}
 		return c.Next()
