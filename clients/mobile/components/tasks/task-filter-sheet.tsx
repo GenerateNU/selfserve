@@ -26,6 +26,8 @@ type TaskFilterSheetProps = {
   onSortChange: (sort: RequestFeedSort) => void;
   priorities: string[];
   onPrioritiesChange: (priorities: string[]) => void;
+  departments: string[];
+  onDepartmentsChange: (departments: string[]) => void;
 };
 
 export function TaskFilterSheet({
@@ -35,6 +37,8 @@ export function TaskFilterSheet({
   onSortChange,
   priorities,
   onPrioritiesChange,
+  departments,
+  onDepartmentsChange,
 }: TaskFilterSheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -121,7 +125,10 @@ export function TaskFilterSheet({
               priorities={priorities}
               onPrioritiesChange={onPrioritiesChange}
             />
-            <DepartmentSection />
+            <DepartmentSection
+              departments={departments}
+              onDepartmentsChange={onDepartmentsChange}
+            />
             <LocationSection />
           </ScrollView>
 
