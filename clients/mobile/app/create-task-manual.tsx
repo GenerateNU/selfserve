@@ -22,6 +22,7 @@ import {
 } from "lucide-react-native";
 import { useAPIClient } from "@shared/api/client";
 import { getConfig } from "@shared/api/config";
+import { REQUESTS_FEED_QUERY_KEY } from "@shared/api/requests";
 import { useGetRoomsFloorsHook } from "@shared/api/generated/endpoints/rooms/rooms";
 import type { MakeRequest, MakeRequestPriority, Department } from "@shared";
 import { PriorityPicker } from "@/components/tasks/priority-picker";
@@ -96,8 +97,7 @@ export default function CreateTaskManualScreen() {
   const saveMutation = useMutation({
     mutationFn: (task: MakeRequest) => api.post<unknown>("/request", task),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/request/cursor"] });
-      queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
+      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
       router.back();
     },
   });

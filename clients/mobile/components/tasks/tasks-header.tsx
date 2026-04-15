@@ -1,7 +1,12 @@
 import Feather from "@expo/vector-icons/Feather";
 import { Pressable, Text, View } from "react-native";
 
-export function TasksHeader() {
+type TasksHeaderProps = {
+  onFilterPress?: () => void;
+  filterActive?: boolean;
+};
+
+export function TasksHeader({ onFilterPress, filterActive }: TasksHeaderProps) {
   return (
     <View className="flex-row justify-between items-center px-[22px] pt-3 pb-2">
       <Text className="text-2xl font-medium tracking-tight text-black">
@@ -15,10 +20,15 @@ export function TasksHeader() {
           <Feather name="search" size={19} color="#000" />
         </Pressable>
         <Pressable
-          onPress={() => {}}
+          onPress={onFilterPress}
           className="w-[34px] h-[34px] items-center justify-center rounded"
+          style={filterActive ? { backgroundColor: "#edf5f1" } : undefined}
         >
-          <Feather name="sliders" size={19} color="#000" />
+          <Feather
+            name="sliders"
+            size={19}
+            color={filterActive ? "#124425" : "#000"}
+          />
         </Pressable>
       </View>
     </View>

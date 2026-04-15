@@ -205,7 +205,6 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Post("/generate", reqsHandler.GenerateRequest)
 		r.Put("/:id", reqsHandler.UpdateRequest)
 		r.Get("/:id", reqsHandler.GetRequest)
-		r.Post("/cursor", reqsHandler.GetRequestByCursor)
 		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
 		r.Get("/room/:id", reqsHandler.GetRequestsByRoomID)
 	})

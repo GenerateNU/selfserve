@@ -132,52 +132,6 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 	return &request, nil
 }
 
-func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursorTime time.Time, cursorID string, status string, hotelID string, pageSize int) ([]*models.Request, time.Time, string, error) {
-	rows, err := r.db.Query(ctx, `
-		WITH latest AS (
-			SELECT DISTINCT ON (id) *
-			FROM requests
-			WHERE status = $3 AND hotel_id = $4
-			ORDER BY id, request_version DESC
-		)
-		SELECT * FROM latest
-		WHERE (request_version, id) > ($1, $2)
-		ORDER BY request_version ASC, id ASC
-		LIMIT $5
-	`, cursorTime, cursorID, status, hotelID, pageSize+1)
-
-	if err != nil {
-		return nil, time.Time{}, "", err
-	}
-
-	defer rows.Close()
-
-	requests := make([]*models.Request, 0)
-	for rows.Next() {
-		var request models.Request
-		err := rows.Scan(&request.ID, &request.HotelID, &request.GuestID,
-			&request.ReservationID, &request.Name, &request.Description,
-			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
-			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-			&request.CreatedAt, &request.UserID, &request.RequestVersion)
-		if err != nil {
-			return nil, time.Time{}, "", err
-		}
-		requests = append(requests, &request)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, time.Time{}, "", errs.ErrNotFoundInDB
-	}
-
-	if len(requests) == pageSize+1 {
-		last := requests[pageSize-1]
-		return requests[:pageSize], last.RequestVersion, last.ID, nil
-	}
-
-	return requests, time.Time{}, "", nil
-}
-
 func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
 	rows, err := r.db.Query(ctx, `SELECT * FROM requests ORDER BY created_at DESC`)
 	if err != nil {
@@ -212,7 +166,7 @@ func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID,
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
 				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version
+				r.request_version, r.department, r.user_id, rm.floor
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.guest_id = $1
@@ -238,7 +192,7 @@ func (r *RequestsRepository) FindMyRequestsByRoomID(ctx context.Context, roomID,
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
 				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version
+				r.request_version, r.department, r.user_id, rm.floor
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.room_id = $1
@@ -265,7 +219,7 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomID(ctx context.Context,
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
 				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version
+				r.request_version, r.department, r.user_id, rm.floor
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.room_id = $1
@@ -286,27 +240,68 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomID(ctx context.Context,
 	return scanGuestRequests(rows)
 }
 
-func (r *RequestsRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
-	rows, err := r.db.Query(ctx, `
+func (r *RequestsRepository) FindRequestsPaginated(
+	ctx context.Context,
+	hotelID, userID string,
+	unassigned bool,
+	status string,
+	sort models.RequestFeedSort,
+	cursorID string,
+	cursorCreatedAt time.Time,
+	cursorPriorityRank int,
+	limit int,
+) ([]*models.GuestRequest, error) {
+	const baseFilter = `
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
 				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version
+				r.request_version, r.department, r.user_id, rm.floor,
+				CASE r.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END AS priority_rank
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.hotel_id = $1
+			  AND ($4::text = '' OR r.status = $4)
 			  AND (
 			    ($3::bool AND r.user_id IS NULL)
 			    OR (NOT $3::bool AND ($2::text = '' OR r.user_id = $2))
 			  )
 			ORDER BY r.id ASC, r.request_version DESC
 		)
-		SELECT * FROM latest
-		WHERE ($4::text = '' OR (id::text, request_version) > ($4, $5))
-		ORDER BY id ASC
-		LIMIT $6
-	`, hotelID, userID, unassigned, cursorID, cursorVersion, limit)
+		SELECT id, name, priority, status, description, notes, room_number,
+		       request_type, request_category, created_at, request_version,
+		       department, user_id, floor
+		FROM latest
+	`
+
+	var (
+		rows pgx.Rows
+		err  error
+	)
+
+	switch sort {
+	case models.SortByNewest:
+		rows, err = r.db.Query(ctx, baseFilter+`
+			WHERE ($5::text = '' OR (created_at, id::text) < ($6, $5))
+			ORDER BY created_at DESC, id DESC
+			LIMIT $7
+		`, hotelID, userID, unassigned, status, cursorID, cursorCreatedAt, limit)
+
+	case models.SortByOldest:
+		rows, err = r.db.Query(ctx, baseFilter+`
+			WHERE ($5::text = '' OR (created_at, id::text) > ($6, $5))
+			ORDER BY created_at ASC, id ASC
+			LIMIT $7
+		`, hotelID, userID, unassigned, status, cursorID, cursorCreatedAt, limit)
+
+	default: // SortByPriority
+		rows, err = r.db.Query(ctx, baseFilter+`
+			WHERE ($5::text = '' OR (priority_rank, id::text) > ($6::int, $5))
+			ORDER BY priority_rank ASC, id ASC
+			LIMIT $7
+		`, hotelID, userID, unassigned, status, cursorID, cursorPriorityRank, limit)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +318,7 @@ func scanGuestRequests(rows pgx.Rows) ([]*models.GuestRequest, error) {
 			&req.ID, &req.Name, &req.Priority, &req.Status,
 			&req.Description, &req.Notes, &req.RoomNumber,
 			&req.RequestType, &req.RequestCategory, &req.CreatedAt,
-			&req.RequestVersion,
+			&req.RequestVersion, &req.Department, &req.UserID, &req.Floor,
 		); err != nil {
 			return nil, err
 		}

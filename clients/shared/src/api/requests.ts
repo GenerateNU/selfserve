@@ -36,8 +36,11 @@ export type RequestFeedItem = {
   description?: string | null;
   notes?: string | null;
   room_number?: number | null;
+  floor?: number | null;
   request_type: string;
   request_category?: string | null;
+  department?: string | null;
+  user_id?: string | null;
   created_at: string;
   request_version: string;
 };
@@ -48,9 +51,13 @@ export type RequestFeedPage = {
   has_more: boolean;
 };
 
+export type RequestFeedSort = "priority" | "newest" | "oldest";
+
 export type RequestFeedParams = {
   userId?: string;
   unassigned?: boolean;
+  sort?: RequestFeedSort;
+  status?: string;
 };
 
 export const useCompleteTask = () => {
@@ -103,6 +110,8 @@ export const useGetRequestsFeed = (params: RequestFeedParams) => {
       if (pageParam) query.cursor = pageParam;
       if (params.userId) query.user_id = params.userId;
       if (params.unassigned) query.unassigned = "true";
+      if (params.sort) query.sort = params.sort;
+      if (params.status) query.status = params.status;
       return api.get<RequestFeedPage>("/requests", query);
     },
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,

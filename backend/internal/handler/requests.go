@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,8 +18,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
-
-const defaultPageSize = 20
 
 const msgTaskAssigned = "New task assigned to you"
 
@@ -159,58 +158,6 @@ func validateGenerateRequest(input *models.GenerateRequestInput) error {
 	}
 
 	return nil
-}
-
-// GetRequestByCursor godoc
-// @Summary      Get requests by cursor
-// @Description  Gets 20 requests starting after the cursor position, filtered by status
-// @Tags         requests
-// @Accept       json
-// @Produce      json
-// @Param        X-Hotel-ID  header  string                          true   "Hotel UUID"
-// @Param        body        body    models.GetRequestsByStatusInput  false  "Cursor position and status filter"
-// @Success      200     {object}  map[string]interface{}  "Returns requests array, next_cursor_time, and next_cursor_id"
-// @Failure      400     {object}  map[string]string
-// @Failure      500     {object}  map[string]string
-// @Security     BearerAuth
-// @Router       /request/cursor [post]
-func (r *RequestsHandler) GetRequestByCursor(c *fiber.Ctx) error {
-	var body models.GetRequestsByStatusInput
-	if err := c.BodyParser(&body); err != nil {
-		return errs.InvalidJSON()
-	}
-	body.HotelID = c.Get("X-Hotel-ID")
-	if err := httpx.Validate(&body); err != nil {
-		return err
-	}
-
-	var cursorTime time.Time
-	if body.CursorTime != nil {
-		cursorTime = time.UnixMilli(*body.CursorTime).UTC()
-	} else {
-		cursorTime = time.UnixMilli(0).UTC()
-	}
-
-	cursorID := "00000000-0000-0000-0000-000000000000"
-	if body.CursorID != nil {
-		cursorID = *body.CursorID
-	}
-
-	requests, nextCursorTime, nextCursorID, err := r.RequestRepository.FindRequestsByStatusPaginated(c.Context(), cursorTime, cursorID, body.Status, body.HotelID, defaultPageSize)
-	if err != nil {
-		if errors.Is(err, errs.ErrNotFoundInDB) {
-			return errs.NotFound("requests", "cursor", body.CursorTime)
-		}
-		return c.SendStatus(fiber.ErrInternalServerError.Code)
-	}
-
-	resp := fiber.Map{"requests": requests}
-	if !nextCursorTime.IsZero() {
-		resp["next_cursor_time"] = nextCursorTime.UnixMilli()
-		resp["next_cursor_id"] = nextCursorID
-	}
-
-	return c.JSON(resp)
 }
 
 // GenerateRequest godoc
@@ -386,6 +333,7 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 // @Param        limit       query   int     false  "Page size (default 20, max 100)"
 // @Param        user_id     query   string  false  "Filter by assigned user ID"
 // @Param        unassigned  query   bool    false  "If true, return only requests with no assigned user"
+// @Param        sort        query   string  false  "Sort order: priority (default), newest, oldest"
 // @Success      200  {object}  utils.CursorPage[models.GuestRequest]
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
@@ -401,23 +349,70 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	limit := c.QueryInt("limit")
 	userID := c.Query("user_id")
 	unassigned := c.QueryBool("unassigned")
+	status := c.Query("status")
 
-	cursorID, cursorVersion, err := parseRequestCursor(cursor)
+	feedSort := models.RequestFeedSort(c.Query("sort"))
+	if feedSort == "" {
+		feedSort = models.SortByPriority
+	}
+	if !feedSort.IsValid() {
+		return errs.BadRequest("invalid sort: must be priority, newest, or oldest")
+	}
+
+	cursorID, cursorCreatedAt, cursorPriorityRank, err := parseFeedCursor(cursor)
 	if err != nil {
 		return errs.BadRequest("invalid cursor")
 	}
 
 	resolvedLimit := utils.ResolveLimit(limit)
-	requests, err := r.RequestRepository.FindRequestsPaginated(c.Context(), hotelID, userID, unassigned, cursorID, cursorVersion, resolvedLimit+1)
+	requests, err := r.RequestRepository.FindRequestsPaginated(
+		c.Context(), hotelID, userID, unassigned, status,
+		feedSort, cursorID, cursorCreatedAt, cursorPriorityRank,
+		resolvedLimit+1,
+	)
 	if err != nil {
 		return errs.InternalServerError()
 	}
 
-	page := utils.BuildCursorPage(requests, resolvedLimit, func(req *models.GuestRequest) string {
-		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
-	})
+	page := utils.BuildCursorPage(requests, resolvedLimit, buildFeedCursor)
 
 	return c.JSON(page)
+}
+
+// parseFeedCursor decodes a universal cursor: "priority_rank|created_at_nano|id".
+// Returns zero values and nil error for an empty cursor (first page).
+func parseFeedCursor(cursor string) (id string, createdAt time.Time, priorityRank int, err error) {
+	if cursor == "" {
+		return "", time.Time{}, 0, nil
+	}
+	parts := strings.SplitN(cursor, "|", 3)
+	if len(parts) != 3 {
+		return "", time.Time{}, 0, errors.New("invalid cursor")
+	}
+	rank, rankErr := strconv.Atoi(parts[0])
+	nano, nanoErr := strconv.ParseInt(parts[1], 10, 64)
+	if rankErr != nil || nanoErr != nil {
+		return "", time.Time{}, 0, errors.New("invalid cursor")
+	}
+	return parts[2], time.Unix(0, nano).UTC(), rank, nil
+}
+
+// buildFeedCursor encodes all sort fields into a single universal cursor.
+func buildFeedCursor(req *models.GuestRequest) string {
+	return strconv.Itoa(priorityRankOf(req.Priority)) + "|" +
+		strconv.FormatInt(req.CreatedAt.UnixNano(), 10) + "|" +
+		req.ID
+}
+
+func priorityRankOf(priority string) int {
+	switch priority {
+	case "high":
+		return 1
+	case "medium":
+		return 2
+	default:
+		return 3
+	}
 }
 
 // parseRequestCursor splits a "id|request_version" cursor string.
