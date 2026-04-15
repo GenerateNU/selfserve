@@ -144,6 +144,20 @@ func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id s
 	return &rb, nil
 }
 
+func (r *RoomsRepository) InsertRoom(ctx context.Context, hotelID string, roomNumber, floor int, suiteType, roomStatus string, features []string) (*models.Room, error) {
+	var room models.Room
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO rooms (hotel_id, room_number, floor, suite_type, room_status, features)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, room_number, floor, suite_type, room_status
+	`, hotelID, roomNumber, floor, suiteType, roomStatus, features).
+		Scan(&room.ID, &room.RoomNumber, &room.Floor, &room.SuiteType, &room.RoomStatus)
+	if err != nil {
+		return nil, err
+	}
+	return &room, nil
+}
+
 func (r *RoomsRepository) FindRoomByNumber(ctx context.Context, hotelID string, roomReference string) (*models.Room, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, room_number, floor, suite_type, room_status
