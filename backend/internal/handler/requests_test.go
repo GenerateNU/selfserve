@@ -61,10 +61,10 @@ func (m *mockRequestRepository) FindRequestsPaginated(ctx context.Context, hotel
 }
 
 type mockLLMService struct {
-	runGenerateRequestFunc func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error)
+	runGenerateRequestFunc func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error)
 }
 
-func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+func (m *mockLLMService) RunGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
 	return m.runGenerateRequestFunc(ctx, input)
 }
 
@@ -566,13 +566,15 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		description := "Guest requested extra towels for their room"
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				return aiflows.GenerateRequestOutput{
-					Name:        "Extra Towels Request",
-					Description: &description,
-					RequestType: "one-time",
-					Status:      "pending",
-					Priority:    "high",
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
+				return aiflows.EnrichedGenerateRequestOutput{
+					GenerateRequestOutput: aiflows.GenerateRequestOutput{
+						Name:        "Extra Towels Request",
+						Description: &description,
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "high",
+					},
 				}, nil
 			},
 		}
@@ -604,17 +606,19 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		estimatedTime := 30
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				return aiflows.GenerateRequestOutput{
-					Name:                    "Room Cleaning",
-					Description:             &description,
-					RequestCategory:         &category,
-					RequestType:             "one-time",
-					Department:              &department,
-					Status:                  "pending",
-					Priority:                "medium",
-					EstimatedCompletionTime: &estimatedTime,
-					Notes:                   &notes,
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
+				return aiflows.EnrichedGenerateRequestOutput{
+					GenerateRequestOutput: aiflows.GenerateRequestOutput{
+						Name:                    "Room Cleaning",
+						Description:             &description,
+						RequestCategory:         &category,
+						RequestType:             "one-time",
+						Department:              &department,
+						Status:                  "pending",
+						Priority:                "medium",
+						EstimatedCompletionTime: &estimatedTime,
+						Notes:                   &notes,
+					},
 				}, nil
 			},
 		}
@@ -696,8 +700,8 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		repoMock := &mockRequestRepository{}
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				return aiflows.GenerateRequestOutput{}, errors.New("LLM service unavailable")
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
+				return aiflows.EnrichedGenerateRequestOutput{}, errors.New("LLM service unavailable")
 			},
 		}
 
@@ -717,12 +721,14 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		t.Parallel()
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				return aiflows.GenerateRequestOutput{
-					Name:        "Towel Request",
-					RequestType: "one-time",
-					Status:      "pending",
-					Priority:    "urgent",
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
+				return aiflows.EnrichedGenerateRequestOutput{
+					GenerateRequestOutput: aiflows.GenerateRequestOutput{
+						Name:        "Towel Request",
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "urgent",
+					},
 				}, nil
 			},
 		}
@@ -745,13 +751,15 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		var capturedInput aiflows.GenerateRequestInput
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
 				capturedInput = input
-				return aiflows.GenerateRequestOutput{
-					Name:        "Test Request",
-					RequestType: "one-time",
-					Status:      "pending",
-					Priority:    "medium",
+				return aiflows.EnrichedGenerateRequestOutput{
+					GenerateRequestOutput: aiflows.GenerateRequestOutput{
+						Name:        "Test Request",
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "medium",
+					},
 				}, nil
 			},
 		}
@@ -778,12 +786,14 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		t.Parallel()
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				return aiflows.GenerateRequestOutput{
-					Name:        "Test Request",
-					RequestType: "one-time",
-					Status:      "pending",
-					Priority:    "medium",
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
+				return aiflows.EnrichedGenerateRequestOutput{
+					GenerateRequestOutput: aiflows.GenerateRequestOutput{
+						Name:        "Test Request",
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "medium",
+					},
 				}, nil
 			},
 		}
@@ -806,13 +816,15 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		t.Parallel()
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				return aiflows.GenerateRequestOutput{
-					Name:        "Test Request",
-					RequestType: "one-time",
-					Status:      "pending",
-					Priority:    "medium",
-					Notes:       nil,
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
+				return aiflows.EnrichedGenerateRequestOutput{
+					GenerateRequestOutput: aiflows.GenerateRequestOutput{
+						Name:        "Test Request",
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "medium",
+						Notes:       nil,
+					},
 				}, nil
 			},
 		}
@@ -837,15 +849,17 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		warningMessage := "Room 301 could not be resolved for this hotel."
 
 		llmMock := &mockLLMService{
-			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
-				return aiflows.GenerateRequestOutput{
-					Name:        "Soda Delivery",
-					RequestType: "one-time",
-					Status:      "pending",
-					Priority:    "medium",
-					Warning: &aiflows.GenerateRequestWarning{
-						Code:    "room_not_found",
-						Message: warningMessage,
+			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
+				return aiflows.EnrichedGenerateRequestOutput{
+					GenerateRequestOutput: aiflows.GenerateRequestOutput{
+						Name:        "Soda Delivery",
+						RequestType: "one-time",
+						Status:      "pending",
+						Priority:    "medium",
+						Warning: &aiflows.GenerateRequestWarning{
+							Code:    "room_not_found",
+							Message: warningMessage,
+						},
 					},
 				}, nil
 			},

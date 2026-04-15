@@ -50,22 +50,13 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
       });
     },
     onSuccess: (result) => {
-      if (!result.request) {
-        window.alert("The server did not return a generated request.");
-        return;
-      }
+      if (!result.request) return;
       onRequestGenerated(result.request);
-      if (result.warning) {
-        window.alert(result.warning.message);
-      }
       handleChange("");
       queryClient.invalidateQueries({ queryKey: ["requests", "kanban"] });
     },
     onError: (error) => {
       console.error("[GlobalTaskInput] onError", error);
-      if (error instanceof Error) {
-        window.alert(error.message);
-      }
     },
   });
 
