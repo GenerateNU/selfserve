@@ -1,62 +1,31 @@
 import { View } from "react-native";
 
-import { CheckboxItem, SectionHeader } from "./filter-section-header";
+import { CheckboxRow, Section } from "./filter-section-header";
 
-enum Department {
-  FoodAndBeverage = "Food & Beverage",
-  FrontOffice = "Front Office",
-  Housekeeping = "Housekeeping",
-  Maintenance = "Maintenance",
-  Management = "Management",
-  Security = "Security",
-}
-
-const DEPT_LEFT = [
-  Department.FoodAndBeverage,
-  Department.FrontOffice,
-  Department.Housekeeping,
+const DEPARTMENTS = [
+  "Food & Beverage",
+  "Front Office",
+  "Housekeeping",
+  "Maintenance",
+  "Management",
+  "Security",
 ];
-const DEPT_RIGHT = [
-  Department.Maintenance,
-  Department.Management,
-  Department.Security,
-];
-const DEPT_CHECKED = new Set([
-  Department.FoodAndBeverage,
-  Department.FrontOffice,
-]);
 
-type DepartmentSectionProps = {
-  expanded: boolean;
-  onToggle: () => void;
-};
+const DEFAULT_CHECKED = new Set(["Food & Beverage", "Front Office"]);
 
-export function DepartmentSection({
-  expanded,
-  onToggle,
-}: DepartmentSectionProps) {
+export function DepartmentSection() {
   return (
-    <View className="gap-2">
-      <SectionHeader
-        label="Department"
-        expanded={expanded}
-        onToggle={onToggle}
-        icon="home"
-      />
-      {expanded && (
-        <View className="flex-row justify-between px-1">
-          <View className="gap-1">
-            {DEPT_LEFT.map((d) => (
-              <CheckboxItem key={d} label={d} checked={DEPT_CHECKED.has(d)} />
-            ))}
-          </View>
-          <View className="gap-1">
-            {DEPT_RIGHT.map((d) => (
-              <CheckboxItem key={d} label={d} checked={DEPT_CHECKED.has(d)} />
-            ))}
-          </View>
-        </View>
-      )}
-    </View>
+    <Section title="Department">
+      <View className="flex-row flex-wrap gap-x-[8vw]">
+        {DEPARTMENTS.map((dept) => (
+          <CheckboxRow
+            key={dept}
+            label={dept}
+            selected={DEFAULT_CHECKED.has(dept)}
+            onPress={() => {}}
+          />
+        ))}
+      </View>
+    </Section>
   );
 }
