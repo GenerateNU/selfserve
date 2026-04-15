@@ -25,6 +25,7 @@ export default function TasksScreen() {
   const [sort, setSort] = useState<RequestFeedSort>("priority");
   const [priorities, setPriorities] = useState<string[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
+  const [floors, setFloors] = useState<number[]>([]);
   const { userId } = useAuth();
   const { mutate: completeTask } = useCompleteTask();
 
@@ -33,6 +34,7 @@ export default function TasksScreen() {
     sort,
     priorities,
     departments,
+    floors,
   });
   const myTaskItems =
     myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
@@ -42,6 +44,7 @@ export default function TasksScreen() {
     sort,
     priorities,
     departments,
+    floors,
   });
   const unassignedItems =
     unassignedQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
@@ -95,6 +98,8 @@ export default function TasksScreen() {
         onPrioritiesChange={setPriorities}
         departments={departments}
         onDepartmentsChange={setDepartments}
+        floors={floors}
+        onFloorsChange={setFloors}
       />
     </SafeAreaView>
   );
