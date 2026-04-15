@@ -2,6 +2,22 @@ package models
 
 import "time"
 
+type RequestFeedSort string
+
+const (
+	SortByPriority RequestFeedSort = "priority"
+	SortByNewest   RequestFeedSort = "newest"
+	SortByOldest   RequestFeedSort = "oldest"
+)
+
+func (s RequestFeedSort) IsValid() bool {
+	switch s {
+	case SortByPriority, SortByNewest, SortByOldest:
+		return true
+	}
+	return false
+}
+
 type RequestStatus string
 
 const (
@@ -57,13 +73,6 @@ type MakeRequest struct {
 	Notes                   *string    `json:"notes" example:"No special requests"`
 } //@name MakeRequest
 
-type GetRequestsByStatusInput struct {
-	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank"`
-	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'assigned' 'in progress' 'completed'"`
-	CursorTime *int64  `json:"cursor_time"`
-	CursorID   *string `json:"cursor_id"`
-} //@name GetRequestsByStatusInput
-
 type GenerateRequestInput struct {
 	RawText string `json:"raw_text" example:"Guest in room 504 needs extra towels urgently"`
 	HotelID string `json:"hotel_id" validate:"notblank,startswith=org_" example:"org_521e8400-e458-41d4-a716-446655440000"`
@@ -116,8 +125,11 @@ type GuestRequest struct {
 	Description     *string   `json:"description,omitempty"`
 	Notes           *string   `json:"notes,omitempty"`
 	RoomNumber      *int      `json:"room_number,omitempty"`
+	Floor           *int      `json:"floor,omitempty"`
 	RequestType     string    `json:"request_type"`
 	RequestCategory *string   `json:"request_category,omitempty"`
+	Department      *string   `json:"department,omitempty"`
+	UserID          *string   `json:"user_id,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
 	RequestVersion  time.Time `json:"request_version"`
 } //@name GuestRequest

@@ -1,11 +1,12 @@
 import Feather from "@expo/vector-icons/Feather";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { PriorityTag } from "@/components/tasks/priority-tag";
 import type { RequestFeedItem } from "@shared/api/requests";
 
 type TaskRowProps = {
   task: RequestFeedItem;
+  onPress?: (task: RequestFeedItem) => void;
 };
 
 function formatTime(iso: string): string {
@@ -27,11 +28,14 @@ function formatLocation(roomNumber?: number | null): string {
   return roomNumber != null ? `Room ${roomNumber}` : "—";
 }
 
-export function TaskRow({ task }: TaskRowProps) {
+export function TaskRow({ task, onPress }: TaskRowProps) {
   const isCompleted = task.status === "completed";
 
   return (
-    <View className="bg-bg-surface border-b border-stroke-subtle px-6 py-5 flex-row items-start justify-between gap-3">
+    <Pressable
+      onPress={() => onPress?.(task)}
+      className="bg-bg-surface border-b border-stroke-subtle px-6 py-5 flex-row items-start justify-between gap-3"
+    >
       {/* Left content */}
       <View className="flex-1 gap-2">
         {/* Tags row */}
@@ -122,6 +126,6 @@ export function TaskRow({ task }: TaskRowProps) {
           style={{ opacity: 0.5 }}
         />
       )}
-    </View>
+    </Pressable>
   );
 }

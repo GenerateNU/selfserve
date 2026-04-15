@@ -1,4 +1,4 @@
-import { ArrowDownUp, LayoutGrid, Plus, Search, Settings } from "lucide-react";
+import { ArrowDownUp, LayoutGrid, Search, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type HomeToolbarProps = {
@@ -17,7 +17,7 @@ export function HomeToolbar({ className, onCreateRequest }: HomeToolbarProps) {
             <button
               key={tab}
               type="button"
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
                 i === 0
                   ? "text-text-default border-b-2 border-text-default"
                   : "text-text-subtle hover:text-text-default"
@@ -50,10 +50,9 @@ export function HomeToolbar({ className, onCreateRequest }: HomeToolbarProps) {
           <button
             type="button"
             onClick={onCreateRequest}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
+            className="rounded bg-primary px-6 py-2.5 text-sm text-white hover:bg-primary-hover transition-colors"
           >
-            <Plus className="size-4" />
-            Create Request
+            Create Task
           </button>
         </div>
       </div>
