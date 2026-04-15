@@ -143,6 +143,10 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Router       /guests/{id} [put]
 func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
+	if err := requireAdmin(c, h.UsersRepository); err != nil {
+		return err
+	}
+
 	id := c.Params("id")
 
 	if _, err := uuid.Parse(id); err != nil {

@@ -174,6 +174,10 @@ func (h *HotelsHandler) CreateDepartment(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Router       /hotels/{id}/departments/{deptId} [put]
 func (h *HotelsHandler) UpdateDepartment(c *fiber.Ctx) error {
+	if err := requireAdmin(c, h.usersRepo); err != nil {
+		return err
+	}
+
 	hotelID := c.Params("id")
 	deptID := c.Params("deptId")
 	if strings.TrimSpace(hotelID) == "" {
@@ -214,6 +218,10 @@ func (h *HotelsHandler) UpdateDepartment(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Router       /hotels/{id}/departments/{deptId} [delete]
 func (h *HotelsHandler) DeleteDepartment(c *fiber.Ctx) error {
+	if err := requireAdmin(c, h.usersRepo); err != nil {
+		return err
+	}
+
 	hotelID := c.Params("id")
 	deptID := c.Params("deptId")
 	if strings.TrimSpace(hotelID) == "" {
