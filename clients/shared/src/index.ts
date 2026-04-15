@@ -6,6 +6,19 @@ export type { Config } from "./api/config";
 // config functions
 export { setConfig, getConfig } from "./api/config";
 
+export { getExtFromMime } from "./utils";
+export {
+  getProfilePicture,
+  getUploadUrl,
+  saveProfilePictureKey,
+  deleteProfilePicture,
+  uploadFileToS3,
+} from "./api/profile-picture";
+export type {
+  UploadUrlResponse,
+  ProfilePictureResponse,
+} from "./api/profile-picture";
+
 // Generated Types - Models
 export { MakeRequestPriority } from "./api/generated/models";
 
@@ -21,8 +34,8 @@ export type {
   Guest,
   GuestPage,
   Dev,
-  Assistance,
   ActiveBooking,
+  Assistance,
   Stay,
   UpdateGuest,
   GithubComGenerateSelfserveInternalModelsBookingStatus as BookingStatus,
@@ -79,7 +92,6 @@ export type {
   FilterRoomsRequest,
   GuestRequest,
   RoomRequestsResponse,
-  GithubComGenerateSelfserveInternalUtilsCursorPageGuestRequest,
 } from "./api/generated/models";
 
 export { useInfiniteRequestsByGuest, getGuestRequestsQueryKey } from "./api/requests";
