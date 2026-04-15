@@ -4,16 +4,15 @@ import { useRouter } from "expo-router";
 
 import { useGetNotifications } from "@shared/api/notifications";
 
-export function TasksHeader() {
-  const router = useRouter();
-  const { data: notifications } = useGetNotifications();
-  const unreadCount = notifications?.filter((n) => !n.read_at).length ?? 0;
-
 type TasksHeaderProps = {
   onFilterPress?: () => void;
 };
 
 export function TasksHeader({ onFilterPress }: TasksHeaderProps) {
+  const router = useRouter();
+  const { data: notifications } = useGetNotifications();
+  const unreadCount = notifications?.filter((n) => !n.read_at).length ?? 0;
+
   return (
     <View className="flex-row justify-between items-center px-[22px] pt-3 pb-2">
       <Text className="text-2xl font-medium tracking-tight text-black">
