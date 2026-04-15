@@ -232,24 +232,65 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context
 	return scanGuestRequests(rows)
 }
 
-func (r *RequestsRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
-	rows, err := r.db.Query(ctx, `
+func (r *RequestsRepository) FindRequestsPaginated(
+	ctx context.Context,
+	hotelID, userID string,
+	unassigned bool,
+	sort models.RequestFeedSort,
+	cursorID string,
+	cursorCreatedAt time.Time,
+	cursorPriorityRank int,
+	limit int,
+) ([]*models.GuestRequest, error) {
+	const baseFilter = `
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
 				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version
+				r.request_version,
+				CASE r.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END AS priority_rank
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.hotel_id = $1
-			  AND ($2::text = '' OR r.user_id = $2)
+			  AND (
+			    ($3::bool AND r.user_id IS NULL)
+			    OR (NOT $3::bool AND ($2::text = '' OR r.user_id = $2))
+			  )
 			ORDER BY r.id ASC, r.request_version DESC
 		)
-		SELECT * FROM latest
-		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
-		ORDER BY id ASC
-		LIMIT $5
-	`, hotelID, userID, cursorID, cursorVersion, limit)
+		SELECT id, name, priority, status, description, notes, room_number,
+		       request_type, request_category, created_at, request_version
+		FROM latest
+	`
+
+	var (
+		rows pgx.Rows
+		err  error
+	)
+
+	switch sort {
+	case models.SortByNewest:
+		rows, err = r.db.Query(ctx, baseFilter+`
+			WHERE ($4::text = '' OR (created_at, id::text) < ($5, $4))
+			ORDER BY created_at DESC, id DESC
+			LIMIT $6
+		`, hotelID, userID, unassigned, cursorID, cursorCreatedAt, limit)
+
+	case models.SortByOldest:
+		rows, err = r.db.Query(ctx, baseFilter+`
+			WHERE ($4::text = '' OR (created_at, id::text) > ($5, $4))
+			ORDER BY created_at ASC, id ASC
+			LIMIT $6
+		`, hotelID, userID, unassigned, cursorID, cursorCreatedAt, limit)
+
+	default: // SortByPriority
+		rows, err = r.db.Query(ctx, baseFilter+`
+			WHERE ($4::text = '' OR (priority_rank, id::text) > ($5::int, $4))
+			ORDER BY priority_rank ASC, id ASC
+			LIMIT $6
+		`, hotelID, userID, unassigned, cursorID, cursorPriorityRank, limit)
+	}
+
 	if err != nil {
 		return nil, err
 	}

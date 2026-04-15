@@ -186,6 +186,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Put("/:id", usersHandler.UpdateUser)
 		r.Post("/:id/departments", usersHandler.AddEmployeeDepartment)
 		r.Delete("/:id/departments/:deptId", usersHandler.RemoveEmployeeDepartment)
+		r.Put("/:id/onboard", usersHandler.CompleteOnboarding)
 	})
 
 	// Guest Routes
