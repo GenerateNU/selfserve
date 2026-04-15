@@ -41,6 +41,8 @@ function AppLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
+        <Stack.Screen name="task/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="create-task-ai" options={{ headerShown: false }} />
         <Stack.Screen
           name="create-task-manual"
