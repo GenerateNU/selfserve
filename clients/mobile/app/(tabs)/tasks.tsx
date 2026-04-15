@@ -9,7 +9,11 @@ import { TaskFilterSheet } from "@/components/tasks/task-filter-sheet";
 import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
 import { TAB, TabName } from "@/constants/tasks";
-import { useGetRequestsFeed, type RequestFeedItem, type RequestFeedSort } from "@shared/api/requests";
+import {
+  useGetRequestsFeed,
+  type RequestFeedItem,
+  type RequestFeedSort,
+} from "@shared/api/requests";
 
 export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
@@ -20,7 +24,10 @@ export default function TasksScreen() {
   const [sort, setSort] = useState<RequestFeedSort>("priority");
   const { userId } = useAuth();
 
-  const myTasksQuery = useGetRequestsFeed({ userId: userId ?? undefined, sort });
+  const myTasksQuery = useGetRequestsFeed({
+    userId: userId ?? undefined,
+    sort,
+  });
   const myTaskItems =
     myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
 

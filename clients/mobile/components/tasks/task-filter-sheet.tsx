@@ -27,7 +27,12 @@ type TaskFilterSheetProps = {
   onSortChange: (sort: RequestFeedSort) => void;
 };
 
-export function TaskFilterSheet({ visible, onClose, sort, onSortChange }: TaskFilterSheetProps) {
+export function TaskFilterSheet({
+  visible,
+  onClose,
+  sort,
+  onSortChange,
+}: TaskFilterSheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const insets = useSafeAreaInsets();
 
