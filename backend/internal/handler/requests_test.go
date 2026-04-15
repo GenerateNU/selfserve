@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 
@@ -25,6 +26,7 @@ type mockRequestRepository struct {
 	findRequestsByGuestIDFunc          func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findRequestsByRoomIDAndUserIDFunc  func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findUnassignedRequestsByRoomIDFunc func(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	findUnassignedRequestsFunc         func(ctx context.Context, hotelID, cursorID string, cursorCreatedAt time.Time, limit int) ([]*models.GuestRequest, error)
 	findRequestsPaginatedFunc          func(ctx context.Context, hotelID, userID string, unassigned bool, status string, departments []string, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
 }
 
@@ -56,8 +58,145 @@ func (m *mockRequestRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx cont
 	return m.findUnassignedRequestsByRoomIDFunc(ctx, roomID, hotelID, cursorID, cursorVersion, limit)
 }
 
+func (m *mockRequestRepository) FindUnassignedRequests(ctx context.Context, hotelID, cursorID string, cursorCreatedAt time.Time, limit int) ([]*models.GuestRequest, error) {
+	return m.findUnassignedRequestsFunc(ctx, hotelID, cursorID, cursorCreatedAt, limit)
+}
+
 func (m *mockRequestRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, status string, departments []string, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error) {
 	return m.findRequestsPaginatedFunc(ctx, hotelID, userID, unassigned, status, departments, sort, cursorID, cursorCreatedAt, cursorPriorityRank, limit)
+}
+
+func TestRequestHandler_GetUnassignedRequests(t *testing.T) {
+	t.Parallel()
+
+	const (
+		hotelID = "org_521e8400-e458-41d4-a716-446655440000"
+	)
+
+	t.Run("returns 200 with cursor page and next cursor when more results exist", func(t *testing.T) {
+		t.Parallel()
+
+		createdAt3 := time.Date(2026, 4, 15, 10, 0, 0, 0, time.UTC)
+		createdAt2 := time.Date(2026, 4, 15, 9, 0, 0, 0, time.UTC)
+		createdAt1 := time.Date(2026, 4, 15, 8, 0, 0, 0, time.UTC)
+
+		mock := &mockRequestRepository{
+			findUnassignedRequestsFunc: func(_ context.Context, gotHotelID, cursorID string, cursorCreatedAt time.Time, limit int) ([]*models.GuestRequest, error) {
+				assert.Equal(t, hotelID, gotHotelID)
+				assert.Equal(t, "", cursorID)
+				assert.True(t, cursorCreatedAt.IsZero())
+				assert.Equal(t, 3, limit) // resolvedLimit(2) + 1
+
+				// Return 3 rows to force next_cursor generation (page size is 2).
+				return []*models.GuestRequest{
+					{ID: "ccc00000-e458-41d4-a716-446655440000", Name: "Newest", Priority: "high", Status: "pending", RequestType: "one-time", CreatedAt: createdAt3, RequestVersion: createdAt3},
+					{ID: "bbb00000-e458-41d4-a716-446655440000", Name: "Middle", Priority: "medium", Status: "pending", RequestType: "one-time", CreatedAt: createdAt2, RequestVersion: createdAt2},
+					{ID: "aaa00000-e458-41d4-a716-446655440000", Name: "Oldest", Priority: "low", Status: "pending", RequestType: "one-time", CreatedAt: createdAt1, RequestVersion: createdAt1},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Get("/requests/unassigned", h.GetUnassignedRequests)
+
+		req := httptest.NewRequest("GET", "/requests/unassigned?limit=2", nil)
+		req.Header.Set("X-Hotel-ID", hotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		// Should contain the first 2 items and a next_cursor.
+		assert.Contains(t, string(body), `"items"`)
+		assert.Contains(t, string(body), "Newest")
+		assert.Contains(t, string(body), "Middle")
+		assert.NotContains(t, string(body), "Oldest")
+		assert.Contains(t, string(body), `"next_cursor"`)
+	})
+
+	t.Run("uses cursor to fetch next page", func(t *testing.T) {
+		t.Parallel()
+
+		cursorCreatedAt := time.Date(2026, 4, 15, 9, 0, 0, 0, time.UTC)
+		cursorID := "bbb00000-e458-41d4-a716-446655440000"
+		cursor := strconv.FormatInt(cursorCreatedAt.UnixNano(), 10) + "|" + cursorID
+
+		mock := &mockRequestRepository{
+			findUnassignedRequestsFunc: func(_ context.Context, gotHotelID, gotCursorID string, gotCursorCreatedAt time.Time, limit int) ([]*models.GuestRequest, error) {
+				assert.Equal(t, hotelID, gotHotelID)
+				assert.Equal(t, cursorID, gotCursorID)
+				assert.True(t, gotCursorCreatedAt.Equal(cursorCreatedAt))
+				assert.Equal(t, 2, limit) // resolvedLimit(1) + 1
+
+				return []*models.GuestRequest{
+					{ID: "aaa00000-e458-41d4-a716-446655440000", Name: "Older", Priority: "low", Status: "pending", RequestType: "one-time", CreatedAt: cursorCreatedAt.Add(-time.Hour), RequestVersion: cursorCreatedAt.Add(-time.Hour)},
+				}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Get("/requests/unassigned", h.GetUnassignedRequests)
+
+		req := httptest.NewRequest("GET", "/requests/unassigned?limit=1&cursor="+cursor, nil)
+		req.Header.Set("X-Hotel-ID", hotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "Older")
+	})
+
+	t.Run("returns 400 when X-Hotel-ID header is missing", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Get("/requests/unassigned", h.GetUnassignedRequests)
+
+		req := httptest.NewRequest("GET", "/requests/unassigned", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("returns 400 for invalid cursor", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Get("/requests/unassigned", h.GetUnassignedRequests)
+
+		req := httptest.NewRequest("GET", "/requests/unassigned?cursor=not-a-valid-cursor", nil)
+		req.Header.Set("X-Hotel-ID", hotelID)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("returns 500 when repository returns error", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			findUnassignedRequestsFunc: func(_ context.Context, _, _ string, _ time.Time, _ int) ([]*models.GuestRequest, error) {
+				return nil, errors.New("db connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Get("/requests/unassigned", h.GetUnassignedRequests)
+
+		req := httptest.NewRequest("GET", "/requests/unassigned", nil)
+		req.Header.Set("X-Hotel-ID", hotelID)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 500, resp.StatusCode)
+	})
 }
 
 type mockLLMService struct {
