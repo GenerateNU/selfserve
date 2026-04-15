@@ -13,12 +13,8 @@
    ```bash
    go install github.com/air-verse/air@latest
    ```
-2. **Install LLM Provider**:
-   ```bash
-   brew install ollama
-   ollama serve
-   ollama pull qwen2.5:7b-instruct (or reaperdoesntrun/Qwen3-0.6B-Distilled:latest)
-   ```
+2. **Set Gemini API key** — add `LLM_API_KEY` to your environment (get one at [Google AI Studio](https://aistudio.google.com/apikey)).
+
 3. **Download dependencies**:
 
    ```bash
