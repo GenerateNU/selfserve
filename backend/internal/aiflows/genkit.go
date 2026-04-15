@@ -14,10 +14,7 @@ import (
 const defaultGeminiModel = "gemini-3-flash-preview"
 
 func InitGenkit(ctx context.Context, llmConfig *config.LLM, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository, userLookupRepo UserLookupRepository) *GenkitService {
-	serverAddr := llmConfig.ServerAddress
-	if serverAddr == "" {
-		serverAddr = defaultOllamaServer
-	}
+	
 	modelName := llmConfig.Model
 	if modelName == "" {
 		modelName = defaultGeminiModel
