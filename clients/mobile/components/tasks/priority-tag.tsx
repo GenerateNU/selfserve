@@ -37,7 +37,8 @@ type PriorityTagProps = {
 
 export function PriorityTag({ priority, dimmed = false }: PriorityTagProps) {
   const config =
-    PRIORITY_CONFIG[priority.toLowerCase() as RequestPriority] ?? PRIORITY_CONFIG.low;
+    PRIORITY_CONFIG[priority.toLowerCase() as RequestPriority] ??
+    PRIORITY_CONFIG.low;
 
   return (
     <View
