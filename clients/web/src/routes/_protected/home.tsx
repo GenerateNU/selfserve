@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
-import { useGetRequestsFeed } from "@shared/api/requests";
+import { useGetRequestsFeed, useGetRequestById } from "@shared/api/requests";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
 import type { Request, User } from "@shared";
@@ -34,7 +34,7 @@ function KanbanColumnData({
   departments,
 }: {
   status: string;
-  onCardClick: (request: Request) => void;
+  onCardClick: (requestId: string) => void;
   sort: RequestFeedSort | undefined;
   userId?: string;
   departments?: Array<string>;
@@ -75,7 +75,7 @@ function KanbanColumnData({
         <RequestCardItem
           key={request.id}
           request={request}
-          onClick={() => onCardClick(request as unknown as Request)}
+          onClick={() => onCardClick(request.id)}
         />
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
@@ -104,16 +104,20 @@ function HomePage() {
     priority?: MakeRequestPriority;
     room_id?: string;
   } | null>(null);
-  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null,
+  );
+
+  const { data: selectedRequest } = useGetRequestById(selectedRequestId);
 
   function handleCreateRequest() {
-    setSelectedRequest(null);
+    setSelectedRequestId(null);
     setDrawerData({});
   }
 
   function handleRequestGenerated(request: Request) {
     const p = request.priority;
-    setSelectedRequest(null);
+    setSelectedRequestId(null);
     setDrawerData({
       name: request.name,
       description: request.description,
@@ -123,9 +127,9 @@ function HomePage() {
     });
   }
 
-  function handleCardClick(request: Request) {
+  function handleCardClick(requestId: string) {
     setDrawerData(null);
-    setSelectedRequest(request);
+    setSelectedRequestId(requestId);
   }
 
   const drawer =
@@ -134,14 +138,14 @@ function HomePage() {
         initialData={drawerData}
         onClose={() => setDrawerData(null)}
       />
-    ) : selectedRequest !== null ? (
+    ) : selectedRequestId !== null ? (
       <ViewRequestDrawer
-        request={selectedRequest}
-        onClose={() => setSelectedRequest(null)}
+        request={selectedRequest ?? null}
+        onClose={() => setSelectedRequestId(null)}
       />
     ) : null;
 
-  const drawerOpen = drawerData !== null || selectedRequest !== null;
+  const drawerOpen = drawerData !== null || selectedRequestId !== null;
 
   return (
     <PageShell

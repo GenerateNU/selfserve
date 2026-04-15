@@ -66,7 +66,7 @@ function FieldRow({ label, value, valueClassName }: FieldRowProps) {
 }
 
 type ViewRequestDrawerProps = {
-  request: Request;
+  request: Request | null;
   onClose: () => void;
 };
 
@@ -78,12 +78,24 @@ export function ViewRequestDrawer({
 
   const getUserById = useGetUsersIdHook();
   const { data: assignee } = useQuery({
-    queryKey: ["user", request.user_id],
-    queryFn: () => getUserById(request.user_id!),
-    enabled: !!request.user_id,
+    queryKey: ["user", request?.user_id],
+    queryFn: () => getUserById(request!.user_id!),
+    enabled: !!request?.user_id,
   });
 
-  const { data: room } = useRoomById(request.room_id);
+  const { data: room } = useRoomById(request?.room_id);
+
+  if (!request) {
+    return (
+      <DrawerShell title="" onClose={onClose}>
+        <div className="flex flex-col gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-7 animate-pulse rounded-md bg-bg-disabled" />
+          ))}
+        </div>
+      </DrawerShell>
+    );
+  }
 
   const assigneeName = assignee
     ? `${assignee.first_name ?? ""} ${assignee.last_name ?? ""}`.trim()

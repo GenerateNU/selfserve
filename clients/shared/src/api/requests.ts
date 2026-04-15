@@ -1,5 +1,5 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { GuestRequest } from "./generated/models";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { GuestRequest, Request } from "./generated/models";
 import { RequestStatus } from "./generated/models";
 import { useAPIClient } from "./client";
 
@@ -89,6 +89,15 @@ export const useCompleteTask = () => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
     },
+  });
+};
+
+export const useGetRequestById = (requestId: string | null) => {
+  const api = useAPIClient();
+  return useQuery({
+    queryKey: ["request", requestId],
+    queryFn: () => api.get<Request>(`/request/${requestId}`),
+    enabled: !!requestId,
   });
 };
 
