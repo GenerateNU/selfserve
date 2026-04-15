@@ -64,7 +64,6 @@ func enrichWithRoomLookup(ctx context.Context, roomLookupRepo RoomLookupReposito
 }
 
 func enrichWithGuestLookup(ctx context.Context, guestLookupRepo GuestLookupRepository, hotelID string, output EnrichedGenerateRequestOutput) (EnrichedGenerateRequestOutput, error) {
-	
 
 	if output.GuestName == nil {
 		return output, nil
