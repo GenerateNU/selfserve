@@ -17,7 +17,7 @@
    ```bash
    brew install ollama
    ollama serve
-   ollama pull qwen2.5:7b-instruct
+   ollama pull qwen2.5:7b-instruct (or reaperdoesntrun/Qwen3-0.6B-Distilled:latest)
    ```
 3. **Download dependencies**:
 

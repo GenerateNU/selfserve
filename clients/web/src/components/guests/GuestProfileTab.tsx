@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { AssistanceChip } from "./AssistanceChip";
 import type { GuestWithStays } from "@shared";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -10,21 +10,12 @@ type GuestProfileTabProps = {
   isSavingNotes: boolean;
 };
 
-function AssistanceChip({ label }: { label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded border border-[#a21313] bg-[#ffeded] px-2 py-1 text-xs text-[#a21313]">
-      {label}
-      <X className="size-3.5 text-[#a21313]" strokeWidth={2} />
-    </span>
-  );
-}
-
 function AssistanceCategory({
   title,
   items,
 }: {
   title: string;
-  items: string[];
+  items: Array<string>;
 }) {
   if (items.length === 0) return null;
   return (
@@ -57,6 +48,7 @@ export function GuestProfileTab({
 }: GuestProfileTabProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftNotes, setDraftNotes] = useState(guest.notes ?? "");
+  const [saveError, setSaveError] = useState(false);
 
   const dndWindow =
     guest.do_not_disturb_start && guest.do_not_disturb_end
@@ -80,8 +72,13 @@ export function GuestProfileTab({
   };
 
   const handleSave = async () => {
-    await onSaveNotes(draftNotes);
-    setIsEditing(false);
+    try {
+      setSaveError(false);
+      await onSaveNotes(draftNotes);
+      setIsEditing(false);
+    } catch {
+      setSaveError(true);
+    }
   };
 
   return (
@@ -110,10 +107,7 @@ export function GuestProfileTab({
         {hasAssistance ? (
           <div className="flex flex-col gap-2 rounded border border-stroke-subtle p-4">
             <AssistanceCategory title="Accessibility" items={accessibility} />
-            <AssistanceCategory
-              title="Dietary Restrictions"
-              items={dietary}
-            />
+            <AssistanceCategory title="Dietary Restrictions" items={dietary} />
             <AssistanceCategory title="Medical Needs" items={medical} />
           </div>
         ) : (
@@ -148,6 +142,11 @@ export function GuestProfileTab({
               className="w-full resize-none rounded-lg border border-primary p-4 text-base text-text-default placeholder:text-text-subtle focus:outline-none"
               placeholder="Add notes about this guest\u2026"
             />
+            {saveError && (
+              <p className="text-sm text-high-priority">
+                Failed to save notes. Please try again.
+              </p>
+            )}
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={handleCancel}>
                 Cancel

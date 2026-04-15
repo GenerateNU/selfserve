@@ -1,14 +1,14 @@
 import { Filter } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 type GuestFilterPopoverProps = {
   availableFloors: Array<number>;
   availableGroupSizes: Array<number>;
-  selectedFloor: string;
-  selectedGroupSize: string;
-  onApply: (floor: string, groupSize: string) => void;
+  selectedFloors: Array<number>;
+  selectedGroupSizes: Array<number>;
+  onApply: (floors: Array<number>, groupSizes: Array<number>) => void;
 };
 
 function FilterChip({
@@ -36,45 +36,51 @@ function FilterChip({
   );
 }
 
+function toggleItem(arr: Array<number>, item: number): Array<number> {
+  return arr.includes(item) ? arr.filter((v) => v !== item) : [...arr, item];
+}
+
 export function GuestFilterPopover({
   availableFloors,
   availableGroupSizes,
-  selectedFloor,
-  selectedGroupSize,
+  selectedFloors,
+  selectedGroupSizes,
   onApply,
 }: GuestFilterPopoverProps) {
   const [open, setOpen] = useState(false);
-  const [pendingFloor, setPendingFloor] = useState(selectedFloor);
-  const [pendingGroupSize, setPendingGroupSize] = useState(selectedGroupSize);
+  const [pendingFloors, setPendingFloors] =
+    useState<Array<number>>(selectedFloors);
+  const [pendingGroupSizes, setPendingGroupSizes] =
+    useState<Array<number>>(selectedGroupSizes);
 
   const handleOpen = () => {
-    setPendingFloor(selectedFloor);
-    setPendingGroupSize(selectedGroupSize);
+    setPendingFloors(selectedFloors);
+    setPendingGroupSizes(selectedGroupSizes);
     setOpen(true);
   };
 
-  const handleCancel = () => {
+  const handleClose = useCallback(() => {
     setOpen(false);
-  };
+  }, []);
 
   const handleApply = () => {
-    onApply(pendingFloor, pendingGroupSize);
+    onApply(pendingFloors, pendingGroupSizes);
     setOpen(false);
   };
 
   const handleReset = () => {
-    setPendingFloor("all");
-    setPendingGroupSize("all");
+    onApply([], []);
+    setOpen(false);
   };
 
-  const activeFilterCount =
-    (selectedFloor !== "all" ? 1 : 0) + (selectedGroupSize !== "all" ? 1 : 0);
+  const activeFilterCount = selectedFloors.length + selectedGroupSizes.length;
 
   return (
     <div className="relative shrink-0">
       <button
         type="button"
-        onClick={open ? handleCancel : handleOpen}
+        onClick={open ? handleClose : handleOpen}
+        aria-expanded={open}
         className={cn(
           "flex h-11 items-center gap-2 rounded-lg border px-4 text-sm font-medium transition-colors",
           activeFilterCount > 0
@@ -92,78 +98,88 @@ export function GuestFilterPopover({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 flex w-80 flex-col overflow-hidden rounded-2xl bg-white px-6 shadow-xl">
-          <div className="flex items-center justify-between pt-5">
-            <span className="text-base font-medium text-text-default">
-              Filters
-            </span>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-sm text-text-subtle transition-colors hover:text-text-default"
-            >
-              Reset
-            </button>
-          </div>
+        <>
+          {/* Backdrop — captures click-outside */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={handleClose}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") handleClose();
+            }}
+            className="absolute right-0 top-[calc(100%+0.5rem)] z-50 flex w-80 flex-col overflow-hidden rounded-2xl bg-white px-6 shadow-xl"
+          >
+            <div className="flex items-center justify-between pt-5">
+              <span className="text-base font-medium text-text-default">
+                Filters
+              </span>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-sm text-text-subtle transition-colors hover:text-text-default"
+              >
+                Reset
+              </button>
+            </div>
 
-          <div className="flex flex-col gap-5 py-5">
-            {availableFloors.length > 0 && (
-              <section className="flex flex-col gap-3">
-                <h3 className="text-sm font-medium text-text-default">Floor</h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableFloors.map((floor) => (
-                    <FilterChip
-                      key={floor}
-                      label={`Floor ${floor}`}
-                      selected={pendingFloor === String(floor)}
-                      onClick={() =>
-                        setPendingFloor(
-                          pendingFloor === String(floor)
-                            ? "all"
-                            : String(floor),
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
+            <div className="flex flex-col gap-5 py-5">
+              {availableFloors.length > 0 && (
+                <section className="flex flex-col gap-3">
+                  <h3 className="text-sm font-medium text-text-default">
+                    Floor
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {availableFloors.map((floor) => (
+                      <FilterChip
+                        key={floor}
+                        label={`Floor ${floor}`}
+                        selected={pendingFloors.includes(floor)}
+                        onClick={() =>
+                          setPendingFloors(toggleItem(pendingFloors, floor))
+                        }
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
 
-            {availableGroupSizes.length > 0 && (
-              <section className="flex flex-col gap-3">
-                <h3 className="text-sm font-medium text-text-default">
-                  Group Size
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableGroupSizes.map((size) => (
-                    <FilterChip
-                      key={size}
-                      label={String(size)}
-                      selected={pendingGroupSize === String(size)}
-                      onClick={() =>
-                        setPendingGroupSize(
-                          pendingGroupSize === String(size)
-                            ? "all"
-                            : String(size),
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
+              {availableGroupSizes.length > 0 && (
+                <section className="flex flex-col gap-3">
+                  <h3 className="text-sm font-medium text-text-default">
+                    Group Size
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {availableGroupSizes.map((size) => (
+                      <FilterChip
+                        key={size}
+                        label={String(size)}
+                        selected={pendingGroupSizes.includes(size)}
+                        onClick={() =>
+                          setPendingGroupSizes(
+                            toggleItem(pendingGroupSizes, size),
+                          )
+                        }
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
 
-          <div className="border-t border-stroke-subtle" />
-          <div className="flex justify-end gap-3 py-4">
-            <Button variant="secondary" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleApply}>
-              Apply
-            </Button>
+            <div className="border-t border-stroke-subtle" />
+            <div className="flex justify-end gap-3 py-4">
+              <Button variant="secondary" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleApply}>
+                Apply
+              </Button>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

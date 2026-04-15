@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { MakeRequestPriority, getConfig } from "@shared";
-import type { Request } from "@shared";
+import { useUser } from "@clerk/clerk-react";
+import { useQuery } from "@tanstack/react-query";
+import { MakeRequestPriority } from "@shared";
+import { useGetRequestsFeed } from "@shared/api/requests";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import type { RequestFeedSort } from "@shared/api/requests";
+import type { Request, User } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
@@ -9,7 +14,6 @@ import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
-import { useKanbanRequests } from "@/hooks/use-kanban-requests";
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
@@ -22,15 +26,30 @@ const KANBAN_COLUMNS = [
 ] as const;
 
 function KanbanColumnData({
-  hotelId,
   status,
+  sort,
+  userId,
+  priorities,
+  departments,
+  floors,
 }: {
-  hotelId: string;
   status: string;
+  sort: RequestFeedSort | undefined;
+  userId?: string;
+  priorities?: Array<string>;
+  departments?: Array<string>;
+  floors?: Array<number>;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useKanbanRequests(hotelId, status);
+    useGetRequestsFeed({
+      status,
+      sort,
+      userId,
+      priorities,
+      departments,
+      floors,
+    });
 
   const hasNextPageRef = useRef(hasNextPage);
   const isFetchingRef = useRef(isFetchingNextPage);
@@ -56,11 +75,11 @@ function KanbanColumnData({
     return () => observer.disconnect();
   }, [fetchNextPage]);
 
-  const requests = (data?.pages ?? []).flatMap((page) => page.requests);
+  const requests = (data?.pages ?? []).flatMap((page) => page.items ?? []);
 
   return (
     <>
-      {requests.map((request: Request) => (
+      {requests.map((request) => (
         <RequestCardItem key={request.id} request={request} />
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
@@ -69,6 +88,24 @@ function KanbanColumnData({
 }
 
 function HomePage() {
+  const [sort, setSort] = useState<RequestFeedSort | undefined>("priority");
+  const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
+  const [selectedPriorities, setSelectedPriorities] = useState<Array<string>>(
+    [],
+  );
+  const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>(
+    [],
+  );
+  const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
+
+  const { user: clerkUser } = useUser();
+  const getUsersId = useGetUsersIdHook();
+  const { data: backendUser } = useQuery({
+    queryKey: ["user", clerkUser?.id],
+    queryFn: () => getUsersId(clerkUser!.id),
+    enabled: !!clerkUser?.id,
+  });
+
   const [drawerData, setDrawerData] = useState<{
     name?: string;
     description?: string;
@@ -99,27 +136,44 @@ function HomePage() {
       />
     ) : null;
 
-  const hotelId = getConfig().hotelId;
-
   return (
     <PageShell
       header={{
         title: "Home",
         description: "Overview of all tasks currently at play",
       }}
+      headerBorder={false}
       drawerOpen={drawerData !== null}
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
       <HomeToolbar className="mt-2" onCreateRequest={handleCreateRequest} />
-      <HomeFilterBar />
+      <HomeFilterBar
+        sort={sort}
+        onSortChange={setSort}
+        selectedUser={selectedUser}
+        onUserChange={setSelectedUser}
+        selectedPriorities={selectedPriorities}
+        onPrioritiesChange={setSelectedPriorities}
+        selectedDepartments={selectedDepartments}
+        onDepartmentsChange={setSelectedDepartments}
+        selectedFloors={selectedFloors}
+        onFloorsChange={setSelectedFloors}
+        hotelId={backendUser?.hotel_id}
+        currentUserId={backendUser?.id}
+      />
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
           {KANBAN_COLUMNS.map((col) => (
             <KanbanColumn key={col.status} title={col.title}>
-              {hotelId && (
-                <KanbanColumnData hotelId={hotelId} status={col.status} />
-              )}
+              <KanbanColumnData
+                status={col.status}
+                sort={sort}
+                userId={selectedUser?.id}
+                priorities={selectedPriorities}
+                departments={selectedDepartments}
+                floors={selectedFloors}
+              />
             </KanbanColumn>
           ))}
         </div>

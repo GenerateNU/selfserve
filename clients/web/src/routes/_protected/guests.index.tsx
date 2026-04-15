@@ -9,9 +9,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { GuestListHeader } from "../../components/guests/GuestListHeader";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
-import { GuestDetailsDrawer } from "@/components/guests/GuestDetailsDrawer";
 import { useDebounce } from "../../hooks/use-debounce";
 import type { Request } from "@shared";
+import {
+  GuestDetailsDrawer,
+  GuestDrawerTab,
+} from "@/components/guests/GuestDetailsDrawer";
+import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { PageShell } from "@/components/ui/PageShell";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 
@@ -19,9 +23,9 @@ export const Route = createFileRoute("/_protected/guests/")({
   validateSearch: (search: Record<string, unknown>) => ({
     guestId: typeof search.guestId === "string" ? search.guestId : undefined,
     tab:
-      search.tab === "activity"
-        ? ("activity" as const)
-        : ("profile" as const),
+      search.tab === GuestDrawerTab.Activity
+        ? GuestDrawerTab.Activity
+        : GuestDrawerTab.Profile,
   }),
   component: GuestsQuickListPage,
 });
@@ -30,8 +34,8 @@ function GuestsQuickListPage() {
   const navigate = useNavigate();
   const { guestId, tab } = Route.useSearch();
   const [searchTerm, setSearchTerm] = useState("");
-  const [groupFilter, setGroupFilter] = useState("all");
-  const [floorFilter, setFloorFilter] = useState("all");
+  const [floorFilters, setFloorFilters] = useState<Array<number>>([]);
+  const [groupSizeFilters, setGroupSizeFilters] = useState<Array<number>>([]);
   const [generatedData, setGeneratedData] = useState<{
     name?: string;
     description?: string;
@@ -49,12 +53,13 @@ function GuestsQuickListPage() {
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading, isError } =
     useInfiniteQuery({
-      queryKey: ["guests", debouncedSearch, floorFilter, groupFilter],
+      queryKey: ["guests", debouncedSearch, floorFilters, groupSizeFilters],
       queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
         postGuests({
           search: debouncedSearch || undefined,
-          floors: floorFilter !== "all" ? [Number(floorFilter)] : undefined,
-          group_size: groupFilter !== "all" ? [Number(groupFilter)] : undefined,
+          floors: floorFilters.length > 0 ? floorFilters : undefined,
+          group_size:
+            groupSizeFilters.length > 0 ? groupSizeFilters : undefined,
           cursor: pageParam,
           limit: 20,
         }),
@@ -65,14 +70,20 @@ function GuestsQuickListPage() {
   const allGuests = data?.pages.flatMap((page) => page.data ?? []) ?? [];
 
   const handleGuestClick = (id: string) => {
-    navigate({ to: "/guests", search: { guestId: id, tab: "profile" } });
+    navigate({
+      to: "/guests",
+      search: { guestId: id, tab: GuestDrawerTab.Profile },
+    });
   };
 
   const handleDrawerClose = () => {
-    navigate({ to: "/guests", search: { guestId: undefined, tab: "profile" } });
+    navigate({
+      to: "/guests",
+      search: { guestId: undefined, tab: GuestDrawerTab.Profile },
+    });
   };
 
-  const handleTabChange = (newTab: "profile" | "activity") => {
+  const handleTabChange = (newTab: GuestDrawerTab) => {
     if (!guestId) return;
     navigate({ to: "/guests", search: { guestId, tab: newTab } });
   };
@@ -119,9 +130,16 @@ function GuestsQuickListPage() {
         title: "Guests",
         description: "Description blah blah fries -> bag",
       }}
-      drawerOpen={guestId !== undefined}
+      drawerOpen={generatedData !== null || guestId !== undefined}
       drawer={
         guestId !== undefined ? (
+          <GuestDetailsDrawer
+            guestId={guestId}
+            activeTab={tab}
+            onTabChange={handleTabChange}
+            onClose={handleDrawerClose}
+          />
+        ) : guestId !== undefined ? (
           <GuestDetailsDrawer
             guestId={guestId}
             activeTab={tab}
@@ -136,17 +154,23 @@ function GuestsQuickListPage() {
         onSearchChange={setSearchTerm}
         availableFloors={availableFloors}
         availableGroupSizes={availableGroupSizes}
-        selectedFloor={floorFilter}
-        selectedGroupSize={groupFilter}
-        onApplyFilters={(floor, groupSize) => {
-          setFloorFilter(floor);
-          setGroupFilter(groupSize);
+        selectedFloors={floorFilters}
+        selectedGroupSizes={groupSizeFilters}
+        onApplyFilters={(floors, groupSizes) => {
+          setFloorFilters(floors);
+          setGroupSizeFilters(groupSizes);
         }}
       />
       {guestsContent}
       {generatedData === null && (
         <GlobalTaskInput
           onRequestGenerated={(r: Request) => {
+            if (guestId) {
+              navigate({
+                to: "/guests",
+                search: { guestId: undefined, tab: GuestDrawerTab.Profile },
+              });
+            }
             const p = r.priority;
             setGeneratedData({
               name: r.name,

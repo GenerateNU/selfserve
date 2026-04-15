@@ -37,6 +37,10 @@ var commands = map[string]command{
 		description: "Seed default departments for hotels that have no departments",
 		run:         runBackfillHotelDepartments,
 	},
+	"seed-data": {
+		description: "Seed requests and tasks for the hotel belonging to a given user",
+		run:         runSeedData,
+	},
 }
 
 func main() {

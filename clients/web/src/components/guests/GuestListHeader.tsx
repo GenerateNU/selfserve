@@ -6,9 +6,9 @@ type GuestListHeaderProps = {
   onSearchChange: (value: string) => void;
   availableFloors: Array<number>;
   availableGroupSizes: Array<number>;
-  selectedFloor: string;
-  selectedGroupSize: string;
-  onApplyFilters: (floor: string, groupSize: string) => void;
+  selectedFloors: Array<number>;
+  selectedGroupSizes: Array<number>;
+  onApplyFilters: (floors: Array<number>, groupSizes: Array<number>) => void;
 };
 
 export function GuestListHeader({
@@ -16,8 +16,8 @@ export function GuestListHeader({
   onSearchChange,
   availableFloors,
   availableGroupSizes,
-  selectedFloor,
-  selectedGroupSize,
+  selectedFloors,
+  selectedGroupSizes,
   onApplyFilters,
 }: GuestListHeaderProps) {
   return (
@@ -28,8 +28,8 @@ export function GuestListHeader({
       <GuestFilterPopover
         availableFloors={availableFloors}
         availableGroupSizes={availableGroupSizes}
-        selectedFloor={selectedFloor}
-        selectedGroupSize={selectedGroupSize}
+        selectedFloors={selectedFloors}
+        selectedGroupSizes={selectedGroupSizes}
         onApply={onApplyFilters}
       />
     </div>

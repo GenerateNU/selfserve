@@ -15,6 +15,8 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { StartupProvider, StartupStatus, useStartup } from "@/context/startup";
 import NoUserInfo from "@/components/ui/NoUserInfo";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +43,10 @@ function AppLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="create-task-ai" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="create-task-manual"
+          options={{ headerShown: false }}
+        />
         <Stack.Screen name="(auth)/sign-in" options={{ headerShown: false }} />
         <Stack.Screen
           name="modal"
@@ -60,19 +66,29 @@ function AppLayout() {
   );
 }
 
+// Registers the Expo push token with the backend and wires up tap-to-navigate.
+// Must render inside QueryClientProvider so useMutation is available.
+function PushNotificationRegistrar() {
+  usePushNotifications();
+  return null;
+}
+
 export default function RootLayout() {
   return (
-    <ClerkProvider
-      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-      tokenCache={tokenCache}
-    >
-      <QueryClientProvider client={queryClient}>
-        <StartupProvider>
-          <SafeAreaProvider>
-            <AppLayout />
-          </SafeAreaProvider>
-        </StartupProvider>
-      </QueryClientProvider>
-    </ClerkProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ClerkProvider
+        publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+        tokenCache={tokenCache}
+      >
+        <QueryClientProvider client={queryClient}>
+          <PushNotificationRegistrar />
+          <StartupProvider>
+            <SafeAreaProvider>
+              <AppLayout />
+            </SafeAreaProvider>
+          </StartupProvider>
+        </QueryClientProvider>
+      </ClerkProvider>
+    </GestureHandlerRootView>
   );
 }

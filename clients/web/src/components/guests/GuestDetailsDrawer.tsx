@@ -1,24 +1,26 @@
 import { X } from "lucide-react";
-import {
-  useGetGuestsStaysId,
-  useGetRequestGuestId,
-  usePutGuestsId,
-} from "@shared";
-import { cn } from "@/lib/utils";
+import { useGetGuestsStaysId, useGetRequestGuestId, usePutGuestsId } from
+"@shared";
 import { GuestProfileTab } from "./GuestProfileTab";
 import { GuestVisitActivityTab } from "./GuestVisitActivityTab";
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+
+export enum GuestDrawerTab {
+  Profile = "profile",
+  Activity = "activity",
+}
 
 type GuestDetailsDrawerProps = {
   guestId: string;
-  activeTab: "profile" | "activity";
-  onTabChange: (tab: "profile" | "activity") => void;
+  activeTab: GuestDrawerTab;
+  onTabChange: (tab: GuestDrawerTab) => void;
   onClose: () => void;
 };
 
-const TABS: { key: "profile" | "activity"; label: string }[] = [
-  { key: "profile", label: "Profile" },
-  { key: "activity", label: "Visit Activity" },
+const TABS: Array<{ key: GuestDrawerTab; label: string }> = [
+  { key: GuestDrawerTab.Profile, label: "Profile" },
+  { key: GuestDrawerTab.Activity, label: "Visit Activity" },
 ];
 
 export function GuestDetailsDrawer({
@@ -45,12 +47,14 @@ export function GuestDetailsDrawer({
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between border-b border-stroke-subtle px-6 py-5">
+      <div className="flex shrink-0 items-center justify-between border-b
+border-stroke-subtle px-6 py-5">
         <div className="min-w-0">
           {isLoading ? (
             <Skeleton className="h-6 w-48" />
           ) : (
-            <h2 className="truncate text-lg font-semibold text-text-default">
+            <h2 className="truncate text-lg font-semibold
+text-text-default">
               {guest ? `${guest.first_name} ${guest.last_name}` : "Guest"}
             </h2>
           )}
@@ -59,7 +63,8 @@ export function GuestDetailsDrawer({
           type="button"
           aria-label="Close"
           onClick={onClose}
-          className="ml-4 shrink-0 rounded-lg p-1.5 text-text-subtle transition-colors hover:bg-bg-container hover:text-text-default"
+          className="ml-4 shrink-0 rounded-lg p-1.5 text-text-subtle
+transition-colors hover:bg-bg-container hover:text-text-default"
         >
           <X className="h-5 w-5" />
         </button>
@@ -81,7 +86,8 @@ export function GuestDetailsDrawer({
               "mr-6 border-b-2 py-3 text-sm font-medium transition-colors",
               activeTab === key
                 ? "border-primary text-primary"
-                : "border-transparent text-text-subtle hover:text-text-default",
+                : "border-transparent text-text-subtle
+hover:text-text-default",
             )}
           >
             {label}
@@ -106,14 +112,14 @@ export function GuestDetailsDrawer({
         )}
         {!isLoading && !isError && guest && (
           <>
-            {activeTab === "profile" && (
+            {activeTab === GuestDrawerTab.Profile && (
               <GuestProfileTab
                 guest={guest}
                 onSaveNotes={handleSaveNotes}
                 isSavingNotes={updateGuest.isPending}
               />
             )}
-            {activeTab === "activity" && (
+            {activeTab === GuestDrawerTab.Activity && (
               <GuestVisitActivityTab
                 currentStays={guest.current_stays}
                 pastStays={guest.past_stays}

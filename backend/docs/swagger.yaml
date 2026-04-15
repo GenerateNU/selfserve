@@ -1,5 +1,19 @@
 basePath: /api/v1
 definitions:
+  ActiveBooking:
+    properties:
+      floor:
+        type: integer
+      room_number:
+        type: integer
+    type: object
+  AssignRequestInput:
+    properties:
+      assign_to_self:
+        type: boolean
+      user_id:
+        type: string
+    type: object
   Assistance:
     properties:
       accessibility:
@@ -131,20 +145,6 @@ definitions:
         example: Room 301 could not be resolved for this hotel.
         type: string
     type: object
-  GetRequestsByStatusInput:
-    properties:
-      cursor_id:
-        type: string
-      cursor_time:
-        type: integer
-      status:
-        enum:
-        - pending
-        - assigned
-        - in progress
-        - completed
-        type: string
-    type: object
   Guest:
     properties:
       created_at:
@@ -178,12 +178,6 @@ definitions:
         items:
           $ref: '#/definitions/github_com_generate_selfserve_internal_models.AssistanceFilter'
         type: array
-      booking_sort:
-        allOf:
-        - $ref: '#/definitions/github_com_generate_selfserve_internal_models.GuestSortOrder'
-        enum:
-        - high_to_low
-        - low_to_high
       cursor:
         type: string
       floor_sort:
@@ -231,8 +225,12 @@ definitions:
     properties:
       created_at:
         type: string
+      department:
+        type: string
       description:
         type: string
+      floor:
+        type: integer
       id:
         type: string
       name:
@@ -251,37 +249,29 @@ definitions:
         type: integer
       status:
         type: string
+      user_id:
+        type: string
     type: object
   GuestWithBooking:
     properties:
+      active_bookings:
+        items:
+          $ref: '#/definitions/ActiveBooking'
+        type: array
+      assistance:
+        $ref: '#/definitions/Assistance'
       first_name:
-        example: Jane
         type: string
-      floor:
-        example: 3
-        type: integer
-      group_size:
-        example: 2
-        type: integer
+      has_urgent:
+        type: boolean
       id:
-        example: 530e8400-e458-41d4-a716-446655440000
         type: string
       last_name:
-        example: Doe
         type: string
       preferred_name:
-        example: Jane
         type: string
-      room_number:
-        example: 301
+      request_count:
         type: integer
-    required:
-    - first_name
-    - floor
-    - id
-    - last_name
-    - preferred_name
-    - room_number
     type: object
   GuestWithStays:
     properties:
@@ -435,6 +425,18 @@ definitions:
       user_id:
         type: string
     type: object
+  OnboardUser:
+    properties:
+      department:
+        example: front_desk
+        type: string
+      hotel_name:
+        example: Hotel California
+        type: string
+      role:
+        example: manager
+        type: string
+    type: object
   RegisterDeviceTokenInput:
     properties:
       platform:
@@ -512,6 +514,48 @@ definitions:
         type: string
       user_id:
         example: 521ee400-e458-41d4-a716-446655440000
+        type: string
+    type: object
+  RequestUpdateInput:
+    properties:
+      completed_at:
+        type: string
+      department:
+        type: string
+      description:
+        type: string
+      estimated_completion_time:
+        type: integer
+      guest_id:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      priority:
+        enum:
+        - low
+        - medium
+        - high
+        type: string
+      request_category:
+        type: string
+      request_type:
+        type: string
+      reservation_id:
+        type: string
+      room_id:
+        type: string
+      scheduled_time:
+        type: string
+      status:
+        enum:
+        - pending
+        - assigned
+        - in progress
+        - completed
+        type: string
+      user_id:
         type: string
     type: object
   RoomRequestsResponse:
@@ -614,6 +658,9 @@ definitions:
       id:
         example: user_123
         type: string
+      is_onboarded:
+        example: false
+        type: boolean
       last_name:
         example: Doe
         type: string
@@ -682,14 +729,6 @@ definitions:
     x-enum-varnames:
     - FloorSortAscending
     - FloorSortDescending
-  github_com_generate_selfserve_internal_models.GuestSortOrder:
-    enum:
-    - high_to_low
-    - low_to_high
-    type: string
-    x-enum-varnames:
-    - GuestSortHighToLow
-    - GuestSortLowToHigh
   github_com_generate_selfserve_internal_models.NotificationType:
     enum:
     - task_assigned
@@ -711,6 +750,18 @@ definitions:
   github_com_generate_selfserve_internal_models.UpdateDepartment:
     properties:
       name:
+        type: string
+    type: object
+  github_com_generate_selfserve_internal_utils.CursorPage-GuestRequest:
+    properties:
+      has_more:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/GuestRequest'
+        type: array
+      next_cursor:
+        description: nil when no more pages
         type: string
     type: object
   github_com_generate_selfserve_internal_utils.CursorPage-RoomWithOptionalGuestBooking:
@@ -1431,46 +1482,99 @@ paths:
       summary: creates a request
       tags:
       - requests
-  /request/cursor:
-    post:
+  /request/{id}:
+    put:
       consumes:
       - application/json
-      description: Gets 20 requests starting after the cursor position, filtered by
-        status
+      description: Partially updates a request — only fields present in the body are
+        applied; omitted fields keep their current values
       parameters:
-      - description: Hotel UUID
-        in: header
-        name: X-Hotel-ID
+      - description: Request ID (UUID)
+        in: path
+        name: id
         required: true
         type: string
-      - description: Cursor position and status filter
+      - description: Fields to update
         in: body
-        name: body
+        name: request
+        required: true
         schema:
-          $ref: '#/definitions/GetRequestsByStatusInput'
+          $ref: '#/definitions/RequestUpdateInput'
       produces:
       - application/json
       responses:
         "200":
-          description: Returns requests array, next_cursor_time, and next_cursor_id
+          description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/Request'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
       security:
       - BearerAuth: []
-      summary: Get requests by cursor
+      summary: Update a request
+      tags:
+      - requests
+  /request/{id}/assign:
+    post:
+      consumes:
+      - application/json
+      description: Sets user_id on the latest request version. Set assign_to_self
+        to true to assign to the caller. Omit assign_to_self (or set to false) and
+        provide user_id to assign to another user. Requires X-Hotel-ID to match the
+        request's hotel.
+      parameters:
+      - description: Request ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Self-assign flag and optional assignee
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/AssignRequestInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Request'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Assign a request to a user
       tags:
       - requests
   /request/generate:
@@ -1524,9 +1628,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/GuestRequest'
-            type: array
+            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-GuestRequest'
         "400":
           description: Bad Request
           schema:
@@ -1581,6 +1683,60 @@ paths:
       security:
       - BearerAuth: []
       summary: Get requests by room
+      tags:
+      - requests
+  /requests:
+    get:
+      description: Returns a paginated list of requests for the hotel, optionally
+        filtered by assigned user
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - description: Page size (default 20, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by assigned user ID
+        in: query
+        name: user_id
+        type: string
+      - description: If true, return only requests with no assigned user
+        in: query
+        name: unassigned
+        type: boolean
+      - description: 'Sort order: priority (default), newest, oldest'
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-GuestRequest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get requests feed
       tags:
       - requests
   /rooms:
@@ -1982,6 +2138,53 @@ paths:
       security:
       - BearerAuth: []
       summary: Remove department from employee
+      tags:
+      - users
+  /users/{id}/onboard:
+    put:
+      consumes:
+      - application/json
+      description: Saves onboarding data and marks a user as onboarded
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Onboarding data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/OnboardUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Complete user onboarding
       tags:
       - users
   /users/{userId}/profile-picture:
