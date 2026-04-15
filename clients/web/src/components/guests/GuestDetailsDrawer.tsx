@@ -1,6 +1,9 @@
 import { X } from "lucide-react";
-import { useGetGuestsStaysId, useGetRequestGuestId, usePutGuestsId } from
-"@shared";
+import {
+  useGetGuestsStaysId,
+  useGetRequestGuestId,
+  usePutGuestsId,
+} from "@shared";
 import { GuestProfileTab } from "./GuestProfileTab";
 import { GuestVisitActivityTab } from "./GuestVisitActivityTab";
 import { cn } from "@/lib/utils";
@@ -47,14 +50,12 @@ export function GuestDetailsDrawer({
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between border-b
-border-stroke-subtle px-6 py-5">
+      <div className="flex shrink-0 items-center justify-between border-b border-stroke-subtle px-6 py-5">
         <div className="min-w-0">
           {isLoading ? (
             <Skeleton className="h-6 w-48" />
           ) : (
-            <h2 className="truncate text-lg font-semibold
-text-text-default">
+            <h2 className="truncate text-lg font-semibold text-text-default">
               {guest ? `${guest.first_name} ${guest.last_name}` : "Guest"}
             </h2>
           )}
@@ -63,8 +64,7 @@ text-text-default">
           type="button"
           aria-label="Close"
           onClick={onClose}
-          className="ml-4 shrink-0 rounded-lg p-1.5 text-text-subtle
-transition-colors hover:bg-bg-container hover:text-text-default"
+          className="ml-4 shrink-0 rounded-lg p-1.5 text-text-subtle transition-colors hover:bg-bg-container hover:text-text-default"
         >
           <X className="h-5 w-5" />
         </button>
@@ -86,8 +86,7 @@ transition-colors hover:bg-bg-container hover:text-text-default"
               "mr-6 border-b-2 py-3 text-sm font-medium transition-colors",
               activeTab === key
                 ? "border-primary text-primary"
-                : "border-transparent text-text-subtle
-hover:text-text-default",
+                : "border-transparent text-text-subtle hover:text-text-default",
             )}
           >
             {label}

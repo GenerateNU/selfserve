@@ -132,12 +132,10 @@ function GuestsQuickListPage() {
       }}
       drawerOpen={generatedData !== null || guestId !== undefined}
       drawer={
-        guestId !== undefined ? (
-          <GuestDetailsDrawer
-            guestId={guestId}
-            activeTab={tab}
-            onTabChange={handleTabChange}
-            onClose={handleDrawerClose}
+        generatedData !== null ? (
+          <CreateRequestDrawer
+            initialData={generatedData}
+            onClose={() => setGeneratedData(null)}
           />
         ) : guestId !== undefined ? (
           <GuestDetailsDrawer

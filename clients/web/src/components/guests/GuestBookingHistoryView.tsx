@@ -1,10 +1,10 @@
-import { ChevronRight, UsersRound, CalendarDays } from "lucide-react";
+import { CalendarDays, ChevronRight, UsersRound } from "lucide-react";
 import type { Stay } from "@shared";
 import { formatDate } from "@/utils/dates";
 
 type GuestBookingHistoryViewProps = {
-  currentStays: Stay[];
-  pastStays: Stay[];
+  currentStays: Array<Stay>;
+  pastStays: Array<Stay>;
   onBack: () => void;
 };
 
@@ -70,7 +70,7 @@ export function GuestBookingHistoryView({
   pastStays,
   onBack,
 }: GuestBookingHistoryViewProps) {
-  const byYear = pastStays.reduce<Record<string, Stay[]>>((acc, stay) => {
+  const byYear = pastStays.reduce<Record<string, Array<Stay>>>((acc, stay) => {
     const year = stay.arrival_date.slice(0, 4);
     (acc[year] ??= []).push(stay);
     return acc;

@@ -1,20 +1,20 @@
 import { useState } from "react";
 import {
+  CalendarDays,
+  ChevronRight,
+  Clock4,
   FlagIcon,
   UsersRound,
-  CalendarDays,
-  Clock4,
-  ChevronRight,
 } from "lucide-react";
-import type { Stay, GuestRequest } from "@shared";
+import { GuestBookingHistoryView } from "./GuestBookingHistoryView";
+import type { GuestRequest, Stay } from "@shared";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/utils/dates";
-import { GuestBookingHistoryView } from "./GuestBookingHistoryView";
 
 type GuestVisitActivityTabProps = {
-  currentStays: Stay[];
-  pastStays: Stay[];
-  requests: GuestRequest[];
+  currentStays: Array<Stay>;
+  pastStays: Array<Stay>;
+  requests: Array<GuestRequest>;
 };
 
 type Priority = "high" | "medium" | "low";
@@ -35,7 +35,13 @@ const priorityConfig: Record<
   },
 };
 
-function ActiveBookingCard({ stay, compact }: { stay: Stay; compact?: boolean }) {
+function ActiveBookingCard({
+  stay,
+  compact,
+}: {
+  stay: Stay;
+  compact?: boolean;
+}) {
   return (
     <div
       className={cn(
@@ -237,11 +243,7 @@ export function GuestVisitActivityTab({
           ) : (
             <div className="flex gap-5">
               {currentStays.slice(0, 2).map((stay) => (
-                <ActiveBookingCard
-                  key={stay.room_number}
-                  stay={stay}
-                  compact
-                />
+                <ActiveBookingCard key={stay.room_number} stay={stay} compact />
               ))}
             </div>
           )
@@ -259,9 +261,7 @@ export function GuestVisitActivityTab({
       {/* Requests */}
       <section className="flex flex-col gap-4">
         <h3 className="text-base font-medium text-text-default">
-          {requests.length > 0
-            ? `Requests (${requests.length})`
-            : "Requests"}
+          {requests.length > 0 ? `Requests (${requests.length})` : "Requests"}
         </h3>
         {requests.length > 0 ? (
           <div className="flex flex-col gap-4">
@@ -270,9 +270,7 @@ export function GuestVisitActivityTab({
             ))}
           </div>
         ) : (
-          <p className="text-base text-text-secondary">
-            You're all caught up!
-          </p>
+          <p className="text-base text-text-secondary">You're all caught up!</p>
         )}
       </section>
     </div>
