@@ -1,11 +1,9 @@
 import { Clock4, FlagIcon } from "lucide-react";
-import type { GuestRequest } from "@shared";
+import type { GuestRequest, RequestPriority } from "@shared";
 import { cn } from "@/lib/utils";
 
-type Priority = "high" | "medium" | "low";
-
 const priorityConfig: Record<
-  Exclude<Priority, "low">,
+  Exclude<RequestPriority, "low">,
   { label: string; containerClass: string; contentClass: string }
 > = {
   high: {
@@ -25,7 +23,7 @@ type RequestCardProps = {
 };
 
 export function RequestCard({ req }: RequestCardProps) {
-  const p = req.priority as Priority | undefined;
+  const p = req.priority as RequestPriority | undefined;
   const tags = [req.request_category, req.request_type].filter(Boolean);
 
   return (

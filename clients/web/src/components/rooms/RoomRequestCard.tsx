@@ -1,11 +1,9 @@
 import { FlagIcon, MapPinIcon, Maximize2Icon, StoreIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import type { GuestRequest } from "@shared";
+import type { GuestRequest, RequestPriority } from "@shared";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-
-type Priority = "high" | "medium" | "low";
 
 type PriorityConfig = {
   label: string;
@@ -14,7 +12,7 @@ type PriorityConfig = {
   contentClass: string;
 };
 
-const priorityConfig: Record<Exclude<Priority, "low">, PriorityConfig> = {
+const priorityConfig: Record<Exclude<RequestPriority, "low">, PriorityConfig> = {
   high: {
     label: "High Priority",
     Icon: FlagIcon,
@@ -48,7 +46,7 @@ export function RoomRequestCard({
   className = "",
 }: RoomRequestCardProps) {
   const department = request_category ?? request_type;
-  const p = priority as Priority | undefined;
+  const p = priority as RequestPriority | undefined;
 
   return (
     <div
