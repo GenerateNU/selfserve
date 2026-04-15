@@ -187,7 +187,6 @@ export function HomeFilterBar({
             activeValue={activeSortLabel}
             onClick={openSortMenu}
           />
-          <FilterChip label="Grouping" />
           <FilterChip
             ref={assigneeButtonRef}
             label="Assignee"
@@ -217,7 +216,6 @@ export function HomeFilterBar({
             activeValue={activeFloorLabel}
             onClick={openFloorMenu}
           />
-          <FilterChip label="Deadline" />
         </div>
         <div className="flex shrink-0 items-center gap-3 pt-1">
           <button

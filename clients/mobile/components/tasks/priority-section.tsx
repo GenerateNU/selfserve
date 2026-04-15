@@ -1,28 +1,41 @@
 import { View } from "react-native";
 
-import { CheckboxItem, SectionHeader } from "./filter-section-header";
+import { CheckboxRow, Section } from "./filter-section-header";
+
+const PRIORITY_OPTIONS = [
+  { label: "High", value: "high" },
+  { label: "Medium", value: "medium" },
+  { label: "Low", value: "low" },
+] as const;
 
 type PrioritySectionProps = {
-  expanded: boolean;
-  onToggle: () => void;
+  priorities: string[];
+  onPrioritiesChange: (priorities: string[]) => void;
 };
 
-export function PrioritySection({ expanded, onToggle }: PrioritySectionProps) {
+export function PrioritySection({
+  priorities,
+  onPrioritiesChange,
+}: PrioritySectionProps) {
+  function toggle(value: string) {
+    const next = priorities.includes(value)
+      ? priorities.filter((p) => p !== value)
+      : [...priorities, value];
+    onPrioritiesChange(next);
+  }
+
   return (
-    <View className="gap-2">
-      <SectionHeader
-        label="Priority"
-        expanded={expanded}
-        onToggle={onToggle}
-        icon="flag"
-      />
-      {expanded && (
-        <View className="flex-row justify-between px-1">
-          <CheckboxItem label="High" checked />
-          <CheckboxItem label="Medium" checked />
-          <CheckboxItem label="Low" checked />
-        </View>
-      )}
-    </View>
+    <Section title="Priority">
+      <View className="flex-row gap-[4vw]">
+        {PRIORITY_OPTIONS.map((option) => (
+          <CheckboxRow
+            key={option.value}
+            label={option.label}
+            selected={priorities.includes(option.value)}
+            onPress={() => toggle(option.value)}
+          />
+        ))}
+      </View>
+    </Section>
   );
 }

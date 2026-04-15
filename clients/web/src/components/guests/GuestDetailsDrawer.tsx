@@ -1,6 +1,11 @@
 import { X } from "lucide-react";
-import { useGetGuestsStaysId, usePutGuestsId } from "@shared";
+import {
+  useGetGuestsStaysId,
+  useGetRequestGuestId,
+  usePutGuestsId,
+} from "@shared";
 import { GuestProfileTab } from "./GuestProfileTab";
+import { GuestVisitActivityTab } from "./GuestVisitActivityTab";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -33,6 +38,8 @@ export function GuestDetailsDrawer({
     isError,
     refetch,
   } = useGetGuestsStaysId(guestId);
+  const { data: requestsData } = useGetRequestGuestId(guestId);
+  const requests = (requestsData as any)?.items ?? requestsData ?? [];
   const updateGuest = usePutGuestsId();
 
   const handleSaveNotes = async (notes: string) => {
@@ -112,7 +119,11 @@ export function GuestDetailsDrawer({
               />
             )}
             {activeTab === GuestDrawerTab.Activity && (
-              <div className="p-6 text-sm text-text-subtle">Coming soon.</div>
+              <GuestVisitActivityTab
+                currentStays={guest.current_stays}
+                pastStays={guest.past_stays}
+                requests={requests}
+              />
             )}
           </>
         )}

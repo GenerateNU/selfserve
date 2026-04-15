@@ -24,10 +24,11 @@ function formatRequestTime(isoString?: string): string {
 }
 
 type RequestCardItemProps = {
+  onClick?: () => void;
   request: RequestFeedItem;
 };
 
-export function RequestCardItem({ request }: RequestCardItemProps) {
+export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
   const status = request.status as RequestStatus;
 
   const getUserById = useGetUsersIdHook();
@@ -52,7 +53,7 @@ export function RequestCardItem({ request }: RequestCardItemProps) {
   const hasBottomRow = roomLabel || request.department;
 
   return (
-    <RequestCard status={status} className="w-full">
+    <RequestCard status={status} className="w-full" onClick={onClick}>
       <RequestCardTimestamp
         status={status}
         time={formatRequestTime(request.created_at)}

@@ -3,15 +3,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
-import { useGetRequestsFeed } from "@shared/api/requests";
+import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
-import type { RequestFeedSort } from "@shared/api/requests";
+import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
 import type { Request, User } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
 import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
+import { ViewRequestDrawer } from "@/components/requests/ViewRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
 
@@ -27,6 +28,7 @@ const KANBAN_COLUMNS = [
 
 function KanbanColumnData({
   status,
+  onCardClick,
   sort,
   userId,
   priorities,
@@ -34,6 +36,7 @@ function KanbanColumnData({
   floors,
 }: {
   status: string;
+  onCardClick: (requestId: string) => void;
   sort: RequestFeedSort | undefined;
   userId?: string;
   priorities?: Array<string>;
@@ -79,8 +82,12 @@ function KanbanColumnData({
 
   return (
     <>
-      {requests.map((request) => (
-        <RequestCardItem key={request.id} request={request} />
+      {requests.map((request: RequestFeedItem) => (
+        <RequestCardItem
+          key={request.id}
+          request={request}
+          onClick={() => onCardClick(request.id)}
+        />
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
     </>
@@ -112,13 +119,20 @@ function HomePage() {
     priority?: MakeRequestPriority;
     room_id?: string;
   } | null>(null);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null,
+  );
+
+  const { data: selectedRequest } = useGetRequestById(selectedRequestId);
 
   function handleCreateRequest() {
+    setSelectedRequestId(null);
     setDrawerData({});
   }
 
   function handleRequestGenerated(request: Request) {
     const p = request.priority;
+    setSelectedRequestId(null);
     setDrawerData({
       name: request.name,
       description: request.description,
@@ -128,13 +142,25 @@ function HomePage() {
     });
   }
 
+  function handleCardClick(requestId: string) {
+    setDrawerData(null);
+    setSelectedRequestId(requestId);
+  }
+
   const drawer =
     drawerData !== null ? (
       <CreateRequestDrawer
         initialData={drawerData}
         onClose={() => setDrawerData(null)}
       />
+    ) : selectedRequestId !== null ? (
+      <ViewRequestDrawer
+        request={selectedRequest ?? null}
+        onClose={() => setSelectedRequestId(null)}
+      />
     ) : null;
+
+  const drawerOpen = drawerData !== null || selectedRequestId !== null;
 
   return (
     <PageShell
@@ -143,7 +169,7 @@ function HomePage() {
         description: "Overview of all tasks currently at play",
       }}
       headerBorder={false}
-      drawerOpen={drawerData !== null}
+      drawerOpen={drawerOpen}
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
@@ -170,15 +196,20 @@ function HomePage() {
                 status={col.status}
                 sort={sort}
                 userId={selectedUser?.id}
+                departments={
+                  selectedDepartments.length > 0
+                    ? selectedDepartments
+                    : undefined
+                }
+                onCardClick={handleCardClick}
                 priorities={selectedPriorities}
-                departments={selectedDepartments}
                 floors={selectedFloors}
               />
             </KanbanColumn>
           ))}
         </div>
       </div>
-      {drawerData === null && (
+      {!drawerOpen && (
         <GlobalTaskInput onRequestGenerated={handleRequestGenerated} />
       )}
     </PageShell>

@@ -23,17 +23,29 @@ export default function TasksScreen() {
   );
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [sort, setSort] = useState<RequestFeedSort>("priority");
+  const [priorities, setPriorities] = useState<string[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
+  const [floors, setFloors] = useState<number[]>([]);
   const { userId } = useAuth();
   const { mutate: completeTask } = useCompleteTask();
 
   const myTasksQuery = useGetRequestsFeed({
     userId: userId ?? undefined,
     sort,
+    priorities,
+    departments,
+    floors,
   });
   const myTaskItems =
     myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
 
-  const unassignedQuery = useGetRequestsFeed({ unassigned: true, sort });
+  const unassignedQuery = useGetRequestsFeed({
+    unassigned: true,
+    sort,
+    priorities,
+    departments,
+    floors,
+  });
   const unassignedItems =
     unassignedQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
 
@@ -82,12 +94,12 @@ export default function TasksScreen() {
         onClose={() => setFilterSheetOpen(false)}
         sort={sort}
         onSortChange={setSort}
-      />
-      <TaskFilterSheet
-        visible={filterSheetOpen}
-        onClose={() => setFilterSheetOpen(false)}
-        sort={sort}
-        onSortChange={setSort}
+        priorities={priorities}
+        onPrioritiesChange={setPriorities}
+        departments={departments}
+        onDepartmentsChange={setDepartments}
+        floors={floors}
+        onFloorsChange={setFloors}
       />
     </SafeAreaView>
   );
