@@ -11,6 +11,7 @@ import { TasksHeader } from "@/components/tasks/tasks-header";
 import { TAB, TabName } from "@/constants/tasks";
 import {
   useCompleteTask,
+  useMarkTaskPending,
   useGetRequestsFeed,
   type RequestFeedItem,
   type RequestFeedSort,
@@ -28,6 +29,7 @@ export default function TasksScreen() {
   const [floors, setFloors] = useState<number[]>([]);
   const { userId } = useAuth();
   const { mutate: completeTask } = useCompleteTask();
+  const { mutate: markTaskPending } = useMarkTaskPending();
 
   const myTasksQuery = useGetRequestsFeed({
     userId: userId ?? undefined,
@@ -81,6 +83,11 @@ export default function TasksScreen() {
                 ? (id: string) => completeTask(id)
                 : undefined
             }
+            onMarkPending={
+              activeTab === TAB.MY_TASKS
+                ? (id: string) => markTaskPending(id)
+                : undefined
+            }
           />
         )}
       </View>
@@ -88,6 +95,7 @@ export default function TasksScreen() {
         task={selectedTask}
         onClose={() => setSelectedTask(null)}
         onComplete={(id) => completeTask(id)}
+        onMarkPending={(id) => markTaskPending(id)}
       />
       <TaskFilterSheet
         visible={filterSheetOpen}
