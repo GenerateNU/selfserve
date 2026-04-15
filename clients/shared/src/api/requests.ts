@@ -44,6 +44,7 @@ export type RequestFeedPage = {
 
 export type RequestFeedParams = {
   userId?: string;
+  unassigned?: boolean;
 };
 
 export const useGetRequestsFeed = (params: RequestFeedParams) => {
@@ -55,6 +56,7 @@ export const useGetRequestsFeed = (params: RequestFeedParams) => {
       const query: Record<string, string> = { limit: "20" };
       if (pageParam) query.cursor = pageParam;
       if (params.userId) query.user_id = params.userId;
+      if (params.unassigned) query.unassigned = "true";
       return api.get<RequestFeedPage>("/requests", query);
     },
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,

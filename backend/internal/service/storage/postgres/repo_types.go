@@ -54,7 +54,7 @@ type RequestsRepository interface {
 	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindMyRequestsByRoomID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
-	FindRequestsPaginated(ctx context.Context, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
 type HotelsRepository interface {
