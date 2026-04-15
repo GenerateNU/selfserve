@@ -85,7 +85,10 @@ export function GuestQuickListTable({
 
               <div className="flex items-center gap-1.5">
                 {guest.has_urgent && (
-                  <Flag className="size-3.5 text-high-priority" strokeWidth={2} />
+                  <Flag
+                    className="size-3.5 text-high-priority"
+                    strokeWidth={2}
+                  />
                 )}
                 <span className="text-sm text-primary">
                   {guest.request_count ?? 0}
