@@ -63,7 +63,7 @@ export default function CreateTaskScreen() {
           <SelectionBox
             icon={<ClipboardList size={20} color="#15502c" />}
             label="Manually Create Task"
-            onPress={() => {}}
+            onPress={() => router.push("/create-task-manual")}
           />
         </View>
       </View>

@@ -54,14 +54,12 @@ describe("guest UI helpers", () => {
     });
 
     it("renders an em dash for a null group size", () => {
-      const guest = {
+      const guest: GuestWithBooking = {
         id: "guest-1",
         first_name: "Ada",
         last_name: "Lovelace",
         preferred_name: "Ada",
-        floor: 4,
-        group_size: null as unknown as GuestWithBooking["group_size"],
-        room_number: 401,
+        active_bookings: [{ floor: 4, room_number: 401 }],
       };
 
       render(
