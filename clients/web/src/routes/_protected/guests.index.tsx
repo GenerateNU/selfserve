@@ -12,6 +12,7 @@ import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable
 import { useDebounce } from "../../hooks/use-debounce";
 import type { Request } from "@shared";
 import { GuestDetailsDrawer } from "@/components/guests/GuestDetailsDrawer";
+import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { PageShell } from "@/components/ui/PageShell";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 
@@ -118,9 +119,14 @@ function GuestsQuickListPage() {
         title: "Guests",
         description: "Description blah blah fries -> bag",
       }}
-      drawerOpen={guestId !== undefined}
+      drawerOpen={generatedData !== null || guestId !== undefined}
       drawer={
-        guestId !== undefined ? (
+        generatedData !== null ? (
+          <CreateRequestDrawer
+            initialData={generatedData}
+            onClose={() => setGeneratedData(null)}
+          />
+        ) : guestId !== undefined ? (
           <GuestDetailsDrawer
             guestId={guestId}
             activeTab={tab}
@@ -146,6 +152,12 @@ function GuestsQuickListPage() {
       {generatedData === null && (
         <GlobalTaskInput
           onRequestGenerated={(r: Request) => {
+            if (guestId) {
+              navigate({
+                to: "/guests",
+                search: { guestId: undefined, tab: "profile" },
+              });
+            }
             const p = r.priority;
             setGeneratedData({
               name: r.name,
