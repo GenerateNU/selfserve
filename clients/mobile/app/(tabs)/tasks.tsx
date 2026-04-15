@@ -38,7 +38,7 @@ export default function TasksScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg-surface" edges={["top"]}>
-      <TasksHeader onFilterPress={() => setFilterSheetOpen(true)} />
+      <TasksHeader onFilterPress={() => setFilterSheetOpen(true)} filterActive={filterSheetOpen} />
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
       <View className="flex-1">
         {activeQuery.isLoading ? (
