@@ -1,19 +1,20 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { StartupStatus, useStartup } from "@/context/startup";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 
 export default function Index() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const status = useStartup();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoaded) return;
-    if (isSignedIn) {
-      router.replace("/(tabs)");
-    } else {
+    if (status === StartupStatus.Loading) return;
+    if (status === StartupStatus.Unauthenticated) {
       router.replace("/sign-in");
+      return;
     }
-  }, [router, isLoaded, isSignedIn]);
+
+    router.replace("/(tabs)");
+  }, [status, router]);
 
   return null;
 }

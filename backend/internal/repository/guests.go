@@ -2,14 +2,19 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"iter"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -84,7 +89,12 @@ func (r *GuestsRepository) FindGuest(ctx context.Context, id string) (*models.Gu
 }
 
 func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id string) (*models.GuestWithStays, error) {
-	guest := &models.GuestWithStays{}
+	guest := &models.GuestWithStays{
+		CurrentStays: []models.Stay{},
+		PastStays:    []models.Stay{},
+	}
+	var doNotDisturbStart, doNotDisturbEnd pgtype.Time
+	var assistanceRaw []byte
 
 	err := r.db.QueryRow(ctx, `
 		SELECT
@@ -95,14 +105,25 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 		WHERE g.id = $1
 	`, id).Scan(
 		&guest.ID, &guest.FirstName, &guest.LastName, &guest.Phone, &guest.Email,
-		&guest.Preferences, &guest.Notes, &guest.Pronouns, &guest.DoNotDisturbStart,
-		&guest.DoNotDisturbEnd, &guest.HousekeepingCadence, &guest.Assistance,
+		&guest.Preferences, &guest.Notes, &guest.Pronouns, &doNotDisturbStart,
+		&doNotDisturbEnd, &guest.HousekeepingCadence, &assistanceRaw,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
 		}
 		return nil, err
+	}
+
+	guest.DoNotDisturbStart = formatPGTime(doNotDisturbStart)
+	guest.DoNotDisturbEnd = formatPGTime(doNotDisturbEnd)
+
+	if len(assistanceRaw) > 0 {
+		var assistance *models.Assistance
+		if err := json.Unmarshal(assistanceRaw, &assistance); err != nil {
+			return nil, err
+		}
+		guest.Assistance = assistance
 	}
 
 	rows, err := r.db.Query(ctx, `
@@ -116,35 +137,53 @@ func (r *GuestsRepository) FindGuestWithStayHistory(ctx context.Context, id stri
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		var arrivalDate, departureDate *time.Time
-		var roomNumber, groupSize *int
-		var status *models.BookingStatus
-
-		if err := rows.Scan(&arrivalDate, &departureDate, &roomNumber, &status, &groupSize); err != nil {
-			return nil, err
-		}
-
-		if arrivalDate == nil {
-			continue
-		}
-
-		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, status)
-		guest = appendStay(guest, stay, *status)
+	if err := loadGuestStayHistory(guest, rows); err != nil {
+		return nil, err
 	}
+
+	sortGuestStays(guest)
 
 	return guest, rows.Err()
 }
 
-func buildStay(arrival, departure *time.Time, roomNumber, groupSize *int, status *models.BookingStatus) models.Stay {
-	stay := models.Stay{
-		ArrivalDate:   *arrival,
-		DepartureDate: *departure,
-		RoomNumber:    *roomNumber,
-		Status:        *status,
+func loadGuestStayHistory(guest *models.GuestWithStays, rows pgx.Rows) error {
+	for rows.Next() {
+		var arrivalDate, departureDate pgtype.Date
+		var roomNumber, groupSize pgtype.Int4
+		var status string
+
+		if err := rows.Scan(&arrivalDate, &departureDate, &roomNumber, &status, &groupSize); err != nil {
+			return err
+		}
+
+		if !arrivalDate.Valid || !departureDate.Valid || !roomNumber.Valid || status == "" {
+			continue
+		}
+
+		stayStatus := models.BookingStatus(status)
+		stay := buildStay(arrivalDate, departureDate, roomNumber, groupSize, stayStatus)
+		appendStay(guest, stay, stayStatus)
 	}
-	if groupSize != nil {
-		stay.GroupSize = groupSize
+
+	return rows.Err()
+}
+
+func buildStay(
+	arrival pgtype.Date,
+	departure pgtype.Date,
+	roomNumber pgtype.Int4,
+	groupSize pgtype.Int4,
+	status models.BookingStatus,
+) models.Stay {
+	stay := models.Stay{
+		ArrivalDate:   arrival.Time,
+		DepartureDate: departure.Time,
+		RoomNumber:    int(roomNumber.Int32),
+		Status:        status,
+	}
+	if groupSize.Valid {
+		value := int(groupSize.Int32)
+		stay.GroupSize = &value
 	}
 	return stay
 }
@@ -157,6 +196,36 @@ func appendStay(guest *models.GuestWithStays, stay models.Stay, status models.Bo
 		guest.PastStays = append(guest.PastStays, stay)
 	}
 	return guest
+}
+
+func sortGuestStays(guest *models.GuestWithStays) {
+	sort.Slice(guest.CurrentStays, func(currentStayIndex, otherCurrentStayIndex int) bool {
+		return guest.CurrentStays[currentStayIndex].ArrivalDate.After(
+			guest.CurrentStays[otherCurrentStayIndex].ArrivalDate,
+		)
+	})
+
+	sort.Slice(guest.PastStays, func(pastStayIndex, otherPastStayIndex int) bool {
+		return guest.PastStays[pastStayIndex].DepartureDate.After(
+			guest.PastStays[otherPastStayIndex].DepartureDate,
+		)
+	})
+}
+
+func formatPGTime(value pgtype.Time) *string {
+	if !value.Valid {
+		return nil
+	}
+
+	duration := time.Duration(value.Microseconds) * time.Microsecond
+	hours := int(duration / time.Hour)
+	duration -= time.Duration(hours) * time.Hour
+	minutes := int(duration / time.Minute)
+	duration -= time.Duration(minutes) * time.Minute
+	seconds := int(duration / time.Second)
+
+	formatted := fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+	return &formatted
 }
 
 func (r *GuestsRepository) UpdateGuest(ctx context.Context, id string, update *models.UpdateGuest) (*models.Guest, error) {
@@ -228,15 +297,23 @@ func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*mod
 					g.phone,
 					g.preferences,
 					g.notes,
+					g.assistance,
 					r.floor,
 					r.room_number,
 					gb.group_size,
 					gb.status,
 					gb.arrival_date,
-					gb.departure_date
+					gb.departure_date,
+					COALESCE(ra.request_count, 0) AS request_count,
+					COALESCE(ra.has_urgent, false) AS has_urgent
 				FROM guest_bookings gb
 				JOIN guests g ON g.id = gb.guest_id
 				JOIN rooms r ON r.id = gb.room_id
+				LEFT JOIN (
+					SELECT guest_id, hotel_id, COUNT(*) AS request_count, BOOL_OR(priority = 'high') AS has_urgent
+					FROM requests
+					GROUP BY guest_id, hotel_id
+				) ra ON ra.guest_id = g.id AND ra.hotel_id = gb.hotel_id
 				WHERE (
 					$1::text = ''
 					OR (CONCAT_WS(' ', g.first_name, g.last_name), g.id::text) > ($1::text, $2::text)
@@ -256,8 +333,10 @@ func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*mod
 					&doc.ID, &doc.HotelID, &doc.FullName,
 					&doc.FirstName, &doc.LastName, &doc.PreferredName,
 					&doc.Email, &doc.Phone, &doc.Preferences, &doc.Notes,
+					&doc.Assistance,
 					&doc.Floor, &doc.RoomNumber, &doc.GroupSize,
 					&doc.BookingStatus, &doc.ArrivalDate, &doc.DepartureDate,
+					&doc.RequestCount, &doc.HasUrgent,
 				); err != nil {
 					rows.Close()
 					yield(nil, err)
@@ -289,75 +368,145 @@ func (r *GuestsRepository) AllGuestDocuments(ctx context.Context) iter.Seq2[*mod
 	}
 }
 
+func scanGuests(rows pgx.Rows) ([]*models.GuestWithBooking, error) {
+	var guests []*models.GuestWithBooking
+	for rows.Next() {
+		var g models.GuestWithBooking
+		err := rows.Scan(&g.ID, &g.FirstName, &g.LastName, &g.PreferredName, &g.RequestCount, &g.HasUrgent, &g.Assistance, &g.ActiveBookings)
+		if err != nil {
+			return nil, err
+		}
+		guests = append(guests, &g)
+	}
+	return guests, rows.Err()
+}
+
+func buildNextCursor(guests []*models.GuestWithBooking, limit int) ([]*models.GuestWithBooking, *string) {
+	if len(guests) <= limit {
+		return guests, nil
+	}
+	guests = guests[:limit]
+	last := guests[limit-1]
+	encoded := last.FirstName + " " + last.LastName + "|" + last.ID
+	return guests, &encoded
+}
+
 func (r *GuestsRepository) FindGuestsWithActiveBooking(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error) {
-	floorsFilter := filters.Floors
-	groupSizesFilter := filters.GroupSize
+	orderBy := buildGuestOrderBy(filters)
 
 	rows, err := r.db.Query(ctx, `
-	WITH guest_data AS (
+	WITH requests_agg AS (
+		SELECT
+			guest_id,
+			COUNT(*) AS request_count,
+			BOOL_OR(priority = 'high') AS has_urgent
+		FROM requests
+		WHERE hotel_id = $1
+		GROUP BY guest_id
+	),
+	guest_data AS (
 		SELECT
 			g.id,
 			g.first_name,
 			g.last_name,
 			CONCAT_WS(' ', g.first_name, g.last_name) AS full_name,
 			COALESCE(g.preferences, g.first_name) AS preferred_name,
-			r.floor,
-			r.room_number,
-			gb.group_size,
-			gb.hotel_id,
-			gb.status
+			g.assistance,
+			COALESCE(ra.request_count, 0) AS request_count,
+			COALESCE(ra.has_urgent, false) AS has_urgent,
+			COALESCE(
+				json_agg(
+					json_build_object('floor', r.floor, 'room_number', r.room_number)
+					ORDER BY r.floor, r.room_number
+				) FILTER (WHERE gb.status = 'active'),
+				'[]'::json
+			) AS active_bookings,
+			BOOL_OR(gb.status = 'active') AS has_active_booking,
+			ARRAY_AGG(DISTINCT r.floor) FILTER (WHERE gb.status = 'active') AS active_floors,
+			ARRAY_AGG(DISTINCT gb.group_size) FILTER (WHERE gb.status = 'active') AS active_group_sizes,
+			MIN(r.floor) FILTER (WHERE gb.status = 'active') AS min_floor
 		FROM guest_bookings gb
 		JOIN guests g ON g.id = gb.guest_id
 		JOIN rooms r ON r.id = gb.room_id
+		LEFT JOIN requests_agg ra ON ra.guest_id = g.id
+		WHERE gb.hotel_id = $1
+		GROUP BY g.id, g.first_name, g.last_name, g.preferences, g.assistance, ra.request_count, ra.has_urgent
 	)
-	SELECT id, first_name, last_name, preferred_name, floor, room_number, group_size
+	SELECT id, first_name, last_name, preferred_name, request_count, has_urgent, assistance, active_bookings
 	FROM guest_data
-	WHERE hotel_id = $1
-		AND status = 'active'
-		AND ($2::int[] IS NULL OR floor = ANY($2))
-		AND ($3::int[] IS NULL OR group_size = ANY($3))
-		AND (
-			$4::text = ''
-			OR full_name ILIKE '%' || $4 || '%'
-			OR room_number::text ILIKE '%' || $4 || '%'
+	WHERE (
+		$2::text[] IS NULL
+		OR ('active' = ANY($2) AND has_active_booking)
+		OR ('inactive' = ANY($2) AND NOT has_active_booking)
+	)
+	AND ($3::int[] IS NULL OR active_floors && $3::int[])
+	AND ($4::int[] IS NULL OR active_group_sizes && $4::int[])
+	AND (
+		$5::text = ''
+		OR full_name ILIKE '%' || $5 || '%'
+	)
+	AND (
+		$6::text = ''
+		OR (full_name, id::text) > ($6::text, $7::text)
+	)
+	AND (
+		$8::text[] IS NULL
+		OR (
+			('accessibility' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'accessibility', '[]'::jsonb)) > 0)
+			OR ('dietary' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'dietary', '[]'::jsonb)) > 0)
+			OR ('medical' = ANY($8) AND jsonb_array_length(COALESCE(assistance->'medical', '[]'::jsonb)) > 0)
 		)
-		AND (
-			$5::text = ''
-			OR (full_name, id::text) > ($5::text, $6::text)
-		)
-	ORDER BY full_name ASC, id ASC
-	LIMIT $7`,
-		filters.HotelID, floorsFilter, groupSizesFilter, filters.Search, filters.CursorName, filters.CursorID, filters.Limit+1,
+	)
+	ORDER BY `+orderBy+`
+	LIMIT $9`,
+		filters.HotelID,
+		filters.Status,
+		filters.Floors,
+		filters.GroupSize,
+		filters.Search,
+		filters.CursorName,
+		filters.CursorID,
+		filters.Assistance,
+		filters.Limit+1,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var guests []*models.GuestWithBooking
-	for rows.Next() {
-		var g models.GuestWithBooking
-		err := rows.Scan(&g.ID, &g.FirstName, &g.LastName, &g.PreferredName, &g.Floor, &g.RoomNumber, &g.GroupSize)
-		if err != nil {
-			return nil, err
-		}
-		guests = append(guests, &g)
-	}
-
-	if err := rows.Err(); err != nil {
+	guests, err := scanGuests(rows)
+	if err != nil {
 		return nil, err
 	}
 
-	var nextCursor *string
-	if len(guests) == filters.Limit+1 {
-		guests = guests[:filters.Limit]
-		last := guests[filters.Limit-1]
-		encoded := last.FirstName + " " + last.LastName + "|" + last.ID
-		nextCursor = &encoded
-	}
+	guests, nextCursor := buildNextCursor(guests, filters.Limit)
 
 	return &models.GuestPage{
 		Data:       guests,
 		NextCursor: nextCursor,
 	}, nil
+}
+
+func buildGuestOrderBy(filters *models.GuestFilters) string {
+	var parts []string
+
+	switch filters.RequestSort {
+	case models.RequestSortUrgent:
+		parts = append(parts, "has_urgent DESC")
+	case models.RequestSortHighToLow:
+		parts = append(parts, "request_count DESC")
+	case models.RequestSortLowToHigh:
+		parts = append(parts, "request_count ASC")
+	}
+
+	switch filters.FloorSort {
+	case models.FloorSortAscending:
+		parts = append(parts, "min_floor ASC")
+	case models.FloorSortDescending:
+		parts = append(parts, "min_floor DESC")
+	}
+
+	parts = append(parts, "full_name ASC", "id ASC")
+
+	return strings.Join(parts, ", ")
 }

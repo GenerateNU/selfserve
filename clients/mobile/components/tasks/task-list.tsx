@@ -1,30 +1,67 @@
-import { FlatList, ListRenderItem } from "react-native";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 
-import { TaskCard } from "@/components/tasks/task-card";
-import type { Task } from "@/data/mockTasks";
-import { TASK_ASSIGNMENT_STATE } from "@/constants/tasks";
+import { TaskRow } from "@/components/tasks/task-row";
+import type { RequestFeedItem } from "@shared/api/requests";
 
-interface TaskListProps {
-  tasks: Task[];
-  variant: (typeof TASK_ASSIGNMENT_STATE)[keyof typeof TASK_ASSIGNMENT_STATE];
+type SectionHeader = { _type: "section-header"; title: string };
+type ListItem = RequestFeedItem | SectionHeader;
+
+function isSectionHeader(item: ListItem): item is SectionHeader {
+  return "_type" in item && item._type === "section-header";
 }
 
-export function TaskList({ tasks, variant }: TaskListProps) {
-  const renderItem: ListRenderItem<Task> = ({ item, index }) => {
-    const isExpanded =
-      variant === TASK_ASSIGNMENT_STATE.ASSIGNED
-        ? index === 0
-        : item.priority === "High";
-    return <TaskCard task={item} variant={variant} isExpanded={isExpanded} />;
-  };
+type TaskListProps = {
+  tasks: RequestFeedItem[];
+  onEndReached?: () => void;
+  isLoadingMore?: boolean;
+};
+
+export function TaskList({
+  tasks,
+  onEndReached,
+  isLoadingMore,
+}: TaskListProps) {
+  const active = tasks.filter((t) => t.status !== "completed");
+  const completed = tasks.filter((t) => t.status === "completed");
+
+  const data: ListItem[] = [
+    ...active,
+    ...(completed.length > 0
+      ? [
+          { _type: "section-header" as const, title: "Completed Tasks" },
+          ...completed,
+        ]
+      : []),
+  ];
 
   return (
-    <FlatList
-      data={tasks}
-      keyExtractor={(item) => item.id}
-      renderItem={renderItem}
-      contentContainerClassName="px-[5vw] py-4 gap-4"
+    <FlatList<ListItem>
+      data={data}
+      keyExtractor={(item) =>
+        isSectionHeader(item) ? "section-completed" : item.id
+      }
+      renderItem={({ item }) => {
+        if (isSectionHeader(item)) {
+          return (
+            <View className="px-6 py-4">
+              <Text className="text-[15px] font-medium text-text-default tracking-tight">
+                {item.title}
+              </Text>
+            </View>
+          );
+        }
+        return <TaskRow task={item} />;
+      }}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.2}
       showsVerticalScrollIndicator={false}
+      ListFooterComponent={
+        isLoadingMore ? (
+          <View className="py-4 items-center">
+            <ActivityIndicator />
+          </View>
+        ) : null
+      }
     />
   );
 }

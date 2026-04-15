@@ -220,10 +220,6 @@ func (r *RequestsHandler) GetRequests(c *fiber.Ctx) error {
 func validateGenerateRequest(input *models.GenerateRequestInput) error {
 	errors := make(map[string]string)
 
-	if !validUUID(input.HotelID) {
-		errors["hotel_id"] = "invalid uuid"
-	}
-
 	if input.RawText == "" {
 		errors["raw_text"] = "must not be an empty string"
 	}
@@ -315,6 +311,10 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
+	if err := httpx.Validate(&input); err != nil {
+		return err
+	}
+
 	if err := validateGenerateRequest(&input); err != nil {
 		return err
 	}
@@ -380,7 +380,7 @@ func warningFromAI(w *aiflows.GenerateRequestWarning) *models.GenerateRequestWar
 // @Tags         requests
 // @Produce      json
 // @Param        id  path  string  true  "Guest ID (UUID)"
-// @Success      200  {object}  []models.GuestRequest
+// @Success      200  {object}  utils.CursorPage[models.GuestRequest]
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
@@ -454,6 +454,48 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 		Assigned:   assigned,
 		Unassigned: unassigned,
 	})
+}
+
+// GetRequestsFeed godoc
+// @Summary      Get requests feed
+// @Description  Returns a paginated list of requests for the hotel, optionally filtered by assigned user
+// @Tags         requests
+// @Produce      json
+// @Param        X-Hotel-ID  header  string  true   "Hotel ID (UUID)"
+// @Param        cursor      query   string  false  "Pagination cursor"
+// @Param        limit       query   int     false  "Page size (default 20, max 100)"
+// @Param        user_id     query   string  false  "Filter by assigned user ID"
+// @Success      200  {object}  utils.CursorPage[models.GuestRequest]
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /requests [get]
+func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
+	hotelID := c.Get("X-Hotel-ID")
+	if hotelID == "" {
+		return errs.BadRequest("X-Hotel-ID header is required")
+	}
+
+	cursor := c.Query("cursor")
+	limit := c.QueryInt("limit")
+	userID := c.Query("user_id")
+
+	cursorID, cursorVersion, err := parseRequestCursor(cursor)
+	if err != nil {
+		return errs.BadRequest("invalid cursor")
+	}
+
+	resolvedLimit := utils.ResolveLimit(limit)
+	requests, err := r.RequestRepository.FindRequestsPaginated(c.Context(), hotelID, userID, cursorID, cursorVersion, resolvedLimit+1)
+	if err != nil {
+		return errs.InternalServerError()
+	}
+
+	page := utils.BuildCursorPage(requests, resolvedLimit, func(req *models.GuestRequest) string {
+		return req.ID + "|" + req.RequestVersion.UTC().Format(time.RFC3339Nano)
+	})
+
+	return c.JSON(page)
 }
 
 // parseRequestCursor splits a "id|request_version" cursor string.

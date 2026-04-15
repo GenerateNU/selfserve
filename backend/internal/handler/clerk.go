@@ -2,14 +2,12 @@ package handler
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	storage "github.com/generate/selfserve/internal/service/storage/postgres"
-	"github.com/generate/selfserve/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	svix "github.com/svix/svix-webhooks/go"
 )
@@ -85,7 +83,7 @@ func (h *ClerkWebHookHandler) OrgCreated(c *fiber.Ctx) error {
 		return errs.InvalidJSON()
 	}
 
-	hotel, err := h.HotelsRepository.InsertHotel(c.Context(), &models.CreateHotelRequest{
+	_, err := h.HotelsRepository.InsertHotel(c.Context(), &models.CreateHotelRequest{
 		ID:   payload.Data.ID,
 		Name: payload.Data.Name,
 	})
@@ -94,10 +92,6 @@ func (h *ClerkWebHookHandler) OrgCreated(c *fiber.Ctx) error {
 			return c.SendStatus(fiber.StatusOK)
 		}
 		return errs.InternalServerError()
-	}
-
-	if err := utils.UpdateOrgMetadata(c.Context(), payload.Data.ID, hotel.ID); err != nil {
-		slog.Error("failed to update org metadata", "clerk_org_id", payload.Data.ID, "error", err)
 	}
 
 	return c.SendStatus(fiber.StatusOK)

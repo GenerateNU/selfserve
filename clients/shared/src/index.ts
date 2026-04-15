@@ -21,6 +21,14 @@ export type {
   Guest,
   GuestPage,
   Dev,
+  Assistance,
+  ActiveBooking,
+  Stay,
+  UpdateGuest,
+  GithubComGenerateSelfserveInternalModelsBookingStatus as BookingStatus,
+  GithubComGenerateSelfserveInternalModelsAssistanceFilter as AssistanceFilter,
+  GuestFiltersRequestSort as RequestSort,
+  GuestFiltersFloorSort as FloorSort,
 } from "./api/generated/models";
 
 // Generated API Functions
@@ -33,6 +41,7 @@ export {
   usePostRequest,
   usePostRequestGenerate,
   useGetRequestRoomId,
+  useGetRequestGuestId,
 } from "./api/generated/endpoints/requests/requests";
 
 export {
@@ -41,31 +50,54 @@ export {
 } from "./api/generated/endpoints/users/users";
 
 export {
-  usePostApiV1Hotels,
-  useGetApiV1HotelsId,
+  usePostHotels,
+  useGetHotelsId,
 } from "./api/generated/endpoints/hotels/hotels";
 
 export { useGetDevsName } from "./api/generated/endpoints/devs/devs";
 
 export {
-  usePostApiV1Guests,
-  useGetApiV1GuestsId,
-  usePutApiV1GuestsId,
+  usePostGuests,
+  useGetGuestsId,
+  usePutGuestsId,
+  getGetGuestsStaysIdQueryKey,
+  usePostGuestsSearchHook,
+  useGetGuestsStaysId,
 } from "./api/generated/endpoints/guests/guests";
 
-export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
+export type {
+  GuestWithBooking,
+  GuestWithStays,
+  GuestFilters,
+} from "./api/generated/models";
 
-export {
-  usePostRooms,
-  useGetRoomsFloors,
-} from "./api/generated/endpoints/rooms/rooms";
+export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
+export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
 
 export type {
   RoomWithOptionalGuestBooking,
   FilterRoomsRequest,
   GuestRequest,
   RoomRequestsResponse,
+  GithubComGenerateSelfserveInternalUtilsCursorPageGuestRequest,
 } from "./api/generated/models";
+
+export { useInfiniteRequestsByGuest, getGuestRequestsQueryKey } from "./api/requests";
+
+
+// User hooks
+export { getUserQueryKey, useGetUser, useUpdateUser } from "./api/users";
+
+// Department types and hooks
+export type { Department } from "./types/departments";
+
+export {
+  getDepartmentsQueryKey,
+  useGetDepartments,
+  useCreateDepartment,
+  useUpdateDepartment,
+  useDeleteDepartment,
+} from "./api/departments";
 
 // Notification types and hooks
 export type {

@@ -353,7 +353,7 @@ func TestGuestsHandler_GetGuest(t *testing.T) {
 func TestGuestsHandler_GetGuests(t *testing.T) {
 	t.Parallel()
 
-	validHotelID := "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+	validHotelID := "org_a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 
 	t.Run("returns 200 with guest page", func(t *testing.T) {
 		t.Parallel()
@@ -456,23 +456,6 @@ func TestGuestsHandler_GetGuests(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{}`))
 		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-	})
-
-	t.Run("returns 400 when X-Hotel-ID is invalid UUID", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockGuestsRepository{}
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewGuestsHandler(mock, nil)
-		app.Post("/guests/search", h.GetGuests)
-
-		req := httptest.NewRequest("POST", "/guests/search", bytes.NewBufferString(`{}`))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Hotel-ID", "not-a-uuid")
 
 		resp, err := app.Test(req)
 		require.NoError(t, err)

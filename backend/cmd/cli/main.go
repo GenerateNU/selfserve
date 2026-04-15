@@ -8,9 +8,6 @@ import (
 	"os"
 
 	"github.com/generate/selfserve/config"
-	"github.com/generate/selfserve/internal/repository"
-	"github.com/generate/selfserve/internal/service/clerk"
-	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/sethvargo/go-envconfig"
 )
 
@@ -35,6 +32,10 @@ var commands = map[string]command{
 	"reindex-guests": {
 		description: "Fetch all guests from the database and reindex them in OpenSearch",
 		run:         runReindexGuests,
+	},
+	"backfill-hotel-departments": {
+		description: "Seed default departments for hotels that have no departments",
+		run:         runBackfillHotelDepartments,
 	},
 }
 
@@ -73,35 +74,4 @@ func printUsage() {
 		fmt.Fprintf(os.Stderr, "  %-20s %s\n", name, cmd.description)
 	}
 	fmt.Fprintln(os.Stderr)
-}
-
-// =============================================================================
-// Command implementations
-// =============================================================================
-
-func runSyncUsers(ctx context.Context, cfg config.Config, _ []string) error {
-	repo, err := storage.NewRepository(cfg.DB)
-	if err != nil {
-		return fmt.Errorf("failed to connect to db: %w", err)
-	}
-	defer repo.Close()
-
-	usersRepo := repository.NewUsersRepository(repo.DB)
-
-	users, err := clerk.FetchUsersFromClerk(cfg.BaseURL+"/users", cfg.SecretKey)
-	if err != nil {
-		return err
-	}
-
-	transformed, err := clerk.ValidateAndReformatUserData(users)
-	if err != nil {
-		return err
-	}
-
-	if err := usersRepo.BulkInsertUsers(ctx, transformed); err != nil {
-		return fmt.Errorf("failed to insert users: %w", err)
-	}
-
-	fmt.Println("sync-users completed successfully")
-	return nil
 }

@@ -230,6 +230,32 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context
 	return scanGuestRequests(rows)
 }
 
+func (r *RequestsRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+	rows, err := r.db.Query(ctx, `
+		WITH latest AS (
+			SELECT DISTINCT ON (r.id)
+				r.id, r.name, r.priority, r.status, r.description, r.notes,
+				rm.room_number, r.request_type, r.request_category, r.created_at,
+				r.request_version
+			FROM public.requests r
+			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
+			WHERE r.hotel_id = $1
+			  AND ($2::text = '' OR r.user_id = $2)
+			ORDER BY r.id ASC, r.request_version DESC
+		)
+		SELECT * FROM latest
+		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
+		ORDER BY id ASC
+		LIMIT $5
+	`, hotelID, userID, cursorID, cursorVersion, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return scanGuestRequests(rows)
+}
+
 func scanGuestRequests(rows pgx.Rows) ([]*models.GuestRequest, error) {
 	requests := make([]*models.GuestRequest, 0)
 	for rows.Next() {

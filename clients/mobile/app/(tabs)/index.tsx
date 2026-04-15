@@ -1,105 +1,72 @@
-import { Image } from "expo-image";
-import { Text, TextInput, Pressable, ActivityIndicator } from "react-native";
-import { useState } from "react";
+import { View, Text, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "@clerk/clerk-expo";
+import { Sparkles, ClipboardList, ChevronRight } from "lucide-react-native";
+import { router } from "expo-router";
 
-import { HelloWave } from "@/components/hello-wave";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { useGetHelloName } from "@/hooks/use-hello";
+function SelectionBox({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center justify-between bg-white rounded-lg p-4"
+      style={{ borderWidth: 0.5, borderColor: "#aeaeae", borderRadius: 8 }}
+    >
+      <View className="flex-row items-center gap-2">
+        {icon}
+        <Text className="text-[15px] text-text-default tracking-tight">
+          {label}
+        </Text>
+      </View>
+      <ChevronRight size={18} color="#aeaeae" />
+    </Pressable>
+  );
+}
 
-export default function HomeScreen() {
-  const [name, setName] = useState("");
-  const [submittedName, setSubmittedName] = useState("");
-
-  const { data, isLoading, error, refetch } = useGetHelloName(submittedName);
-
-  const handleSubmit = () => {
-    if (name.trim()) {
-      setSubmittedName(name);
-    }
-  };
+export default function CreateTaskScreen() {
+  const { user } = useUser();
+  const firstName = user?.firstName ?? "there";
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/dao.webp")}
-          contentFit="cover"
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-        />
-      }
-    >
-      <ThemedView className="flex-row items-center gap-2">
-        <Text className="text-primary text-[32px] font-bold">Welcome!</Text>
-        <HelloWave />
-      </ThemedView>
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      {/* Header */}
+      <View className="px-6 pb-3 pt-3 border-b border-[#e9e9e9]">
+        <Text className="text-2xl font-medium text-text-default tracking-tight">
+          Task Creation
+        </Text>
+      </View>
 
-      {/* API Test Section */}
-      <ThemedView className="gap-2 mb-4 p-4 border border-gray-300 dark:border-gray-700 rounded-lg">
-        <ThemedText type="subtitle">API Test</ThemedText>
-        <ThemedText className="text-sm">
-          Test the shared API client with GET /api/v1/hello/:name
-        </ThemedText>
+      {/* Content */}
+      <View className="px-6 pt-8 gap-6">
+        <View className="gap-2">
+          <Text className="text-2xl font-medium text-text-default tracking-tight">
+            Welcome Back, {firstName}!
+          </Text>
+          <Text className="text-[15px] text-text-default">
+            How would you like to get started today?
+          </Text>
+        </View>
 
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="Enter your name"
-          placeholderTextColor="#999"
-          className="border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 mb-2 text-black dark:text-white bg-white dark:bg-gray-800"
-        />
-
-        <Pressable
-          onPress={handleSubmit}
-          disabled={!name.trim() || isLoading}
-          className={`rounded-lg px-4 py-3 items-center ${
-            !name.trim() || isLoading
-              ? "bg-gray-400 dark:bg-gray-600"
-              : "bg-blue-500"
-          }`}
-        >
-          <ThemedText className="text-white font-semibold">
-            {isLoading ? "Loading..." : "Call API"}
-          </ThemedText>
-        </Pressable>
-
-        {/* Response Section */}
-        <ThemedView className="mt-4">
-          {isLoading && (
-            <ThemedView className="flex-row items-center gap-2">
-              <ActivityIndicator size="small" color="#0ea5e9" />
-              <ThemedText>Fetching data...</ThemedText>
-            </ThemedView>
-          )}
-
-          {error && (
-            <ThemedView className="bg-red-100 dark:bg-red-900/20 p-3 rounded-lg">
-              <ThemedText className="text-red-600 dark:text-red-400 font-semibold">
-                Error: {error.message}
-              </ThemedText>
-            </ThemedView>
-          )}
-
-          {data && !isLoading && (
-            <ThemedView className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg">
-              <ThemedText className="text-green-700 dark:text-green-400 font-semibold mb-2">
-                Success! 🎉
-              </ThemedText>
-              <ThemedText className="text-lg font-mono">{data}</ThemedText>
-              <Pressable onPress={() => refetch()} className="mt-2">
-                <ThemedText className="text-blue-500 underline">
-                  Refetch
-                </ThemedText>
-              </Pressable>
-            </ThemedView>
-          )}
-        </ThemedView>
-      </ThemedView>
-    </ParallaxScrollView>
+        <View className="gap-4">
+          <SelectionBox
+            icon={<Sparkles size={20} color="#15502c" />}
+            label="Use SelfServe's AI"
+            onPress={() => router.push("/create-task-ai")}
+          />
+          <SelectionBox
+            icon={<ClipboardList size={20} color="#15502c" />}
+            label="Manually Create Task"
+            onPress={() => router.push("/create-task-manual")}
+          />
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }

@@ -141,7 +141,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB), s3Store)
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), openSearchRepos.Guests)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
-	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB))
+	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB), repository.NewUsersRepository(repo.DB))
 	s3Handler := handler.NewS3Handler(s3Store)
 	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
 	guestBookingsHandler := handler.NewGuestBookingsHandler(repository.NewGuestBookingsRepository(repo.DB))
@@ -177,25 +177,28 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// users routes
 	api.Route("/users", func(r fiber.Router) {
-		r.Get("/", usersHandler.SearchUsers)
+		r.Post("/search", usersHandler.SearchUsers)
 		r.Get("/:id", usersHandler.GetUserByID)
 		r.Post("/", usersHandler.CreateUser)
 		r.Get("/:userId/profile-picture", usersHandler.GetProfilePicture)
 		r.Put("/:userId/profile-picture", usersHandler.UpdateProfilePicture)
 		r.Delete("/:userId/profile-picture", usersHandler.DeleteProfilePicture)
 		r.Put("/:id", usersHandler.UpdateUser)
+		r.Post("/:id/departments", usersHandler.AddEmployeeDepartment)
+		r.Delete("/:id/departments/:deptId", usersHandler.RemoveEmployeeDepartment)
 	})
 
 	// Guest Routes
 	api.Route("/guests", func(r fiber.Router) {
 		r.Post("/", guestsHandler.CreateGuest)
-		r.Get("/:id", guestsHandler.GetGuest)
-		r.Put("/:id", guestsHandler.UpdateGuest)
 		r.Post("/search", guestsHandler.GetGuests)
 		r.Get("/stays/:id", guestsHandler.GetGuestWithStays)
+		r.Get("/:id", guestsHandler.GetGuest)
+		r.Put("/:id", guestsHandler.UpdateGuest)
 	})
 
 	// Request routes
+	api.Get("/requests", reqsHandler.GetRequestsFeed)
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
@@ -211,6 +214,11 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	api.Route("/hotels", func(r fiber.Router) {
 		r.Get("/:id", hotelsHandler.GetHotelByID)
 		r.Post("/", hotelsHandler.CreateHotel)
+		r.Get("/:id/users", hotelsHandler.GetHotelUsers)
+		r.Get("/:id/departments", hotelsHandler.GetDepartmentsByHotelID)
+		r.Post("/:id/departments", hotelsHandler.CreateDepartment)
+		r.Put("/:id/departments/:deptId", hotelsHandler.UpdateDepartment)
+		r.Delete("/:id/departments/:deptId", hotelsHandler.DeleteDepartment)
 	})
 
 	// s3 routes

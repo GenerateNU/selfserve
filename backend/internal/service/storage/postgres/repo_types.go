@@ -24,7 +24,10 @@ type UsersRepository interface {
 	DeleteProfilePicture(ctx context.Context, userId string) error
 	GetKey(ctx context.Context, userId string) (string, error)
 	BulkInsertUsers(ctx context.Context, users []*models.CreateUser) error
+	GetUsersByHotel(ctx context.Context, hotelID, cursor string, limit int) ([]*models.User, string, error)
 	SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
+	AddEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error
+	RemoveEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error
 }
 
 type GuestsRepository interface {
@@ -51,11 +54,16 @@ type RequestsRepository interface {
 	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindUnassignedRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	FindRequestsPaginated(ctx context.Context, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 }
 
 type HotelsRepository interface {
 	FindByID(ctx context.Context, id string) (*models.Hotel, error)
 	InsertHotel(ctx context.Context, hotel *models.CreateHotelRequest) (*models.Hotel, error)
+	GetDepartmentsByHotelID(ctx context.Context, hotelID string) ([]*models.Department, error)
+	InsertDepartment(ctx context.Context, hotelID, name string) (*models.Department, error)
+	UpdateDepartment(ctx context.Context, id, hotelID, name string) (*models.Department, error)
+	DeleteDepartment(ctx context.Context, id, hotelID string) error
 }
 
 // S3Storage defines the interface for S3 operations

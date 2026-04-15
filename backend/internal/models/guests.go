@@ -7,22 +7,25 @@ import (
 )
 
 type GuestDocument struct {
-	ID            string    `json:"id"`
-	HotelID       string    `json:"hotel_id"`
-	FullName      string    `json:"full_name"`
-	FirstName     string    `json:"first_name"`
-	LastName      string    `json:"last_name"`
-	PreferredName string    `json:"preferred_name"`
-	Email         *string   `json:"email,omitempty"`
-	Phone         *string   `json:"phone,omitempty"`
-	Preferences   *string   `json:"preferences,omitempty"`
-	Notes         *string   `json:"notes,omitempty"`
-	Floor         int       `json:"floor"`
-	RoomNumber    int       `json:"room_number"`
-	GroupSize     *int      `json:"group_size,omitempty"`
-	BookingStatus string    `json:"booking_status"`
-	ArrivalDate   time.Time `json:"arrival_date"`
-	DepartureDate time.Time `json:"departure_date"`
+	ID            string      `json:"id"`
+	HotelID       string      `json:"hotel_id"`
+	FullName      string      `json:"full_name"`
+	FirstName     string      `json:"first_name"`
+	LastName      string      `json:"last_name"`
+	PreferredName string      `json:"preferred_name"`
+	Email         *string     `json:"email,omitempty"`
+	Phone         *string     `json:"phone,omitempty"`
+	Preferences   *string     `json:"preferences,omitempty"`
+	Notes         *string     `json:"notes,omitempty"`
+	Assistance    *Assistance `json:"assistance,omitempty"`
+	Floor         int         `json:"floor"`
+	RoomNumber    int         `json:"room_number"`
+	GroupSize     *int        `json:"group_size,omitempty"`
+	BookingStatus string      `json:"booking_status"`
+	ArrivalDate   time.Time   `json:"arrival_date"`
+	DepartureDate time.Time   `json:"departure_date"`
+	RequestCount  int         `json:"request_count"`
+	HasUrgent     bool        `json:"has_urgent"`
 } //@name GuestDocument
 
 type CreateGuest struct {
@@ -48,15 +51,42 @@ type Guest struct {
 	CreateGuest
 } //@name Guest
 
+type RequestSortOrder string
+
+const (
+	RequestSortHighToLow RequestSortOrder = "high_to_low"
+	RequestSortLowToHigh RequestSortOrder = "low_to_high"
+	RequestSortUrgent    RequestSortOrder = "urgent"
+)
+
+type FloorSortOrder string
+
+const (
+	FloorSortAscending  FloorSortOrder = "ascending"
+	FloorSortDescending FloorSortOrder = "descending"
+)
+
+type AssistanceFilter string
+
+const (
+	AssistanceAccessibility AssistanceFilter = "accessibility"
+	AssistanceDietary       AssistanceFilter = "dietary"
+	AssistanceMedical       AssistanceFilter = "medical"
+)
+
 type GuestFilters struct {
-	HotelID    string `json:"hotel_id" validate:"required,uuid"`
-	Floors     []int  `json:"floors"`
-	GroupSize  []int  `json:"group_size"`
-	Search     string `json:"search"`
-	Cursor     string `json:"cursor"`
-	CursorName string `json:"-"`
-	CursorID   string `json:"-"`
-	Limit      int    `json:"limit" validate:"omitempty,min=1,max=100"`
+	HotelID     string             `json:"hotel_id"     validate:"required,startswith=org_" swaggerignore:"true"`
+	Status      []BookingStatus    `json:"status"       validate:"omitempty,dive,oneof=active inactive"`
+	RequestSort RequestSortOrder   `json:"request_sort" validate:"omitempty,oneof=high_to_low low_to_high urgent"`
+	FloorSort   FloorSortOrder     `json:"floor_sort"   validate:"omitempty,oneof=ascending descending"`
+	Floors      []int              `json:"floors"`
+	GroupSize   []int              `json:"group_size"`
+	Search      string             `json:"search"`
+	Cursor      string             `json:"cursor"`
+	CursorName  string             `json:"-"`
+	CursorID    string             `json:"-"`
+	Limit       int                `json:"limit"        validate:"omitempty,min=1,max=100"`
+	Assistance  []AssistanceFilter `json:"assistance" validate:"omitempty,dive,oneof=accessibility dietary medical"`
 } // @name GuestFilters
 
 type GuestPage struct {
@@ -64,15 +94,35 @@ type GuestPage struct {
 	NextCursor *string             `json:"next_cursor"`
 } // @name GuestPage
 
+type ActiveBooking struct {
+	Floor      int `json:"floor"`
+	RoomNumber int `json:"room_number"`
+} //@name ActiveBooking
+
+type ActiveBookings []ActiveBooking
+
+func (a *ActiveBookings) Scan(src any) error {
+	if src == nil {
+		*a = []ActiveBooking{}
+		return nil
+	}
+	rawBytes, ok := src.([]byte)
+	if !ok {
+		return fmt.Errorf("ActiveBookings.Scan: expected []byte from JSON column, got %T", src)
+	}
+	return json.Unmarshal(rawBytes, a)
+}
+
 type GuestWithBooking struct {
-	ID            string `json:"id" validate:"required"`
-	FirstName     string `json:"first_name" validate:"required"`
-	LastName      string `json:"last_name" validate:"required"`
-	PreferredName string `json:"preferred_name"`
-	Floor         int    `json:"floor" validate:"required"`
-	RoomNumber    int    `json:"room_number" validate:"required"`
-	GroupSize     *int   `json:"group_size" validate:"required"`
-} // @name GuestWithBooking
+	ID             string         `json:"id"`
+	FirstName      string         `json:"first_name"`
+	LastName       string         `json:"last_name"`
+	PreferredName  string         `json:"preferred_name"`
+	RequestCount   int            `json:"request_count"`
+	HasUrgent      bool           `json:"has_urgent"`
+	Assistance     *Assistance    `json:"assistance,omitempty"`
+	ActiveBookings ActiveBookings `json:"active_bookings"`
+} //@name GuestWithBooking
 
 type GuestWithStays struct {
 	ID                  string      `json:"id" validate:"required" example:"530e8400-e458-41d4-a716-446655440000"`
@@ -83,8 +133,8 @@ type GuestWithStays struct {
 	Preferences         *string     `json:"preferences,omitempty" example:"extra pillows"`
 	Notes               *string     `json:"notes,omitempty" example:"VIP"`
 	Pronouns            *string     `json:"pronouns,omitempty" example:"she/her"`
-	DoNotDisturbStart   *time.Time  `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
-	DoNotDisturbEnd     *time.Time  `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
+	DoNotDisturbStart   *string     `json:"do_not_disturb_start,omitempty" example:"17:00:00"`
+	DoNotDisturbEnd     *string     `json:"do_not_disturb_end,omitempty" example:"07:00:00"`
 	HousekeepingCadence *string     `json:"housekeeping_cadence,omitempty" example:"daily"`
 	Assistance          *Assistance `json:"assistance,omitempty"`
 	CurrentStays        []Stay      `json:"current_stays" validate:"required"`

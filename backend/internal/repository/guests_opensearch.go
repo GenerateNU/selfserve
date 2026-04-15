@@ -150,29 +150,53 @@ func (r *OpenSearchGuestsRepository) SearchGuests(ctx context.Context, filters *
 		return nil, fmt.Errorf("decoding search response: %w", err)
 	}
 
-	searchHits := decodedSearchResult.Hits.Hits
+	// Group hits by guest ID — a guest with multiple active bookings produces multiple OpenSearch documents.
+	// We deduplicate here, aggregating all active booking rooms and taking stats from the first hit.
+	type guestEntry struct {
+		guest    *models.GuestWithBooking
+		sortVals []any
+	}
+	guestMap := make(map[string]*guestEntry)
+	var orderedIDs []string
+
+	for _, hit := range decodedSearchResult.Hits.Hits {
+		doc := hit.GuestDocument
+		if _, exists := guestMap[doc.ID]; !exists {
+			guestMap[doc.ID] = &guestEntry{
+				guest: &models.GuestWithBooking{
+					ID:             doc.ID,
+					FirstName:      doc.FirstName,
+					LastName:       doc.LastName,
+					PreferredName:  doc.PreferredName,
+					Assistance:     doc.Assistance,
+					RequestCount:   doc.RequestCount,
+					HasUrgent:      doc.HasUrgent,
+					ActiveBookings: models.ActiveBookings{},
+				},
+				sortVals: hit.SortValues,
+			}
+			orderedIDs = append(orderedIDs, doc.ID)
+		}
+		guestMap[doc.ID].guest.ActiveBookings = append(
+			guestMap[doc.ID].guest.ActiveBookings,
+			models.ActiveBooking{Floor: doc.Floor, RoomNumber: doc.RoomNumber},
+		)
+	}
+
 	var nextCursor *string
-	if len(searchHits) == filters.Limit+1 {
-		searchHits = searchHits[:filters.Limit]
-		lastHit := searchHits[filters.Limit-1]
-		if len(lastHit.SortValues) >= 2 {
-			encodedCursor := fmt.Sprintf("%v|%v", lastHit.SortValues[0], lastHit.SortValues[1])
+	resultIDs := orderedIDs
+	if len(orderedIDs) == filters.Limit+1 {
+		resultIDs = orderedIDs[:filters.Limit]
+		lastEntry := guestMap[orderedIDs[filters.Limit-1]]
+		if len(lastEntry.sortVals) >= 2 {
+			encodedCursor := fmt.Sprintf("%v|%v", lastEntry.sortVals[0], lastEntry.sortVals[1])
 			nextCursor = &encodedCursor
 		}
 	}
 
-	guestResults := make([]*models.GuestWithBooking, 0, len(searchHits))
-	for _, hit := range searchHits {
-		guestDoc := hit.GuestDocument
-		guestResults = append(guestResults, &models.GuestWithBooking{
-			ID:            guestDoc.ID,
-			FirstName:     guestDoc.FirstName,
-			LastName:      guestDoc.LastName,
-			PreferredName: guestDoc.PreferredName,
-			Floor:         guestDoc.Floor,
-			RoomNumber:    guestDoc.RoomNumber,
-			GroupSize:     guestDoc.GroupSize,
-		})
+	guestResults := make([]*models.GuestWithBooking, 0, len(resultIDs))
+	for _, id := range resultIDs {
+		guestResults = append(guestResults, guestMap[id].guest)
 	}
 
 	return &models.GuestPage{
