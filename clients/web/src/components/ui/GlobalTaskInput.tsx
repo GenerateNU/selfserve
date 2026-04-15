@@ -73,7 +73,8 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
   };
 
   const containerStyle = {
-    boxShadow: "-10px -5px 30px 0px rgba(168,205,185,0.25), 10px 5px 30px 0px rgba(168,205,185,0.25)",
+    boxShadow:
+      "-10px -5px 30px 0px rgba(168,205,185,0.25), 10px 5px 30px 0px rgba(168,205,185,0.25)",
   };
 
   if (isPending) {
