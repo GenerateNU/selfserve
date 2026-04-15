@@ -13,7 +13,6 @@ import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as FlowsPfpRouteImport } from './routes/flows.pfp'
 import { Route as ProtectedTestApiRouteImport } from './routes/_protected/test-api'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedRoomsRouteImport } from './routes/_protected/rooms'
@@ -40,11 +39,6 @@ const ProtectedRoute = ProtectedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FlowsPfpRoute = FlowsPfpRouteImport.update({
-  id: '/flows/pfp',
-  path: '/flows/pfp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedTestApiRoute = ProtectedTestApiRouteImport.update({
@@ -97,7 +91,6 @@ export interface FileRoutesByFullPath {
   '/rooms': typeof ProtectedRoomsRouteWithChildren
   '/settings': typeof ProtectedSettingsRoute
   '/test-api': typeof ProtectedTestApiRoute
-  '/flows/pfp': typeof FlowsPfpRoute
   '/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
   '/guests/': typeof ProtectedGuestsIndexRoute
   '/rooms/': typeof ProtectedRoomsIndexRoute
@@ -110,7 +103,6 @@ export interface FileRoutesByTo {
   '/profile': typeof ProtectedProfileRoute
   '/settings': typeof ProtectedSettingsRoute
   '/test-api': typeof ProtectedTestApiRoute
-  '/flows/pfp': typeof FlowsPfpRoute
   '/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
   '/guests': typeof ProtectedGuestsIndexRoute
   '/rooms': typeof ProtectedRoomsIndexRoute
@@ -126,7 +118,6 @@ export interface FileRoutesById {
   '/_protected/rooms': typeof ProtectedRoomsRouteWithChildren
   '/_protected/settings': typeof ProtectedSettingsRoute
   '/_protected/test-api': typeof ProtectedTestApiRoute
-  '/flows/pfp': typeof FlowsPfpRoute
   '/_protected/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
   '/_protected/guests/': typeof ProtectedGuestsIndexRoute
   '/_protected/rooms/': typeof ProtectedRoomsIndexRoute
@@ -142,7 +133,6 @@ export interface FileRouteTypes {
     | '/rooms'
     | '/settings'
     | '/test-api'
-    | '/flows/pfp'
     | '/guests/$guestId'
     | '/guests/'
     | '/rooms/'
@@ -155,7 +145,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/test-api'
-    | '/flows/pfp'
     | '/guests/$guestId'
     | '/guests'
     | '/rooms'
@@ -170,7 +159,6 @@ export interface FileRouteTypes {
     | '/_protected/rooms'
     | '/_protected/settings'
     | '/_protected/test-api'
-    | '/flows/pfp'
     | '/_protected/guests/$guestId'
     | '/_protected/guests/'
     | '/_protected/rooms/'
@@ -181,7 +169,6 @@ export interface RootRouteChildren {
   ProtectedRoute: typeof ProtectedRouteWithChildren
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
-  FlowsPfpRoute: typeof FlowsPfpRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,13 +199,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/flows/pfp': {
-      id: '/flows/pfp'
-      path: '/flows/pfp'
-      fullPath: '/flows/pfp'
-      preLoaderRoute: typeof FlowsPfpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/test-api': {
@@ -321,7 +301,6 @@ const rootRouteChildren: RootRouteChildren = {
   ProtectedRoute: ProtectedRouteWithChildren,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
-  FlowsPfpRoute: FlowsPfpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
