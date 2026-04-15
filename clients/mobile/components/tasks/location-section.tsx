@@ -9,7 +9,10 @@ type LocationSectionProps = {
   onFloorsChange: (floors: number[]) => void;
 };
 
-export function LocationSection({ floors, onFloorsChange }: LocationSectionProps) {
+export function LocationSection({
+  floors,
+  onFloorsChange,
+}: LocationSectionProps) {
   const { data: allFloors = [], isLoading } = useGetRoomsFloors({
     query: { staleTime: Infinity },
   });
