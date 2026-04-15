@@ -230,7 +230,7 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomID(ctx context.Context,
 	return scanGuestRequests(rows)
 }
 
-func (r *RequestsRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+func (r *RequestsRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
@@ -240,14 +240,17 @@ func (r *RequestsRepository) FindRequestsPaginated(ctx context.Context, hotelID,
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.hotel_id = $1
-			  AND ($2::text = '' OR r.user_id = $2)
+			  AND (
+			    ($3::bool AND r.user_id IS NULL)
+			    OR (NOT $3::bool AND ($2::text = '' OR r.user_id = $2))
+			  )
 			ORDER BY r.id ASC, r.request_version DESC
 		)
 		SELECT * FROM latest
-		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
+		WHERE ($4::text = '' OR (id::text, request_version) > ($4, $5))
 		ORDER BY id ASC
-		LIMIT $5
-	`, hotelID, userID, cursorID, cursorVersion, limit)
+		LIMIT $6
+	`, hotelID, userID, unassigned, cursorID, cursorVersion, limit)
 	if err != nil {
 		return nil, err
 	}
