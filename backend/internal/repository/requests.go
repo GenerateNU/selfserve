@@ -48,60 +48,70 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 	return req, nil
 }
 
-func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, update *models.UpdateRequest) (*models.Request, error) {
-	var req models.Request
-	err := r.db.QueryRow(ctx, `
+func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+	row := r.db.QueryRow(ctx, `
+		WITH current AS (
+			SELECT *
+			FROM requests
+			WHERE id = $1
+			ORDER BY request_version DESC
+			LIMIT 1
+		)
 		INSERT INTO requests (
 			id, hotel_id, guest_id, user_id, reservation_id, name, description,
 			room_id, request_category, request_type, department, status,
-			priority, estimated_completion_time, scheduled_time, completed_at,
-			notes, request_version, created_at
+			priority, estimated_completion_time, scheduled_time, completed_at, notes,
+			request_version, created_at
 		)
 		SELECT
-			id,
-			hotel_id,
-			COALESCE($2, guest_id),
-			COALESCE($3, user_id),
-			COALESCE($4, reservation_id),
-			COALESCE($5, name),
-			COALESCE($6, description),
-			COALESCE($7, room_id),
-			COALESCE($8, request_category),
-			COALESCE($9, request_type),
-			COALESCE($10, department),
-			COALESCE($11, status),
-			COALESCE($12, priority),
-			COALESCE($13, estimated_completion_time),
-			COALESCE($14, scheduled_time),
-			CASE WHEN $11 = 'completed' THEN NOW() ELSE COALESCE($15, completed_at) END,
-			COALESCE($16, notes),
+			current.id,
+			current.hotel_id,
+			COALESCE($2, current.guest_id),
+			COALESCE($3, current.user_id),
+			COALESCE($4, current.reservation_id),
+			COALESCE($5, current.name),
+			COALESCE($6, current.description),
+			COALESCE($7, current.room_id),
+			COALESCE($8, current.request_category),
+			COALESCE($9, current.request_type),
+			COALESCE($10, current.department),
+			COALESCE($11, current.status),
+			COALESCE($12, current.priority),
+			COALESCE($13, current.estimated_completion_time),
+			COALESCE($14, current.scheduled_time),
+			COALESCE($15, current.completed_at),
+			COALESCE($16, current.notes),
 			NOW(),
-			created_at
-		FROM (
-			SELECT DISTINCT ON (id) * FROM requests WHERE id = $1 ORDER BY id, request_version DESC
-		) latest
-		RETURNING id, hotel_id, guest_id, reservation_id, name, description,
-		          room_id, request_category, request_type, department, status,
-		          priority, estimated_completion_time, scheduled_time, completed_at,
-		          notes, created_at, user_id, request_version
+			current.created_at
+		FROM current
+		RETURNING id, created_at, request_version
 	`, id,
-		update.GuestID, update.UserID, update.ReservationID, update.Name,
-		update.Description, update.RoomID, update.RequestCategory, update.RequestType,
-		update.Department, update.Status, update.Priority, update.EstimatedCompletionTime,
-		update.ScheduledTime, update.CompletedAt, update.Notes,
-	).Scan(
-		&req.ID, &req.HotelID, &req.GuestID, &req.ReservationID, &req.Name, &req.Description,
-		&req.RoomID, &req.RequestCategory, &req.RequestType, &req.Department, &req.Status,
-		&req.Priority, &req.EstimatedCompletionTime, &req.ScheduledTime, &req.CompletedAt,
-		&req.Notes, &req.CreatedAt, &req.UserID, &req.RequestVersion,
+		update.GuestID,
+		update.UserID,
+		update.ReservationID,
+		update.Name,
+		update.Description,
+		update.RoomID,
+		update.RequestCategory,
+		update.RequestType,
+		update.Department,
+		update.Status,
+		update.Priority,
+		update.EstimatedCompletionTime,
+		update.ScheduledTime,
+		update.CompletedAt,
+		update.Notes,
 	)
-	if err != nil {
+
+	var req models.Request
+	if err := row.Scan(&req.ID, &req.CreatedAt, &req.RequestVersion); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
 		}
 		return nil, err
 	}
-	return &req, nil
+
+	return r.FindRequest(ctx, id)
 }
 
 func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
@@ -186,22 +196,23 @@ func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID,
 	return scanGuestRequests(rows)
 }
 
-func (r *RequestsRepository) FindMyRequestsByRoomID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+func (r *RequestsRepository) FindRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
-				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version, r.department, r.user_id, rm.floor
+				r.user_id, rm.room_number, r.request_type, r.request_category,
+				r.created_at, r.request_version
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.room_id = $1
 			  AND r.hotel_id = $2
-			  AND r.user_id = $3
 			ORDER BY r.id ASC, r.request_version DESC
 		)
-		SELECT * FROM latest
-		WHERE ($4::text = '' OR (id::text, request_version) > ($4, $5))
+		SELECT id, name, priority, status, description, notes, room_number, request_type, request_category, created_at, request_version
+		FROM latest
+		WHERE user_id = $3
+		  AND ($4::text = '' OR (id::text, request_version) > ($4, $5))
 		ORDER BY id ASC
 		LIMIT $6
 	`, roomID, hotelID, userID, cursorID, cursorVersion, limit)
@@ -213,22 +224,23 @@ func (r *RequestsRepository) FindMyRequestsByRoomID(ctx context.Context, roomID,
 	return scanGuestRequests(rows)
 }
 
-func (r *RequestsRepository) FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
+func (r *RequestsRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH latest AS (
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
-				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version, r.department, r.user_id, rm.floor
+				r.user_id, rm.room_number, r.request_type, r.request_category,
+				r.created_at, r.request_version
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
 			WHERE r.room_id = $1
 			  AND r.hotel_id = $2
-			  AND r.user_id IS NULL
 			ORDER BY r.id ASC, r.request_version DESC
 		)
-		SELECT * FROM latest
-		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
+		SELECT id, name, priority, status, description, notes, room_number, request_type, request_category, created_at, request_version
+		FROM latest
+		WHERE user_id IS NULL
+		  AND ($3::text = '' OR (id::text, request_version) > ($3, $4))
 		ORDER BY id ASC
 		LIMIT $5
 	`, roomID, hotelID, cursorID, cursorVersion, limit)
