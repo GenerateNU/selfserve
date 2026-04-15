@@ -78,3 +78,8 @@ type RoomsRepository interface {
 	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
 	FindRoomByNumber(ctx context.Context, hotelID string, roomReference string) (*models.Room, error)
 }
+
+type GuestBookingsRepository interface {
+	FindGroupSizeOptions(ctx context.Context, hotelID string) ([]int, error)
+	InsertGuestBooking(ctx context.Context, guestID, roomID, hotelID string, arrivalDate, departureDate time.Time) error
+}
