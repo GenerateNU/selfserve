@@ -17,17 +17,7 @@ describe("guest UI helpers", () => {
   describe("GuestQuickListTable", () => {
     it("does not show the empty state while the first page is loading", () => {
       render(
-        <GuestQuickListTable
-          guests={[]}
-          floorOptions={[]}
-          groupSizeOptions={[]}
-          groupFilter="all"
-          floorFilter="all"
-          isLoading
-          onGroupFilterChange={() => {}}
-          onFloorFilterChange={() => {}}
-          onGuestClick={() => {}}
-        />,
+        <GuestQuickListTable guests={[]} isLoading onGuestClick={() => {}} />,
       );
 
       expect(screen.queryByText("No guests match your current filters.")).toBe(
@@ -35,47 +25,20 @@ describe("guest UI helpers", () => {
       );
     });
 
-    it("renders backend-provided filter options", () => {
-      render(
-        <GuestQuickListTable
-          guests={[]}
-          floorOptions={[2, 4]}
-          groupSizeOptions={[1, 3, 6]}
-          groupFilter="all"
-          floorFilter="all"
-          onGroupFilterChange={() => {}}
-          onFloorFilterChange={() => {}}
-          onGuestClick={() => {}}
-        />,
-      );
-
-      expect(screen.getByRole("option", { name: "2" })).not.toBe(null);
-      expect(screen.getByRole("option", { name: "6" })).not.toBe(null);
-    });
-
-    it("renders an em dash for a null group size", () => {
+    it("renders a guest row with active booking", () => {
       const guest: GuestWithBooking = {
         id: "guest-1",
         first_name: "Ada",
         last_name: "Lovelace",
         preferred_name: "Ada",
         active_bookings: [{ floor: 4, room_number: 401 }],
+        request_count: 0,
+        has_urgent: false,
       };
 
-      render(
-        <GuestQuickListTable
-          guests={[guest]}
-          floorOptions={[]}
-          groupSizeOptions={[]}
-          groupFilter="all"
-          floorFilter="all"
-          onGroupFilterChange={() => {}}
-          onFloorFilterChange={() => {}}
-          onGuestClick={() => {}}
-        />,
-      );
+      render(<GuestQuickListTable guests={[guest]} onGuestClick={() => {}} />);
 
-      expect(screen.getByText("—")).not.toBe(null);
+      expect(screen.getByText("Floor 4, Suite 401")).not.toBe(null);
     });
   });
 

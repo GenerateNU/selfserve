@@ -2,13 +2,13 @@ import {
   MakeRequestPriority,
   useGetGuestBookingsGroupSizes,
   useGetRoomsFloors,
+  usePostGuestsSearchHook,
 } from "@shared";
-import { usePostGuestsSearchHook } from "@shared/api/generated/endpoints/guests/guests";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { GuestListHeader } from "../../components/guests/GuestListHeader";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
-import { GuestSearchBar } from "../../components/guests/GuestSearchBar";
 import { useDebounce } from "../../hooks/use-debounce";
 import type { Request } from "@shared";
 import { PageShell } from "@/components/ui/PageShell";
@@ -22,8 +22,8 @@ export const Route = createFileRoute("/_protected/guests/")({
 function GuestsQuickListPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [groupFilter, setGroupFilter] = useState("all");
-  const [floorFilter, setFloorFilter] = useState("all");
+  const [floorFilters, setFloorFilters] = useState<Array<number>>([]);
+  const [groupSizeFilters, setGroupSizeFilters] = useState<Array<number>>([]);
   const [generatedData, setGeneratedData] = useState<{
     name?: string;
     description?: string;
@@ -41,12 +41,13 @@ function GuestsQuickListPage() {
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading, isError } =
     useInfiniteQuery({
-      queryKey: ["guests", debouncedSearch, floorFilter, groupFilter],
+      queryKey: ["guests", debouncedSearch, floorFilters, groupSizeFilters],
       queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
         postGuests({
           search: debouncedSearch || undefined,
-          floors: floorFilter !== "all" ? [Number(floorFilter)] : undefined,
-          group_size: groupFilter !== "all" ? [Number(groupFilter)] : undefined,
+          floors: floorFilters.length > 0 ? floorFilters : undefined,
+          group_size:
+            groupSizeFilters.length > 0 ? groupSizeFilters : undefined,
           cursor: pageParam,
           limit: 20,
         }),
@@ -68,13 +69,7 @@ function GuestsQuickListPage() {
       <>
         <GuestQuickListTable
           guests={allGuests}
-          floorOptions={availableFloors}
-          groupSizeOptions={availableGroupSizes}
-          groupFilter={groupFilter}
-          floorFilter={floorFilter}
           isLoading={isLoading}
-          onGroupFilterChange={setGroupFilter}
-          onFloorFilterChange={setFloorFilter}
           onGuestClick={(guestId) =>
             navigate({ to: "/guests/$guestId", params: { guestId } })
           }
@@ -116,7 +111,18 @@ function GuestsQuickListPage() {
         ) : null
       }
     >
-      <GuestSearchBar value={searchTerm} onChange={setSearchTerm} />
+      <GuestListHeader
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        availableFloors={availableFloors}
+        availableGroupSizes={availableGroupSizes}
+        selectedFloors={floorFilters}
+        selectedGroupSizes={groupSizeFilters}
+        onApplyFilters={(floors, groupSizes) => {
+          setFloorFilters(floors);
+          setGroupSizeFilters(groupSizes);
+        }}
+      />
       {guestsContent}
       {generatedData === null && (
         <GlobalTaskInput
