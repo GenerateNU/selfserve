@@ -320,3 +320,40 @@ func (h *UsersHandler) DeleteProfilePicture(c *fiber.Ctx) error {
 		"message": "Profile picture deleted successfully",
 	})
 }
+
+// CompleteOnboarding godoc
+// @Summary      Complete user onboarding
+// @Description  Saves onboarding data and marks a user as onboarded
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string              true  "User ID"
+// @Param        request  body  models.OnboardUser  true  "Onboarding data"
+// @Success      200  {object}  models.User
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /users/{id}/onboard [put]
+func (h *UsersHandler) CompleteOnboarding(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return errs.BadRequest("id is required")
+	}
+
+	var req models.OnboardUser
+	if err := httpx.BindAndValidate(c, &req); err != nil {
+		return err
+	}
+
+	user, err := h.UsersRepository.CompleteOnboarding(c.Context(), id, &req)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("user", "id", id)
+		}
+		slog.Error("failed to complete onboarding", "id", id, "err", err.Error())
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(user)
+}

@@ -28,6 +28,7 @@ type UsersRepository interface {
 	SearchUsersByHotel(ctx context.Context, hotelID, cursor, query string, limit int) ([]*models.User, string, error)
 	AddEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error
 	RemoveEmployeeDepartment(ctx context.Context, employeeID, departmentID string) error
+	CompleteOnboarding(ctx context.Context, id string, data *models.OnboardUser) (*models.User, error)
 }
 
 type GuestsRepository interface {
@@ -54,6 +55,7 @@ type RequestsRepository interface {
 	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindMyRequestsByRoomID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
 }
 
 type HotelsRepository interface {
@@ -75,4 +77,9 @@ type RoomsRepository interface {
 	FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
 	FindAllFloors(ctx context.Context, hotelID string) ([]int, error)
 	FindRoomByNumber(ctx context.Context, hotelID string, roomReference string) (*models.Room, error)
+}
+
+type GuestBookingsRepository interface {
+	FindGroupSizeOptions(ctx context.Context, hotelID string) ([]int, error)
+	InsertGuestBooking(ctx context.Context, guestID, roomID, hotelID string, arrivalDate, departureDate time.Time) error
 }

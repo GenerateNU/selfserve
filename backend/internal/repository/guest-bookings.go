@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -37,4 +38,12 @@ func (r *GuestBookingsRepository) FindGroupSizeOptions(ctx context.Context, hote
 	}
 
 	return sizes, rows.Err()
+}
+
+func (r *GuestBookingsRepository) InsertGuestBooking(ctx context.Context, guestID, roomID, hotelID string, arrivalDate, departureDate time.Time) error {
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO guest_bookings (guest_id, room_id, hotel_id, arrival_date, departure_date, status)
+		VALUES ($1, $2, $3, $4, $5, 'active')
+	`, guestID, roomID, hotelID, arrivalDate, departureDate)
+	return err
 }

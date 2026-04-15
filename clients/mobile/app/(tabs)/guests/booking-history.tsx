@@ -1,9 +1,10 @@
 import { View, Text, Pressable, SectionList } from "react-native";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Users, Calendar, Clock } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Colors } from "@/constants/theme";
 import { useGetGuestsStaysId } from "@shared/api/generated/endpoints/guests/guests";
-import type { Stay } from "@shared/api/generated/models";
+import type { Stay } from "@shared";
+import { formatDate, formatTime } from "@/utils/time";
 
 export default function BookingHistoryScreen() {
   const { id } = useLocalSearchParams();
@@ -31,7 +32,7 @@ export default function BookingHistoryScreen() {
   ];
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white pt-safe">
       <View className="flex-row items-center px-[4vw] py-[3vh] border-b border-stroke-subtle">
         <Pressable onPress={() => router.back()}>
           <ChevronLeft size={24} color={Colors.light.text} />
@@ -43,7 +44,7 @@ export default function BookingHistoryScreen() {
       </View>
 
       {isLoading ? (
-        <Text className="text-center mt-[4vh] text-[3.5vw] text-shadow-strong">
+        <Text className="text-center mt-[4vh] text-[3.5vw] text-text-subtle">
           Loading...
         </Text>
       ) : (
@@ -52,51 +53,79 @@ export default function BookingHistoryScreen() {
           keyExtractor={(_, i) => i.toString()}
           contentContainerStyle={{ padding: 16, gap: 8 }}
           renderSectionHeader={({ section }) => (
-            <Text className="text-[3.5vw] font-semibold text-shadow-strong mt-[2vh] mb-[1vh]">
+            <Text className="text-[3.5vw] font-semibold text-black mt-[2vh] mb-[1vh]">
               {section.title}
             </Text>
           )}
-          renderItem={({ item, section }) => (
-            <BookingCard stay={item} isActive={section.active} />
-          )}
+          renderItem={({ item, section }) =>
+            section.active ? (
+              <ActiveBookingCard stay={item} />
+            ) : (
+              <PastBookingCard stay={item} />
+            )
+          }
         />
       )}
     </View>
   );
 }
 
-function BookingCard({ stay, isActive }: { stay: Stay; isActive: boolean }) {
-  const fmt = (d: string | Date) =>
-    new Date(d).toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric",
-    });
-
+function ActiveBookingCard({ stay }: { stay: Stay }) {
   return (
-    <View
-      className={`rounded-xl p-[4vw] mb-[2vw] border ${
-        isActive
-          ? "bg-success-accent border-success-stroke"
-          : "bg-white border-stroke-subtle"
-      }`}
-    >
-      <View className="flex-row items-center justify-between mb-[1vh]">
-        <Text
-          className={`text-[4vw] font-semibold ${isActive ? "text-primary" : "text-black"}`}
-        >
-          Room {stay.room_number}
+    <View className="bg-success-accent border border-success-stroke rounded-xl p-[4vw] gap-[1.5vh]">
+      <View className="flex-row items-center justify-between">
+        <Text className="text-[5.5vw] font-bold text-primary">
+          Suite {stay.room_number}
         </Text>
-        <Text
-          className={`text-[3.5vw] ${isActive ? "text-primary" : "text-shadow-strong"}`}
-        >
-          {stay.status}
+        <View className="flex-row items-center gap-[1.5vw]">
+          <Users size={16} color={Colors.light.tabBarActive} />
+          <Text className="text-[4vw] text-primary font-medium">
+            {stay.group_size ?? 1}
+          </Text>
+        </View>
+      </View>
+
+      <View className="flex-row items-center gap-[2vw]">
+        <Text className="text-[3.5vw] text-primary w-[22vw]">Arrival:</Text>
+        <Calendar size={13} color={Colors.light.tabBarActive} />
+        <Text className="text-[3.5vw] text-primary">
+          {formatDate(stay.arrival_date)}
+        </Text>
+        <Clock size={13} color={Colors.light.tabBarActive} />
+        <Text className="text-[3.5vw] text-primary">
+          {formatTime(stay.arrival_date)}
         </Text>
       </View>
-      <Text
-        className={`text-[3vw] ${isActive ? "text-primary" : "text-shadow-strong"}`}
-      >
-        {fmt(stay.arrival_date)} - {fmt(stay.departure_date)}
+
+      <View className="flex-row items-center gap-[2vw]">
+        <Text className="text-[3.5vw] text-primary w-[22vw]">Departure:</Text>
+        <Calendar size={13} color={Colors.light.tabBarActive} />
+        <Text className="text-[3.5vw] text-primary">
+          {formatDate(stay.departure_date)}
+        </Text>
+        <Clock size={13} color={Colors.light.tabBarActive} />
+        <Text className="text-[3.5vw] text-primary">
+          {formatTime(stay.departure_date)}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function PastBookingCard({ stay }: { stay: Stay }) {
+  return (
+    <View className="border border-stroke-subtle rounded-xl px-[4vw] py-[2.5vh] gap-[0.8vh]">
+      <View className="flex-row items-center gap-[2vw]">
+        <Text className="text-[3.8vw] font-medium text-black">
+          Suite {stay.room_number}
+        </Text>
+        <Users size={13} color={Colors.light.icon} />
+        <Text className="text-[3.5vw] text-text-subtle">
+          {stay.group_size ?? 1}
+        </Text>
+      </View>
+      <Text className="text-[3.2vw] text-text-subtle">
+        {formatDate(stay.arrival_date)} - {formatDate(stay.departure_date)}
       </Text>
     </View>
   );

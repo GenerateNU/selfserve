@@ -25,6 +25,7 @@ type mockRequestRepository struct {
 	findRequestsByGuestIDFunc          func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findMyRequestsByRoomIDFunc         func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findUnassignedRequestsByRoomIDFunc func(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
+	findRequestsPaginatedFunc          func(ctx context.Context, hotelID, userID string, unassigned bool, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -53,6 +54,10 @@ func (m *mockRequestRepository) FindMyRequestsByRoomID(ctx context.Context, room
 
 func (m *mockRequestRepository) FindUnassignedRequestsByRoomID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	return m.findUnassignedRequestsByRoomIDFunc(ctx, roomID, hotelID, cursorID, cursorVersion, limit)
+}
+
+func (m *mockRequestRepository) FindRequestsPaginated(ctx context.Context, hotelID, userID string, unassigned bool, sort models.RequestFeedSort, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error) {
+	return m.findRequestsPaginatedFunc(ctx, hotelID, userID, unassigned, sort, cursorID, cursorCreatedAt, cursorPriorityRank, limit)
 }
 
 type mockLLMService struct {
