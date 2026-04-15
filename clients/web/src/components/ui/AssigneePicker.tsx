@@ -100,29 +100,30 @@ export function AssigneePicker({
               No staff found
             </p>
           )}
-          {users && users.map((user) => (
-            <button
-              key={user.id}
-              type="button"
-              onClick={() => handleSelect(user)}
-              className={cn(
-                "flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-bg-selected",
-                selectedUser?.id === user.id && "bg-bg-selected",
-              )}
-            >
-              <UserAvatar user={user} />
-              <div className="min-w-0">
-                <p className="truncate text-sm text-text-default">
-                  {user.first_name} {user.last_name}
-                </p>
-                {user.role && (
-                  <p className="truncate text-xs text-text-subtle">
-                    {user.role}
-                  </p>
+          {users &&
+            users.map((user) => (
+              <button
+                key={user.id}
+                type="button"
+                onClick={() => handleSelect(user)}
+                className={cn(
+                  "flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-bg-selected",
+                  selectedUser?.id === user.id && "bg-bg-selected",
                 )}
-              </div>
-            </button>
-          ))}
+              >
+                <UserAvatar user={user} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm text-text-default">
+                    {user.first_name} {user.last_name}
+                  </p>
+                  {user.role && (
+                    <p className="truncate text-xs text-text-subtle">
+                      {user.role}
+                    </p>
+                  )}
+                </div>
+              </button>
+            ))}
           {hasNextPage && (
             <button
               ref={loadMoreRef}
