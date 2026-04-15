@@ -12,7 +12,10 @@ type PriorityConfig = {
   contentClass: string;
 };
 
-const priorityConfig: Record<Exclude<RequestPriority, "low">, PriorityConfig> = {
+const priorityConfig: Record<
+  Exclude<RequestPriority, "low">,
+  PriorityConfig
+> = {
   high: {
     label: "High Priority",
     Icon: FlagIcon,
