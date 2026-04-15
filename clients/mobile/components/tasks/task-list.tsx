@@ -14,12 +14,14 @@ type TaskListProps = {
   tasks: RequestFeedItem[];
   onEndReached?: () => void;
   isLoadingMore?: boolean;
+  onTaskPress?: (task: RequestFeedItem) => void;
 };
 
 export function TaskList({
   tasks,
   onEndReached,
   isLoadingMore,
+  onTaskPress,
 }: TaskListProps) {
   const active = tasks.filter((t) => t.status !== "completed");
   const completed = tasks.filter((t) => t.status === "completed");
@@ -50,7 +52,7 @@ export function TaskList({
             </View>
           );
         }
-        return <TaskRow task={item} />;
+        return <TaskRow task={item} onPress={onTaskPress} />;
       }}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.2}

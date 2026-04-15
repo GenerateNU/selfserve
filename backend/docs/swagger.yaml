@@ -426,6 +426,18 @@ definitions:
       user_id:
         type: string
     type: object
+  OnboardUser:
+    properties:
+      department:
+        example: front_desk
+        type: string
+      hotel_name:
+        example: Hotel California
+        type: string
+      role:
+        example: manager
+        type: string
+    type: object
   RegisterDeviceTokenInput:
     properties:
       platform:
@@ -605,6 +617,9 @@ definitions:
       id:
         example: user_123
         type: string
+      is_onboarded:
+        example: false
+        type: boolean
       last_name:
         example: Doe
         type: string
@@ -1576,6 +1591,56 @@ paths:
       summary: Get requests by room
       tags:
       - requests
+  /requests:
+    get:
+      description: Returns a paginated list of requests for the hotel, optionally
+        filtered by assigned user
+      parameters:
+      - description: Hotel ID (UUID)
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - description: Page size (default 20, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by assigned user ID
+        in: query
+        name: user_id
+        type: string
+      - description: If true, return only requests with no assigned user
+        in: query
+        name: unassigned
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_utils.CursorPage-GuestRequest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get requests feed
+      tags:
+      - requests
   /rooms:
     post:
       consumes:
@@ -1975,6 +2040,53 @@ paths:
       security:
       - BearerAuth: []
       summary: Remove department from employee
+      tags:
+      - users
+  /users/{id}/onboard:
+    put:
+      consumes:
+      - application/json
+      description: Saves onboarding data and marks a user as onboarded
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Onboarding data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/OnboardUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Complete user onboarding
       tags:
       - users
   /users/{userId}/profile-picture:

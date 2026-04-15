@@ -331,7 +331,7 @@ export function GuestFilterSheet({
       sheetHeight.setValue(DEFAULT_HEIGHT);
       lastHeight.current = DEFAULT_HEIGHT;
     }
-  }, [visible]);
+  }, [visible, sheetHeight]);
 
   const panResponder = useRef(
     PanResponder.create({
