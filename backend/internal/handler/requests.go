@@ -423,6 +423,11 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	unassigned := c.QueryBool("unassigned")
 	status := c.Query("status")
 
+	var priorities []string
+	if raw := c.Query("priorities"); raw != "" {
+		priorities = strings.Split(raw, ",")
+	}
+
 	var departments []string
 	if raw := c.Query("departments"); raw != "" {
 		departments = strings.Split(raw, ",")
@@ -443,7 +448,7 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 
 	resolvedLimit := utils.ResolveLimit(limit)
 	requests, err := r.RequestRepository.FindRequestsPaginated(
-		c.Context(), hotelID, userID, unassigned, status, departments,
+		c.Context(), hotelID, userID, unassigned, status, priorities, departments,
 		feedSort, cursorID, cursorCreatedAt, cursorPriorityRank,
 		resolvedLimit+1,
 	)

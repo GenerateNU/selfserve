@@ -29,16 +29,18 @@ function KanbanColumnData({
   status,
   sort,
   userId,
+  priorities,
   departments,
 }: {
   status: string;
   sort: RequestFeedSort | undefined;
   userId?: string;
+  priorities?: Array<string>;
   departments?: Array<string>;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetRequestsFeed({ status, sort, userId, departments });
+    useGetRequestsFeed({ status, sort, userId, priorities, departments });
 
   const hasNextPageRef = useRef(hasNextPage);
   const isFetchingRef = useRef(isFetchingNextPage);
@@ -79,6 +81,9 @@ function KanbanColumnData({
 function HomePage() {
   const [sort, setSort] = useState<RequestFeedSort | undefined>("priority");
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
+  const [selectedPriorities, setSelectedPriorities] = useState<Array<string>>(
+    [],
+  );
   const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>(
     [],
   );
@@ -138,6 +143,8 @@ function HomePage() {
         onSortChange={setSort}
         selectedUser={selectedUser}
         onUserChange={setSelectedUser}
+        selectedPriorities={selectedPriorities}
+        onPrioritiesChange={setSelectedPriorities}
         selectedDepartments={selectedDepartments}
         onDepartmentsChange={setSelectedDepartments}
         hotelId={backendUser?.hotel_id}
@@ -151,6 +158,7 @@ function HomePage() {
                 status={col.status}
                 sort={sort}
                 userId={selectedUser?.id}
+                priorities={selectedPriorities}
                 departments={selectedDepartments}
               />
             </KanbanColumn>
