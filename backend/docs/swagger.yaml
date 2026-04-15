@@ -138,20 +138,6 @@ definitions:
         example: Room 301 could not be resolved for this hotel.
         type: string
     type: object
-  GetRequestsByStatusInput:
-    properties:
-      cursor_id:
-        type: string
-      cursor_time:
-        type: integer
-      status:
-        enum:
-        - pending
-        - assigned
-        - in progress
-        - completed
-        type: string
-    type: object
   Guest:
     properties:
       created_at:
@@ -232,8 +218,12 @@ definitions:
     properties:
       created_at:
         type: string
+      department:
+        type: string
       description:
         type: string
+      floor:
+        type: integer
       id:
         type: string
       name:
@@ -251,6 +241,8 @@ definitions:
       room_number:
         type: integer
       status:
+        type: string
+      user_id:
         type: string
     type: object
   GuestWithBooking:
@@ -1531,48 +1523,6 @@ paths:
       summary: Update a request
       tags:
       - requests
-  /request/cursor:
-    post:
-      consumes:
-      - application/json
-      description: Gets 20 requests starting after the cursor position, filtered by
-        status
-      parameters:
-      - description: Hotel UUID
-        in: header
-        name: X-Hotel-ID
-        required: true
-        type: string
-      - description: Cursor position and status filter
-        in: body
-        name: body
-        schema:
-          $ref: '#/definitions/GetRequestsByStatusInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Returns requests array, next_cursor_time, and next_cursor_id
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get requests by cursor
-      tags:
-      - requests
   /request/generate:
     post:
       consumes:
@@ -1707,13 +1657,10 @@ paths:
         in: query
         name: unassigned
         type: boolean
-<<<<<<< HEAD
-=======
       - description: 'Sort order: priority (default), newest, oldest'
         in: query
         name: sort
         type: string
->>>>>>> e363b0e95eaa9fa0f7ae2d9538a414680b2af1fb
       produces:
       - application/json
       responses:

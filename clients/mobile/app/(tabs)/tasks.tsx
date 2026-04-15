@@ -83,6 +83,12 @@ export default function TasksScreen() {
         sort={sort}
         onSortChange={setSort}
       />
+      <TaskFilterSheet
+        visible={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        sort={sort}
+        onSortChange={setSort}
+      />
     </SafeAreaView>
   );
 }
