@@ -37,7 +37,7 @@ export function GuestQuickListTable({
             <button
               key={guest.id}
               type="button"
-              onClick={() => onGuestClick(guest.id)}
+              onClick={() => onGuestClick(guest.id ?? "")}
               className={`grid w-full ${COL_CLASSES} items-center gap-4 border-b border-stroke-subtle px-4 py-4 text-left last:border-b-0 hover:bg-bg-container`}
             >
               <p className="truncate text-sm font-medium text-primary">
@@ -69,8 +69,8 @@ export function GuestQuickListTable({
               </div>
 
               <div className="flex min-w-0 flex-wrap gap-1.5">
-                {guest.active_bookings?.length > 0 ? (
-                  guest.active_bookings.map((booking, i) => (
+                {(guest.active_bookings?.length ?? 0) > 0 ? (
+                  guest.active_bookings!.map((booking, i) => (
                     <span
                       key={i}
                       className="inline-flex items-center rounded bg-bg-selected px-2 py-1 text-xs text-primary"
