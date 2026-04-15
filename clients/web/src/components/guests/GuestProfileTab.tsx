@@ -24,7 +24,7 @@ function AssistanceCategory({
   items,
 }: {
   title: string;
-  items: string[];
+  items: Array<string>;
 }) {
   if (items.length === 0) return null;
   return (
@@ -110,10 +110,7 @@ export function GuestProfileTab({
         {hasAssistance ? (
           <div className="flex flex-col gap-2 rounded border border-stroke-subtle p-4">
             <AssistanceCategory title="Accessibility" items={accessibility} />
-            <AssistanceCategory
-              title="Dietary Restrictions"
-              items={dietary}
-            />
+            <AssistanceCategory title="Dietary Restrictions" items={dietary} />
             <AssistanceCategory title="Medical Needs" items={medical} />
           </div>
         ) : (

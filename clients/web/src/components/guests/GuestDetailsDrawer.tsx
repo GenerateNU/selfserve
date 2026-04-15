@@ -1,11 +1,7 @@
 import { X } from "lucide-react";
-import {
-  useGetGuestsStaysId,
-  useGetRequestGuestId,
-  usePutGuestsId,
-} from "@shared";
-import { cn } from "@/lib/utils";
+import { useGetGuestsStaysId, usePutGuestsId } from "@shared";
 import { GuestProfileTab } from "./GuestProfileTab";
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type GuestDetailsDrawerProps = {
@@ -15,7 +11,7 @@ type GuestDetailsDrawerProps = {
   onClose: () => void;
 };
 
-const TABS: { key: "profile" | "activity"; label: string }[] = [
+const TABS: Array<{ key: "profile" | "activity"; label: string }> = [
   { key: "profile", label: "Profile" },
   { key: "activity", label: "Visit Activity" },
 ];
@@ -32,8 +28,6 @@ export function GuestDetailsDrawer({
     isError,
     refetch,
   } = useGetGuestsStaysId(guestId);
-  const { data: requestsData } = useGetRequestGuestId(guestId);
-  const requests = (requestsData as any)?.items ?? requestsData ?? [];
   const updateGuest = usePutGuestsId();
 
   const handleSaveNotes = async (notes: string) => {
@@ -113,9 +107,7 @@ export function GuestDetailsDrawer({
               />
             )}
             {activeTab === "activity" && (
-              <div className="p-6 text-sm text-text-subtle">
-                Coming soon.
-              </div>
+              <div className="p-6 text-sm text-text-subtle">Coming soon.</div>
             )}
           </>
         )}

@@ -9,9 +9,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { GuestListHeader } from "../../components/guests/GuestListHeader";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
-import { GuestDetailsDrawer } from "@/components/guests/GuestDetailsDrawer";
 import { useDebounce } from "../../hooks/use-debounce";
 import type { Request } from "@shared";
+import { GuestDetailsDrawer } from "@/components/guests/GuestDetailsDrawer";
 import { PageShell } from "@/components/ui/PageShell";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 
@@ -19,9 +19,7 @@ export const Route = createFileRoute("/_protected/guests/")({
   validateSearch: (search: Record<string, unknown>) => ({
     guestId: typeof search.guestId === "string" ? search.guestId : undefined,
     tab:
-      search.tab === "activity"
-        ? ("activity" as const)
-        : ("profile" as const),
+      search.tab === "activity" ? ("activity" as const) : ("profile" as const),
   }),
   component: GuestsQuickListPage,
 });
