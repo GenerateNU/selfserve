@@ -48,7 +48,8 @@ export function GuestFilterPopover({
   onApply,
 }: GuestFilterPopoverProps) {
   const [open, setOpen] = useState(false);
-  const [pendingFloors, setPendingFloors] = useState<Array<number>>(selectedFloors);
+  const [pendingFloors, setPendingFloors] =
+    useState<Array<number>>(selectedFloors);
   const [pendingGroupSizes, setPendingGroupSizes] =
     useState<Array<number>>(selectedGroupSizes);
   const containerRef = useRef<HTMLDivElement>(null);

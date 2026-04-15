@@ -25,15 +25,15 @@ describe("guest UI helpers", () => {
       );
     });
 
-    it("renders a guest row with floor and suite", () => {
+    it("renders a guest row with active booking", () => {
       const guest: GuestWithBooking = {
         id: "guest-1",
         first_name: "Ada",
         last_name: "Lovelace",
         preferred_name: "Ada",
-        floor: 4,
-        group_size: 2,
-        room_number: 401,
+        active_bookings: [{ floor: 4, room_number: 401 }],
+        request_count: 0,
+        has_urgent: false,
       };
 
       render(<GuestQuickListTable guests={[guest]} onGuestClick={() => {}} />);

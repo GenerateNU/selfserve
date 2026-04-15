@@ -46,7 +46,8 @@ function GuestsQuickListPage() {
         postGuests({
           search: debouncedSearch || undefined,
           floors: floorFilters.length > 0 ? floorFilters : undefined,
-          group_size: groupSizeFilters.length > 0 ? groupSizeFilters : undefined,
+          group_size:
+            groupSizeFilters.length > 0 ? groupSizeFilters : undefined,
           cursor: pageParam,
           limit: 20,
         }),
