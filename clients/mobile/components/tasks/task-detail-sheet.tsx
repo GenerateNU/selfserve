@@ -89,7 +89,7 @@ export function TaskDetailSheet({ task, onClose }: TaskDetailSheetProps) {
         stiffness: 280,
       }).start();
     }
-  }, [task?.id]);
+  }, [task, translateY]);
 
   function snapToFull() {
     isFullScreenRef.current = true;
