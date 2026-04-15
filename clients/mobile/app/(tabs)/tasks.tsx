@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TabBar } from "@/components/tasks/tab-bar";
 import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
+import { TaskFilterSheet } from "@/components/tasks/task-filter-sheet";
 import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
 import { TAB, TabName } from "@/constants/tasks";
@@ -12,9 +13,8 @@ import { useGetRequestsFeed, type RequestFeedItem } from "@shared/api/requests";
 
 export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
-  const [selectedTask, setSelectedTask] = useState<RequestFeedItem | null>(
-    null,
-  );
+  const [selectedTask, setSelectedTask] = useState<RequestFeedItem | null>(null);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const { userId } = useAuth();
 
   const myTasksQuery = useGetRequestsFeed({ userId: userId ?? undefined });
@@ -36,7 +36,7 @@ export default function TasksScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg-surface" edges={["top"]}>
-      <TasksHeader />
+      <TasksHeader onFilterPress={() => setFilterSheetOpen(true)} />
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
       <View className="flex-1">
         {activeQuery.isLoading ? (
@@ -55,6 +55,10 @@ export default function TasksScreen() {
       <TaskDetailSheet
         task={selectedTask}
         onClose={() => setSelectedTask(null)}
+      />
+      <TaskFilterSheet
+        visible={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
       />
     </SafeAreaView>
   );
