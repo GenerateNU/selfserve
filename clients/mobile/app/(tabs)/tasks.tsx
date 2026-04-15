@@ -12,7 +12,9 @@ import { useGetRequestsFeed, type RequestFeedItem } from "@shared/api/requests";
 
 export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
-  const [selectedTask, setSelectedTask] = useState<RequestFeedItem | null>(null);
+  const [selectedTask, setSelectedTask] = useState<RequestFeedItem | null>(
+    null,
+  );
   const { userId } = useAuth();
 
   const myTasksQuery = useGetRequestsFeed({ userId: userId ?? undefined });

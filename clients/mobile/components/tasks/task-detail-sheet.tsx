@@ -25,9 +25,13 @@ function DetailRow({ icon, label, value }: DetailRowProps) {
     <View className="flex-row items-center justify-between">
       <View className="flex-row items-center gap-1.5">
         <Feather name={icon} size={14} color="#8b8b8b" />
-        <Text className="text-[15px] text-[#8b8b8b] tracking-tight">{label}</Text>
+        <Text className="text-[15px] text-[#8b8b8b] tracking-tight">
+          {label}
+        </Text>
       </View>
-      <Text className="text-[15px] text-text-default tracking-tight">{value}</Text>
+      <Text className="text-[15px] text-text-default tracking-tight">
+        {value}
+      </Text>
     </View>
   );
 }
@@ -148,7 +152,7 @@ export function TaskDetailSheet({ task, onClose }: TaskDetailSheetProps) {
           }
         }
       },
-    })
+    }),
   ).current;
 
   if (!task) return null;
@@ -162,10 +166,7 @@ export function TaskDetailSheet({ task, onClose }: TaskDetailSheetProps) {
     >
       <View style={{ flex: 1 }}>
         {/* Dimmed backdrop — tapping closes the sheet */}
-        <Pressable
-          className="absolute inset-0 bg-black/40"
-          onPress={close}
-        />
+        <Pressable className="absolute inset-0 bg-black/40" onPress={close} />
 
         {/* Sheet panel */}
         <Animated.View
@@ -291,7 +292,9 @@ export function TaskDetailSheet({ task, onClose }: TaskDetailSheetProps) {
               onPress={close}
               className="bg-primary rounded items-center justify-center py-2.5 w-full"
             >
-              <Text className="text-white text-[14px] leading-5">Mark as Done</Text>
+              <Text className="text-white text-[14px] leading-5">
+                Mark as Done
+              </Text>
             </Pressable>
           </ScrollView>
         </Animated.View>
