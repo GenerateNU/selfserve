@@ -1,28 +1,48 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 
-import { Section } from "./filter-section-header";
+import { useGetRoomsFloors } from "@shared";
 
-const ROOMS = ["Room 101", "Room 102", "Room 201", "Room 202", "Room 301"];
+import { CheckboxRow, Section } from "./filter-section-header";
 
-export function LocationSection() {
+type LocationSectionProps = {
+  floors: number[];
+  onFloorsChange: (floors: number[]) => void;
+};
+
+export function LocationSection({ floors, onFloorsChange }: LocationSectionProps) {
+  const { data: allFloors = [], isLoading } = useGetRoomsFloors({
+    query: { staleTime: Infinity },
+  });
+
+  function toggle(floor: number) {
+    const next = floors.includes(floor)
+      ? floors.filter((f) => f !== floor)
+      : [...floors, floor];
+    onFloorsChange(next);
+  }
+
   return (
     <Section title="Location">
-      <View className="border border-stroke-subtle rounded-xl overflow-hidden max-h-[20vh]">
-        <ScrollView nestedScrollEnabled>
-          {ROOMS.map((room, idx) => (
-            <View
-              key={room}
-              className={
-                idx < ROOMS.length - 1 ? "border-b border-stroke-subtle" : ""
-              }
-            >
-              <Pressable className="px-[4vw] py-[1.2vh]">
-                <Text className="text-sm text-text-default">{room}</Text>
-              </Pressable>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
+      {isLoading ? (
+        <ActivityIndicator size="small" />
+      ) : (
+        <View className="border border-stroke-subtle rounded-xl overflow-hidden max-h-[20vh]">
+          <ScrollView nestedScrollEnabled>
+            {allFloors.map((floor, idx) => (
+              <View
+                key={floor}
+                className={`px-[4vw] ${idx < allFloors.length - 1 ? "border-b border-stroke-subtle" : ""}`}
+              >
+                <CheckboxRow
+                  label={`Floor ${floor}`}
+                  selected={floors.includes(floor)}
+                  onPress={() => toggle(floor)}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      )}
     </Section>
   );
 }
