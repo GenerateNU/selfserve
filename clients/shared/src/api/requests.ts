@@ -59,6 +59,7 @@ export type RequestFeedParams = {
   unassigned?: boolean;
   sort?: RequestFeedSort;
   status?: string;
+  priorities?: string[];
   departments?: string[];
 };
 
@@ -104,6 +105,7 @@ export const useGetRequestsFeed = (params: RequestFeedParams) => {
       if (params.unassigned) query.unassigned = "true";
       if (params.sort) query.sort = params.sort;
       if (params.status) query.status = params.status;
+      if (params.priorities?.length) query.priorities = params.priorities.join(",");
       if (params.departments?.length) query.departments = params.departments.join(",");
       return api.get<RequestFeedPage>("/requests", query);
     },
