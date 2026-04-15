@@ -90,7 +90,10 @@ export function ViewRequestDrawer({
       <DrawerShell title="" onClose={onClose}>
         <div className="flex flex-col gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-7 animate-pulse rounded-md bg-bg-disabled" />
+            <div
+              key={i}
+              className="h-7 animate-pulse rounded-md bg-bg-disabled"
+            />
           ))}
         </div>
       </DrawerShell>
