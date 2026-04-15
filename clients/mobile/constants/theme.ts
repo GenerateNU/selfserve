@@ -22,6 +22,9 @@ export const Colors = {
     tabBarActive: "#15502C",
     tabBarHighlight: "#EDF5F1",
     danger: "#e71b1b",
+    iconSubtle: "#808080",
+    iconMuted: "#464646",
+    iconDisabled: "#bababa",
   },
   dark: {
     text: "#ECEDEE",
