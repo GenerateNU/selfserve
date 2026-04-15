@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { FilterSortMenu } from "./FilterSortMenu";
 import { AssigneeFilterMenu } from "./AssigneeFilterMenu";
 import { DepartmentFilterMenu } from "./DepartmentFilterMenu";
+import { FloorFilterMenu } from "./FloorFilterMenu";
 import { PriorityFilterMenu } from "./PriorityFilterMenu";
 import type { RequestFeedSort } from "@shared/api/requests";
 import type { User as UserModel } from "@shared";
@@ -23,6 +24,8 @@ type HomeFilterBarProps = {
   onPrioritiesChange?: (priorities: Array<string>) => void;
   selectedDepartments?: Array<string>;
   onDepartmentsChange?: (departments: Array<string>) => void;
+  selectedFloors?: Array<number>;
+  onFloorsChange?: (floors: Array<number>) => void;
   hotelId?: string;
   currentUserId?: string;
 };
@@ -90,6 +93,8 @@ export function HomeFilterBar({
   onPrioritiesChange,
   selectedDepartments = [],
   onDepartmentsChange,
+  selectedFloors = [],
+  onFloorsChange,
   hotelId,
   currentUserId,
 }: HomeFilterBarProps) {
@@ -97,11 +102,13 @@ export function HomeFilterBar({
   const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false);
   const [priorityMenuOpen, setPriorityMenuOpen] = useState(false);
   const [departmentMenuOpen, setDepartmentMenuOpen] = useState(false);
+  const [floorMenuOpen, setFloorMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 });
   const sortButtonRef = useRef<HTMLButtonElement>(null);
   const assigneeButtonRef = useRef<HTMLButtonElement>(null);
   const priorityButtonRef = useRef<HTMLButtonElement>(null);
   const departmentButtonRef = useRef<HTMLButtonElement>(null);
+  const floorButtonRef = useRef<HTMLButtonElement>(null);
 
   function openSortMenu() {
     if (sortButtonRef.current) {
@@ -137,6 +144,14 @@ export function HomeFilterBar({
     setDepartmentMenuOpen(true);
   }
 
+  function openFloorMenu() {
+    if (floorButtonRef.current) {
+      const rect = floorButtonRef.current.getBoundingClientRect();
+      setMenuAnchor({ x: rect.left, y: rect.bottom + 6 });
+    }
+    setFloorMenuOpen(true);
+  }
+
   const activeSortLabel = sort ? SORT_LABELS[sort] : undefined;
   const activeAssigneeName = selectedUser
     ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
@@ -153,6 +168,12 @@ export function HomeFilterBar({
       ? selectedDepartments[0]
       : selectedDepartments.length > 1
         ? `${selectedDepartments.length} departments`
+        : undefined;
+  const activeFloorLabel =
+    selectedFloors.length === 1
+      ? `Floor ${selectedFloors[0]}`
+      : selectedFloors.length > 1
+        ? `${selectedFloors.length} floors`
         : undefined;
 
   return (
@@ -189,7 +210,13 @@ export function HomeFilterBar({
             activeValue={activePriorityLabel}
             onClick={openPriorityMenu}
           />
-          <FilterChip label="Location" />
+          <FilterChip
+            ref={floorButtonRef}
+            label="Floor"
+            active={selectedFloors.length > 0}
+            activeValue={activeFloorLabel}
+            onClick={openFloorMenu}
+          />
           <FilterChip label="Deadline" />
         </div>
         <div className="flex shrink-0 items-center gap-3 pt-1">
@@ -247,6 +274,15 @@ export function HomeFilterBar({
           anchor={menuAnchor}
           onApply={(names) => onDepartmentsChange?.(names)}
           onClose={() => setDepartmentMenuOpen(false)}
+        />
+      )}
+
+      {floorMenuOpen && (
+        <FloorFilterMenu
+          selectedFloors={selectedFloors}
+          anchor={menuAnchor}
+          onApply={(floors) => onFloorsChange?.(floors)}
+          onClose={() => setFloorMenuOpen(false)}
         />
       )}
     </>
