@@ -104,13 +104,7 @@ function RadioItem({ label, selected }: { label: string; selected: boolean }) {
   );
 }
 
-function CheckboxItem({
-  label,
-  checked,
-}: {
-  label: string;
-  checked: boolean;
-}) {
+function CheckboxItem({ label, checked }: { label: string; checked: boolean }) {
   return (
     <View className="flex-row items-center gap-1">
       {checked ? <CheckedBox /> : <UncheckedBox />}
@@ -377,7 +371,7 @@ export function TaskFilterSheet({ visible, onClose }: TaskFilterSheetProps) {
           }).start();
         }
       },
-    })
+    }),
   ).current;
 
   return (
