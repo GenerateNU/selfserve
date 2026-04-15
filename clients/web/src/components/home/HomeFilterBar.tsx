@@ -30,7 +30,14 @@ type FilterChipProps = {
   ref?: React.Ref<HTMLButtonElement>;
 };
 
-function FilterChip({ label, active, activeValue, icon = "grid", onClick, ref }: FilterChipProps) {
+function FilterChip({
+  label,
+  active,
+  activeValue,
+  icon = "grid",
+  onClick,
+  ref,
+}: FilterChipProps) {
   return (
     <button
       ref={ref}
@@ -92,7 +99,12 @@ export function HomeFilterBar({ sort, onSortChange }: HomeFilterBarProps) {
             <FilterChip label="Grouping" />
           </div>
           <div className="flex items-center gap-3">
-            <FilterChip label="Assignee" active activeValue="Rohan K" icon="user" />
+            <FilterChip
+              label="Assignee"
+              active
+              activeValue="Rohan K"
+              icon="user"
+            />
             <FilterChip label="Priority" />
             <FilterChip label="Location" />
             <FilterChip label="Deadline" />
@@ -119,7 +131,9 @@ export function HomeFilterBar({ sort, onSortChange }: HomeFilterBarProps) {
           options={SORT_OPTIONS}
           selected={sort}
           anchor={menuAnchor}
-          onApply={(value) => onSortChange?.(value as RequestFeedSort | undefined)}
+          onApply={(value) =>
+            onSortChange?.(value as RequestFeedSort | undefined)
+          }
           onClose={() => setSortMenuOpen(false)}
         />
       )}
