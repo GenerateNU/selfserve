@@ -35,7 +35,11 @@ export default function TasksScreen() {
   const myTaskItems =
     myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
 
-  const unassignedQuery = useGetRequestsFeed({ unassigned: true, sort, priorities });
+  const unassignedQuery = useGetRequestsFeed({
+    unassigned: true,
+    sort,
+    priorities,
+  });
   const unassignedItems =
     unassignedQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
 
