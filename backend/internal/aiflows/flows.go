@@ -10,7 +10,7 @@ import (
 	"github.com/generate/selfserve/internal/aiflows/prompts"
 )
 
-func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *ai.GenerationCommonConfig, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository) *core.Flow[GenerateRequestInput, EnrichedGenerateRequestOutput, struct{}] {
+func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig any, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository) *core.Flow[GenerateRequestInput, EnrichedGenerateRequestOutput, struct{}] {
 	generateRequestFlow := genkit.DefineFlow(genkitInstance, "generateRequestFlow",
 		func(ctx context.Context, input GenerateRequestInput) (EnrichedGenerateRequestOutput, error) {
 			prompt := fmt.Sprintf(prompts.GenerateRequestPrompt, input.RawText)

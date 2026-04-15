@@ -2,48 +2,49 @@ package aiflows
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/firebase/genkit/go/ai"
 	"github.com/firebase/genkit/go/genkit"
-	"github.com/firebase/genkit/go/plugins/ollama"
+	"github.com/firebase/genkit/go/plugins/googlegenai"
 	"github.com/generate/selfserve/config"
+	"google.golang.org/genai"
 )
 
-const defaultOllamaServer = "http://127.0.0.1:11434"
-const defaultOllamaModel = "reaperdoesntrun/Qwen3-0.6B-Distilled:latest"
+const defaultGeminiModel = "gemini-3-flash-preview"
 
 func InitGenkit(ctx context.Context, llmConfig *config.LLM, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository) *GenkitService {
-	serverAddr := llmConfig.ServerAddress
-	if serverAddr == "" {
-		serverAddr = defaultOllamaServer
-	}
 	modelName := llmConfig.Model
 	if modelName == "" {
-		modelName = defaultOllamaModel
+		modelName = defaultGeminiModel
 	}
-	llmProvider := &ollama.Ollama{
-		ServerAddress: serverAddr,
-		Timeout:       llmConfig.Timeout,
+
+	llmProvider := &googlegenai.GoogleAI{
+		APIKey: llmConfig.APIKey,
 	}
 
 	genkitInstance := genkit.Init(ctx, genkit.WithPlugins(llmProvider))
 
-	model := llmProvider.DefineModel(genkitInstance, ollama.ModelDefinition{
-		Name: modelName,
-		Type: "generate",
-	}, &ai.ModelOptions{
+	// gemini-3-flash-preview is not yet in the plugin's known-models list,
+	// so pass explicit capabilities to avoid "unknown model" error.
+	model, err := llmProvider.DefineModel(genkitInstance, modelName, &ai.ModelOptions{
 		Supports: &ai.ModelSupports{
-			Multiturn:  false,
-			SystemRole: false,
-			Tools:      false,
-			Media:      false,
+			Multiturn:   true,
+			Tools:       true,
+			ToolChoice:  true,
+			SystemRole:  true,
+			Media:       true,
+			Constrained: ai.ConstrainedSupportNoTools,
 		},
 	})
-
-	generationConfig := &ai.GenerationCommonConfig{
-		MaxOutputTokens: llmConfig.MaxOutputTokens,
-		Temperature:     llmConfig.Temperature,
+	if err != nil {
+		panic(fmt.Errorf("InitGenkit: define model %q: %w", modelName, err))
 	}
+
+	generationConfig := &genai.GenerateContentConfig{
+		MaxOutputTokens: int32(llmConfig.MaxOutputTokens),
+	}
+
 	generateRequestFlow := DefineGenerateRequest(genkitInstance, model, generationConfig, roomLookupRepo, guestLookupRepo)
 
 	return &GenkitService{
