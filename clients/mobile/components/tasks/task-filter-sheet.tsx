@@ -97,13 +97,18 @@ export function TaskFilterSheet({
           onStartShouldSetResponder={() => true}
         >
           {/* Drag handle */}
-          <View {...panResponder.panHandlers} className="items-center pt-3 pb-2">
+          <View
+            {...panResponder.panHandlers}
+            className="items-center pt-3 pb-2"
+          >
             <View className="w-10 h-1 rounded-full bg-stroke-subtle" />
           </View>
 
           {/* Title */}
           <View className="px-[5vw] pb-[1.5vh]">
-            <Text className="text-2xl font-bold text-text-default">Filters</Text>
+            <Text className="text-2xl font-bold text-text-default">
+              Filters
+            </Text>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -124,7 +129,9 @@ export function TaskFilterSheet({
               </Text>
             </Pressable>
             <Pressable onPress={close} className="items-center py-[1vh]">
-              <Text className="text-sm text-primary font-medium">Clear all</Text>
+              <Text className="text-sm text-primary font-medium">
+                Clear all
+              </Text>
             </Pressable>
           </View>
         </Animated.View>

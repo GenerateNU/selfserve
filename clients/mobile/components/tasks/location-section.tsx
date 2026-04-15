@@ -12,7 +12,9 @@ export function LocationSection() {
           {ROOMS.map((room, idx) => (
             <View
               key={room}
-              className={idx < ROOMS.length - 1 ? "border-b border-stroke-subtle" : ""}
+              className={
+                idx < ROOMS.length - 1 ? "border-b border-stroke-subtle" : ""
+              }
             >
               <Pressable className="px-[4vw] py-[1.2vh]">
                 <Text className="text-sm text-text-default">{room}</Text>

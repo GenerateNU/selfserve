@@ -45,7 +45,9 @@ export function CheckboxRow({
     >
       <View
         className={`w-5 h-5 rounded border items-center justify-center ${
-          selected ? "bg-primary border-primary" : "bg-white border-stroke-subtle"
+          selected
+            ? "bg-primary border-primary"
+            : "bg-white border-stroke-subtle"
         }`}
       >
         {selected && <Check size={12} color={Colors.light.white} />}
