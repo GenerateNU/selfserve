@@ -24,7 +24,11 @@ export function TasksHeader({ onFilterPress, filterActive }: TasksHeaderProps) {
           className="w-[34px] h-[34px] items-center justify-center rounded"
           style={filterActive ? { backgroundColor: "#edf5f1" } : undefined}
         >
-          <Feather name="sliders" size={19} color={filterActive ? "#124425" : "#000"} />
+          <Feather
+            name="sliders"
+            size={19}
+            color={filterActive ? "#124425" : "#000"}
+          />
         </Pressable>
       </View>
     </View>
