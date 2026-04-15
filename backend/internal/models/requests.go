@@ -81,6 +81,14 @@ type RequestPatchInput struct {
 	Notes                   *string    `json:"notes"`
 } //@name RequestPatchInput
 
+// AssignRequestInput is the body for POST /request/:id/assign.
+// Set assign_to_self to true to assign to the authenticated caller.
+// Omit assign_to_self (or set to false) and provide user_id to assign to another user.
+type AssignRequestInput struct {
+	AssignToSelf *bool   `json:"assign_to_self"`
+	UserID       *string `json:"user_id"`
+} //@name AssignRequestInput
+
 func (r *Request) ApplyPatch(patch *RequestPatchInput) {
 	utils.ApplyPtr(&r.UserID, patch.UserID)
 	utils.ApplyPtr(&r.GuestID, patch.GuestID)

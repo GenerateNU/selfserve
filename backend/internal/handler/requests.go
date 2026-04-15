@@ -119,6 +119,77 @@ func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+// AssignRequest godoc
+// @Summary      Assign a request to a user
+// @Description  Sets user_id on the latest request version. Set assign_to_self to true to assign to the caller. Omit assign_to_self (or set to false) and provide user_id to assign to another user. Requires X-Hotel-ID to match the request's hotel.
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        id          path    string                    true  "Request ID (UUID)"
+// @Param        X-Hotel-ID  header  string                    true  "Hotel ID (UUID)"
+// @Param        body        body    models.AssignRequestInput true  "Self-assign flag and optional assignee"
+// @Success      200  {object}  models.Request
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      401  {object}  errs.HTTPError
+// @Failure      404  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /request/{id}/assign [post]
+func (r *RequestsHandler) AssignRequest(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userId").(string)
+	if !ok || userID == "" {
+		return errs.Unauthorized()
+	}
+
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
+	requestID := c.Params("id")
+	if !validUUID(requestID) {
+		return errs.BadRequest("request id is not a valid UUID")
+	}
+
+	var body models.AssignRequestInput
+	if err := httpx.BindAndValidate(c, &body); err != nil {
+		return err
+	}
+
+	var assigneeID string
+	if body.AssignToSelf != nil && *body.AssignToSelf {
+		assigneeID = userID
+	} else {
+		if body.UserID == nil || strings.TrimSpace(*body.UserID) == "" {
+			return errs.BadRequest("user_id is required when assign_to_self is false or not provided")
+		}
+		assigneeID = strings.TrimSpace(*body.UserID)
+	}
+
+	request, err := r.RequestRepository.FindRequest(c.Context(), requestID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("request", "id", requestID)
+		}
+		return errs.InternalServerError()
+	}
+
+	if request.HotelID != hotelID {
+		return errs.NotFound("request", "id", requestID)
+	}
+
+	patch := models.RequestPatchInput{UserID: &assigneeID}
+	request.ApplyPatch(&patch)
+
+	res, err := r.RequestRepository.InsertRequest(c.Context(), request)
+	if err != nil {
+		slog.Error("failed to insert updated request version", "err", err, "requestID", requestID)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(res)
+}
+
 func (r *RequestsHandler) GetRequest(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if !validUUID(id) {
