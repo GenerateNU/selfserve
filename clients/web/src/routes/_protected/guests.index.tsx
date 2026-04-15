@@ -30,8 +30,8 @@ function GuestsQuickListPage() {
   const navigate = useNavigate();
   const { guestId, tab } = Route.useSearch();
   const [searchTerm, setSearchTerm] = useState("");
-  const [groupFilter, setGroupFilter] = useState("all");
-  const [floorFilter, setFloorFilter] = useState("all");
+  const [floorFilters, setFloorFilters] = useState<Array<number>>([]);
+  const [groupSizeFilters, setGroupSizeFilters] = useState<Array<number>>([]);
   const [generatedData, setGeneratedData] = useState<{
     name?: string;
     description?: string;
@@ -49,12 +49,13 @@ function GuestsQuickListPage() {
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading, isError } =
     useInfiniteQuery({
-      queryKey: ["guests", debouncedSearch, floorFilter, groupFilter],
+      queryKey: ["guests", debouncedSearch, floorFilters, groupSizeFilters],
       queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
         postGuests({
           search: debouncedSearch || undefined,
-          floors: floorFilter !== "all" ? [Number(floorFilter)] : undefined,
-          group_size: groupFilter !== "all" ? [Number(groupFilter)] : undefined,
+          floors: floorFilters.length > 0 ? floorFilters : undefined,
+          group_size:
+            groupSizeFilters.length > 0 ? groupSizeFilters : undefined,
           cursor: pageParam,
           limit: 20,
         }),
@@ -136,11 +137,11 @@ function GuestsQuickListPage() {
         onSearchChange={setSearchTerm}
         availableFloors={availableFloors}
         availableGroupSizes={availableGroupSizes}
-        selectedFloor={floorFilter}
-        selectedGroupSize={groupFilter}
-        onApplyFilters={(floor, groupSize) => {
-          setFloorFilter(floor);
-          setGroupFilter(groupSize);
+        selectedFloors={floorFilters}
+        selectedGroupSizes={groupSizeFilters}
+        onApplyFilters={(floors, groupSizes) => {
+          setFloorFilters(floors);
+          setGroupSizeFilters(groupSizes);
         }}
       />
       {guestsContent}

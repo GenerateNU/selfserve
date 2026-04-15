@@ -1,3 +1,4 @@
+import { Flag } from "lucide-react";
 import type { GuestWithBooking } from "@shared";
 
 type GuestQuickListTableProps = {
@@ -26,32 +27,73 @@ export function GuestQuickListTable({
       </div>
 
       <div className="overflow-hidden rounded-xl border border-stroke-subtle bg-white">
-        {guests.map((guest) => (
-          <button
-            key={guest.id}
-            type="button"
-            onClick={() => onGuestClick(guest.id)}
-            className={`grid w-full ${COL_CLASSES} items-center gap-4 border-b border-stroke-subtle px-4 py-4 text-left last:border-b-0 hover:bg-bg-container`}
-          >
-            <p className="truncate text-sm font-medium text-primary">
-              {guest.first_name} {guest.last_name}
-            </p>
+        {guests.map((guest) => {
+          const hasAccessibility = !!guest.assistance?.accessibility?.length;
+          const hasDietary = !!guest.assistance?.dietary?.length;
+          const hasMedical = !!guest.assistance?.medical?.length;
+          const hasNeeds = hasAccessibility || hasDietary || hasMedical;
 
-            <p className="text-sm text-text-subtle">—</p>
+          return (
+            <button
+              key={guest.id}
+              type="button"
+              onClick={() => onGuestClick(guest.id ?? "")}
+              className={`grid w-full ${COL_CLASSES} items-center gap-4 border-b border-stroke-subtle px-4 py-4 text-left last:border-b-0 hover:bg-bg-container`}
+            >
+              <p className="truncate text-sm font-medium text-primary">
+                {guest.first_name} {guest.last_name}
+              </p>
 
-            <div className="flex min-w-0 flex-wrap gap-1.5">
-              {guest.room_number != null ? (
-                <span className="inline-flex items-center rounded px-2 py-1 text-xs bg-bg-selected text-primary">
-                  Floor {guest.floor}, Suite {guest.room_number}
+              <div className="flex min-w-0 flex-wrap gap-1">
+                {hasNeeds ? (
+                  <>
+                    {hasAccessibility && (
+                      <span className="inline-flex items-center rounded border border-[#a21313] bg-[#ffeded] px-1.5 py-0.5 text-xs text-[#a21313]">
+                        Accessibility
+                      </span>
+                    )}
+                    {hasDietary && (
+                      <span className="inline-flex items-center rounded border border-[#a21313] bg-[#ffeded] px-1.5 py-0.5 text-xs text-[#a21313]">
+                        Dietary
+                      </span>
+                    )}
+                    {hasMedical && (
+                      <span className="inline-flex items-center rounded border border-[#a21313] bg-[#ffeded] px-1.5 py-0.5 text-xs text-[#a21313]">
+                        Medical
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-sm text-text-subtle">—</span>
+                )}
+              </div>
+
+              <div className="flex min-w-0 flex-wrap gap-1.5">
+                {(guest.active_bookings?.length ?? 0) > 0 ? (
+                  guest.active_bookings!.map((booking, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center rounded bg-bg-selected px-2 py-1 text-xs text-primary"
+                    >
+                      Floor {booking.floor}, Suite {booking.room_number}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-sm text-text-subtle">None</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {guest.has_urgent && (
+                  <Flag className="size-3.5 text-[#a21313]" strokeWidth={2} />
+                )}
+                <span className="text-sm text-primary">
+                  {guest.request_count ?? 0}
                 </span>
-              ) : (
-                <span className="text-base text-text-default">None</span>
-              )}
-            </div>
-
-            <p className="text-sm text-primary">—</p>
-          </button>
-        ))}
+              </div>
+            </button>
+          );
+        })}
 
         {!isLoading && guests.length === 0 && (
           <div className="px-4 py-6 text-sm text-text-subtle">
