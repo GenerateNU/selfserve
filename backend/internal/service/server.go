@@ -207,6 +207,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 		r.Get("/:id", reqsHandler.GetRequest)
 		r.Get("/guest/:id", reqsHandler.GetRequestsByGuest)
 		r.Get("/room/:id", reqsHandler.GetRequestsByRoomID)
+		r.Post("/:id/assign", reqsHandler.AssignRequest)
 	})
 
 	// Hotel routes
