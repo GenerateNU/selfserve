@@ -31,17 +31,28 @@ function KanbanColumnData({
   onCardClick,
   sort,
   userId,
+  priorities,
   departments,
+  floors,
 }: {
   status: string;
   onCardClick: (requestId: string) => void;
   sort: RequestFeedSort | undefined;
   userId?: string;
+  priorities?: Array<string>;
   departments?: Array<string>;
+  floors?: Array<number>;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetRequestsFeed({ status, sort, userId, departments });
+    useGetRequestsFeed({
+      status,
+      sort,
+      userId,
+      priorities,
+      departments,
+      floors,
+    });
 
   const hasNextPageRef = useRef(hasNextPage);
   const isFetchingRef = useRef(isFetchingNextPage);
@@ -86,9 +97,13 @@ function KanbanColumnData({
 function HomePage() {
   const [sort, setSort] = useState<RequestFeedSort | undefined>("priority");
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
+  const [selectedPriorities, setSelectedPriorities] = useState<Array<string>>(
+    [],
+  );
   const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>(
     [],
   );
+  const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -164,8 +179,12 @@ function HomePage() {
         onSortChange={setSort}
         selectedUser={selectedUser}
         onUserChange={setSelectedUser}
+        selectedPriorities={selectedPriorities}
+        onPrioritiesChange={setSelectedPriorities}
         selectedDepartments={selectedDepartments}
         onDepartmentsChange={setSelectedDepartments}
+        selectedFloors={selectedFloors}
+        onFloorsChange={setSelectedFloors}
         hotelId={backendUser?.hotel_id}
         currentUserId={backendUser?.id}
       />
@@ -183,6 +202,8 @@ function HomePage() {
                     : undefined
                 }
                 onCardClick={handleCardClick}
+                priorities={selectedPriorities}
+                floors={selectedFloors}
               />
             </KanbanColumn>
           ))}

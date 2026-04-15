@@ -11,16 +11,28 @@ import { GuestListHeader } from "../../components/guests/GuestListHeader";
 import { GuestQuickListTable } from "../../components/guests/GuestQuickListTable";
 import { useDebounce } from "../../hooks/use-debounce";
 import type { Request } from "@shared";
+import {
+  GuestDetailsDrawer,
+  GuestDrawerTab,
+} from "@/components/guests/GuestDetailsDrawer";
+import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { PageShell } from "@/components/ui/PageShell";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
-import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 
 export const Route = createFileRoute("/_protected/guests/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    guestId: typeof search.guestId === "string" ? search.guestId : undefined,
+    tab:
+      search.tab === GuestDrawerTab.Activity
+        ? GuestDrawerTab.Activity
+        : GuestDrawerTab.Profile,
+  }),
   component: GuestsQuickListPage,
 });
 
 function GuestsQuickListPage() {
   const navigate = useNavigate();
+  const { guestId, tab } = Route.useSearch();
   const [searchTerm, setSearchTerm] = useState("");
   const [floorFilters, setFloorFilters] = useState<Array<number>>([]);
   const [groupSizeFilters, setGroupSizeFilters] = useState<Array<number>>([]);
@@ -57,6 +69,25 @@ function GuestsQuickListPage() {
 
   const allGuests = data?.pages.flatMap((page) => page.data ?? []) ?? [];
 
+  const handleGuestClick = (id: string) => {
+    navigate({
+      to: "/guests",
+      search: { guestId: id, tab: GuestDrawerTab.Profile },
+    });
+  };
+
+  const handleDrawerClose = () => {
+    navigate({
+      to: "/guests",
+      search: { guestId: undefined, tab: GuestDrawerTab.Profile },
+    });
+  };
+
+  const handleTabChange = (newTab: GuestDrawerTab) => {
+    if (!guestId) return;
+    navigate({ to: "/guests", search: { guestId, tab: newTab } });
+  };
+
   let guestsContent;
   if (isError) {
     guestsContent = (
@@ -70,9 +101,7 @@ function GuestsQuickListPage() {
         <GuestQuickListTable
           guests={allGuests}
           isLoading={isLoading}
-          onGuestClick={(guestId) =>
-            navigate({ to: "/guests/$guestId", params: { guestId } })
-          }
+          onGuestClick={handleGuestClick}
         />
 
         {isLoading && (
@@ -101,12 +130,19 @@ function GuestsQuickListPage() {
         title: "Guests",
         description: "Description blah blah fries -> bag",
       }}
-      drawerOpen={generatedData !== null}
+      drawerOpen={generatedData !== null || guestId !== undefined}
       drawer={
         generatedData !== null ? (
           <CreateRequestDrawer
             initialData={generatedData}
             onClose={() => setGeneratedData(null)}
+          />
+        ) : guestId !== undefined ? (
+          <GuestDetailsDrawer
+            guestId={guestId}
+            activeTab={tab}
+            onTabChange={handleTabChange}
+            onClose={handleDrawerClose}
           />
         ) : null
       }
@@ -127,6 +163,12 @@ function GuestsQuickListPage() {
       {generatedData === null && (
         <GlobalTaskInput
           onRequestGenerated={(r: Request) => {
+            if (guestId) {
+              navigate({
+                to: "/guests",
+                search: { guestId: undefined, tab: GuestDrawerTab.Profile },
+              });
+            }
             const p = r.priority;
             setGeneratedData({
               name: r.name,
