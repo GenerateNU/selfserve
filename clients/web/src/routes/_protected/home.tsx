@@ -189,7 +189,9 @@ function HomePage() {
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
           {(selectedDepartments.length > 0
-            ? (departments ?? []).filter((d) => selectedDepartments.includes(d.name))
+            ? (departments ?? []).filter((d) =>
+                selectedDepartments.includes(d.name),
+              )
             : (departments ?? [])
           ).map((dep) => (
             <KanbanColumn key={dep.id} title={dep.name}>
