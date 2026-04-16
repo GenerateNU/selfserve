@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -11,8 +11,19 @@ import { NotificationItem } from "@/components/notifications/notification-item";
 import { ScreenHeader } from "@/components/ui/screen-header";
 
 export default function NotificationsScreen() {
-  const { data: notifications = [], isLoading } = useGetNotifications();
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useGetNotifications();
   const { mutate: markAllRead } = useMarkAllNotificationsRead();
+
+  const notifications = useMemo(
+    () => data?.pages.flat() ?? [],
+    [data],
+  );
 
   // Snapshot which IDs were unread when the screen first loaded so dots remain
   // visible while user is reading — markAllRead fires immediately in the bg.
@@ -47,6 +58,17 @@ export default function NotificationsScreen() {
               }
             />
           )}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+          }}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <View className="py-4 items-center">
+                <ActivityIndicator />
+              </View>
+            ) : null
+          }
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View className="pt-20 items-center">

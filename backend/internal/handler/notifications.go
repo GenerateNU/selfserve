@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
@@ -12,7 +13,7 @@ import (
 )
 
 type NotificationsRepository interface {
-	FindByUserID(ctx context.Context, userID string) ([]*models.Notification, error)
+	FindByUserID(ctx context.Context, userID string, before *time.Time) ([]*models.Notification, error)
 	MarkRead(ctx context.Context, id, userID string) error
 	MarkAllRead(ctx context.Context, userID string) error
 	UpsertDeviceToken(ctx context.Context, userID, token, platform string) error
@@ -28,17 +29,28 @@ func NewNotificationsHandler(repo NotificationsRepository) *NotificationsHandler
 
 // ListNotifications godoc
 // @Summary      List notifications
-// @Description  Returns the most recent notifications for the authenticated user
+// @Description  Returns the most recent notifications for the authenticated user, paginated by cursor
 // @Tags         notifications
 // @Produce      json
+// @Param        before  query  string  false  "Cursor: return notifications created before this RFC3339 timestamp"
 // @Success      200  {array}   models.Notification
+// @Failure      400  {object}  errs.HTTPError
 // @Failure      500  {object}  errs.HTTPError
 // @Security     BearerAuth
 // @Router       /notifications [get]
 func (h *NotificationsHandler) ListNotifications(c *fiber.Ctx) error {
 	userID := c.Locals("userId").(string)
 
-	notifications, err := h.repo.FindByUserID(c.Context(), userID)
+	var before *time.Time
+	if raw := c.Query("before"); raw != "" {
+		t, err := time.Parse(time.RFC3339Nano, raw)
+		if err != nil {
+			return errs.BadRequest("before must be a valid RFC3339 timestamp")
+		}
+		before = &t
+	}
+
+	notifications, err := h.repo.FindByUserID(c.Context(), userID, before)
 	if err != nil {
 		slog.Error("failed to list notifications", "err", err)
 		return errs.InternalServerError()
