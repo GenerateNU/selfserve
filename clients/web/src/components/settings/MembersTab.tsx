@@ -2,7 +2,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useGetUsersIdHook, useCustomInstance } from "@shared";
+import { useCustomInstance, useGetUsersIdHook } from "@shared";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { DepartmentPicker } from "./DepartmentPicker";
 import type { User } from "@shared";

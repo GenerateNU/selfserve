@@ -2,15 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
-import { MakeRequestPriority } from "@shared";
 import {
+  MakeRequestPriority,
+  useGetDepartments,
   useGetRequestById,
   useGetRequestsFeed,
-  useGetDepartments,
   useGetUsersIdHook,
 } from "@shared";
-import type { RequestFeedItem, RequestFeedSort } from "@shared";
-import type { Request, User } from "@shared";
+import type { Request, RequestFeedItem, RequestFeedSort, User } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
