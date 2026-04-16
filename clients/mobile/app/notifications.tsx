@@ -11,19 +11,11 @@ import { NotificationItem } from "@/components/notifications/notification-item";
 import { ScreenHeader } from "@/components/ui/screen-header";
 
 export default function NotificationsScreen() {
-  const {
-    data,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useGetNotifications();
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useGetNotifications();
   const { mutate: markAllRead } = useMarkAllNotificationsRead();
 
-  const notifications = useMemo(
-    () => data?.pages.flat() ?? [],
-    [data],
-  );
+  const notifications = useMemo(() => data?.pages.flat() ?? [], [data]);
 
   // Snapshot which IDs were unread when the screen first loaded so dots remain
   // visible while user is reading — markAllRead fires immediately in the bg.
