@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
+import { usePostRoomsHook } from "@shared";
 import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
 import type { Request, RoomWithOptionalGuestBooking } from "@shared";

@@ -3,10 +3,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
-import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
-import { useGetDepartments } from "@shared/api/departments";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
-import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
+import {
+  useGetRequestById,
+  useGetRequestsFeed,
+  useGetDepartments,
+  useGetUsersIdHook,
+} from "@shared";
+import type { RequestFeedItem, RequestFeedSort } from "@shared";
 import type { Request, User } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";

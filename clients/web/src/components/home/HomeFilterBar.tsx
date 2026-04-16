@@ -5,7 +5,7 @@ import { AssigneeFilterMenu } from "./AssigneeFilterMenu";
 import { DepartmentFilterMenu } from "./DepartmentFilterMenu";
 import { FloorFilterMenu } from "./FloorFilterMenu";
 import { PriorityFilterMenu } from "./PriorityFilterMenu";
-import type { RequestFeedSort } from "@shared/api/requests";
+import type { RequestFeedSort } from "@shared";
 import type { User as UserModel } from "@shared";
 import { cn } from "@/lib/utils";
 

@@ -4,7 +4,7 @@ import {
   useAddEmployeeDepartment,
   useGetDepartments,
   useRemoveEmployeeDepartment,
-} from "@shared/api/departments";
+} from "@shared";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

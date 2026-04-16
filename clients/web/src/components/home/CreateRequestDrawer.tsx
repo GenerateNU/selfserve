@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Building2, Clock, DoorOpen, Flag, UserRound } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
-import { usePostRequestHook, usePutRequestIdHook } from "@shared/api/generated/endpoints/requests/requests.ts";
-import { useGetDepartments } from "@shared/api/departments";
-import { REQUESTS_FEED_QUERY_KEY } from "@shared/api/requests";
+import {
+  useGetUsersIdHook,
+  usePostRequestHook,
+  usePutRequestIdHook,
+  REQUESTS_FEED_QUERY_KEY,
+} from "@shared";
 import type {
   Department,
   MakeRequest,
@@ -100,36 +102,6 @@ export function CreateRequestDrawer({
     enabled: !!clerkUser?.id,
   });
 
-  const { data: allDepartments = [] } = useGetDepartments(backendUser?.hotel_id);
-
-  // Pre-populate assignee from existing request (edit mode)
-  const { data: initialAssignee } = useQuery({
-    queryKey: ["user", existingRequest?.user_id],
-    queryFn: () => getUsersId(existingRequest!.user_id!),
-    enabled: !!existingRequest?.user_id,
-  });
-  const assigneeInitialized = useRef(false);
-  useEffect(() => {
-    if (initialAssignee && !assigneeInitialized.current) {
-      assigneeInitialized.current = true;
-      setAssignee(initialAssignee);
-    }
-  }, [initialAssignee]);
-
-  // Pre-populate department from existing request (edit mode)
-  const deptInitialized = useRef(false);
-  useEffect(() => {
-    if (
-      existingRequest?.department &&
-      allDepartments.length > 0 &&
-      !deptInitialized.current
-    ) {
-      deptInitialized.current = true;
-      const found = allDepartments.find((d) => d.id === existingRequest.department);
-      if (found) setDepartment(found);
-    }
-  }, [existingRequest?.department, allDepartments]);
-
   const sharedInvalidation = () => {
     queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
     if (existingRequest?.id) {
@@ -217,6 +189,7 @@ export function CreateRequestDrawer({
             <AssigneePicker
               hotelId={backendUser.hotel_id}
               selectedUser={assignee}
+              initialUserId={assignee ? undefined : existingRequest?.user_id}
               onSelect={(user) => { setAssignee(user); markChanged(); }}
             />
           )}
@@ -270,6 +243,7 @@ export function CreateRequestDrawer({
             <DepartmentPicker
               hotelId={backendUser.hotel_id}
               selectedDepartment={department}
+              initialDepartmentId={department ? undefined : existingRequest?.department}
               onSelect={(d) => { setDepartment(d); markChanged(); }}
             />
           )}

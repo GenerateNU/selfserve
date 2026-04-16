@@ -1,7 +1,7 @@
 import { Home, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users";
-import type { RequestFeedItem } from "@shared/api/requests";
+import { useGetUsersIdHook } from "@shared";
+import type { RequestFeedItem } from "@shared";
 import { RequestCard } from "@/components/requests/RequestCard";
 import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
 

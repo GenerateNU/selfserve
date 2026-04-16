@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Building2, Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { useGetUsersIdHook } from "@shared";
 import {
   useCreateDepartment,
   useDeleteDepartment,

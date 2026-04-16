@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetDepartments } from "@shared/api/departments";
+import { useGetDepartments } from "@shared";
 import type { Department } from "@shared";
 import {
   Popover,
@@ -12,12 +12,14 @@ import { cn } from "@/lib/utils";
 type DepartmentPickerProps = {
   hotelId: string;
   selectedDepartment?: Department;
+  initialDepartmentId?: string;
   onSelect: (department: Department | undefined) => void;
 };
 
 export function DepartmentPicker({
   hotelId,
   selectedDepartment,
+  initialDepartmentId,
   onSelect,
 }: DepartmentPickerProps) {
   const [open, setOpen] = useState(false);
@@ -25,24 +27,31 @@ export function DepartmentPicker({
 
   const { data: allDepartments = [], isLoading } = useGetDepartments(hotelId);
 
+  const initialDepartment =
+    !selectedDepartment && initialDepartmentId
+      ? allDepartments.find((d) => d.id === initialDepartmentId)
+      : undefined;
+
   const departments = allDepartments.filter((d) =>
     search ? d.name.toLowerCase().includes(search.toLowerCase()) : true,
   );
 
+  const displayDepartment = selectedDepartment ?? initialDepartment;
+
   function handleSelect(department: Department) {
-    onSelect(selectedDepartment?.id === department.id ? undefined : department);
+    onSelect(displayDepartment?.id === department.id ? undefined : department);
     setOpen(false);
     setSearch("");
   }
 
-  const triggerLabel = selectedDepartment?.name ?? "No department";
+  const triggerLabel = displayDepartment?.name ?? "No department";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         className={cn(
           "flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-bg-selected",
-          selectedDepartment ? "text-text-default" : "text-text-subtle",
+          displayDepartment ? "text-text-default" : "text-text-subtle",
         )}
       >
         {triggerLabel}
@@ -79,7 +88,7 @@ export function DepartmentPicker({
               onClick={() => handleSelect(department)}
               className={cn(
                 "flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-bg-selected",
-                selectedDepartment?.id === department.id && "bg-bg-selected",
+                displayDepartment?.id === department.id && "bg-bg-selected",
               )}
             >
               <p className="truncate text-sm text-text-default">
