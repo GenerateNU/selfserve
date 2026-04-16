@@ -53,6 +53,12 @@ func main() {
 		if err := app.Repo.Close(); err != nil {
 			panic(fmt.Sprintf("failed to close repo: %v", err))
 		}
+		if app.TemporalWorker != nil {
+			app.TemporalWorker.Stop()
+		}
+		if app.TemporalClient != nil {
+			app.TemporalClient.Close()
+		}
 	}()
 
 	go func() {
