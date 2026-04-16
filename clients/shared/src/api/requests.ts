@@ -69,7 +69,8 @@ export type RequestFeedItem = {
   floor?: number | null;
   request_type: string;
   request_category?: string | null;
-  department?: string | null;
+  department_id?: string | null;
+  department_name?: string | null;
   user_id?: string | null;
   created_at: string;
   request_version: string;
