@@ -23,7 +23,10 @@ type DeadlinePickerProps = {
   onSelect: (date: Date | undefined) => void;
 };
 
-export function DeadlinePicker({ selectedDate, onSelect }: DeadlinePickerProps) {
+export function DeadlinePicker({
+  selectedDate,
+  onSelect,
+}: DeadlinePickerProps) {
   const [open, setOpen] = useState(false);
   const today = new Date();
 
@@ -81,7 +84,12 @@ export function DeadlinePicker({ selectedDate, onSelect }: DeadlinePickerProps) 
         {triggerLabel}
       </PopoverTrigger>
 
-      <PopoverContent align="start" side="bottom" sideOffset={6} className="w-[26rem] overflow-hidden rounded-xl border border-stroke-subtle p-0 shadow-lg">
+      <PopoverContent
+        align="start"
+        side="bottom"
+        sideOffset={6}
+        className="w-[26rem] overflow-hidden rounded-xl border border-stroke-subtle p-0 shadow-lg"
+      >
         {/* Static header */}
         <div className="flex items-center justify-between border-b border-stroke-subtle px-4 py-3">
           <span className="text-sm text-text-subtle">Select Deadline</span>
@@ -155,11 +163,14 @@ export function DeadlinePicker({ selectedDate, onSelect }: DeadlinePickerProps) 
             button_next: "",
             month_grid: "w-full border-collapse",
             weekdays: "flex",
-            weekday: "flex-1 py-1 text-center text-xs font-medium text-text-subtle",
+            weekday:
+              "flex-1 py-1 text-center text-xs font-medium text-text-subtle",
             week: "flex mt-1",
             day: "flex-1 text-center",
-            day_button: "w-full rounded-full py-1 text-sm transition-colors hover:bg-bg-selected",
-            selected: "[&>button]:bg-primary [&>button]:text-white [&>button]:hover:bg-primary-hover",
+            day_button:
+              "w-full rounded-full py-1 text-sm transition-colors hover:bg-bg-selected",
+            selected:
+              "[&>button]:bg-primary [&>button]:text-white [&>button]:hover:bg-primary-hover",
             today: "[&>button]:font-medium [&>button]:text-primary",
             outside: "[&>button]:text-text-subtle opacity-40",
             disabled: "opacity-30",

@@ -163,7 +163,10 @@ function HomePage() {
       ) : (
         <div className="flex h-full w-full flex-col gap-4 p-10 pt-14">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-7 animate-pulse rounded-md bg-bg-disabled" />
+            <div
+              key={i}
+              className="h-7 animate-pulse rounded-md bg-bg-disabled"
+            />
           ))}
         </div>
       )

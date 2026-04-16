@@ -72,13 +72,19 @@ export function CreateRequestDrawer({
   const isEditMode = !!existingRequest;
 
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
-  const [name, setName] = useState(existingRequest?.name ?? initialData?.name ?? "");
-  const [description, setDescription] = useState(existingRequest?.description ?? initialData?.description ?? "");
+  const [name, setName] = useState(
+    existingRequest?.name ?? initialData?.name ?? "",
+  );
+  const [description, setDescription] = useState(
+    existingRequest?.description ?? initialData?.description ?? "",
+  );
   const [priority, setPriority] = useState<MakeRequestPriority>(
     existingRequest?.priority ?? initialData?.priority ?? "medium",
   );
   const [deadline, setDeadline] = useState<Date | undefined>(
-    existingRequest?.scheduled_time ? new Date(existingRequest.scheduled_time) : undefined,
+    existingRequest?.scheduled_time
+      ? new Date(existingRequest.scheduled_time)
+      : undefined,
   );
   const [assignee, setAssignee] = useState<User | undefined>();
   const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>();
@@ -105,7 +111,9 @@ export function CreateRequestDrawer({
   const sharedInvalidation = () => {
     queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
     if (existingRequest?.id) {
-      queryClient.invalidateQueries({ queryKey: ["request", existingRequest.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["request", existingRequest.id],
+      });
     }
   };
 
@@ -139,7 +147,8 @@ export function CreateRequestDrawer({
         user_id: assignee?.id ?? existingRequest.user_id,
         room_id: room?.id ?? existingRequest.room_id,
         department: department?.id ?? existingRequest.department,
-        scheduled_time: deadline?.toISOString() ?? existingRequest.scheduled_time,
+        scheduled_time:
+          deadline?.toISOString() ?? existingRequest.scheduled_time,
       });
     } else {
       if (!backendUser?.hotel_id) return;
@@ -161,8 +170,12 @@ export function CreateRequestDrawer({
 
   const canSubmit = isEditMode ? isDirty && !!name.trim() : !!name.trim();
   const buttonLabel = isPending
-    ? isEditMode ? "Saving..." : "Creating..."
-    : isEditMode ? "Save Changes" : "Create Request";
+    ? isEditMode
+      ? "Saving..."
+      : "Creating..."
+    : isEditMode
+      ? "Save Changes"
+      : "Create Request";
 
   const titleInput = (
     <input
@@ -190,7 +203,10 @@ export function CreateRequestDrawer({
               hotelId={backendUser.hotel_id}
               selectedUser={assignee}
               initialUserId={assignee ? undefined : existingRequest?.user_id}
-              onSelect={(user) => { setAssignee(user); markChanged(); }}
+              onSelect={(user) => {
+                setAssignee(user);
+                markChanged();
+              }}
             />
           )}
         </div>
@@ -200,7 +216,10 @@ export function CreateRequestDrawer({
           <FieldLabel icon={Clock} label="Deadline" />
           <DeadlinePicker
             selectedDate={deadline}
-            onSelect={(date) => { setDeadline(date); markChanged(); }}
+            onSelect={(date) => {
+              setDeadline(date);
+              markChanged();
+            }}
           />
         </div>
 
@@ -212,7 +231,10 @@ export function CreateRequestDrawer({
               <button
                 key={p}
                 type="button"
-                onClick={() => { setPriority(p); markChanged(); }}
+                onClick={() => {
+                  setPriority(p);
+                  markChanged();
+                }}
                 className={cn(
                   "rounded px-2 py-0.5 text-xs capitalize transition-colors",
                   priority === p
@@ -231,8 +253,15 @@ export function CreateRequestDrawer({
           <FieldLabel icon={DoorOpen} label="Room" />
           <RoomPicker
             selectedRoom={room}
-            initialRoomId={room ? undefined : (existingRequest?.room_id ?? initialData?.room_id)}
-            onSelect={(r) => { setRoom(r); markChanged(); }}
+            initialRoomId={
+              room
+                ? undefined
+                : (existingRequest?.room_id ?? initialData?.room_id)
+            }
+            onSelect={(r) => {
+              setRoom(r);
+              markChanged();
+            }}
           />
         </div>
 
@@ -243,8 +272,13 @@ export function CreateRequestDrawer({
             <DepartmentPicker
               hotelId={backendUser.hotel_id}
               selectedDepartment={department}
-              initialDepartmentId={department ? undefined : existingRequest?.department}
-              onSelect={(d) => { setDepartment(d); markChanged(); }}
+              initialDepartmentId={
+                department ? undefined : existingRequest?.department
+              }
+              onSelect={(d) => {
+                setDepartment(d);
+                markChanged();
+              }}
             />
           )}
         </div>
