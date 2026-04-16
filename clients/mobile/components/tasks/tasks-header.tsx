@@ -11,8 +11,8 @@ type TasksHeaderProps = {
 
 export function TasksHeader({ onFilterPress, filterActive }: TasksHeaderProps) {
   const router = useRouter();
-  const { data: notifications } = useGetNotifications();
-  const unreadCount = notifications?.filter((n) => !n.read_at).length ?? 0;
+  const { data } = useGetNotifications();
+  const unreadCount = data?.pages.flat().filter((n) => !n.read_at).length ?? 0;
 
   return (
     <View className="flex-row justify-between items-center px-[22px] pt-3 pb-2">
