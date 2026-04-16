@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { SearchBar } from "@/components/ui/SearchBar";
 import { cn } from "@/lib/utils";
 
 type DepartmentPickerProps = {
@@ -20,16 +21,18 @@ export function DepartmentPicker({
   onSelect,
 }: DepartmentPickerProps) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const { data: departments = [], isLoading } = useGetDepartments(hotelId);
+  const { data: allDepartments = [], isLoading } = useGetDepartments(hotelId);
+
+  const departments = allDepartments.filter((d) =>
+    search ? d.name.toLowerCase().includes(search.toLowerCase()) : true,
+  );
 
   function handleSelect(department: Department) {
-    if (selectedDepartment?.id === department.id) {
-      onSelect(undefined);
-    } else {
-      onSelect(department);
-    }
+    onSelect(selectedDepartment?.id === department.id ? undefined : department);
     setOpen(false);
+    setSearch("");
   }
 
   const triggerLabel = selectedDepartment?.name ?? "No department";
@@ -48,9 +51,17 @@ export function DepartmentPicker({
         align="start"
         side="bottom"
         sideOffset={6}
-        className="w-56 border border-stroke-subtle p-0"
+        className="w-72 p-0"
       >
-        <div className="flex max-h-60 flex-col divide-y divide-stroke-subtle overflow-y-auto">
+        <div className="border-b border-stroke-subtle p-2">
+          <SearchBar
+            value={search}
+            onChange={setSearch}
+            placeholder="Search departments..."
+            autoFocus
+          />
+        </div>
+        <div className="flex max-h-60 flex-col overflow-y-auto">
           {isLoading && (
             <p className="px-3 py-4 text-center text-sm text-text-subtle">
               Loading...
@@ -71,11 +82,9 @@ export function DepartmentPicker({
                 selectedDepartment?.id === department.id && "bg-bg-selected",
               )}
             >
-              <div className="min-w-0">
-                <p className="truncate text-sm text-text-default">
-                  {department.name}
-                </p>
-              </div>
+              <p className="truncate text-sm text-text-default">
+                {department.name}
+              </p>
             </button>
           ))}
         </div>

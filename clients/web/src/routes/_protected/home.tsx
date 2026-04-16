@@ -13,7 +13,6 @@ import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
 import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
-import { ViewRequestDrawer } from "@/components/requests/ViewRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
 
@@ -148,14 +147,24 @@ function HomePage() {
   const drawer =
     drawerData !== null ? (
       <CreateRequestDrawer
+        key="create"
         initialData={drawerData}
         onClose={() => setDrawerData(null)}
       />
     ) : selectedRequestId !== null ? (
-      <ViewRequestDrawer
-        request={selectedRequest ?? null}
-        onClose={() => setSelectedRequestId(null)}
-      />
+      selectedRequest ? (
+        <CreateRequestDrawer
+          key={selectedRequestId}
+          existingRequest={selectedRequest}
+          onClose={() => setSelectedRequestId(null)}
+        />
+      ) : (
+        <div className="flex h-full w-full flex-col gap-4 p-10 pt-14">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-7 animate-pulse rounded-md bg-bg-disabled" />
+          ))}
+        </div>
+      )
     ) : null;
 
   const drawerOpen = drawerData !== null || selectedRequestId !== null;
