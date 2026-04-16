@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet, useRouterState  } from "@tanstack/react-router";
+import { Outlet, useRouterState } from "@tanstack/react-router";
 import { Sidebar } from "./Sidebar";
 import { NotificationPanel } from "./notifications/NotificationPanel";
 
