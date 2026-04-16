@@ -49,7 +49,7 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
       : null;
 
   const tags = [assigneeName].filter(Boolean) as Array<string>;
-  const hasBottomRow = roomLabel || request.department;
+  const hasBottomRow = roomLabel || request.department_name;
 
   return (
     <RequestCard status={status} className="w-full" onClick={onClick}>
@@ -86,10 +86,10 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
                 {roomLabel}
               </span>
             )}
-            {request.department && (
+            {request.department_name && (
               <span className="flex items-center gap-1 text-xs text-text-subtle">
                 <Home className="size-3 shrink-0" />
-                {request.department}
+                {request.department_name}
               </span>
             )}
           </div>

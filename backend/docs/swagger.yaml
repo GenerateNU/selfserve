@@ -225,7 +225,9 @@ definitions:
     properties:
       created_at:
         type: string
-      department:
+      department_id:
+        type: string
+      department_name:
         type: string
       description:
         type: string
