@@ -1,6 +1,7 @@
 import Feather from "@expo/vector-icons/Feather";
 import { Pressable, Text, View } from "react-native";
 
+import { DepartmentTag } from "@/components/tasks/department-tag";
 import { TaskBadge } from "@/components/tasks/task-badge";
 import { TASK_ASSIGNMENT_STATE } from "@/constants/tasks";
 import type { RequestFeedItem } from "@shared/api/requests";
@@ -26,14 +27,14 @@ export function TaskCard({ task, variant, isExpanded }: TaskCardProps) {
   if (isAssigned && isExpanded) {
     return (
       <View className="bg-white rounded-xl border border-gray-200 p-4 w-full">
+        <View className="flex-row flex-wrap gap-2 mb-2">
+          <TaskBadge label={task.priority} />
+          {task.department_name && <DepartmentTag name={task.department_name} />}
+        </View>
         <Text className="text-lg font-bold">{task.name}</Text>
         <View className="flex-row items-center mt-1">
-          <Text className="text-sm">{task.priority}</Text>
           {task.request_category && (
-            <>
-              <DotSeparator />
-              <Text className="text-sm">{task.request_category}</Text>
-            </>
+            <Text className="text-sm">{task.request_category}</Text>
           )}
         </View>
         {task.description && (
@@ -53,9 +54,12 @@ export function TaskCard({ task, variant, isExpanded }: TaskCardProps) {
     return (
       <View className="bg-white rounded-xl border border-gray-200 p-4 w-full flex-row justify-between items-start">
         <View className="flex-1">
+          <View className="flex-row flex-wrap gap-2 mb-2">
+            <TaskBadge label={task.priority} />
+            {task.department_name && <DepartmentTag name={task.department_name} />}
+          </View>
           <Text className="text-lg font-bold">{task.name}</Text>
           <View className="flex-row flex-wrap gap-2 mt-1">
-            <TaskBadge label={task.priority} />
             <TaskBadge label={location} />
           </View>
         </View>
@@ -69,13 +73,13 @@ export function TaskCard({ task, variant, isExpanded }: TaskCardProps) {
   if (!isAssigned && isExpanded) {
     return (
       <View className="bg-white rounded-xl border border-gray-200 p-4 w-full">
+        <View className="flex-row flex-wrap gap-2 mb-2">
+          <TaskBadge label={task.priority} />
+          {task.department_name && <DepartmentTag name={task.department_name} />}
+        </View>
         <Text className="text-lg font-bold">{task.name}</Text>
         <View className="flex-row flex-wrap gap-2 mt-1">
-          <TaskBadge label={task.priority} />
           <TaskBadge label={location} />
-          {task.request_category && (
-            <TaskBadge label={task.request_category} variant="outlined" />
-          )}
         </View>
         {task.description && (
           <Text className="text-sm text-gray-600 mt-1">{task.description}</Text>
@@ -94,13 +98,13 @@ export function TaskCard({ task, variant, isExpanded }: TaskCardProps) {
   return (
     <View className="bg-white rounded-xl border border-gray-200 p-4 w-full flex-row justify-between items-start">
       <View className="flex-1">
+        <View className="flex-row flex-wrap gap-2 mb-2">
+          <TaskBadge label={task.priority} />
+          {task.department_name && <DepartmentTag name={task.department_name} />}
+        </View>
         <Text className="text-lg font-bold">{task.name}</Text>
         <View className="flex-row flex-wrap gap-2 mt-1">
-          <TaskBadge label={task.priority} />
           <TaskBadge label={location} />
-          {task.request_category && (
-            <TaskBadge label={task.request_category} variant="outlined" />
-          )}
         </View>
       </View>
       <Pressable onPress={() => {}} className="p-1">
