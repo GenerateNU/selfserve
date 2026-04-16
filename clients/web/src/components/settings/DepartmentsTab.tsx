@@ -30,7 +30,8 @@ export function DepartmentsTab() {
 
   const hotelId = currentUser?.hotel_id;
 
-  const { data: departments = [], isLoading } = useGetDepartments(hotelId);
+  const { data, isLoading } = useGetDepartments(hotelId);
+  const departments = data ?? [];
   const { mutate: createDepartment, isPending: isCreating } =
     useCreateDepartment(hotelId);
   const { mutate: updateDepartment, isPending: isUpdating } =

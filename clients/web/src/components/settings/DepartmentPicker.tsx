@@ -27,7 +27,8 @@ export function DepartmentPicker({
     new Set(departmentNames),
   );
 
-  const { data: departments = [] } = useGetDepartments(hotelId);
+  const { data } = useGetDepartments(hotelId);
+  const departments = data ?? [];
   const { mutate: addDept } = useAddEmployeeDepartment(hotelId);
   const { mutate: removeDept } = useRemoveEmployeeDepartment(hotelId);
 
