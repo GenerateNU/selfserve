@@ -44,6 +44,37 @@ export const useAssignRequestToSelf = (roomId: string | undefined) => {
   return useMutation({
     mutationFn: (requestId: string) =>
       api.post<unknown>(`/request/${requestId}/assign`, { assign_to_self: true }),
+    onMutate: async (requestId) => {
+      await queryClient.cancelQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
+      const previousData = queryClient.getQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY });
+      queryClient.setQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: (page.items ?? []).filter((item) => item.id !== requestId),
+          })),
+        };
+      });
+      return { previousData };
+    },
+    onError: (_err, _requestId, context) => {
+      if (context?.previousData) {
+        for (const [key, data] of context.previousData) {
+          queryClient.setQueryData(key, data);
+        }
+      }
+    },
     onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: REQUESTS_FEED_QUERY_KEY,
