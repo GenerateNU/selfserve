@@ -16,10 +16,11 @@ import (
 
 type GuestsHandler struct {
 	GuestsRepository storage.GuestsRepository
+	UsersRepository  storage.UsersRepository
 	searchGuests     func(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error)
 }
 
-func NewGuestsHandler(repo storage.GuestsRepository, searchRepo storage.GuestsSearchRepository) *GuestsHandler {
+func NewGuestsHandler(repo storage.GuestsRepository, usersRepo storage.UsersRepository, searchRepo storage.GuestsSearchRepository) *GuestsHandler {
 	// TODO: once OpenSearch setup is complete —
 	// 1. enforce searchRepo as required (fail startup if nil)
 	// 2. remove the Postgres fallback below
@@ -27,7 +28,7 @@ func NewGuestsHandler(repo storage.GuestsRepository, searchRepo storage.GuestsSe
 	if searchRepo != nil {
 		search = searchRepo.SearchGuests
 	}
-	return &GuestsHandler{GuestsRepository: repo, searchGuests: search}
+	return &GuestsHandler{GuestsRepository: repo, UsersRepository: usersRepo, searchGuests: search}
 }
 
 // CreateGuest godoc

@@ -6,11 +6,13 @@ import (
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
+	storage "github.com/generate/selfserve/internal/service/storage/postgres"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 const hotelIDHeader = "X-Hotel-ID"
+const roleAdmin = "admin"
 
 func validUUID(s string) bool {
 	_, err := uuid.Parse(s)
@@ -26,6 +28,23 @@ func hotelIDFromHeader(c *fiber.Ctx) (string, error) {
 		return "", errs.BadRequest("hotel_id header is invalid")
 	}
 	return hotelID, nil
+}
+
+func AdminMiddleware(usersRepo storage.UsersRepository) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userID, ok := c.Locals("userId").(string)
+		if !ok || userID == "" {
+			return errs.Unauthorized()
+		}
+		user, err := usersRepo.FindUser(c.Context(), userID)
+		if err != nil {
+			return errs.Forbidden()
+		}
+		if user.Role == nil || *user.Role != roleAdmin {
+			return errs.Forbidden()
+		}
+		return c.Next()
+	}
 }
 
 func AggregateErrors(errors map[string]string) error {
