@@ -49,7 +49,6 @@ function NewTasksBadge() {
   );
 }
 
-
 type NotificationItemProps = {
   notification: Notification;
   showUnreadDot: boolean;
@@ -103,7 +102,10 @@ export function NotificationItem({
         {/* Body */}
         <Text className="text-[15px] text-text-default tracking-[-0.15px] leading-tight">
           {"An "}
-          <View className="bg-bg-selected flex-row items-center gap-1 px-2 rounded" style={{ marginBottom: -2 }}>
+          <View
+            className="bg-bg-selected flex-row items-center gap-1 px-2 rounded"
+            style={{ marginBottom: -2 }}
+          >
             <Feather name="alert-circle" size={12} color={PRIMARY} />
             <Text className="text-[12px] text-primary tracking-[-0.12px]">
               {"urgent task"}
