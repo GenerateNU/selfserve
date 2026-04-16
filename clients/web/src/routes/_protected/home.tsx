@@ -194,7 +194,7 @@ function HomePage() {
           ).map((dep) => (
             <KanbanColumn key={dep.id} title={dep.name}>
               <KanbanColumnData
-                department={dep.name}
+                department={dep.id}
                 sort={sort}
                 userId={selectedUser?.id}
                 onCardClick={handleCardClick}
