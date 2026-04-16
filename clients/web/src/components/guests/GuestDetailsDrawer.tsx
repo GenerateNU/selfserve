@@ -120,8 +120,8 @@ export function GuestDetailsDrawer({
             )}
             {activeTab === GuestDrawerTab.Activity && (
               <GuestVisitActivityTab
-                currentStays={guest.current_stays}
-                pastStays={guest.past_stays}
+                currentStays={guest.current_stays ?? []}
+                pastStays={guest.past_stays ?? []}
                 requests={requests}
               />
             )}

@@ -16,8 +16,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 export function GuestProfileCard({ guest }: GuestProfileCardProps) {
-  const hasCurrentStay = guest.current_stays.length > 0;
-  const currentStay = guest.current_stays[0];
+  const currentStays = guest.current_stays ?? [];
+  const hasCurrentStay = currentStays.length > 0;
+  const currentStay = currentStays[0];
   const phone = guest.phone?.trim() || "-";
   const email = guest.email?.trim() || "-";
   const pronouns = guest.pronouns?.trim() || "-";
