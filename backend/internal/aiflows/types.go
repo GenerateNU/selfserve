@@ -37,6 +37,7 @@ type EnrichedGenerateRequestOutput struct {
 	UserID        *string `json:"user_id,omitempty" validate:"omitempty,uuid"`
 	ReservationID *string `json:"reservation_id,omitempty" validate:"omitempty,uuid"`
 	RoomID        *string `json:"room_id,omitempty" validate:"omitempty,uuid"`
+	DepartmentID  *string `json:"department_id,omitempty" validate:"omitempty,uuid"`
 	GenerateRequestOutput
 }
 

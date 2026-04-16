@@ -1,6 +1,27 @@
 package prompts
 
-const GenerateRequestPrompt = `
+import "fmt"
+
+// GenerateRequestPrompt builds the LLM prompt for request generation.
+// departments is the list of valid department names for the hotel; pass nil or
+// empty to omit the department constraint.
+func GenerateRequestPrompt(rawText string, departments []string) string {
+	departmentRule := "- If a department is clearly relevant, include it as the department field."
+	if len(departments) > 0 {
+		list := ""
+		for i, d := range departments {
+			if i > 0 {
+				list += ", "
+			}
+			list += fmt.Sprintf("%q", d)
+		}
+		departmentRule = fmt.Sprintf(
+			"- If a department is clearly relevant, set department to one of the following exact names: %s. If none fit, omit the field.",
+			list,
+		)
+	}
+
+	return fmt.Sprintf(`
 	Generate a hotel service request from this description:
 
 	%s
@@ -26,6 +47,7 @@ const GenerateRequestPrompt = `
 	- If no guest is mentioned, omit guest_name.
 	- If a staff member or employee name is clearly mentioned as the person to assign the task to, include user_name as the literal name text.
 	- If no staff member is mentioned, omit user_name.
+	- %s
 	- Only include fields when you have real information from the description.
 	- Never set a field to null. If you have no value for a field, omit it entirely.
 
@@ -40,4 +62,5 @@ const GenerateRequestPrompt = `
 
 	Valid example without room mention:
 	{"name":"Extra Towels Request","request_type":"one-time","status":"pending","priority":"medium"}
-`
+`, rawText, departmentRule)
+}

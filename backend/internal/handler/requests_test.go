@@ -600,7 +600,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		t.Parallel()
 
 		description := "Full room cleaning requested"
-		department := "housekeeping"
+		departmentID := "550e8400-e29b-41d4-a716-446655440001"
 		category := "Cleaning"
 		notes := "Guest prefers eco-friendly products"
 		estimatedTime := 30
@@ -608,12 +608,12 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		llmMock := &mockLLMService{
 			runGenerateRequestFunc: func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
 				return aiflows.EnrichedGenerateRequestOutput{
+					DepartmentID: &departmentID,
 					GenerateRequestOutput: aiflows.GenerateRequestOutput{
 						Name:                    "Room Cleaning",
 						Description:             &description,
 						RequestCategory:         &category,
 						RequestType:             "one-time",
-						Department:              &department,
 						Status:                  "pending",
 						Priority:                "medium",
 						EstimatedCompletionTime: &estimatedTime,
@@ -637,7 +637,7 @@ func TestRequestHandler_Generate_Request(t *testing.T) {
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), `"request"`)
 		assert.Contains(t, string(body), "Room Cleaning")
-		assert.Contains(t, string(body), "housekeeping")
+		assert.Contains(t, string(body), departmentID)
 		assert.Contains(t, string(body), "Cleaning")
 	})
 
