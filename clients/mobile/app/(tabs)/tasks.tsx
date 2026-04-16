@@ -10,6 +10,7 @@ import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
 import { TAB, TabName } from "@/constants/tasks";
 import {
+  useAssignRequestToSelf,
   useCompleteTask,
   useMarkTaskPending,
   useGetRequestsFeed,
@@ -30,6 +31,7 @@ export default function TasksScreen() {
   const { userId } = useAuth();
   const { mutate: completeTask } = useCompleteTask();
   const { mutate: markTaskPending } = useMarkTaskPending();
+  const { mutate: pickUpTask } = useAssignRequestToSelf(undefined);
 
   const myTasksQuery = useGetRequestsFeed({
     userId: userId ?? undefined,
@@ -86,6 +88,11 @@ export default function TasksScreen() {
             onMarkPending={
               activeTab === TAB.MY_TASKS
                 ? (id: string) => markTaskPending(id)
+                : undefined
+            }
+            onPickUp={
+              activeTab === TAB.UNASSIGNED
+                ? (id: string) => pickUpTask(id)
                 : undefined
             }
           />
