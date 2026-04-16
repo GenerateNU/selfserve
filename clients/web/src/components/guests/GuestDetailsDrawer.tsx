@@ -120,7 +120,9 @@ export function GuestDetailsDrawer({
             )}
             {activeTab === GuestDrawerTab.Activity && (
               <GuestVisitActivityTab
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 currentStays={guest.current_stays ?? []}
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 pastStays={guest.past_stays ?? []}
                 requests={requests}
               />
