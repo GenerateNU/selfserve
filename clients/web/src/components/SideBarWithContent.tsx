@@ -5,6 +5,7 @@ import { NotificationPanel } from "./notifications/NotificationPanel";
 
 export function SideBarWithContent() {
   const [notifOpen, setNotifOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
@@ -16,11 +17,18 @@ export function SideBarWithContent() {
       <Sidebar
         notifOpen={notifOpen}
         onNotifToggle={() => setNotifOpen((o) => !o)}
+        onHoverChange={setSidebarExpanded}
       />
-      <main className="flex-1 overflow-auto">
+      <main className="relative flex-1 overflow-auto">
+        {notifOpen && (
+          <div
+            className="absolute inset-0 z-40"
+            onClick={() => setNotifOpen(false)}
+          />
+        )}
         <Outlet />
       </main>
-      <NotificationPanel open={notifOpen} />
+      <NotificationPanel open={notifOpen} sidebarExpanded={sidebarExpanded} />
     </div>
   );
 }

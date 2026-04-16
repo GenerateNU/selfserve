@@ -10,9 +10,10 @@ type Tab = "notifications" | "complaints";
 
 type NotificationPanelProps = {
   open: boolean;
+  sidebarExpanded: boolean;
 };
 
-export function NotificationPanel({ open }: NotificationPanelProps) {
+export function NotificationPanel({ open, sidebarExpanded }: NotificationPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>("notifications");
   const [filterOpen, setFilterOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -22,7 +23,12 @@ export function NotificationPanel({ open }: NotificationPanelProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed left-16.25 top-0 z-50 flex h-screen w-100 flex-col gap-4 overflow-y-auto border-r border-stroke-subtle bg-bg-primary py-8 shadow-[4px_0px_8px_0px_rgba(0,0,0,0.1)]">
+    <div
+      className={cn(
+        "fixed top-0 z-50 flex h-screen w-100 flex-col gap-4 overflow-y-auto border-r border-stroke-subtle bg-bg-primary py-8 shadow-[4px_0px_8px_0px_rgba(0,0,0,0.1)] transition-[left] duration-200",
+        sidebarExpanded ? "left-52" : "left-16.25",
+      )}
+    >
       {/* Header */}
       <div className="flex flex-col gap-3 border-b border-stroke-subtle px-6 pb-0">
         <div className="flex items-center justify-between">
