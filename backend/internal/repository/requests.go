@@ -67,7 +67,7 @@ func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, updat
 			current.id,
 			current.hotel_id,
 			COALESCE($2, current.guest_id),
-			COALESCE($3, current.user_id),
+			CASE WHEN $17 THEN NULL ELSE COALESCE($3, current.user_id) END,
 			COALESCE($4, current.reservation_id),
 			COALESCE($5, current.name),
 			COALESCE($6, current.description),
@@ -101,6 +101,7 @@ func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, updat
 		update.ScheduledTime,
 		update.CompletedAt,
 		update.Notes,
+		update.Unassign,
 	)
 
 	var req models.Request

@@ -75,6 +75,7 @@ type MakeRequest struct {
 // RequestUpdateInput is the body for PUT /request/:id — all fields are optional.
 // Only non-nil fields are applied; the rest are copied from the current version.
 type RequestUpdateInput struct {
+	Unassign                bool       `json:"unassign"`
 	UserID                  *string    `json:"user_id"`
 	GuestID                 *string    `json:"guest_id"`
 	ReservationID           *string    `json:"reservation_id"`
