@@ -9,7 +9,7 @@ import (
 
 type NotificationsRepository interface {
 	InsertNotification(ctx context.Context, userID string, notifType models.NotificationType, title, body string) (*models.Notification, error)
-	FindByUserID(ctx context.Context, userID string) ([]*models.Notification, error)
+	FindByUserID(ctx context.Context, userID string, before *time.Time) ([]*models.Notification, error)
 	MarkRead(ctx context.Context, id, userID string) error
 	MarkAllRead(ctx context.Context, userID string) error
 	UpsertDeviceToken(ctx context.Context, userID, token, platform string) error
