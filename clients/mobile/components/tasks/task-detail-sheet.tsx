@@ -72,12 +72,14 @@ type TaskDetailSheetProps = {
   task: RequestFeedItem | null;
   onClose: () => void;
   onComplete?: (taskId: string) => void;
+  onMarkPending?: (taskId: string) => void;
 };
 
 export function TaskDetailSheet({
   task,
   onClose,
   onComplete,
+  onMarkPending,
 }: TaskDetailSheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const isFullScreenRef = useRef(false);
@@ -307,7 +309,7 @@ export function TaskDetailSheet({
               </View>
             ) : null}
 
-            {/* Mark as Done */}
+            {/* Mark as Done / Mark as Pending */}
             {task.status !== "completed" ? (
               <Pressable
                 onPress={() => {
@@ -323,7 +325,20 @@ export function TaskDetailSheet({
                   Mark as Done
                 </Text>
               </Pressable>
-            ) : null}
+            ) : (
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  onMarkPending?.(task.id);
+                  close();
+                }}
+                className="bg-primary rounded items-center justify-center py-2.5 w-full"
+              >
+                <Text className="text-white text-[14px] leading-5">
+                  Mark as Pending
+                </Text>
+              </Pressable>
+            )}
           </ScrollView>
         </Animated.View>
       </View>

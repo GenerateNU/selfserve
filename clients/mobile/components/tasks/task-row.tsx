@@ -1,4 +1,5 @@
 import Feather from "@expo/vector-icons/Feather";
+import { useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { PriorityTag } from "@/components/tasks/priority-tag";
@@ -32,6 +33,17 @@ function formatLocation(roomNumber?: number | null): string {
 
 export function TaskRow({ task, onPress, onCheckboxPress }: TaskRowProps) {
   const isCompleted = task.status === "completed";
+  const [visuallyUnchecked, setVisuallyUnchecked] = useState(false);
+  const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleUncheckPress() {
+    if (pendingTimer.current) return;
+    setVisuallyUnchecked(true);
+    pendingTimer.current = setTimeout(() => {
+      pendingTimer.current = null;
+      onCheckboxPress?.();
+    }, 400);
+  }
 
   return (
     <Pressable
@@ -130,10 +142,14 @@ export function TaskRow({ task, onPress, onCheckboxPress }: TaskRowProps) {
       </View>
 
       {/* Checkbox */}
-      {isCompleted ? (
-        <View className="w-8 h-8 rounded bg-primary-surface items-center justify-center p-1.5 shrink-0">
+      {isCompleted && !visuallyUnchecked ? (
+        <Pressable
+          onPress={handleUncheckPress}
+          hitSlop={8}
+          className="w-8 h-8 rounded bg-primary-surface items-center justify-center p-1.5 shrink-0"
+        >
           <Feather name="check" size={16} color={Colors.light.white} />
-        </View>
+        </Pressable>
       ) : (
         <Pressable
           onPress={onCheckboxPress}

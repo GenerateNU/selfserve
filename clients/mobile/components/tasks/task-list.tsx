@@ -23,6 +23,7 @@ type TaskListProps = {
   isLoadingMore?: boolean;
   onTaskPress?: (task: RequestFeedItem) => void;
   onComplete?: (taskId: string) => void;
+  onMarkPending?: (taskId: string) => void;
 };
 
 function SwipeCompleteAction() {
@@ -99,6 +100,7 @@ export function TaskList({
   isLoadingMore,
   onTaskPress,
   onComplete,
+  onMarkPending,
 }: TaskListProps) {
   const active = tasks.filter((t) => t.status !== "completed");
   const completed = tasks.filter((t) => t.status === "completed");
@@ -141,7 +143,15 @@ export function TaskList({
           );
         }
 
-        return <TaskRow task={item} onPress={onTaskPress} />;
+        return (
+          <TaskRow
+            task={item}
+            onPress={onTaskPress}
+            onCheckboxPress={
+              onMarkPending ? () => onMarkPending(item.id) : undefined
+            }
+          />
+        );
       }}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.2}

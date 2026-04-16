@@ -127,6 +127,40 @@ export const useCompleteTask = () => {
   });
 };
 
+export const useMarkTaskPending = () => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      api.put<RequestFeedItem>(`/request/${taskId}`, {
+        status: RequestStatus.pending,
+      }),
+    onSuccess: (_data, taskId) => {
+      queryClient.setQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: (page.items ?? []).map((item) =>
+              item.id === taskId
+                ? { ...item, status: RequestStatus.pending }
+                : item,
+            ),
+          })),
+        };
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+    },
+  });
+};
+
 export const useGetRequestById = (requestId: string | null) => {
   const api = useAPIClient();
   return useQuery({
