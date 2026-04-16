@@ -219,7 +219,6 @@ export function CreateRequestDrawer({
             />
           )}
         </div>
-
       </div>
 
       <div className="flex flex-col gap-1">
