@@ -37,7 +37,7 @@ export const REQUESTS_FEED_QUERY_KEY = ["requests-feed"] as const;
 export const getRoomRequestsByRoomIdQueryKey = (roomId: string) =>
   [`/request/room/${roomId}`] as const;
 
-export const useAssignRequestToSelf = (roomId: string | undefined) => {
+export const useAssignRequestToSelf = (_roomId?: string) => {
   const api = useAPIClient();
   const queryClient = useQueryClient();
 
@@ -80,11 +80,12 @@ export const useAssignRequestToSelf = (roomId: string | undefined) => {
         queryKey: REQUESTS_FEED_QUERY_KEY,
         exact: false,
       });
-      if (roomId) {
-        queryClient.invalidateQueries({
-          queryKey: getRoomRequestsByRoomIdQueryKey(roomId),
-        });
-      }
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === "string" && key.startsWith("/request/room/");
+        },
+      });
     },
   });
 };
