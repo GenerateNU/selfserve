@@ -16,6 +16,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 export function GuestProfileCard({ guest }: GuestProfileCardProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const currentStays = guest.current_stays ?? [];
   const hasCurrentStay = currentStays.length > 0;
   const currentStay = currentStays[0];
