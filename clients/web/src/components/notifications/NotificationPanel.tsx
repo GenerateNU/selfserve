@@ -13,7 +13,10 @@ type NotificationPanelProps = {
   sidebarExpanded: boolean;
 };
 
-export function NotificationPanel({ open, sidebarExpanded }: NotificationPanelProps) {
+export function NotificationPanel({
+  open,
+  sidebarExpanded,
+}: NotificationPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>("notifications");
   const [filterOpen, setFilterOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);

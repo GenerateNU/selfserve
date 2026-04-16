@@ -79,7 +79,11 @@ type SidebarProps = {
   onHoverChange: (hovered: boolean) => void;
 };
 
-export function Sidebar({ notifOpen, onNotifToggle, onHoverChange }: SidebarProps) {
+export function Sidebar({
+  notifOpen,
+  onNotifToggle,
+  onHoverChange,
+}: SidebarProps) {
   const { signOut } = useClerk();
   const { user } = useUser();
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -102,7 +106,11 @@ export function Sidebar({ notifOpen, onNotifToggle, onHoverChange }: SidebarProp
           {/* Logo */}
           <div className="flex items-center gap-3 px-4 py-1">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-              <Octagon className="size-3.5 text-white" fill="white" strokeWidth={1.5} />
+              <Octagon
+                className="size-3.5 text-white"
+                fill="white"
+                strokeWidth={1.5}
+              />
             </div>
             <span className="whitespace-nowrap text-xl font-bold text-text-default opacity-0 transition-opacity duration-150 group-hover:opacity-100">
               SelfServe
@@ -161,7 +169,10 @@ export function Sidebar({ notifOpen, onNotifToggle, onHoverChange }: SidebarProp
         </div>
       </aside>
 
-      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
 
       {logoutOpen && (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/30">
