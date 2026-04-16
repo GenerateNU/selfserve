@@ -1,5 +1,8 @@
 import Feather from "@expo/vector-icons/Feather";
 import { Pressable, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+
+import { useGetNotifications } from "@shared/api/notifications";
 
 type TasksHeaderProps = {
   onFilterPress?: () => void;
@@ -7,6 +10,10 @@ type TasksHeaderProps = {
 };
 
 export function TasksHeader({ onFilterPress, filterActive }: TasksHeaderProps) {
+  const router = useRouter();
+  const { data } = useGetNotifications();
+  const unreadCount = data?.pages.flat().filter((n) => !n.read_at).length ?? 0;
+
   return (
     <View className="flex-row justify-between items-center px-[22px] pt-3 pb-2">
       <Text className="text-2xl font-medium tracking-tight text-black">
@@ -29,6 +36,19 @@ export function TasksHeader({ onFilterPress, filterActive }: TasksHeaderProps) {
             size={19}
             color={filterActive ? "#124425" : "#000"}
           />
+        </Pressable>
+        <Pressable
+          onPress={() => router.push("/notifications")}
+          className="w-[34px] h-[34px] items-center justify-center rounded relative"
+        >
+          <Feather name="bell" size={19} color="#000" />
+          {unreadCount > 0 && (
+            <View className="absolute top-0 right-0 size-4 rounded-full bg-primary items-center justify-center">
+              <Text className="text-white text-[10px] font-medium">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </Text>
+            </View>
+          )}
         </Pressable>
       </View>
     </View>

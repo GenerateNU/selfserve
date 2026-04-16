@@ -19,15 +19,15 @@ import (
 const testUserID = "user_test_123"
 
 type mockNotificationsRepository struct {
-	findByUserIDFunc      func(ctx context.Context, userID string) ([]*models.Notification, error)
+	findByUserIDFunc      func(ctx context.Context, userID string, before *time.Time) ([]*models.Notification, error)
 	markReadFunc          func(ctx context.Context, id, userID string) error
 	markAllReadFunc       func(ctx context.Context, userID string) error
 	upsertDeviceTokenFunc func(ctx context.Context, userID, token, platform string) error
 }
 
-func (m *mockNotificationsRepository) FindByUserID(ctx context.Context, userID string) ([]*models.Notification, error) {
+func (m *mockNotificationsRepository) FindByUserID(ctx context.Context, userID string, before *time.Time) ([]*models.Notification, error) {
 	if m.findByUserIDFunc != nil {
-		return m.findByUserIDFunc(ctx, userID)
+		return m.findByUserIDFunc(ctx, userID, before)
 	}
 	return nil, nil
 }
@@ -76,7 +76,7 @@ func TestNotificationsHandler_ListNotifications(t *testing.T) {
 
 		readAt := time.Now()
 		mock := &mockNotificationsRepository{
-			findByUserIDFunc: func(ctx context.Context, userID string) ([]*models.Notification, error) {
+			findByUserIDFunc: func(ctx context.Context, userID string, before *time.Time) ([]*models.Notification, error) {
 				return []*models.Notification{
 					{
 						ID:        "notif-1",
@@ -105,7 +105,7 @@ func TestNotificationsHandler_ListNotifications(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockNotificationsRepository{
-			findByUserIDFunc: func(ctx context.Context, userID string) ([]*models.Notification, error) {
+			findByUserIDFunc: func(ctx context.Context, userID string, before *time.Time) ([]*models.Notification, error) {
 				return nil, nil
 			},
 		}
@@ -124,7 +124,7 @@ func TestNotificationsHandler_ListNotifications(t *testing.T) {
 
 		var capturedUserID string
 		mock := &mockNotificationsRepository{
-			findByUserIDFunc: func(ctx context.Context, userID string) ([]*models.Notification, error) {
+			findByUserIDFunc: func(ctx context.Context, userID string, before *time.Time) ([]*models.Notification, error) {
 				capturedUserID = userID
 				return nil, nil
 			},
@@ -142,7 +142,7 @@ func TestNotificationsHandler_ListNotifications(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockNotificationsRepository{
-			findByUserIDFunc: func(ctx context.Context, userID string) ([]*models.Notification, error) {
+			findByUserIDFunc: func(ctx context.Context, userID string, before *time.Time) ([]*models.Notification, error) {
 				return nil, errors.New("db error")
 			},
 		}

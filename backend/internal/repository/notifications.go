@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/models"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -37,14 +39,26 @@ func (r *NotificationsRepository) InsertNotification(ctx context.Context, userID
 	return n, nil
 }
 
-func (r *NotificationsRepository) FindByUserID(ctx context.Context, userID string) ([]*models.Notification, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT id, user_id, type, title, body, data, read_at, created_at
-		FROM public.notifications
-		WHERE user_id = $1
-		ORDER BY created_at DESC
-		LIMIT 50
-	`, userID)
+func (r *NotificationsRepository) FindByUserID(ctx context.Context, userID string, before *time.Time) ([]*models.Notification, error) {
+	var rows pgx.Rows
+	var err error
+	if before != nil {
+		rows, err = r.db.Query(ctx, `
+			SELECT id, user_id, type, title, body, data, read_at, created_at
+			FROM public.notifications
+			WHERE user_id = $1 AND created_at < $2
+			ORDER BY created_at DESC
+			LIMIT 50
+		`, userID, before)
+	} else {
+		rows, err = r.db.Query(ctx, `
+			SELECT id, user_id, type, title, body, data, read_at, created_at
+			FROM public.notifications
+			WHERE user_id = $1
+			ORDER BY created_at DESC
+			LIMIT 50
+		`, userID)
+	}
 	if err != nil {
 		return nil, err
 	}
