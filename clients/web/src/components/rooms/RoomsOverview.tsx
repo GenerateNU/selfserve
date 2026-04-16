@@ -28,8 +28,9 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const vacantRooms = totalRooms - occupiedRooms;
 
   return (
-    <aside className="w-full max-w-[24.875rem] shrink-0 min-h-0 overflow-y-auto px-6">
-      <div className="flex flex-col">
+    <aside className="w-full max-w-[24.875rem] shrink-0 min-h-0 flex flex-col px-6">
+      <div className="flex flex-col flex-1 min-h-0">
+        <div className="shrink-0">
         <OverviewCard
           title="Tasks"
           columns={[
@@ -73,10 +74,12 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
             },
           ]}
         />
+        </div>
         <RoomRequestList
           title="Unassigned Tasks"
           onAssignToSelf={onAssignToSelf}
           requests={unassignedTasks}
+          className="flex-1 min-h-0"
         />
       </div>
     </aside>
