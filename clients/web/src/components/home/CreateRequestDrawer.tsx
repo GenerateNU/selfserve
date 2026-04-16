@@ -257,7 +257,7 @@ export function CreateRequestDrawer({
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={!name.trim() || isPending}
+        disabled={!name.trim() || !department || isPending}
         className="mt-auto self-end rounded-lg bg-primary px-4 py-2 text-sm text-white transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {isPending ? "Creating..." : "Create Request"}
