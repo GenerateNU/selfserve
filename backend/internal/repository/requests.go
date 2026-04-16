@@ -278,7 +278,7 @@ func (r *RequestsRepository) FindRequestsPaginated(
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
 				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version, d.name AS department, r.user_id, rm.floor,
+				r.request_version, r.department AS department_id, d.name AS department_name, r.user_id, rm.floor,
 				CASE r.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END AS priority_rank
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
@@ -292,7 +292,7 @@ func (r *RequestsRepository) FindRequestsPaginated(
 		)
 		SELECT id, name, priority, status, description, notes, room_number,
 		       request_type, request_category, created_at, request_version,
-		       department, user_id, floor
+		       department_id, department_name, user_id, floor
 		FROM latest
 		WHERE (
 		    ($3::bool AND user_id IS NULL)
@@ -344,7 +344,7 @@ func scanGuestRequests(rows pgx.Rows) ([]*models.GuestRequest, error) {
 			&req.ID, &req.Name, &req.Priority, &req.Status,
 			&req.Description, &req.Notes, &req.RoomNumber,
 			&req.RequestType, &req.RequestCategory, &req.CreatedAt,
-			&req.RequestVersion, &req.Department, &req.UserID, &req.Floor,
+			&req.RequestVersion, &req.DepartmentID, &req.DepartmentName, &req.UserID, &req.Floor,
 		); err != nil {
 			return nil, err
 		}

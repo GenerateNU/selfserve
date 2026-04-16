@@ -162,7 +162,8 @@ type GuestRequest struct {
 	Floor           *int      `json:"floor,omitempty"`
 	RequestType     string    `json:"request_type"`
 	RequestCategory *string   `json:"request_category,omitempty"`
-	Department      *string   `json:"department,omitempty"`
+	DepartmentID    *string   `json:"department_id,omitempty"`
+	DepartmentName  *string   `json:"department_name,omitempty"`
 	UserID          *string   `json:"user_id,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
 	RequestVersion  time.Time `json:"request_version"`
