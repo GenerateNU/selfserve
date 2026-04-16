@@ -14,6 +14,7 @@ import type {
   RoomWithOptionalGuestBooking,
   User,
 } from "@shared";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { AssigneePicker } from "@/components/ui/AssigneePicker";
@@ -21,7 +22,6 @@ import { DepartmentPicker } from "@/components/ui/DepartmentPicker";
 import { RoomPicker } from "@/components/ui/RoomPicker";
 import { DeadlinePicker } from "@/components/ui/DeadlinePicker";
 import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
 
 type ActivityTab = "all" | "comments" | "history";
 
@@ -73,7 +73,7 @@ export function CreateRequestDrawer({
   const [name, setName] = useState(existingRequest?.name ?? initialData?.name ?? "");
   const [description, setDescription] = useState(existingRequest?.description ?? initialData?.description ?? "");
   const [priority, setPriority] = useState<MakeRequestPriority>(
-    (existingRequest?.priority as MakeRequestPriority) ?? initialData?.priority ?? "medium",
+    existingRequest?.priority ?? initialData?.priority ?? "medium",
   );
   const [deadline, setDeadline] = useState<Date | undefined>(
     existingRequest?.scheduled_time ? new Date(existingRequest.scheduled_time) : undefined,
@@ -82,12 +82,10 @@ export function CreateRequestDrawer({
   const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>();
   const [department, setDepartment] = useState<Department | undefined>();
 
-  // Track which fields were explicitly changed by the user (for dirty detection in edit mode)
-  const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
-  const isDirty = isEditMode && changedFields.size > 0;
+  const [isDirty, setIsDirty] = useState(false);
 
-  function markChanged(field: string) {
-    setChangedFields((prev) => new Set([...prev, field]));
+  function markChanged() {
+    if (!isDirty) setIsDirty(true);
   }
 
   const queryClient = useQueryClient();
@@ -108,7 +106,7 @@ export function CreateRequestDrawer({
   const { data: initialAssignee } = useQuery({
     queryKey: ["user", existingRequest?.user_id],
     queryFn: () => getUsersId(existingRequest!.user_id!),
-    enabled: isEditMode && !!existingRequest?.user_id,
+    enabled: !!existingRequest?.user_id,
   });
   const assigneeInitialized = useRef(false);
   useEffect(() => {
@@ -122,7 +120,6 @@ export function CreateRequestDrawer({
   const deptInitialized = useRef(false);
   useEffect(() => {
     if (
-      isEditMode &&
       existingRequest?.department &&
       allDepartments.length > 0 &&
       !deptInitialized.current
@@ -131,7 +128,7 @@ export function CreateRequestDrawer({
       const found = allDepartments.find((d) => d.id === existingRequest.department);
       if (found) setDepartment(found);
     }
-  }, [isEditMode, existingRequest?.department, allDepartments]);
+  }, [existingRequest?.department, allDepartments]);
 
   const sharedInvalidation = () => {
     queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
@@ -162,15 +159,15 @@ export function CreateRequestDrawer({
   function handleSubmit() {
     if (!name.trim() || isPending) return;
 
-    if (isEditMode) {
+    if (existingRequest) {
       updateRequest({
         name: name.trim(),
         priority,
         description: description.trim() || undefined,
-        user_id: assignee?.id ?? existingRequest?.user_id,
-        room_id: room?.id ?? existingRequest?.room_id,
-        department: department?.id ?? existingRequest?.department,
-        scheduled_time: deadline?.toISOString() ?? existingRequest?.scheduled_time,
+        user_id: assignee?.id ?? existingRequest.user_id,
+        room_id: room?.id ?? existingRequest.room_id,
+        department: department?.id ?? existingRequest.department,
+        scheduled_time: deadline?.toISOString() ?? existingRequest.scheduled_time,
       });
     } else {
       if (!backendUser?.hotel_id) return;
@@ -201,7 +198,7 @@ export function CreateRequestDrawer({
       value={name}
       onChange={(e) => {
         setName(e.target.value);
-        if (isEditMode) markChanged("name");
+        if (isEditMode) markChanged();
       }}
       onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
       placeholder="New Request"
@@ -220,7 +217,7 @@ export function CreateRequestDrawer({
             <AssigneePicker
               hotelId={backendUser.hotel_id}
               selectedUser={assignee}
-              onSelect={(user) => { setAssignee(user); markChanged("assignee"); }}
+              onSelect={(user) => { setAssignee(user); markChanged(); }}
             />
           )}
         </div>
@@ -230,7 +227,7 @@ export function CreateRequestDrawer({
           <FieldLabel icon={Clock} label="Deadline" />
           <DeadlinePicker
             selectedDate={deadline}
-            onSelect={(date) => { setDeadline(date); markChanged("deadline"); }}
+            onSelect={(date) => { setDeadline(date); markChanged(); }}
           />
         </div>
 
@@ -242,7 +239,7 @@ export function CreateRequestDrawer({
               <button
                 key={p}
                 type="button"
-                onClick={() => { setPriority(p); markChanged("priority"); }}
+                onClick={() => { setPriority(p); markChanged(); }}
                 className={cn(
                   "rounded px-2 py-0.5 text-xs capitalize transition-colors",
                   priority === p
@@ -262,7 +259,7 @@ export function CreateRequestDrawer({
           <RoomPicker
             selectedRoom={room}
             initialRoomId={room ? undefined : (existingRequest?.room_id ?? initialData?.room_id)}
-            onSelect={(r) => { setRoom(r); markChanged("room"); }}
+            onSelect={(r) => { setRoom(r); markChanged(); }}
           />
         </div>
 
@@ -273,7 +270,7 @@ export function CreateRequestDrawer({
             <DepartmentPicker
               hotelId={backendUser.hotel_id}
               selectedDepartment={department}
-              onSelect={(d) => { setDepartment(d); markChanged("department"); }}
+              onSelect={(d) => { setDepartment(d); markChanged(); }}
             />
           )}
         </div>
@@ -285,7 +282,7 @@ export function CreateRequestDrawer({
           value={description}
           onChange={(e) => {
             setDescription(e.target.value);
-            if (isEditMode) markChanged("description");
+            if (isEditMode) markChanged();
           }}
           placeholder="Add a description..."
           rows={3}

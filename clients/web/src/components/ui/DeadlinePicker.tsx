@@ -11,9 +11,12 @@ import { cn } from "@/lib/utils";
 
 type TimeSlot = { hour: number; minute: number };
 
-const TIME_SLOTS: TimeSlot[] = Array.from({ length: 17 }, (_, h) =>
-  [0, 15, 30, 45].map((m) => ({ hour: h + 6, minute: m })),
-).flat();
+const TIME_SLOTS: Array<TimeSlot> = [];
+for (let h = 6; h <= 22; h++) {
+  for (const m of [0, 15, 30, 45]) {
+    TIME_SLOTS.push({ hour: h, minute: m });
+  }
+}
 
 type DeadlinePickerProps = {
   selectedDate?: Date;
@@ -193,7 +196,7 @@ export function DeadlinePicker({ selectedDate, onSelect }: DeadlinePickerProps) 
             {TIME_SLOTS.map((slot) => {
               const label = `${slot.hour % 12 || 12}:${slot.minute.toString().padStart(2, "0")}`;
               const isSelected =
-                tempTime?.hour === slot.hour && tempTime?.minute === slot.minute;
+                tempTime?.hour === slot.hour && tempTime.minute === slot.minute;
               return (
                 <button
                   key={`${slot.hour}-${slot.minute}`}
