@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"time"
 
 	"github.com/generate/selfserve/config"
@@ -63,7 +64,6 @@ var seedGuests = []seedGuest{
 type seedRequest struct {
 	name         string
 	description  string
-	department   string
 	priority     models.RequestPriority
 	status       models.RequestStatus
 	assignToUser bool
@@ -71,28 +71,28 @@ type seedRequest struct {
 
 var seedRequests = []seedRequest{
 	// High priority
-	{"Fix broken AC in suite", "Guest reported AC not working since check-in", "Maintenance", models.PriorityHigh, models.StatusPending, false},
-	{"Flooding in room 204", "Toilet overflow — housekeeping and maintenance needed immediately", "Housekeeping", models.PriorityHigh, models.StatusInProgress, true},
-	{"Medical equipment needed", "Guest requires wheelchair for lobby transit", "Front Desk", models.PriorityHigh, models.StatusInProgress, true},
-	{"Fire alarm panel fault", "Panel showing fault on floor 3 — inspect before end of shift", "Maintenance", models.PriorityHigh, models.StatusPending, false},
+	{"Fix broken AC in suite", "Guest reported AC not working since check-in", models.PriorityHigh, models.StatusPending, false},
+	{"Flooding in room 204", "Toilet overflow — housekeeping and maintenance needed immediately", models.PriorityHigh, models.StatusInProgress, true},
+	{"Medical equipment needed", "Guest requires wheelchair for lobby transit", models.PriorityHigh, models.StatusInProgress, true},
+	{"Fire alarm panel fault", "Panel showing fault on floor 3 — inspect before end of shift", models.PriorityHigh, models.StatusPending, false},
 
 	// Medium priority
-	{"Extra towels and toiletries", "Room 401 — guest requested two sets of towels and extra shampoo", "Housekeeping", models.PriorityMedium, models.StatusPending, false},
-	{"Room service delivery", "Breakfast for two to room 312 at 8am", "Food & Beverage", models.PriorityMedium, models.StatusInProgress, true},
-	{"Late checkout request", "Guest in 509 requesting checkout at 2pm instead of 11am", "Front Desk", models.PriorityMedium, models.StatusPending, false},
-	{"Replace burnt-out bulbs", "Two bulbs out in room 118 bathroom", "Maintenance", models.PriorityMedium, models.StatusInProgress, true},
-	{"Minibar restock", "Room 220 minibar needs full restock after checkout", "Housekeeping", models.PriorityMedium, models.StatusPending, false},
-	{"Dinner reservation assist", "Guest needs help booking a table for 4 tonight", "Food & Beverage", models.PriorityMedium, models.StatusCompleted, true},
+	{"Extra towels and toiletries", "Room 401 — guest requested two sets of towels and extra shampoo", models.PriorityMedium, models.StatusPending, false},
+	{"Room service delivery", "Breakfast for two to room 312 at 8am", models.PriorityMedium, models.StatusInProgress, true},
+	{"Late checkout request", "Guest in 509 requesting checkout at 2pm instead of 11am", models.PriorityMedium, models.StatusPending, false},
+	{"Replace burnt-out bulbs", "Two bulbs out in room 118 bathroom", models.PriorityMedium, models.StatusInProgress, true},
+	{"Minibar restock", "Room 220 minibar needs full restock after checkout", models.PriorityMedium, models.StatusPending, false},
+	{"Dinner reservation assist", "Guest needs help booking a table for 4 tonight", models.PriorityMedium, models.StatusCompleted, true},
 
 	// Low priority
-	{"Extra pillow request", "Room 305 — guest requested two additional pillows", "Housekeeping", models.PriorityLow, models.StatusPending, false},
-	{"Lost & found inquiry", "Guest asking about a left-behind phone charger from yesterday", "Front Desk", models.PriorityLow, models.StatusCompleted, false},
-	{"Pool towel replenishment", "Pool deck running low on towels — restock from laundry", "Housekeeping", models.PriorityLow, models.StatusInProgress, true},
-	{"Newspaper delivery", "Room 102 — daily newspaper delivery requested for the week", "Front Desk", models.PriorityLow, models.StatusPending, false},
-	{"Gym equipment wipe-down", "Routine sanitisation of gym equipment requested by guest", "Maintenance", models.PriorityLow, models.StatusCompleted, false},
-	{"Wine pairing recommendation", "Couple in room 410 would like a wine pairing for their dinner", "Food & Beverage", models.PriorityLow, models.StatusPending, false},
-	{"Print boarding passes", "Guest needs three boarding passes printed at concierge", "Front Desk", models.PriorityLow, models.StatusInProgress, true},
-	{"Deep clean after checkout", "Room 508 — full deep clean required before next guest", "Housekeeping", models.PriorityLow, models.StatusCompleted, false},
+	{"Extra pillow request", "Room 305 — guest requested two additional pillows", models.PriorityLow, models.StatusPending, false},
+	{"Lost & found inquiry", "Guest asking about a left-behind phone charger from yesterday", models.PriorityLow, models.StatusCompleted, false},
+	{"Pool towel replenishment", "Pool deck running low on towels — restock from laundry", models.PriorityLow, models.StatusInProgress, true},
+	{"Newspaper delivery", "Room 102 — daily newspaper delivery requested for the week", models.PriorityLow, models.StatusPending, false},
+	{"Gym equipment wipe-down", "Routine sanitisation of gym equipment requested by guest", models.PriorityLow, models.StatusCompleted, false},
+	{"Wine pairing recommendation", "Couple in room 410 would like a wine pairing for their dinner", models.PriorityLow, models.StatusPending, false},
+	{"Print boarding passes", "Guest needs three boarding passes printed at concierge", models.PriorityLow, models.StatusInProgress, true},
+	{"Deep clean after checkout", "Room 508 — full deep clean required before next guest", models.PriorityLow, models.StatusCompleted, false},
 }
 
 // ─── Command ──────────────────────────────────────────────────────────────────
@@ -114,6 +114,7 @@ func runSeedData(ctx context.Context, cfg config.Config, args []string) error {
 	guestsRepo := repository.NewGuestsRepository(repo.DB)
 	bookingsRepo := repository.NewGuestBookingsRepository(repo.DB)
 	requestsRepo := repository.NewRequestsRepo(repo.DB)
+	hotelsRepo := repository.NewHotelsRepository(repo.DB)
 
 	user, err := usersRepo.FindUser(ctx, userID)
 	if err != nil {
@@ -125,6 +126,20 @@ func runSeedData(ctx context.Context, cfg config.Config, args []string) error {
 
 	hotelID := user.HotelID
 	fmt.Printf("seeding data for hotel %s (user: %s)\n\n", hotelID, userID)
+
+	// ── Departments ────────────────────────────────────────────────────────────
+	departments, err := hotelsRepo.GetDepartmentsByHotelID(ctx, hotelID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch departments: %w", err)
+	}
+	if len(departments) == 0 {
+		return fmt.Errorf("hotel %s has no departments — run backfill-hotel-departments first", hotelID)
+	}
+	departmentIDs := make([]string, len(departments))
+	for i, d := range departments {
+		departmentIDs[i] = d.ID
+	}
+	fmt.Printf("found %d departments\n\n", len(departmentIDs))
 
 	// ── Rooms ──────────────────────────────────────────────────────────────────
 	fmt.Println("inserting rooms...")
@@ -168,13 +183,14 @@ func runSeedData(ctx context.Context, cfg config.Config, args []string) error {
 	// ── Requests ───────────────────────────────────────────────────────────────
 	fmt.Println("\ninserting requests...")
 	for i, s := range seedRequests {
+		deptID := departmentIDs[rand.IntN(len(departmentIDs))]
 		req := &models.Request{
 			ID: uuid.New().String(),
 			MakeRequest: models.MakeRequest{
 				HotelID:     hotelID,
 				Name:        s.name,
 				Description: ptr(s.description),
-				Department:  ptr(s.department),
+				Department:  ptr(deptID),
 				RequestType: "manual",
 				Status:      string(s.status),
 				Priority:    string(s.priority),
