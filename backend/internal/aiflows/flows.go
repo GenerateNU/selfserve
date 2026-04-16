@@ -8,13 +8,24 @@ import (
 	"github.com/firebase/genkit/go/core"
 	"github.com/firebase/genkit/go/genkit"
 	"github.com/generate/selfserve/internal/aiflows/prompts"
+	"github.com/generate/selfserve/internal/models"
 	"google.golang.org/genai"
 )
 
-func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *genai.GenerateContentConfig, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository, userLookupRepo UserLookupRepository) *core.Flow[GenerateRequestInput, EnrichedGenerateRequestOutput, struct{}] {
+func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, generationConfig *genai.GenerateContentConfig, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository, userLookupRepo UserLookupRepository, deptLookupRepo DepartmentLookupRepository) *core.Flow[GenerateRequestInput, EnrichedGenerateRequestOutput, struct{}] {
 	generateRequestFlow := genkit.DefineFlow(genkitInstance, "generateRequestFlow",
 		func(ctx context.Context, input GenerateRequestInput) (EnrichedGenerateRequestOutput, error) {
-			prompt := fmt.Sprintf(prompts.GenerateRequestPrompt, input.RawText)
+			departments, err := deptLookupRepo.GetDepartmentsByHotelID(ctx, input.HotelID)
+			if err != nil {
+				return EnrichedGenerateRequestOutput{}, fmt.Errorf("fetch departments: %w", err)
+			}
+
+			deptNames := make([]string, len(departments))
+			for i, d := range departments {
+				deptNames[i] = d.Name
+			}
+
+			prompt := prompts.GenerateRequestPrompt(input.RawText, deptNames)
 			resp, _, err := genkit.GenerateData[GenerateRequestOutput](ctx, genkitInstance, ai.WithPrompt(prompt), ai.WithModel(model), ai.WithConfig(generationConfig))
 			if err != nil {
 				return EnrichedGenerateRequestOutput{}, err
@@ -34,7 +45,12 @@ func DefineGenerateRequest(genkitInstance *genkit.Genkit, model ai.Model, genera
 				return EnrichedGenerateRequestOutput{}, err
 			}
 
-			return enrichWithUserLookup(ctx, userLookupRepo, input.HotelID, output)
+			output, err = enrichWithUserLookup(ctx, userLookupRepo, input.HotelID, output)
+			if err != nil {
+				return EnrichedGenerateRequestOutput{}, err
+			}
+
+			return enrichWithDepartmentLookup(departments, output), nil
 		},
 	)
 
@@ -116,4 +132,12 @@ func enrichWithUserLookup(ctx context.Context, userLookupRepo UserLookupReposito
 	}
 
 	return output, nil
+}
+
+func enrichWithDepartmentLookup(departments []*models.Department, output EnrichedGenerateRequestOutput) EnrichedGenerateRequestOutput {
+	if output.Department == nil {
+		return output
+	}
+	output.DepartmentID = LookupDepartmentID(departments, *output.Department)
+	return output
 }

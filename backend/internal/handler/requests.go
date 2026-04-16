@@ -287,7 +287,7 @@ func (r *RequestsHandler) GenerateRequest(c *fiber.Ctx) error {
 		Description:             parsed.Description,
 		RequestCategory:         parsed.RequestCategory,
 		RequestType:             parsed.RequestType,
-		Department:              parsed.Department,
+		Department:              parsed.DepartmentID,
 		Status:                  parsed.Status,
 		Priority:                parsed.Priority,
 		EstimatedCompletionTime: parsed.EstimatedCompletionTime,

@@ -13,7 +13,7 @@ import (
 
 const defaultGeminiModel = "gemini-3-flash-preview"
 
-func InitGenkit(ctx context.Context, llmConfig *config.LLM, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository, userLookupRepo UserLookupRepository) *GenkitService {
+func InitGenkit(ctx context.Context, llmConfig *config.LLM, roomLookupRepo RoomLookupRepository, guestLookupRepo GuestLookupRepository, userLookupRepo UserLookupRepository, deptLookupRepo DepartmentLookupRepository) *GenkitService {
 
 	modelName := llmConfig.Model
 	if modelName == "" {
@@ -46,7 +46,7 @@ func InitGenkit(ctx context.Context, llmConfig *config.LLM, roomLookupRepo RoomL
 		MaxOutputTokens: int32(llmConfig.MaxOutputTokens),
 	}
 
-	generateRequestFlow := DefineGenerateRequest(genkitInstance, model, generationConfig, roomLookupRepo, guestLookupRepo, userLookupRepo)
+	generateRequestFlow := DefineGenerateRequest(genkitInstance, model, generationConfig, roomLookupRepo, guestLookupRepo, userLookupRepo, deptLookupRepo)
 
 	return &GenkitService{
 		genkit:              genkitInstance,
