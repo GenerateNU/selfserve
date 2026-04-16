@@ -106,9 +106,7 @@ export default function TasksScreen() {
         onComplete={(id) => completeTask(id)}
         onMarkPending={(id) => markTaskPending(id)}
         onDropTask={
-          activeTab === TAB.MY_TASKS
-            ? (id) => dropTask(id)
-            : undefined
+          activeTab === TAB.MY_TASKS ? (id) => dropTask(id) : undefined
         }
       />
       <TaskFilterSheet

@@ -40,8 +40,12 @@ function DetailRow({ icon, label, value }: DetailRowProps) {
   );
 }
 
-function formatLocation(floor?: number | null, roomNumber?: number | null): string {
-  if (floor != null && roomNumber != null) return `Floor ${floor}, Room ${roomNumber}`;
+function formatLocation(
+  floor?: number | null,
+  roomNumber?: number | null,
+): string {
+  if (floor != null && roomNumber != null)
+    return `Floor ${floor}, Room ${roomNumber}`;
   if (roomNumber != null) return `Room ${roomNumber}`;
   return "—";
 }
@@ -49,7 +53,6 @@ function formatLocation(floor?: number | null, roomNumber?: number | null): stri
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
-
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 // Sheet starts showing the bottom 58% of the screen
@@ -334,7 +337,9 @@ export function TaskDetailSheet({
                         text: "Drop Task",
                         style: "destructive",
                         onPress: () => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Medium,
+                          );
                           onDropTask(task.id);
                           close();
                         },
