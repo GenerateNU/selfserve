@@ -278,10 +278,11 @@ func (r *RequestsRepository) FindRequestsPaginated(
 			SELECT DISTINCT ON (r.id)
 				r.id, r.name, r.priority, r.status, r.description, r.notes,
 				rm.room_number, r.request_type, r.request_category, r.created_at,
-				r.request_version, r.department, r.user_id, rm.floor,
+				r.request_version, d.name AS department, r.user_id, rm.floor,
 				CASE r.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END AS priority_rank
 			FROM public.requests r
 			LEFT JOIN public.rooms rm ON rm.id::text = r.room_id
+			LEFT JOIN public.departments d ON d.id::text = r.department
 			WHERE r.hotel_id = $1
 			  AND ($4::text = '' OR r.status = $4)
 			  AND (cardinality($5::text[]) = 0 OR r.priority = ANY($5))
