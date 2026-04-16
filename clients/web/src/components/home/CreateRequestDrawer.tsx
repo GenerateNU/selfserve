@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { ChevronDown, GripHorizontal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { GripHorizontal } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
+import { useGetDepartments } from "@shared/api/departments";
 import { REQUESTS_FEED_QUERY_KEY } from "@shared/api/requests";
 import type {
   Department,
@@ -62,6 +63,7 @@ type CreateRequestDrawerProps = {
     room_id?: string;
     guest_id?: string;
     user_id?: string;
+    department_id?: string;
   };
 };
 
@@ -69,7 +71,6 @@ export function CreateRequestDrawer({
   onClose,
   initialData,
 }: CreateRequestDrawerProps) {
-  const [showMore, setShowMore] = useState(false);
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
   const [name, setName] = useState(initialData?.name ?? "");
   const [description, setDescription] = useState(
@@ -81,6 +82,7 @@ export function CreateRequestDrawer({
   const [assignee, setAssignee] = useState<User | undefined>();
   const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>();
   const [department, setDepartment] = useState<Department | undefined>();
+  const departmentInitialized = useRef(false);
 
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
@@ -92,6 +94,22 @@ export function CreateRequestDrawer({
     queryFn: () => getUsersId(clerkUser!.id),
     enabled: !!clerkUser?.id,
   });
+
+  const { data: departments } = useGetDepartments(backendUser?.hotel_id);
+
+  useEffect(() => {
+    if (
+      !departmentInitialized.current &&
+      initialData?.department_id &&
+      departments
+    ) {
+      const match = departments.find((d) => d.id === initialData.department_id);
+      if (match) {
+        setDepartment(match);
+        departmentInitialized.current = true;
+      }
+    }
+  }, [departments, initialData?.department_id]);
 
   const { mutate: createRequest, isPending } = useMutation({
     mutationFn: (data: MakeRequest) => postRequest(data),
@@ -188,7 +206,6 @@ export function CreateRequestDrawer({
             onSelect={setRoom}
           />
         </div>
-        <FieldRow label="Deadline" value="Empty" />
         <div className="flex items-center gap-8">
           <div className="flex w-28 shrink-0 items-center gap-1">
             <GripHorizontal className="size-4.5 text-text-subtle" />
@@ -202,27 +219,7 @@ export function CreateRequestDrawer({
             />
           )}
         </div>
-        <FieldRow label="Location" value="Empty" />
 
-        {showMore && (
-          <>
-            <FieldRow label="Tags" value="Empty" />
-          </>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setShowMore((v) => !v)}
-          className="flex items-center gap-2 text-xs text-text-subtle transition-colors hover:text-text-default"
-        >
-          Show More
-          <ChevronDown
-            className={cn(
-              "size-3 transition-transform",
-              showMore && "rotate-180",
-            )}
-          />
-        </button>
       </div>
 
       <div className="flex flex-col gap-1">

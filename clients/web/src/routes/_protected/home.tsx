@@ -114,6 +114,7 @@ function HomePage() {
     room_id?: string;
     guest_id?: string;
     user_id?: string;
+    department_id?: string;
   } | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
     null,
@@ -137,6 +138,7 @@ function HomePage() {
       room_id: request.room_id,
       guest_id: request.guest_id,
       user_id: request.user_id,
+      department_id: request.department ?? undefined,
     });
   }
 

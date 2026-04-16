@@ -2,6 +2,7 @@ import { useState } from "react";
 import { GripHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users";
+import { useGetDepartments } from "@shared/api/departments";
 import type { Request } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { useRoomById } from "@/hooks/use-room-by-id";
@@ -84,6 +85,7 @@ export function ViewRequestDrawer({
   });
 
   const { data: room } = useRoomById(request?.room_id);
+  const { data: departments } = useGetDepartments(request?.hotel_id);
 
   if (!request) {
     return (
@@ -128,7 +130,13 @@ export function ViewRequestDrawer({
         {assigneeName && <FieldRow label="Assignee" value={assigneeName} />}
         {roomLabel && <FieldRow label="Room" value={roomLabel} />}
         {request.department && (
-          <FieldRow label="Department" value={request.department} />
+          <FieldRow
+            label="Department"
+            value={
+              departments?.find((d) => d.id === request.department)?.name ??
+              request.department
+            }
+          />
         )}
         {request.request_type && (
           <FieldRow label="Type" value={request.request_type} />
