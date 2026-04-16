@@ -1,5 +1,5 @@
-import {  useState } from "react";
-import type {RefObject} from "react";
+import { useState } from "react";
+import type { RefObject } from "react";
 import { FilterChip } from "@/components/rooms/FilterChip";
 import { Button } from "@/components/ui/Button";
 import { useClickOutside } from "@/hooks/use-click-outside";
@@ -9,7 +9,7 @@ const DATE_CHIPS = ["Standard", "Deluxe", "Suite", "Accessible"] as const;
 
 type FilterPopoverProps = {
   onClose: () => void;
-  containerRef: RefObject<HTMLDivElement>;
+  containerRef: RefObject<HTMLDivElement | null>;
 };
 
 export function FilterPopover({ onClose, containerRef }: FilterPopoverProps) {

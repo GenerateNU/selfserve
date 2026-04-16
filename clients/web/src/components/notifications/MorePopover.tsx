@@ -1,9 +1,9 @@
-import type {RefObject} from "react";
+import type { RefObject } from "react";
 import { useClickOutside } from "@/hooks/use-click-outside";
 
 type MorePopoverProps = {
   onClose: () => void;
-  containerRef: RefObject<HTMLDivElement>;
+  containerRef: RefObject<HTMLDivElement | null>;
 };
 
 export function MorePopover({ onClose, containerRef }: MorePopoverProps) {
