@@ -1,5 +1,5 @@
 import { Bell, Filter, MoreVertical, Search, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MOCK_NOTIFICATIONS } from "./notification.types";
 import { NotificationItem } from "./NotificationItem";
 import { FilterPopover } from "./FilterPopover";
@@ -16,6 +16,8 @@ export function NotificationPanel({ open }: NotificationPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>("notifications");
   const [filterOpen, setFilterOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const filterContainerRef = useRef<HTMLDivElement>(null);
+  const moreContainerRef = useRef<HTMLDivElement>(null);
 
   if (!open) return null;
 
@@ -30,7 +32,7 @@ export function NotificationPanel({ open }: NotificationPanelProps) {
               <Search className="size-4" strokeWidth={2} />
             </button>
 
-            <div className="relative">
+            <div className="relative" ref={filterContainerRef}>
               <button
                 type="button"
                 onClick={() => {
@@ -45,11 +47,14 @@ export function NotificationPanel({ open }: NotificationPanelProps) {
                 <Filter className="size-3.5" strokeWidth={2} />
               </button>
               {filterOpen && (
-                <FilterPopover onClose={() => setFilterOpen(false)} />
+                <FilterPopover
+                  onClose={() => setFilterOpen(false)}
+                  containerRef={filterContainerRef}
+                />
               )}
             </div>
 
-            <div className="relative">
+            <div className="relative" ref={moreContainerRef}>
               <button
                 type="button"
                 onClick={() => {
@@ -63,7 +68,12 @@ export function NotificationPanel({ open }: NotificationPanelProps) {
               >
                 <MoreVertical className="size-4" strokeWidth={2} />
               </button>
-              {moreOpen && <MorePopover onClose={() => setMoreOpen(false)} />}
+              {moreOpen && (
+                <MorePopover
+                  onClose={() => setMoreOpen(false)}
+                  containerRef={moreContainerRef}
+                />
+              )}
             </div>
           </div>
         </div>

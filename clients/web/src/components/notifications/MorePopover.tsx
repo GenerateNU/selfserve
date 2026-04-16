@@ -1,19 +1,16 @@
-import { useRef } from "react";
+import type {RefObject} from "react";
 import { useClickOutside } from "@/hooks/use-click-outside";
 
 type MorePopoverProps = {
   onClose: () => void;
+  containerRef: RefObject<HTMLDivElement>;
 };
 
-export function MorePopover({ onClose }: MorePopoverProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  useClickOutside(ref, onClose);
+export function MorePopover({ onClose, containerRef }: MorePopoverProps) {
+  useClickOutside(containerRef, onClose);
 
   return (
-    <div
-      ref={ref}
-      className="absolute right-0 top-8 z-10 w-52 rounded-xl bg-bg-primary px-6 py-5 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.25)]"
-    >
+    <div className="absolute right-0 top-8 z-10 w-52 rounded-xl bg-bg-primary px-6 py-5 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.25)]">
       <div className="flex flex-col gap-2">
         <button
           type="button"
