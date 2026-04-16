@@ -49,16 +49,6 @@ function NewTasksBadge() {
   );
 }
 
-function UrgentTaskBadge() {
-  return (
-    <View className="bg-bg-selected flex-row items-center gap-1.5 h-6 px-2 py-1 rounded">
-      <Feather name="alert-circle" size={12} color={PRIMARY} />
-      <Text className="text-[12px] text-primary tracking-tight">
-        urgent task
-      </Text>
-    </View>
-  );
-}
 
 type NotificationItemProps = {
   notification: Notification;
@@ -95,7 +85,7 @@ export function NotificationItem({
           {showUnreadDot && (
             <View className="size-2 rounded-full bg-primary mr-1" />
           )}
-          <Text className="text-[15px] font-semibold text-black tracking-tight">
+          <Text className="text-[15px] font-semibold text-black tracking-[-0.15px] leading-tight">
             {notification.title}
           </Text>
         </View>
@@ -104,30 +94,30 @@ export function NotificationItem({
         {dueTime !== null && (
           <View className="flex-row items-center gap-1">
             <Feather name="clock" size={16} color={PRIORITY_HIGH} />
-            <Text className="text-[12px] text-priority-high tracking-tight">
+            <Text className="text-[12px] text-priority-high tracking-[-0.12px] leading-tight">
               {dueTime}
             </Text>
           </View>
         )}
 
         {/* Body */}
-        <View className="flex-row flex-wrap items-center gap-1">
-          <Text className="text-[15px] text-text-default tracking-tight">
-            An
-          </Text>
-          <UrgentTaskBadge />
-          <Text className="flex-1 text-[15px] text-text-default tracking-tight">
-            {" "}
-            for your department needs your attention. Claim it now!
-          </Text>
-        </View>
+        <Text className="text-[15px] text-text-default tracking-[-0.15px] leading-tight">
+          {"An "}
+          <View className="bg-bg-selected flex-row items-center gap-1 px-2 rounded" style={{ marginBottom: -2 }}>
+            <Feather name="alert-circle" size={12} color={PRIMARY} />
+            <Text className="text-[12px] text-primary tracking-[-0.12px]">
+              {"urgent task"}
+            </Text>
+          </View>
+          {" for your department needs your attention. Claim it now!"}
+        </Text>
 
         {/* CTA */}
         <Pressable
           onPress={handlePress}
           className="bg-primary items-center justify-center px-6 py-2.5 rounded w-full"
         >
-          <Text className="text-white text-[14px]">Claim Now!</Text>
+          <Text className="text-white text-[14px] leading-5">Claim Now!</Text>
         </Pressable>
       </View>
     );
