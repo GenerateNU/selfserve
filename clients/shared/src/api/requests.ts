@@ -125,6 +125,34 @@ export type RequestFeedParams = {
   floors?: number[];
 };
 
+export const useDropTask = () => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      api.put<RequestFeedItem>(`/request/${taskId}`, { unassign: true }),
+    onSuccess: (_data, taskId) => {
+      queryClient.setQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: (page.items ?? []).filter((item) => item.id !== taskId),
+          })),
+        };
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+    },
+  });
+};
+
 export const useCompleteTask = () => {
   const api = useAPIClient();
   const queryClient = useQueryClient();

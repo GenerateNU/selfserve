@@ -2,6 +2,7 @@ import Feather from "@expo/vector-icons/Feather";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   Dimensions,
   Modal,
@@ -39,28 +40,16 @@ function DetailRow({ icon, label, value }: DetailRowProps) {
   );
 }
 
-function formatLocation(roomNumber?: number | null): string {
-  return roomNumber != null ? `Room ${roomNumber}` : "—";
+function formatLocation(floor?: number | null, roomNumber?: number | null): string {
+  if (floor != null && roomNumber != null) return `Floor ${floor}, Room ${roomNumber}`;
+  if (roomNumber != null) return `Room ${roomNumber}`;
+  return "—";
 }
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function formatTime(iso: string): string {
-  const date = new Date(iso);
-  const today = new Date();
-  const isToday =
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate();
-  const time = date
-    .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-    .toLowerCase();
-  return isToday
-    ? `Today at ${time}`
-    : date.toLocaleDateString([], { month: "short", day: "numeric" });
-}
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 // Sheet starts showing the bottom 58% of the screen
@@ -73,6 +62,7 @@ type TaskDetailSheetProps = {
   onClose: () => void;
   onComplete?: (taskId: string) => void;
   onMarkPending?: (taskId: string) => void;
+  onDropTask?: (taskId: string) => void;
 };
 
 export function TaskDetailSheet({
@@ -80,6 +70,7 @@ export function TaskDetailSheet({
   onClose,
   onComplete,
   onMarkPending,
+  onDropTask,
 }: TaskDetailSheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const isFullScreenRef = useRef(false);
@@ -257,16 +248,6 @@ export function TaskDetailSheet({
             {/* Detail rows */}
             <View className="gap-4 mb-6">
               <DetailRow
-                icon="clipboard"
-                label="Task Type"
-                value={capitalize(task.request_type)}
-              />
-              <DetailRow
-                icon="clock"
-                label="Deadline"
-                value={formatTime(task.created_at)}
-              />
-              <DetailRow
                 icon="flag"
                 label="Priority"
                 value={capitalize(task.priority)}
@@ -274,13 +255,13 @@ export function TaskDetailSheet({
               <DetailRow
                 icon="map-pin"
                 label="Location"
-                value={formatLocation(task.room_number)}
+                value={formatLocation(task.floor, task.room_number)}
               />
-              {task.request_category ? (
+              {task.department_name ? (
                 <DetailRow
                   icon="home"
                   label="Department"
-                  value={task.request_category}
+                  value={task.department_name}
                 />
               ) : null}
             </View>
@@ -339,6 +320,35 @@ export function TaskDetailSheet({
                 </Text>
               </Pressable>
             )}
+
+            {/* Drop Task */}
+            {onDropTask ? (
+              <Pressable
+                onPress={() => {
+                  Alert.alert(
+                    "Drop Task",
+                    "Are you sure you want to drop this task? It will be returned to the unassigned queue.",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Drop Task",
+                        style: "destructive",
+                        onPress: () => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                          onDropTask(task.id);
+                          close();
+                        },
+                      },
+                    ],
+                  );
+                }}
+                className="border border-primary rounded items-center justify-center py-2.5 w-full mt-2"
+              >
+                <Text className="text-primary text-[14px] leading-5">
+                  Drop Task
+                </Text>
+              </Pressable>
+            ) : null}
           </ScrollView>
         </Animated.View>
       </View>

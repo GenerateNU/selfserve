@@ -12,6 +12,7 @@ import { TAB, TabName } from "@/constants/tasks";
 import {
   useAssignRequestToSelf,
   useCompleteTask,
+  useDropTask,
   useMarkTaskPending,
   useGetRequestsFeed,
   type RequestFeedItem,
@@ -31,6 +32,7 @@ export default function TasksScreen() {
   const { userId } = useAuth();
   const { mutate: completeTask } = useCompleteTask();
   const { mutate: markTaskPending } = useMarkTaskPending();
+  const { mutate: dropTask } = useDropTask();
   const { mutate: pickUpTask } = useAssignRequestToSelf(undefined);
 
   const myTasksQuery = useGetRequestsFeed({
@@ -103,6 +105,11 @@ export default function TasksScreen() {
         onClose={() => setSelectedTask(null)}
         onComplete={(id) => completeTask(id)}
         onMarkPending={(id) => markTaskPending(id)}
+        onDropTask={
+          activeTab === TAB.MY_TASKS
+            ? (id) => dropTask(id)
+            : undefined
+        }
       />
       <TaskFilterSheet
         visible={filterSheetOpen}
