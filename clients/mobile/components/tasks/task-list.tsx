@@ -1,4 +1,5 @@
 import Feather from "@expo/vector-icons/Feather";
+import type { ComponentProps } from "react";
 import { Colors } from "@/constants/theme";
 import * as Haptics from "expo-haptics";
 import { useRef } from "react";
@@ -24,20 +25,24 @@ type TaskListProps = {
   onTaskPress?: (task: RequestFeedItem) => void;
   onComplete?: (taskId: string) => void;
   onMarkPending?: (taskId: string) => void;
+  onPickUp?: (taskId: string) => void;
 };
 
-function SwipeCompleteAction() {
+type SwipeActionProps = {
+  iconName: ComponentProps<typeof Feather>["name"];
+  label: string;
+};
+
+function SwipeAction({ iconName, label }: SwipeActionProps) {
   return (
     <View
       style={{ backgroundColor: Colors.light.tabBarHighlight }}
       className="flex-1 justify-center items-center flex-row gap-3 px-8"
     >
       <View className="bg-primary rounded-lg w-9 h-9 items-center justify-center">
-        <Feather name="check" size={18} color="white" />
+        <Feather name={iconName} size={18} color="white" />
       </View>
-      <Text className="text-primary text-base font-medium">
-        Task completed!
-      </Text>
+      <Text className="text-primary text-base font-medium">{label}</Text>
     </View>
   );
 }
@@ -45,13 +50,19 @@ function SwipeCompleteAction() {
 type SwipeableRowProps = {
   item: RequestFeedItem;
   onTaskPress?: (task: RequestFeedItem) => void;
-  onComplete: (taskId: string) => void;
+  onAction: (taskId: string) => void;
+  actionIcon: ComponentProps<typeof Feather>["name"];
+  actionLabel: string;
+  mode: "complete" | "pickup";
 };
 
 function SwipeableTaskRow({
   item,
   onTaskPress,
-  onComplete,
+  onAction,
+  actionIcon,
+  actionLabel,
+  mode,
 }: SwipeableRowProps) {
   const swipeableRef = useRef<SwipeableMethods>(null);
   const touchStartX = useRef(0);
@@ -60,7 +71,7 @@ function SwipeableTaskRow({
   function handleOpen(direction: "left" | "right") {
     if (direction !== "left") return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    onComplete(item.id);
+    onAction(item.id);
     setTimeout(() => swipeableRef.current?.close(), 300);
   }
 
@@ -69,7 +80,9 @@ function SwipeableTaskRow({
       ref={swipeableRef}
       friction={1.5}
       rightThreshold={60}
-      renderRightActions={() => <SwipeCompleteAction />}
+      renderRightActions={() => (
+        <SwipeAction iconName={actionIcon} label={actionLabel} />
+      )}
       onSwipeableOpen={handleOpen}
     >
       <View
@@ -87,7 +100,16 @@ function SwipeableTaskRow({
           onPress={(task) => {
             if (!hasSwiped.current) onTaskPress?.(task);
           }}
-          onCheckboxPress={() => swipeableRef.current?.openRight()}
+          onCheckboxPress={
+            mode === "complete"
+              ? () => swipeableRef.current?.openRight()
+              : undefined
+          }
+          onPickUp={
+            mode === "pickup"
+              ? () => swipeableRef.current?.openRight()
+              : undefined
+          }
         />
       </View>
     </ReanimatedSwipeable>
@@ -101,6 +123,7 @@ export function TaskList({
   onTaskPress,
   onComplete,
   onMarkPending,
+  onPickUp,
 }: TaskListProps) {
   const active = tasks.filter((t) => t.status !== "completed");
   const completed = tasks.filter((t) => t.status === "completed");
@@ -138,7 +161,23 @@ export function TaskList({
             <SwipeableTaskRow
               item={item}
               onTaskPress={onTaskPress}
-              onComplete={onComplete}
+              onAction={onComplete}
+              actionIcon="check"
+              actionLabel="Task completed!"
+              mode="complete"
+            />
+          );
+        }
+
+        if (isActive && onPickUp) {
+          return (
+            <SwipeableTaskRow
+              item={item}
+              onTaskPress={onTaskPress}
+              onAction={onPickUp}
+              actionIcon="plus"
+              actionLabel="Task picked up!"
+              mode="pickup"
             />
           );
         }

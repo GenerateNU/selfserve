@@ -10,6 +10,7 @@ type TaskRowProps = {
   task: RequestFeedItem;
   onPress?: (task: RequestFeedItem) => void;
   onCheckboxPress?: () => void;
+  onPickUp?: () => void;
 };
 
 function formatTime(iso: string): string {
@@ -31,7 +32,7 @@ function formatLocation(roomNumber?: number | null): string {
   return roomNumber != null ? `Room ${roomNumber}` : "—";
 }
 
-export function TaskRow({ task, onPress, onCheckboxPress }: TaskRowProps) {
+export function TaskRow({ task, onPress, onCheckboxPress, onPickUp }: TaskRowProps) {
   const isCompleted = task.status === "completed";
   const [visuallyUnchecked, setVisuallyUnchecked] = useState(false);
   const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -141,8 +142,18 @@ export function TaskRow({ task, onPress, onCheckboxPress }: TaskRowProps) {
         ) : null}
       </View>
 
-      {/* Checkbox */}
-      {isCompleted && !visuallyUnchecked ? (
+      {/* Action button */}
+      {onPickUp ? (
+        <Pressable
+          onPress={onPickUp}
+          hitSlop={4}
+          className="w-11 h-11 items-center justify-center shrink-0"
+        >
+          <View className="bg-primary rounded-xl p-2 items-center justify-center">
+            <Feather name="plus" size={22} color={Colors.light.white} />
+          </View>
+        </Pressable>
+      ) : isCompleted && !visuallyUnchecked ? (
         <Pressable
           onPress={handleUncheckPress}
           hitSlop={8}
