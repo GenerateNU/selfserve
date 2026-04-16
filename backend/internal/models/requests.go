@@ -22,14 +22,13 @@ type RequestStatus string
 
 const (
 	StatusPending    RequestStatus = "pending"
-	StatusAssigned   RequestStatus = "assigned"
 	StatusInProgress RequestStatus = "in progress"
 	StatusCompleted  RequestStatus = "completed"
 )
 
 func (s RequestStatus) IsValid() bool {
 	switch s {
-	case StatusPending, StatusAssigned, StatusInProgress, StatusCompleted:
+	case StatusPending, StatusInProgress, StatusCompleted:
 		return true
 	}
 	return false
@@ -65,7 +64,7 @@ type MakeRequest struct {
 	RequestCategory         *string    `json:"request_category" example:"Cleaning"`
 	RequestType             string     `json:"request_type" validate:"notblank" example:"recurring"`
 	Department              *string    `json:"department" example:"maintenance"`
-	Status                  string     `json:"status" validate:"oneof='pending' 'assigned' 'in progress' 'completed'" example:"assigned"`
+	Status                  string     `json:"status" validate:"oneof='pending' 'in progress' 'completed'" example:"pending"`
 	Priority                string     `json:"priority" validate:"oneof=low medium high" example:"high"`
 	EstimatedCompletionTime *int       `json:"estimated_completion_time" example:"30"`
 	ScheduledTime           *time.Time `json:"scheduled_time" example:"2024-01-01T00:00:00Z"`
@@ -85,7 +84,7 @@ type RequestUpdateInput struct {
 	RequestCategory         *string    `json:"request_category"`
 	RequestType             *string    `json:"request_type" validate:"omitempty,notblank"`
 	Department              *string    `json:"department"`
-	Status                  *string    `json:"status" validate:"omitempty,oneof='pending' 'assigned' 'in progress' 'completed'"`
+	Status                  *string    `json:"status" validate:"omitempty,oneof='pending' 'in progress' 'completed'"`
 	Priority                *string    `json:"priority" validate:"omitempty,oneof=low medium high"`
 	EstimatedCompletionTime *int       `json:"estimated_completion_time"`
 	ScheduledTime           *time.Time `json:"scheduled_time"`
@@ -103,7 +102,7 @@ type AssignRequestInput struct {
 
 type GetRequestsByStatusInput struct {
 	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank"`
-	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'assigned' 'in progress' 'completed'"`
+	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'in progress' 'completed'"`
 	CursorTime *int64  `json:"cursor_time"`
 	CursorID   *string `json:"cursor_id"`
 } //@name GetRequestsByStatusInput

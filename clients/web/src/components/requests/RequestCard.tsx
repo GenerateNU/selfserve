@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
+import type { RequestStatus } from "@shared";
 import { cn } from "@/lib/utils";
-
-export type RequestStatus = "pending" | "assigned" | "completed";
 
 type RequestCardProps = {
   status: RequestStatus;
@@ -12,7 +11,7 @@ type RequestCardProps = {
 
 const accentClass: Record<RequestStatus, string> = {
   pending: "bg-request-pending",
-  assigned: "bg-request-assigned",
+  "in progress": "bg-request-assigned",
   completed: "bg-request-completed",
 };
 

@@ -2,7 +2,6 @@ import { Home, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users";
 import type { RequestFeedItem } from "@shared/api/requests";
-import type { RequestStatus } from "@/components/requests/RequestCard";
 import { RequestCard } from "@/components/requests/RequestCard";
 import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
 
@@ -29,7 +28,7 @@ type RequestCardItemProps = {
 };
 
 export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
-  const status = request.status as RequestStatus;
+  const status = request.status;
 
   const getUserById = useGetUsersIdHook();
   const { data: assignee } = useQuery({
