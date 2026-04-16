@@ -17,10 +17,10 @@ export function DepartmentSection({
   const { hotelId } = getConfig();
   const { data: allDepartments = [], isLoading } = useGetDepartments(hotelId);
 
-  function toggle(name: string) {
-    const next = departments.includes(name)
-      ? departments.filter((d) => d !== name)
-      : [...departments, name];
+  function toggle(id: string) {
+    const next = departments.includes(id)
+      ? departments.filter((d) => d !== id)
+      : [...departments, id];
     onDepartmentsChange(next);
   }
 
@@ -33,8 +33,8 @@ export function DepartmentSection({
           <CheckboxRow
             key={dept.id}
             label={dept.name}
-            selected={departments.includes(dept.name)}
-            onPress={() => toggle(dept.name)}
+            selected={departments.includes(dept.id)}
+            onPress={() => toggle(dept.id)}
           />
         ))
       )}

@@ -4,6 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
 import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
+import { useGetDepartments } from "@shared/api/departments";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
 import type { Request, User } from "@shared";
@@ -20,37 +21,28 @@ export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
 });
 
-const KANBAN_COLUMNS = [
-  { title: "Pending", status: "pending" },
-  { title: "Assigned", status: "pending" }, // will be changed when this col is removed
-  { title: "Completed", status: "completed" },
-] as const;
-
 function KanbanColumnData({
-  status,
+  department,
   onCardClick,
   sort,
   userId,
   priorities,
-  departments,
   floors,
 }: {
-  status: string;
+  department: string;
   onCardClick: (requestId: string) => void;
   sort: RequestFeedSort | undefined;
   userId?: string;
   priorities?: Array<string>;
-  departments?: Array<string>;
   floors?: Array<number>;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetRequestsFeed({
-      status,
+      departments: [department],
       sort,
       userId,
       priorities,
-      departments,
       floors,
     });
 
@@ -112,6 +104,8 @@ function HomePage() {
     queryFn: () => getUsersId(clerkUser!.id),
     enabled: !!clerkUser?.id,
   });
+
+  const { data: departments } = useGetDepartments(backendUser?.hotel_id);
 
   const [drawerData, setDrawerData] = useState<{
     name?: string;
@@ -194,17 +188,17 @@ function HomePage() {
       />
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
-          {KANBAN_COLUMNS.map((col) => (
-            <KanbanColumn key={col.status} title={col.title}>
+          {(selectedDepartments.length > 0
+            ? (departments ?? []).filter((d) =>
+                selectedDepartments.includes(d.name),
+              )
+            : (departments ?? [])
+          ).map((dep) => (
+            <KanbanColumn key={dep.id} title={dep.name}>
               <KanbanColumnData
-                status={col.status}
+                department={dep.id}
                 sort={sort}
                 userId={selectedUser?.id}
-                departments={
-                  selectedDepartments.length > 0
-                    ? selectedDepartments
-                    : undefined
-                }
                 onCardClick={handleCardClick}
                 priorities={selectedPriorities}
                 floors={selectedFloors}
