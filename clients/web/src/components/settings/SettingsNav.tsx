@@ -1,5 +1,8 @@
 import { useUser } from "@clerk/clerk-react";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { useQuery } from "@tanstack/react-query";
 import { Building2, Users } from "lucide-react";
+import { useProfilePicture } from "@/hooks/use-profile-picture";
 import { cn } from "@/lib/utils";
 
 export type SettingsTab = "profile" | "members" | "departments";
@@ -11,10 +14,18 @@ type SettingsNavProps = {
 
 export function SettingsNav({ activeTab, onTabChange }: SettingsNavProps) {
   const { user } = useUser();
+  const getUsersId = useGetUsersIdHook();
+  const { profilePicUrl } = useProfilePicture(user?.id ?? "");
+  const { data: appUser } = useQuery({
+    queryKey: ["user", user?.id],
+    queryFn: () => getUsersId(user!.id),
+    enabled: !!user?.id,
+  });
 
   const displayName =
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ");
+  const avatarUrl = profilePicUrl ?? appUser?.profile_picture ?? user?.imageUrl;
   const initials = [user?.firstName?.[0], user?.lastName?.[0]]
     .filter(Boolean)
     .join("")
@@ -34,10 +45,10 @@ export function SettingsNav({ activeTab, onTabChange }: SettingsNavProps) {
           activeTab === "profile" && "bg-bg-selected",
         )}
       >
-        {user?.imageUrl ? (
+        {avatarUrl ? (
           <img
-            src={user.imageUrl}
-            alt={displayName}
+            src={avatarUrl}
+            alt={displayName || "User"}
             className="size-6 rounded-sm object-cover"
           />
         ) : (

@@ -12,10 +12,16 @@ import {
 } from "@/components/profile/ProfileInfoCard";
 import { NotesFromManagerCard } from "@/components/profile/NotesFromManagerCard";
 import { LogoutButton } from "@/components/LogoutButton";
+import { useProfilePicture } from "@/hooks/use-profile-picture";
 
 export function ProfileTab() {
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
+  const {
+    profilePicUrl,
+    isLoading: isProfilePictureLoading,
+    handleUpload,
+  } = useProfilePicture(clerkUser?.id ?? "");
 
   const { data: user, isLoading } = useQuery({
     queryKey: ["user", clerkUser?.id],
@@ -26,7 +32,8 @@ export function ProfileTab() {
   const firstName = user?.first_name ?? "";
   const lastName = user?.last_name ?? "";
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || "User";
-  const avatarUrl = user?.profile_picture || clerkUser?.imageUrl;
+  const avatarUrl =
+    profilePicUrl ?? user?.profile_picture ?? clerkUser?.imageUrl;
 
   if (isLoading) {
     return (
@@ -50,6 +57,8 @@ export function ProfileTab() {
         firstName={firstName}
         lastName={lastName}
         avatarUrl={avatarUrl}
+        onPickFile={handleUpload}
+        isUploading={isProfilePictureLoading}
       />
       <div className="flex items-stretch gap-4">
         <div className="flex-1">
