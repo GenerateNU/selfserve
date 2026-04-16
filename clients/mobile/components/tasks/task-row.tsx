@@ -32,7 +32,12 @@ function formatLocation(roomNumber?: number | null): string {
   return roomNumber != null ? `Room ${roomNumber}` : "—";
 }
 
-export function TaskRow({ task, onPress, onCheckboxPress, onPickUp }: TaskRowProps) {
+export function TaskRow({
+  task,
+  onPress,
+  onCheckboxPress,
+  onPickUp,
+}: TaskRowProps) {
   const isCompleted = task.status === "completed";
   const [visuallyUnchecked, setVisuallyUnchecked] = useState(false);
   const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
