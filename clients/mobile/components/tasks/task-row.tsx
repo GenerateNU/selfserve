@@ -61,7 +61,7 @@ export function TaskRow({
         {/* Tags row */}
         <View className="flex-row flex-wrap gap-2 items-start">
           <PriorityTag priority={task.priority} dimmed={isCompleted} />
-          {task.request_category ? (
+          {task.department_name ? (
             <View className="bg-bg-input flex-row items-center gap-1.5 h-6 px-2 rounded">
               <Feather
                 name="home"
@@ -76,7 +76,7 @@ export function TaskRow({
                 className={`text-xs ${isCompleted ? "text-text-disabled" : "text-text-secondary"}`}
                 numberOfLines={1}
               >
-                {task.request_category}
+                {task.department_name}
               </Text>
             </View>
           ) : null}
