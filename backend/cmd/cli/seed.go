@@ -67,32 +67,37 @@ type seedRequest struct {
 	priority     models.RequestPriority
 	status       models.RequestStatus
 	assignToUser bool
+	// roomIndex is the index into the inserted rooms slice. -1 means no room.
+	roomIndex int
 }
 
 var seedRequests = []seedRequest{
 	// High priority
-	{"Fix broken AC in suite", "Guest reported AC not working since check-in", models.PriorityHigh, models.StatusPending, false},
-	{"Flooding in room 204", "Toilet overflow — housekeeping and maintenance needed immediately", models.PriorityHigh, models.StatusInProgress, true},
-	{"Medical equipment needed", "Guest requires wheelchair for lobby transit", models.PriorityHigh, models.StatusInProgress, true},
-	{"Fire alarm panel fault", "Panel showing fault on floor 3 — inspect before end of shift", models.PriorityHigh, models.StatusPending, false},
+	// roomIndex 2 = room 103 (suite), 7 = room 204, 11 = room 304
+	{"Fix broken AC in suite", "Guest reported AC not working since check-in", models.PriorityHigh, models.StatusPending, false, 2},
+	{"Flooding in room 204", "Toilet overflow — housekeeping and maintenance needed immediately", models.PriorityHigh, models.StatusInProgress, true, 7},
+	{"Medical equipment needed", "Guest requires wheelchair for lobby transit", models.PriorityHigh, models.StatusInProgress, true, -1},
+	{"Fire alarm panel fault", "Panel showing fault on floor 3 — inspect before end of shift", models.PriorityHigh, models.StatusPending, false, -1},
 
 	// Medium priority
-	{"Extra towels and toiletries", "Room 401 — guest requested two sets of towels and extra shampoo", models.PriorityMedium, models.StatusPending, false},
-	{"Room service delivery", "Breakfast for two to room 312 at 8am", models.PriorityMedium, models.StatusInProgress, true},
-	{"Late checkout request", "Guest in 509 requesting checkout at 2pm instead of 11am", models.PriorityMedium, models.StatusPending, false},
-	{"Replace burnt-out bulbs", "Two bulbs out in room 118 bathroom", models.PriorityMedium, models.StatusInProgress, true},
-	{"Minibar restock", "Room 220 minibar needs full restock after checkout", models.PriorityMedium, models.StatusPending, false},
-	{"Dinner reservation assist", "Guest needs help booking a table for 4 tonight", models.PriorityMedium, models.StatusCompleted, true},
+	// roomIndex 0 = room 101, 5 = room 202, 9 = room 302, 3 = room 104
+	{"Extra towels and toiletries", "Guest requested two sets of towels and extra shampoo", models.PriorityMedium, models.StatusPending, false, 0},
+	{"Room service delivery", "Breakfast for two, requested via in-room tablet", models.PriorityMedium, models.StatusInProgress, true, 9},
+	{"Late checkout request", "Guest requesting checkout at 2pm instead of 11am", models.PriorityMedium, models.StatusPending, false, 5},
+	{"Replace burnt-out bulbs", "Two bulbs out in bathroom", models.PriorityMedium, models.StatusInProgress, true, 3},
+	{"Minibar restock", "Minibar needs full restock after checkout", models.PriorityMedium, models.StatusPending, false, 5},
+	{"Dinner reservation assist", "Guest needs help booking a table for 4 tonight", models.PriorityMedium, models.StatusCompleted, true, -1},
 
 	// Low priority
-	{"Extra pillow request", "Room 305 — guest requested two additional pillows", models.PriorityLow, models.StatusPending, false},
-	{"Lost & found inquiry", "Guest asking about a left-behind phone charger from yesterday", models.PriorityLow, models.StatusCompleted, false},
-	{"Pool towel replenishment", "Pool deck running low on towels — restock from laundry", models.PriorityLow, models.StatusInProgress, true},
-	{"Newspaper delivery", "Room 102 — daily newspaper delivery requested for the week", models.PriorityLow, models.StatusPending, false},
-	{"Gym equipment wipe-down", "Routine sanitisation of gym equipment requested by guest", models.PriorityLow, models.StatusCompleted, false},
-	{"Wine pairing recommendation", "Couple in room 410 would like a wine pairing for their dinner", models.PriorityLow, models.StatusPending, false},
-	{"Print boarding passes", "Guest needs three boarding passes printed at concierge", models.PriorityLow, models.StatusInProgress, true},
-	{"Deep clean after checkout", "Room 508 — full deep clean required before next guest", models.PriorityLow, models.StatusCompleted, false},
+	// roomIndex 10 = room 303, 0 = room 101, 1 = room 102
+	{"Extra pillow request", "Guest requested two additional pillows", models.PriorityLow, models.StatusPending, false, 10},
+	{"Lost & found inquiry", "Guest asking about a left-behind phone charger from yesterday", models.PriorityLow, models.StatusCompleted, false, -1},
+	{"Pool towel replenishment", "Pool deck running low on towels — restock from laundry", models.PriorityLow, models.StatusInProgress, true, -1},
+	{"Newspaper delivery", "Daily newspaper delivery requested for the week", models.PriorityLow, models.StatusPending, false, 1},
+	{"Gym equipment wipe-down", "Routine sanitisation of gym equipment requested by guest", models.PriorityLow, models.StatusCompleted, false, -1},
+	{"Wine pairing recommendation", "Couple would like a wine pairing recommendation for their dinner", models.PriorityLow, models.StatusPending, false, -1},
+	{"Print boarding passes", "Guest needs three boarding passes printed at concierge", models.PriorityLow, models.StatusInProgress, true, -1},
+	{"Deep clean after checkout", "Full deep clean required before next guest", models.PriorityLow, models.StatusCompleted, false, 11},
 }
 
 // ─── Command ──────────────────────────────────────────────────────────────────
@@ -199,10 +204,17 @@ func runSeedData(ctx context.Context, cfg config.Config, args []string) error {
 		if s.assignToUser {
 			req.UserID = &userID
 		}
+		if s.roomIndex >= 0 && s.roomIndex < len(insertedRooms) {
+			req.RoomID = ptr(insertedRooms[s.roomIndex].ID)
+		}
 		if _, err := requestsRepo.InsertRequest(ctx, req); err != nil {
 			return fmt.Errorf("failed to insert request %q: %w", s.name, err)
 		}
-		fmt.Printf("  [%d/%d] %s (%s / %s)\n", i+1, len(seedRequests), s.name, s.priority, s.status)
+		roomLabel := "-"
+		if s.roomIndex >= 0 && s.roomIndex < len(insertedRooms) {
+			roomLabel = fmt.Sprintf("room %d", insertedRooms[s.roomIndex].RoomNumber)
+		}
+		fmt.Printf("  [%d/%d] %s (%s / %s / %s)\n", i+1, len(seedRequests), s.name, s.priority, s.status, roomLabel)
 	}
 
 	fmt.Printf("\nseed-data completed: %d rooms, %d guests, %d requests\n",
