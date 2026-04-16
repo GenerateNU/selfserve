@@ -13,9 +13,9 @@ import (
 )
 
 type GenerateRequestResult struct {
-	Status string                         `json:"status"`
+	Status string                                 `json:"status"`
 	Output *aiflows.EnrichedGenerateRequestOutput `json:"output,omitempty"`
-	Error  *string                        `json:"error,omitempty"`
+	Error  *string                                `json:"error,omitempty"`
 }
 
 type GenerateRequestWorkflowClient interface {

@@ -10,10 +10,10 @@ import (
 )
 
 type mockGenerateRequestService struct {
-	runGenerateRequestFunc func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error)
+	runGenerateRequestFunc func(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error)
 }
 
-func (m *mockGenerateRequestService) RunGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+func (m *mockGenerateRequestService) RunGenerateRequest(ctx context.Context, input aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
 	return m.runGenerateRequestFunc(ctx, input)
 }
 
@@ -25,13 +25,15 @@ func TestActivities_RunGenerateRequest(t *testing.T) {
 		HotelID: "org_1",
 	}
 	mockService := &mockGenerateRequestService{
-		runGenerateRequestFunc: func(ctx context.Context, gotInput aiflows.GenerateRequestInput) (aiflows.GenerateRequestOutput, error) {
+		runGenerateRequestFunc: func(ctx context.Context, gotInput aiflows.GenerateRequestInput) (aiflows.EnrichedGenerateRequestOutput, error) {
 			assert.Equal(t, input, gotInput)
-			return aiflows.GenerateRequestOutput{
-				Name:        "Towels",
-				RequestType: "one-time",
-				Status:      "pending",
-				Priority:    "medium",
+			return aiflows.EnrichedGenerateRequestOutput{
+				GenerateRequestOutput: aiflows.GenerateRequestOutput{
+					Name:        "Towels",
+					RequestType: "one-time",
+					Status:      "pending",
+					Priority:    "medium",
+				},
 			}, nil
 		},
 	}

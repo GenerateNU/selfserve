@@ -1940,11 +1940,13 @@ func TestRequestHandler_GetGenerateRequestStatus(t *testing.T) {
 			getGenerateRequestResultFn: func(ctx context.Context, workflowID string) (temporalclient.GenerateRequestResult, error) {
 				return temporalclient.GenerateRequestResult{
 					Status: "completed",
-					Output: &aiflows.GenerateRequestOutput{
-						Name:        "Extra Towels Request",
-						RequestType: "one-time",
-						Status:      "pending",
-						Priority:    "high",
+					Output: &aiflows.EnrichedGenerateRequestOutput{
+						GenerateRequestOutput: aiflows.GenerateRequestOutput{
+							Name:        "Extra Towels Request",
+							RequestType: "one-time",
+							Status:      "pending",
+							Priority:    "high",
+						},
 					},
 				}, nil
 			},
