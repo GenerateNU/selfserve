@@ -174,7 +174,12 @@ export default function RoomDetailScreen() {
         ) : (
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ gap: 16, paddingHorizontal: 24, paddingBottom: 24, paddingTop: 16 }}
+            contentContainerStyle={{
+              gap: 16,
+              paddingHorizontal: 24,
+              paddingBottom: 24,
+              paddingTop: 16,
+            }}
           >
             {/* Your Tasks */}
             <Section
