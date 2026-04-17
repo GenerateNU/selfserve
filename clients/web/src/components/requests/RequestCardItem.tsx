@@ -1,6 +1,7 @@
 import { Home, MapPin, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useGetUsersIdHook, useDeleteTask } from "@shared";
+import { useDeleteTask, useGetUsersIdHook } from "@shared";
+import { useDraggable } from "@dnd-kit/core";
 import type { RequestFeedItem } from "@shared";
 import { RequestCard } from "@/components/requests/RequestCard";
 import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
@@ -10,7 +11,6 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { useDraggable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 
 export function formatRequestTime(isoString?: string): string {
@@ -79,7 +79,7 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
           {...listeners}
           onPointerDown={(e) => {
             if (e.button !== 0) return;
-            listeners?.onPointerDown?.(e);
+            listeners.onPointerDown?.(e);
           }}
         >
           <RequestCard
