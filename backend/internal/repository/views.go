@@ -61,6 +61,20 @@ func (r *ViewsRepository) Insert(ctx context.Context, userID string, input model
 	return v, nil
 }
 
+func (r *ViewsRepository) Update(ctx context.Context, id, userID string, input models.UpdateViewInput) (*models.View, error) {
+	v := &models.View{ID: id, UserID: userID}
+	err := r.db.QueryRow(ctx, `
+		UPDATE public.views
+		SET filters = $3, updated_at = NOW()
+		WHERE id = $1 AND user_id = $2
+		RETURNING slug, display_name, filters, created_at, updated_at
+	`, id, userID, []byte(input.Filters)).Scan(&v.Slug, &v.DisplayName, &v.Filters, &v.CreatedAt, &v.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
 func (r *ViewsRepository) Delete(ctx context.Context, id, userID string) error {
 	result, err := r.db.Exec(ctx, `
 		DELETE FROM public.views WHERE id = $1 AND user_id = $2

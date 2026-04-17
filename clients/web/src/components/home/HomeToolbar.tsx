@@ -25,7 +25,6 @@ type HomeToolbarProps = {
   onCreateRequest?: () => void;
   views?: Array<View>;
   activeViewId?: string;
-  activeViewPending?: boolean;
   filtersOpen?: boolean;
   filtersActive?: boolean;
   onToggleFilters?: () => void;
@@ -44,7 +43,6 @@ export function HomeToolbar({
   onCreateRequest,
   views = [],
   activeViewId,
-  activeViewPending = false,
   filtersOpen = false,
   filtersActive = false,
   onToggleFilters,
@@ -123,9 +121,6 @@ export function HomeToolbar({
                   >
                     <TabIcon className="size-4" />
                     {view.display_name}
-                    {isActive && activeViewPending && (
-                      <span className="size-1.5 rounded-full bg-current opacity-60" />
-                    )}
                   </button>
                 </ContextMenuTrigger>
 

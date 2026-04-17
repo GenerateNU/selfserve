@@ -14,6 +14,7 @@ import {
   MakeRequestPriority,
   useCreateView,
   useDeleteView,
+  useUpdateView,
   useGetDepartments,
   useGetRequestById,
   useGetRequestsFeed,
@@ -167,7 +168,6 @@ function HomePage() {
   const [activeViewId, setActiveViewId] = useState<string | undefined>(
     undefined,
   );
-  const [viewIsPending, setViewIsPending] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeDragItem, setActiveDragItem] = useState<RequestFeedItem | null>(
     null,
@@ -195,6 +195,7 @@ function HomePage() {
   const { data: departments } = useGetDepartments(backendUser?.hotel_id);
   const { data: views = [] } = useGetViews(REQUESTS_WEB_SLUG);
   const { mutate: createView } = useCreateView(REQUESTS_WEB_SLUG);
+  const { mutate: updateView } = useUpdateView(REQUESTS_WEB_SLUG);
   const { mutate: deleteView, isPending: isDeletingView } =
     useDeleteView(REQUESTS_WEB_SLUG);
   const [viewToDelete, setViewToDelete] = useState<View | null>(null);
@@ -267,21 +268,37 @@ function HomePage() {
       setSelectedUser(undefined);
     }
     setActiveViewId(view.id);
-    setViewIsPending(false);
+  }
+
+  function buildFilters(
+    overrideSort?: RequestFeedSort,
+    overrideUser?: User | null,
+    overridePriorities?: Array<string>,
+    overrideDepartments?: Array<string>,
+    overrideFloors?: Array<number>,
+  ): RequestsWebFilters {
+    const resolvedSort = overrideSort !== undefined ? overrideSort : sort;
+    const resolvedUser = overrideUser !== undefined ? overrideUser ?? undefined : selectedUser;
+    const resolvedPriorities = overridePriorities ?? selectedPriorities;
+    const resolvedDepartments = overrideDepartments ?? selectedDepartments;
+    const resolvedFloors = overrideFloors ?? selectedFloors;
+    return {
+      sort: resolvedSort,
+      priorities: resolvedPriorities,
+      departments: resolvedDepartments,
+      floors: resolvedFloors,
+      userId: resolvedUser?.id,
+      userName: resolvedUser ? `${resolvedUser.first_name ?? ""} ${resolvedUser.last_name ?? ""}`.trim() : undefined,
+    };
+  }
+
+  function autoSaveView(filters: RequestsWebFilters) {
+    if (!activeViewId) return;
+    updateView({ id: activeViewId, filters });
   }
 
   function handleSaveView(name: string) {
-    const filters: RequestsWebFilters = {
-      sort,
-      priorities: selectedPriorities,
-      departments: selectedDepartments,
-      floors: selectedFloors,
-      userId: selectedUser?.id,
-      userName: selectedUser
-        ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
-        : undefined,
-    };
-    createView({ slug: REQUESTS_WEB_SLUG, display_name: name, filters });
+    createView({ slug: REQUESTS_WEB_SLUG, display_name: name, filters: buildFilters() });
   }
 
   function handleClearAll() {
@@ -291,7 +308,6 @@ function HomePage() {
     setSelectedDepartments([]);
     setSelectedFloors([]);
     setActiveViewId(undefined);
-    setViewIsPending(false);
   }
 
   function handleCreateRequest() {
@@ -370,7 +386,6 @@ function HomePage() {
             onCreateRequest={handleCreateRequest}
             views={views}
             activeViewId={activeViewId}
-            activeViewPending={viewIsPending}
             filtersOpen={filtersOpen}
             filtersActive={filtersActive}
             onToggleFilters={() => setFiltersOpen((o) => !o)}
@@ -391,27 +406,27 @@ function HomePage() {
                 sort={sort}
                 onSortChange={(s) => {
                   setSort(s);
-                  if (activeViewId) setViewIsPending(true);
+                  autoSaveView(buildFilters(s));
                 }}
                 selectedUser={selectedUser}
                 onUserChange={(u) => {
                   setSelectedUser(u);
-                  if (activeViewId) setViewIsPending(true);
+                  autoSaveView(buildFilters(undefined, u ?? null));
                 }}
                 selectedPriorities={selectedPriorities}
                 onPrioritiesChange={(p) => {
                   setSelectedPriorities(p);
-                  if (activeViewId) setViewIsPending(true);
+                  autoSaveView(buildFilters(undefined, undefined, p));
                 }}
                 selectedDepartments={selectedDepartments}
                 onDepartmentsChange={(d) => {
                   setSelectedDepartments(d);
-                  if (activeViewId) setViewIsPending(true);
+                  autoSaveView(buildFilters(undefined, undefined, undefined, d));
                 }}
                 selectedFloors={selectedFloors}
                 onFloorsChange={(f) => {
                   setSelectedFloors(f);
-                  if (activeViewId) setViewIsPending(true);
+                  autoSaveView(buildFilters(undefined, undefined, undefined, undefined, f));
                 }}
                 hotelId={backendUser?.hotel_id}
                 currentUserId={backendUser?.id}

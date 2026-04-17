@@ -24,6 +24,18 @@ export const useCreateView = (slug: string) => {
   });
 };
 
+export const useUpdateView = (slug: string) => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, filters }: { id: string; filters: object }) =>
+      api.patch<View>(`/views/${id}`, { filters }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: getViewsQueryKey(slug) });
+    },
+  });
+};
+
 export const useDeleteView = (slug: string) => {
   const api = useAPIClient();
   const queryClient = useQueryClient();
