@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { useGetUsersIdHook } from "@shared";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ProfileHero,

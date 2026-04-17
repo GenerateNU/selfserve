@@ -25,6 +25,8 @@ export default function TasksScreen() {
     null,
   );
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [sort, setSort] = useState<RequestFeedSort>("priority");
   const [priorities, setPriorities] = useState<string[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
@@ -41,6 +43,7 @@ export default function TasksScreen() {
     priorities,
     departments,
     floors,
+    search: search || undefined,
   });
   const myTaskItems =
     myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
@@ -51,6 +54,7 @@ export default function TasksScreen() {
     priorities,
     departments,
     floors,
+    search: search || undefined,
   });
   const unassignedItems =
     unassignedQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
@@ -69,6 +73,14 @@ export default function TasksScreen() {
       <TasksHeader
         onFilterPress={() => setFilterSheetOpen(true)}
         filterActive={filterSheetOpen}
+        searchOpen={searchOpen}
+        onSearchOpen={() => setSearchOpen(true)}
+        onSearchClose={() => {
+          setSearchOpen(false);
+          setSearch("");
+        }}
+        search={search}
+        onSearchChange={setSearch}
       />
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
       <View className="flex-1">

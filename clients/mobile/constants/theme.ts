@@ -25,6 +25,9 @@ export const Colors = {
     iconSubtle: "#808080",
     iconMuted: "#464646",
     iconDisabled: "#bababa",
+    textSubtle: "#747474",
+    borderDefault: "#aeaeae",
+    borderLight: "#e5e9ed",
   },
   dark: {
     text: "#ECEDEE",

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
-import { useGetDepartments } from "@shared/api/departments";
+import { useGetDepartments } from "@shared";
 import { cn } from "@/lib/utils";
 
 type DepartmentFilterMenuProps = {
