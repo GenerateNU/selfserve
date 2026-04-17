@@ -11,6 +11,8 @@ import (
 	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/aiflows"
+	"github.com/generate/selfserve/internal/cache/object"
+	"github.com/generate/selfserve/internal/cache/store"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
@@ -37,6 +39,12 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
+type redisClient = *goredis.Client
+
+var initRedisClient = func(cfg config.Redis) (redisClient, error) {
+	return redis.InitRedis(cfg)
+}
+
 type App struct {
 	Server         *fiber.App
 	Repo           *storage.Repository
@@ -44,6 +52,26 @@ type App struct {
 	RedisClient    *goredis.Client
 	TemporalClient client.Client
 	TemporalWorker worker.Worker
+}
+
+func (a *App) Close() error {
+	if a == nil {
+		return nil
+	}
+
+	if a.TemporalWorker != nil {
+		a.TemporalWorker.Stop()
+	}
+	if a.TemporalClient != nil {
+		a.TemporalClient.Close()
+	}
+
+	var err error
+	if a.Repo != nil {
+		err = errors.Join(err, a.Repo.Close())
+	}
+
+	return errors.Join(err, redis.Close(a.RedisClient))
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
@@ -56,14 +84,12 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	redisClient := tryInitRedis()
+	redisClient := tryInitRedis(cfg.Redis)
+	objectCache := object.New(store.NewRedisStore(redisClient))
 
 	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
-		if e := repo.Close(); e != nil {
-			return nil, errors.Join(err, e)
-		}
-		return nil, err
+		return nil, errors.Join(err, repo.Close(), redis.Close(redisClient))
 	}
 
 	openSearchRepos := tryInitOpenSearchRepositories(cfg)
@@ -77,14 +103,14 @@ func InitApp(cfg *config.Config) (*App, error) {
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, workflowClient, cfg, s3Store, openSearchRepos); err != nil { //nolint:wsl
-		if e := repo.Close(); e != nil {
-			return nil, errors.Join(err, e)
+	if err = setupRoutes(app, repo, genkitInstance, workflowClient, cfg, s3Store, openSearchRepos, objectCache); err != nil { //nolint:wsl
+		if temporalWorker != nil {
+			temporalWorker.Stop()
 		}
 		if temporalClient != nil {
 			temporalClient.Close()
 		}
-		return nil, err
+		return nil, errors.Join(err, repo.Close(), redis.Close(redisClient))
 	}
 
 	return &App{
@@ -116,8 +142,12 @@ func tryInitOpenSearchRepositories(cfg *config.Config) openSearchRepositories {
 	}
 }
 
-func tryInitRedis() *goredis.Client {
-	redisClient, err := redis.InitRedis()
+func tryInitRedis(cfg config.Redis) *goredis.Client {
+	if !cfg.Enabled {
+		return nil
+	}
+
+	redisClient, err := initRedisClient(cfg)
 	if err != nil {
 		log.Printf("Warning: Redis not available: %v", err)
 		return nil
@@ -144,7 +174,7 @@ func tryInitTemporal(cfg *config.Config, genkitService aiflows.GenerateRequestSe
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	workflowClient temporalservice.GenerateRequestWorkflowClient, cfg *config.Config, s3Store *s3storage.Storage, openSearchRepos openSearchRepositories) error {
+	workflowClient temporalservice.GenerateRequestWorkflowClient, cfg *config.Config, s3Store *s3storage.Storage, openSearchRepos openSearchRepositories, objectCache *object.Cache) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -161,6 +191,12 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// initialize users and hotels repos for clerk webhook handler
 	usersRepo := repository.NewUsersRepository(repo.DB)
 	hotelsRepo := repository.NewHotelsRepository(repo.DB)
+	usersReadRepo := buildUsersRepository(objectCache, usersRepo)
+	guestsRepo := repository.NewGuestsRepository(repo.DB)
+	guestsReadRepo := buildGuestsRepository(objectCache, guestsRepo)
+	hotelsReadRepo := buildHotelsRepository(objectCache, hotelsRepo)
+	guestBookingsRepo := repository.NewGuestBookingsRepository(repo.DB)
+	guestBookingsReadRepo := buildGuestBookingsRepository(objectCache, guestBookingsRepo)
 
 	// initialize notifications
 	notifRepo := repository.NewNotificationsRepository(repo.DB)
@@ -170,14 +206,14 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
-	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB), s3Store)
-	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), repository.NewUsersRepository(repo.DB), openSearchRepos.Guests)
+	usersHandler := handler.NewUsersHandler(usersReadRepo, s3Store)
+	guestsHandler := handler.NewGuestsHandler(guestsReadRepo, usersReadRepo, openSearchRepos.Guests)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
 	reqsHandler.WorkflowClient = workflowClient
-	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB), repository.NewUsersRepository(repo.DB))
+	hotelsHandler := handler.NewHotelsHandler(hotelsReadRepo, usersReadRepo)
 	s3Handler := handler.NewS3Handler(s3Store)
 	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
-	guestBookingsHandler := handler.NewGuestBookingsHandler(repository.NewGuestBookingsRepository(repo.DB))
+	guestBookingsHandler := handler.NewGuestBookingsHandler(guestBookingsReadRepo)
 	viewsHandler := handler.NewViewsHandler(repository.NewViewsRepository(repo.DB))
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)

@@ -7,5 +7,6 @@ type Config struct {
 	LLM         `env:",prefix=LLM_"`
 	Temporal    `env:",prefix=TEMPORAL_"`
 	Clerk       `env:",prefix=CLERK_"`
+	Redis       `env:",prefix=REDIS_"`
 	OpenSearch  `env:",prefix=OPENSEARCH_"`
 }

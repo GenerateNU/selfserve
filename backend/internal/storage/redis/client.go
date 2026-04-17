@@ -3,21 +3,21 @@ package redis
 import (
 	"context"
 	"fmt"
-	"os"
+	"time"
 
+	"github.com/generate/selfserve/config"
 	"github.com/redis/go-redis/v9"
 )
 
 // InitRedis initializes and returns a Redis client
-func InitRedis() (*redis.Client, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     getRedisAddr(),
-		Password: getRedisPassword(),
-		DB:       0,
-	})
+func InitRedis(cfg config.Redis) (*redis.Client, error) {
+	client := redis.NewClient(newOptions(cfg))
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), pingTimeout(cfg))
+	defer cancel()
+
 	if err := client.Ping(ctx).Err(); err != nil {
+		_ = client.Close()
 		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 
@@ -32,14 +32,17 @@ func Close(client *redis.Client) error {
 	return nil
 }
 
-func getRedisAddr() string {
-	addr := os.Getenv("REDIS_ADDR")
-	if addr == "" {
-		return "localhost:6379"
+func newOptions(cfg config.Redis) *redis.Options {
+	return &redis.Options{
+		Addr:     cfg.Addr,
+		Password: cfg.Password,
+		DB:       cfg.DB,
 	}
-	return addr
 }
 
-func getRedisPassword() string {
-	return os.Getenv("REDIS_PASSWORD")
+func pingTimeout(cfg config.Redis) time.Duration {
+	if cfg.PingTimeout <= 0 {
+		return time.Second
+	}
+	return cfg.PingTimeout
 }
