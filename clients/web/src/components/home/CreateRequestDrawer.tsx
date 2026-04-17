@@ -305,7 +305,7 @@ export function CreateRequestDrawer({
 
       {isEditMode && (
         <div className="flex flex-col gap-4">
-          <span className="text-sm font-bold text-text-default">Activity</span>
+          <span className="text-base font-bold text-text-default">Activity</span>
           <ActivityFeed requestId={existingRequest.id!} />
         </div>
       )}
