@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Building2, Clock, DoorOpen, Flag, UserRound } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -104,7 +104,13 @@ export function CreateRequestDrawer({
     department: Department | undefined;
   }>({ assignee: undefined, room: undefined, department: undefined });
 
-  const orig = useRef(existingRequest);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
+
+  function updateForm(updater: (f: RequestForm) => RequestForm) {
+    setForm(updater);
+    setHasPendingChanges(true);
+  }
+
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -139,7 +145,9 @@ export function CreateRequestDrawer({
   const { mutate: updateRequest, isPending: isUpdating } = useMutation({
     mutationFn: (data: Parameters<typeof putRequestId>[1]) =>
       putRequestId(existingRequest!.id!, data),
-    onSuccess: () => onClose(),
+    onSuccess: () => {
+      setHasPendingChanges(false);
+    },
     onSettled: () => sharedInvalidation(),
   });
 
@@ -177,18 +185,7 @@ export function CreateRequestDrawer({
     }
   }
 
-  const isDirty =
-    isEditMode &&
-    (form.name.trim() !== (orig.current?.name ?? "") ||
-      form.description.trim() !== (orig.current?.description ?? "") ||
-      form.priority !== orig.current?.priority ||
-      form.user_id !== orig.current.user_id ||
-      form.room_id !== orig.current.room_id ||
-      form.department !== orig.current.department ||
-      form.deadline?.getTime() !==
-        (orig.current.scheduled_time
-          ? new Date(orig.current.scheduled_time).getTime()
-          : undefined));
+  const isDirty = isEditMode && hasPendingChanges;
 
   const canSubmit = isEditMode
     ? isDirty && !!form.name.trim()
@@ -205,7 +202,7 @@ export function CreateRequestDrawer({
     <input
       type="text"
       value={form.name}
-      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+      onChange={(e) => updateForm((f) => ({ ...f, name: e.target.value }))}
       onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
       placeholder="New Request"
       className="w-full bg-transparent text-center text-3xl font-bold text-text-default placeholder:text-text-subtle outline-none"
@@ -228,7 +225,7 @@ export function CreateRequestDrawer({
               }
               onSelect={(user) => {
                 setPickers((p) => ({ ...p, assignee: user }));
-                setForm((f) => ({ ...f, user_id: user.id }));
+                updateForm((f) => ({ ...f, user_id: user.id }));
               }}
             />
           )}
@@ -239,7 +236,7 @@ export function CreateRequestDrawer({
           <FieldLabel icon={Clock} label="Deadline" />
           <DeadlinePicker
             selectedDate={form.deadline}
-            onSelect={(date) => setForm((f) => ({ ...f, deadline: date }))}
+            onSelect={(date) => updateForm((f) => ({ ...f, deadline: date }))}
           />
         </div>
 
@@ -251,7 +248,7 @@ export function CreateRequestDrawer({
               <button
                 key={p}
                 type="button"
-                onClick={() => setForm((f) => ({ ...f, priority: p }))}
+                onClick={() => updateForm((f) => ({ ...f, priority: p }))}
                 className={cn(
                   "rounded px-2 py-0.5 text-xs capitalize transition-colors",
                   form.priority === p
@@ -277,7 +274,7 @@ export function CreateRequestDrawer({
             }
             onSelect={(r) => {
               setPickers((p) => ({ ...p, room: r }));
-              setForm((f) => ({ ...f, room_id: r.id }));
+              updateForm((f) => ({ ...f, room_id: r.id }));
             }}
           />
         </div>
@@ -296,7 +293,7 @@ export function CreateRequestDrawer({
               }
               onSelect={(d) => {
                 setPickers((p) => ({ ...p, department: d }));
-                setForm((f) => ({ ...f, department: d?.id }));
+                updateForm((f) => ({ ...f, department: d?.id }));
               }}
             />
           )}
@@ -308,7 +305,7 @@ export function CreateRequestDrawer({
         <textarea
           value={form.description}
           onChange={(e) =>
-            setForm((f) => ({ ...f, description: e.target.value }))
+            updateForm((f) => ({ ...f, description: e.target.value }))
           }
           placeholder="Add a description..."
           rows={3}
