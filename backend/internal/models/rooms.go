@@ -6,6 +6,7 @@ type Room struct {
 	Floor      int    `json:"floor"`
 	SuiteType  string `json:"suite_type"`
 	RoomStatus string `json:"room_status"`
+	IsAccessible bool `json:"is_accessible"`
 } //@name Room
 
 type FilterRoomsRequest struct {

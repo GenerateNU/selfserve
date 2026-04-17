@@ -22,25 +22,26 @@ type seedRoom struct {
 	floor     int
 	suiteType string
 	status    string
+	accessible bool
 	features  []string
 }
 
 var seedRooms = []seedRoom{
 	// Floor 1
-	{101, 1, "standard", "available", []string{"wifi", "tv"}},
-	{102, 1, "deluxe", "occupied", []string{"wifi", "tv", "minibar"}},
-	{103, 1, "suite", "available", []string{"wifi", "tv", "jacuzzi", "minibar"}},
-	{104, 1, "standard", "available", []string{"wifi", "tv"}},
+	{101, 1, "standard", "available", true, []string{"wifi", "tv"}},
+	{102, 1, "deluxe", "occupied", false, []string{"wifi", "tv", "minibar"}},
+	{103, 1, "suite", "available", false, []string{"wifi", "tv", "jacuzzi", "minibar"}},
+	{104, 1, "standard", "available", false, []string{"wifi", "tv"}},
 	// Floor 2
-	{201, 2, "standard", "available", []string{"wifi", "tv"}},
-	{202, 2, "deluxe", "occupied", []string{"wifi", "tv", "balcony"}},
-	{203, 2, "penthouse", "maintenance", []string{"wifi", "tv", "kitchen", "jacuzzi"}},
-	{204, 2, "standard", "available", []string{"wifi", "tv"}},
+	{201, 2, "standard", "available", true, []string{"wifi", "tv"}},
+	{202, 2, "deluxe", "occupied", false, []string{"wifi", "tv", "balcony"}},
+	{203, 2, "penthouse", "maintenance", false, []string{"wifi", "tv", "kitchen", "jacuzzi"}},
+	{204, 2, "standard", "available", false, []string{"wifi", "tv"}},
 	// Floor 3
-	{301, 3, "standard", "available", []string{"wifi", "tv"}},
-	{302, 3, "deluxe", "available", []string{"wifi", "tv", "balcony"}},
-	{303, 3, "suite", "occupied", []string{"wifi", "tv", "jacuzzi", "minibar", "balcony"}},
-	{304, 3, "standard", "available", []string{"wifi", "tv"}},
+	{301, 3, "standard", "available", false, []string{"wifi", "tv"}},
+	{302, 3, "deluxe", "available", true, []string{"wifi", "tv", "balcony"}},
+	{303, 3, "suite", "occupied", false, []string{"wifi", "tv", "jacuzzi", "minibar", "balcony"}},
+	{304, 3, "standard", "available", false, []string{"wifi", "tv"}},
 }
 
 type seedGuest struct {
@@ -150,7 +151,7 @@ func runSeedData(ctx context.Context, cfg config.Config, args []string) error {
 	fmt.Println("inserting rooms...")
 	insertedRooms := make([]*models.Room, len(seedRooms))
 	for i, s := range seedRooms {
-		room, err := roomsRepo.InsertRoom(ctx, hotelID, s.number, s.floor, s.suiteType, s.status, s.features)
+		room, err := roomsRepo.InsertRoom(ctx, hotelID, s.number, s.floor, s.suiteType, s.status, s.accessible, s.features)
 		if err != nil {
 			return fmt.Errorf("failed to insert room %d: %w", s.number, err)
 		}
