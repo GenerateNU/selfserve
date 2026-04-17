@@ -315,6 +315,72 @@ export const useGetRequestById = (requestId: string | null) => {
   });
 };
 
+type UpdateRequestDepartmentVars = {
+  requestId: string;
+  departmentId: string;
+  sourceDepartmentId: string;
+  updatedItem: RequestFeedItem;
+};
+
+export const useUpdateRequestDepartment = () => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ requestId, departmentId }: UpdateRequestDepartmentVars) =>
+      api.put<RequestFeedItem>(`/request/${requestId}`, { department: departmentId }),
+    onMutate: async ({ requestId, departmentId, sourceDepartmentId, updatedItem }) => {
+      await queryClient.cancelQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
+      const previousData = queryClient.getQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY });
+
+      for (const [key, data] of previousData) {
+        if (!data) continue;
+        const params = key[1] as RequestFeedParams | undefined;
+        const depts = params?.departments;
+        if (depts?.includes(sourceDepartmentId)) {
+          queryClient.setQueryData(key, {
+            ...data,
+            pages: data.pages.map((page) => ({
+              ...page,
+              items: (page.items ?? []).filter((item) => item.id !== requestId),
+            })),
+          });
+        } else if (depts?.includes(departmentId)) {
+          queryClient.setQueryData(key, {
+            ...data,
+            pages: data.pages.map((page, i) =>
+              i === 0
+                ? { ...page, items: [updatedItem, ...(page.items ?? [])] }
+                : page,
+            ),
+          });
+        }
+      }
+
+      return { previousData };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        for (const [key, data] of context.previousData) {
+          queryClient.setQueryData(key, data);
+        }
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
+    },
+  });
+};
+
 export const useGetRequestsFeed = (params: RequestFeedParams) => {
   const api = useAPIClient();
   return useInfiniteQuery({

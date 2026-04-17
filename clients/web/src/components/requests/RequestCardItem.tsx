@@ -10,8 +10,10 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { useDraggable } from "@dnd-kit/core";
+import { cn } from "@/lib/utils";
 
-function formatRequestTime(isoString?: string): string {
+export function formatRequestTime(isoString?: string): string {
   if (!isoString) return "";
   const date = new Date(isoString);
   const today = new Date();
@@ -35,6 +37,11 @@ type RequestCardItemProps = {
 
 export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
   const status = request.status;
+
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: request.id,
+    data: { request },
+  });
 
   const getUserById = useGetUsersIdHook();
   const { data: assignee } = useQuery({
@@ -60,62 +67,76 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
   const hasBottomRow = roomLabel || request.department_name;
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <RequestCard status={status} className="w-full" onClick={onClick}>
-          <RequestCardTimestamp
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "touch-none cursor-grab active:cursor-grabbing",
+        isDragging && "opacity-30",
+      )}
+      {...attributes}
+      {...listeners}
+    >
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <RequestCard
             status={status}
-            time={formatRequestTime(request.created_at)}
-          />
+            className="w-full"
+            onClick={isDragging ? undefined : onClick}
+          >
+            <RequestCardTimestamp
+              status={status}
+              time={formatRequestTime(request.created_at)}
+            />
 
-          <div className="mt-3 flex flex-col gap-2">
-            <div className="flex flex-col gap-1">
-              <span className="text-base font-medium leading-snug text-text-default">
-                {request.name}
-              </span>
+            <div className="mt-3 flex flex-col gap-2">
+              <div className="flex flex-col gap-1">
+                <span className="text-base font-medium leading-snug text-text-default">
+                  {request.name}
+                </span>
 
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded px-2 py-1 text-[11px] tracking-[-0.11px] text-text-secondary bg-stroke-disabled"
-                    >
-                      {tag}
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded px-2 py-1 text-[11px] tracking-[-0.11px] text-text-secondary bg-stroke-disabled"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {hasBottomRow && (
+                <div className="flex items-center gap-3">
+                  {roomLabel && (
+                    <span className="flex items-center gap-1 text-xs text-text-subtle">
+                      <MapPin className="size-3 shrink-0" />
+                      {roomLabel}
                     </span>
-                  ))}
+                  )}
+                  {request.department_name && (
+                    <span className="flex items-center gap-1 text-xs text-text-subtle">
+                      <Home className="size-3 shrink-0" />
+                      {request.department_name}
+                    </span>
+                  )}
                 </div>
               )}
             </div>
-
-            {hasBottomRow && (
-              <div className="flex items-center gap-3">
-                {roomLabel && (
-                  <span className="flex items-center gap-1 text-xs text-text-subtle">
-                    <MapPin className="size-3 shrink-0" />
-                    {roomLabel}
-                  </span>
-                )}
-                {request.department_name && (
-                  <span className="flex items-center gap-1 text-xs text-text-subtle">
-                    <Home className="size-3 shrink-0" />
-                    {request.department_name}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </RequestCard>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem
-          variant="destructive"
-          onSelect={() => deleteTask(request.id)}
-        >
-          <Trash2 />
-          Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+          </RequestCard>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem
+            variant="destructive"
+            onSelect={() => deleteTask(request.id)}
+          >
+            <Trash2 />
+            Delete
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    </div>
   );
 }

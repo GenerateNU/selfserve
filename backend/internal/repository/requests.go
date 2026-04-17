@@ -295,7 +295,6 @@ func (r *RequestsRepository) FindRequestsPaginated(
 			WHERE r.hotel_id = $1
 			  AND ($4::text = '' OR r.status = $4)
 			  AND (cardinality($5::text[]) = 0 OR r.priority = ANY($5))
-			  AND (cardinality($6::text[]) = 0 OR r.department = ANY($6))
 			  AND (cardinality($7::int[]) = 0 OR rm.floor = ANY($7))
 			ORDER BY r.id ASC, r.request_version DESC
 		)
@@ -307,6 +306,7 @@ func (r *RequestsRepository) FindRequestsPaginated(
 		    ($3::bool AND user_id IS NULL)
 		    OR (NOT $3::bool AND ($2::text = '' OR user_id = $2))
 		)
+		  AND (cardinality($6::text[]) = 0 OR department_id = ANY($6))
 	`
 
 	var (
