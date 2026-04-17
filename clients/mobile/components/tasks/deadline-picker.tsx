@@ -121,7 +121,7 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
 
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
   const firstWeekday = getFirstWeekday(viewYear, viewMonth);
-  const cells: Array<number | null> = [];
+  const cells: (number | null)[] = [];
   for (let i = 0; i < firstWeekday; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
   while (cells.length % 7 !== 0) cells.push(null);

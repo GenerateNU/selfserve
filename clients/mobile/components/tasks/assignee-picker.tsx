@@ -10,7 +10,7 @@ import { Colors } from "@/constants/theme";
 const ICON_COLOR = Colors.light.textSubtle;
 
 type SearchUsersResponse = {
-  users: Array<User>;
+  users: User[];
   next_cursor: string;
 };
 
