@@ -4,10 +4,10 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   REQUESTS_FEED_QUERY_KEY,
+  useGetRequestActivity,
   useGetUsersIdHook,
   usePostRequestHook,
   usePutRequestIdHook,
-  useGetRequestActivity,
 } from "@shared";
 import type {
   Department,

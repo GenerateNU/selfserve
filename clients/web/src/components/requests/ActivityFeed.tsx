@@ -147,7 +147,7 @@ function capitalize(s: string): string {
 }
 
 type ActivityFeedProps = {
-  items: RequestActivityItem[];
+  items: Array<RequestActivityItem>;
 };
 
 export function ActivityFeed({ items }: ActivityFeedProps) {

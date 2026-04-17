@@ -85,7 +85,7 @@ function CustomTabBar({ state, navigation, insets }: BottomTabBarProps) {
       stiffness: 350,
       mass: 0.8,
     });
-  }, [state.index, getX]);
+  }, [state.index, getX, opacity, translateX]);
 
   const indicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
