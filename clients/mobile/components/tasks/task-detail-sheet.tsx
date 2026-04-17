@@ -194,7 +194,11 @@ export function TaskDetailSheet({
         department_id: task.department_id ?? undefined,
       };
       setForm(initial);
-      setPickers({ assignee: undefined, room: undefined, department: undefined });
+      setPickers({
+        assignee: undefined,
+        room: undefined,
+        department: undefined,
+      });
       orig.current = { ...initial };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -226,19 +230,36 @@ export function TaskDetailSheet({
 
   // Pre-populate room and deadline once full request loads
   useEffect(() => {
-    if (isEditing && fullRequest && task && !roomDeadlineInitializedRef.current) {
+    if (
+      isEditing &&
+      fullRequest &&
+      task &&
+      !roomDeadlineInitializedRef.current
+    ) {
       roomDeadlineInitializedRef.current = true;
       const room = fullRequest.room_id
-        ? { id: fullRequest.room_id, room_number: task.room_number ?? undefined, floor: task.floor ?? undefined }
+        ? {
+            id: fullRequest.room_id,
+            room_number: task.room_number ?? undefined,
+            floor: task.floor ?? undefined,
+          }
         : undefined;
       const deadline = fullRequest.scheduled_time
         ? new Date(fullRequest.scheduled_time)
         : undefined;
-      setForm((f) => ({ ...f, room_id: fullRequest.room_id ?? undefined, deadline }));
+      setForm((f) => ({
+        ...f,
+        room_id: fullRequest.room_id ?? undefined,
+        deadline,
+      }));
       setPickers((p) => ({ ...p, room }));
       // Update orig so pre-population doesn't count as a change
       if (orig.current) {
-        orig.current = { ...orig.current, room_id: fullRequest.room_id ?? undefined, deadline };
+        orig.current = {
+          ...orig.current,
+          room_id: fullRequest.room_id ?? undefined,
+          deadline,
+        };
       }
     }
   }, [isEditing, fullRequest, task]);
@@ -473,7 +494,9 @@ export function TaskDetailSheet({
                 <View className="gap-4">
                   <PriorityPicker
                     value={form.priority}
-                    onChange={(v) => setForm((f) => ({ ...f, priority: v ?? "medium" }))}
+                    onChange={(v) =>
+                      setForm((f) => ({ ...f, priority: v ?? "medium" }))
+                    }
                   />
 
                   <DeadlinePicker
@@ -516,7 +539,9 @@ export function TaskDetailSheet({
                       placeholder="Empty"
                       placeholderTextColor={Colors.light.textSubtle}
                       value={form.description}
-                      onChangeText={(v) => setForm((f) => ({ ...f, description: v }))}
+                      onChangeText={(v) =>
+                        setForm((f) => ({ ...f, description: v }))
+                      }
                       multiline
                       textAlignVertical="top"
                     />
