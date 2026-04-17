@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useCustomInstance } from "@shared";
+import { useCustomInstance } from "@shared/api/orval-mutator";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 
 const useGetRoomByIdHook = () => {

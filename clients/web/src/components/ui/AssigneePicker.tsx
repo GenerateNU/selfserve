@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { useCustomInstance, useGetUsersIdHook } from "@shared";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useCustomInstance } from "@shared/api/orval-mutator";
 import type { User } from "@shared";
 import {
   Popover,
@@ -19,14 +19,12 @@ type SearchUsersResponse = {
 type AssigneePickerProps = {
   hotelId: string;
   selectedUser?: User;
-  initialUserId?: string;
   onSelect: (user: User) => void;
 };
 
 export function AssigneePicker({
   hotelId,
   selectedUser,
-  initialUserId,
   onSelect,
 }: AssigneePickerProps) {
   const [open, setOpen] = useState(false);
@@ -35,15 +33,6 @@ export function AssigneePicker({
   const loadMoreRef = useRef<HTMLButtonElement>(null);
 
   const searchUsers = useCustomInstance<SearchUsersResponse>();
-  const getUsersId = useGetUsersIdHook();
-
-  const { data: initialUser } = useQuery({
-    queryKey: ["user", initialUserId],
-    queryFn: () => getUsersId(initialUserId!),
-    enabled: !!initialUserId && !selectedUser,
-  });
-
-  const displayUser = selectedUser ?? initialUser;
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteQuery({
@@ -71,8 +60,8 @@ export function AssigneePicker({
     setSearch("");
   }
 
-  const triggerLabel = displayUser
-    ? `${displayUser.first_name ?? ""} ${displayUser.last_name ?? ""}`.trim()
+  const triggerLabel = selectedUser
+    ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
     : "Unassigned";
 
   return (
@@ -80,10 +69,10 @@ export function AssigneePicker({
       <PopoverTrigger
         className={cn(
           "flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-bg-selected",
-          displayUser ? "text-text-default" : "text-text-subtle",
+          selectedUser ? "text-text-default" : "text-text-subtle",
         )}
       >
-        {displayUser && <UserAvatar user={displayUser} />}
+        {selectedUser && <UserAvatar user={selectedUser} />}
         {triggerLabel}
       </PopoverTrigger>
       <PopoverContent
@@ -118,7 +107,7 @@ export function AssigneePicker({
               onClick={() => handleSelect(user)}
               className={cn(
                 "flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-bg-selected",
-                displayUser?.id === user.id && "bg-bg-selected",
+                selectedUser?.id === user.id && "bg-bg-selected",
               )}
             >
               <UserAvatar user={user} />

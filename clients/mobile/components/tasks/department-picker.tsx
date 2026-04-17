@@ -3,9 +3,8 @@ import { View, Text, Pressable, TextInput } from "react-native";
 import { House, ChevronRight, Search, X } from "lucide-react-native";
 import { useGetDepartments } from "@shared/api/departments";
 import type { Department } from "@shared";
-import { Colors } from "@/constants/theme";
 
-const ICON_COLOR = Colors.light.textSubtle;
+const ICON_COLOR = "#747474";
 
 type DepartmentPickerProps = {
   hotelId: string;
@@ -72,8 +71,14 @@ export function DepartmentPicker({
       </Pressable>
 
       {expanded && (
-        <View className="rounded border border-input-border">
-          <View className="flex-row items-center gap-2.5 px-2 py-2 border-b border-input-border-light">
+        <View
+          className="rounded"
+          style={{ borderWidth: 1, borderColor: "#aeaeae" }}
+        >
+          <View
+            className="flex-row items-center gap-2.5 px-2 py-2"
+            style={{ borderBottomWidth: 1, borderBottomColor: "#e5e9ed" }}
+          >
             <Search size={17} color={ICON_COLOR} />
             <View className="flex-row items-center flex-1 gap-1">
               {value && (
@@ -115,7 +120,12 @@ export function DepartmentPicker({
               <Pressable
                 key={d.id}
                 onPress={() => handleSelect(d)}
-                className={`px-4 py-2 ${value?.id === d.id ? "bg-bg-selected" : ""}`}
+                className="px-4 py-2"
+                style={
+                  value?.id === d.id
+                    ? { backgroundColor: "#f5f5f5" }
+                    : undefined
+                }
               >
                 <Text className="text-[12px] text-text-default tracking-tight">
                   {d.name}

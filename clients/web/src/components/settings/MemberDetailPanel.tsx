@@ -22,7 +22,6 @@ type MemberDetailPanelProps = {
   onNoteChange: (note: string) => void;
   onRoleChange: (role: Role) => void;
   onBack: () => void;
-  isAdmin?: boolean;
 };
 
 export function MemberDetailPanel({
@@ -31,7 +30,6 @@ export function MemberDetailPanel({
   onNoteChange,
   onRoleChange,
   onBack,
-  isAdmin = false,
 }: MemberDetailPanelProps) {
   return (
     <div className="flex h-full flex-col overflow-y-auto p-12">
@@ -79,43 +77,34 @@ export function MemberDetailPanel({
             memberId={member.id}
             hotelId={member.hotelId}
             departmentNames={member.departments}
-            isAdmin={isAdmin}
           />
         </div>
 
         <div className="flex items-center justify-between py-3">
           <span className="text-sm text-text-subtle">Role</span>
-          {isAdmin ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-text-secondary hover:bg-bg-selected transition-colors outline-none">
-                {member.role}
-                <ChevronDown className="size-3 text-text-subtle opacity-70" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {ROLES.map(({ role: r, description }) => (
-                  <DropdownMenuItem
-                    key={r}
-                    onClick={() => onRoleChange(r)}
-                    className="flex items-start gap-3 px-3 py-2.5"
-                  >
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-text-default">
-                        {r}
-                      </p>
-                      <p className="text-xs text-text-subtle">{description}</p>
-                    </div>
-                    {r === member.role && (
-                      <Check className="mt-0.5 size-3.5 shrink-0 text-text-subtle" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <span className="px-2 py-1 text-sm text-text-secondary">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-text-secondary hover:bg-bg-selected transition-colors outline-none">
               {member.role}
-            </span>
-          )}
+              <ChevronDown className="size-3 text-text-subtle opacity-70" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {ROLES.map(({ role: r, description }) => (
+                <DropdownMenuItem
+                  key={r}
+                  onClick={() => onRoleChange(r)}
+                  className="flex items-start gap-3 px-3 py-2.5"
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-text-default">{r}</p>
+                    <p className="text-xs text-text-subtle">{description}</p>
+                  </div>
+                  {r === member.role && (
+                    <Check className="mt-0.5 size-3.5 shrink-0 text-text-subtle" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="flex items-center justify-between py-3">

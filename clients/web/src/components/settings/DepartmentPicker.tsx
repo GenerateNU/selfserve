@@ -4,7 +4,7 @@ import {
   useAddEmployeeDepartment,
   useGetDepartments,
   useRemoveEmployeeDepartment,
-} from "@shared";
+} from "@shared/api/departments";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -16,14 +16,12 @@ type DepartmentPickerProps = {
   memberId: string;
   hotelId: string;
   departmentNames: Array<string>;
-  isAdmin?: boolean;
 };
 
 export function DepartmentPicker({
   memberId,
   hotelId,
   departmentNames,
-  isAdmin = false,
 }: DepartmentPickerProps) {
   const [selected, setSelected] = useState<Set<string>>(
     new Set(departmentNames),
@@ -48,14 +46,6 @@ export function DepartmentPicker({
       });
       removeDept({ employeeId: memberId, departmentId: deptId });
     }
-  }
-
-  if (!isAdmin) {
-    return (
-      <span className="px-2 py-1 text-sm text-text-secondary truncate">
-        {label}
-      </span>
-    );
   }
 
   return (

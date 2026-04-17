@@ -17,7 +17,6 @@ const timestampVariants = cva(
         pending: "bg-request-pending-secondary text-request-pending",
         "in progress": "bg-request-assigned-secondary text-request-assigned",
         completed: "bg-request-completed-secondary text-request-completed",
-        archived: "bg-bg-disabled text-text-subtle",
       },
     },
     defaultVariants: {

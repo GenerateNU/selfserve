@@ -2,7 +2,8 @@ import { useRef, useState } from "react";
 import { ArrowUp, Loader, Sparkles } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useGetUsersIdHook, usePostRequestGenerateHook } from "@shared";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { usePostRequestGenerateHook } from "@shared/api/generated/endpoints/requests/requests.ts";
 import type { Request } from "@shared";
 
 type GlobalTaskInputProps = {

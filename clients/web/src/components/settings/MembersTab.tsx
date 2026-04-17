@@ -2,12 +2,12 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useCustomInstance, useGetUsersIdHook } from "@shared";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { useCustomInstance } from "@shared/api/orval-mutator";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { DepartmentPicker } from "./DepartmentPicker";
-import type { User } from "@shared";
+import type { User } from "@shared/api/generated/models";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
-import { useIsAdmin } from "@/hooks/use-is-admin";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -123,10 +123,9 @@ function RolePicker({ role, onChange }: RolePickerProps) {
 type MemberRowProps = {
   member: Member;
   onSelect: (member: Member) => void;
-  isAdmin: boolean;
 };
 
-function MemberRow({ member, onSelect, isAdmin }: MemberRowProps) {
+function MemberRow({ member, onSelect }: MemberRowProps) {
   return (
     <div className={cn(ROW_GRID, "py-2")}>
       <button
@@ -147,16 +146,11 @@ function MemberRow({ member, onSelect, isAdmin }: MemberRowProps) {
         memberId={member.id}
         hotelId={member.hotelId}
         departmentNames={member.departments}
-        isAdmin={isAdmin}
       />
 
       <span className="text-xs text-text-subtle">{member.joinedAt}</span>
 
-      {isAdmin ? (
-        <RolePicker role={member.role} onChange={() => {}} />
-      ) : (
-        <span className="pl-2 text-sm text-text-secondary">{member.role}</span>
-      )}
+      <RolePicker role={member.role} onChange={() => {}} />
     </div>
   );
 }
@@ -169,8 +163,6 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
-
-  const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
     const timer = setTimeout(
@@ -231,16 +223,14 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
         <p className="text-sm text-text-subtle">
           {allMembers.length} member{allMembers.length !== 1 ? "s" : ""}
         </p>
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => setInviteOpen(true)}
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-default hover:bg-bg-selected transition-colors"
-          >
-            <UserPlus className="size-3.5" />
-            Add members
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setInviteOpen(true)}
+          className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-default hover:bg-bg-selected transition-colors"
+        >
+          <UserPlus className="size-3.5" />
+          Add members
+        </button>
       </div>
 
       {/* Search */}
@@ -279,7 +269,6 @@ export function MembersTab({ onSelectMember }: MembersTabProps) {
               key={member.id}
               member={member}
               onSelect={onSelectMember}
-              isAdmin={isAdmin}
             />
           ))
         )}

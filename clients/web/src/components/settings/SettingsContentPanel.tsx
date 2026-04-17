@@ -8,7 +8,6 @@ import type { Member } from "./MembersTab";
 import type { SettingsTab } from "./SettingsNav";
 import { DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { useIsAdmin } from "@/hooks/use-is-admin";
 
 type SettingsContentPanelProps = {
   activeTab: SettingsTab;
@@ -23,8 +22,6 @@ export function SettingsContentPanel({
 }: SettingsContentPanelProps) {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [memberNotes, setMemberNotes] = useState<Record<string, string>>({});
-
-  const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
     setSelectedMember(null);
@@ -79,7 +76,6 @@ export function SettingsContentPanel({
             }
             onRoleChange={handleRoleChange}
             onBack={() => setSelectedMember(null)}
-            isAdmin={isAdmin}
           />
         )}
       </div>

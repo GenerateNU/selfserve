@@ -15,8 +15,6 @@ module.exports = {
         "bg-selected": "#edf5f1",
         "stroke-subtle": "#d8d8d8",
         "stroke-disabled": "#e9e9e9",
-        "input-border": "#aeaeae",
-        "input-border-light": "#e5e9ed",
         "primary-accent": "#a8cdb9",
         "primary-surface": "#124425",
         "success-accent": "#e8fff0",

@@ -17,19 +17,15 @@ export function DrawerShell({
 }: DrawerShellProps) {
   return (
     <aside className="flex h-full w-full flex-col">
-      <header className="flex flex-col px-6 pt-5 pb-4">
-        <button
-          type="button"
-          onClick={onClose}
-          className="self-start rounded p-1 hover:bg-bg-selected"
-        >
-          <X className="size-5" />
+      <header className="flex items-center justify-between px-8 py-4">
+        <h2 className="text-3xl font-bold">{title}</h2>
+        <button type="button" onClick={onClose} className="p-2">
+          <X />
         </button>
-        <div className="mt-2 text-center">{title}</div>
       </header>
       <div
         className={cn(
-          "flex flex-col gap-4 overflow-y-auto px-10 py-2",
+          "flex flex-col gap-4 overflow-y-auto px-8 py-2",
           className,
         )}
       >

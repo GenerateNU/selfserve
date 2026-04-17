@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GripHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useGetUsersIdHook } from "@shared";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users";
 import type { Request } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { useRoomById } from "@/hooks/use-room-by-id";

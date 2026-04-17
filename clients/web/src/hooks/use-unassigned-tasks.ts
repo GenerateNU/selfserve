@@ -1,4 +1,4 @@
-import { useGetRequestsFeed } from "@shared";
+import { useGetRequestsFeed } from "@shared/api/requests";
 import type { RoomRequestItem } from "@/components/rooms/RoomRequestList";
 
 export function useUnassignedTasks() {

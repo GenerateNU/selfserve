@@ -2,14 +2,15 @@ import { useState } from "react";
 import { Building2, Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
+import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import {
   useCreateDepartment,
   useDeleteDepartment,
   useGetDepartments,
-  useGetUsersIdHook,
   useUpdateDepartment,
 } from "@shared";
-import { useIsAdmin } from "@/hooks/use-is-admin";
+
+const ROW_GRID = "grid grid-cols-[1fr_5rem] items-center gap-x-4";
 
 export function DepartmentsTab() {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -17,8 +18,6 @@ export function DepartmentsTab() {
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const { isAdmin } = useIsAdmin();
 
   const { user: clerkUser } = useUser();
   const getCurrentUser = useGetUsersIdHook();
@@ -65,10 +64,6 @@ export function DepartmentsTab() {
 
   const deletingDept = departments.find((d) => d.id === deletingId);
 
-  const rowGrid = isAdmin
-    ? "grid grid-cols-[1fr_5rem] items-center gap-x-4"
-    : "grid grid-cols-[1fr] items-center";
-
   return (
     <div>
       {/* Toolbar */}
@@ -76,17 +71,15 @@ export function DepartmentsTab() {
         <p className="text-sm text-text-subtle">
           {departments.length} department{departments.length !== 1 ? "s" : ""}
         </p>
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => setIsAdding(true)}
-            disabled={isAdding}
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-default hover:bg-bg-selected transition-colors disabled:opacity-50"
-          >
-            <Plus className="size-4" />
-            New department
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setIsAdding(true)}
+          disabled={isAdding}
+          className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-default hover:bg-bg-selected transition-colors disabled:opacity-50"
+        >
+          <Plus className="size-4" />
+          New department
+        </button>
       </div>
 
       {isLoading ? (
@@ -102,16 +95,16 @@ export function DepartmentsTab() {
         <div className="overflow-hidden rounded-lg border border-stroke-subtle">
           {/* Column headers */}
           <div
-            className={`${rowGrid} border-b border-stroke-subtle bg-bg-selected px-3 py-2`}
+            className={`${ROW_GRID} border-b border-stroke-subtle bg-bg-selected px-3 py-2`}
           >
             <p className="text-xs font-medium text-text-subtle">Name</p>
-            {isAdmin && <span />}
+            <span />
           </div>
 
           {/* Rows */}
           <div className="divide-y divide-stroke-subtle">
             {departments.map((dept) => (
-              <div key={dept.id} className={`${rowGrid} px-3 py-2.5 group`}>
+              <div key={dept.id} className={`${ROW_GRID} px-3 py-2.5 group`}>
                 <div>
                   {editingId === dept.id ? (
                     <div className="flex items-center gap-1.5">
@@ -155,7 +148,7 @@ export function DepartmentsTab() {
                   )}
                 </div>
 
-                {isAdmin && editingId !== dept.id && (
+                {editingId !== dept.id && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
@@ -181,7 +174,7 @@ export function DepartmentsTab() {
 
             {/* Inline add form */}
             {isAdding && (
-              <div className={`${rowGrid} px-3 py-2.5`}>
+              <div className={`${ROW_GRID} px-3 py-2.5`}>
                 <div className="flex items-center gap-1.5">
                   <input
                     type="text"
