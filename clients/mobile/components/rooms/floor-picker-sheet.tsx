@@ -106,7 +106,7 @@ export function FloorPickerSheet({
           >
             <Text className="text-[15px] text-text-default">{floor.label}</Text>
             {selectedFloorId === floor.id && (
-              <Check size={18} color={Colors.light.primary} />
+              <Check size={18} color={Colors.light.tabBarActive} />
             )}
           </Pressable>
         ))}
