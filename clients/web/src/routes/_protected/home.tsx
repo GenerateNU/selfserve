@@ -47,6 +47,7 @@ function KanbanColumnData({
   title,
   department,
   onCardClick,
+  onCreateRequest,
   sort,
   userId,
   priorities,
@@ -55,6 +56,7 @@ function KanbanColumnData({
   title: string;
   department: string;
   onCardClick: (requestId: string) => void;
+  onCreateRequest: (departmentId: string) => void;
   sort: RequestFeedSort | undefined;
   userId?: string;
   priorities?: Array<string>;
@@ -99,7 +101,10 @@ function KanbanColumnData({
   if (!isPending && requests.length === 0) return null;
 
   return (
-    <KanbanColumn title={title}>
+    <KanbanColumn
+      title={title}
+      onCreateRequest={() => onCreateRequest(department)}
+    >
       {requests.map((request: RequestFeedItem) => (
         <RequestCardItem
           key={request.id}
@@ -150,6 +155,7 @@ function HomePage() {
     room_id?: string;
     guest_id?: string;
     user_id?: string;
+    department_id?: string;
   } | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
     null,
@@ -204,6 +210,11 @@ function HomePage() {
   function handleCreateRequest() {
     setSelectedRequestId(null);
     setDrawerData({});
+  }
+
+  function handleCreateRequestForDepartment(departmentId: string) {
+    setSelectedRequestId(null);
+    setDrawerData({ department_id: departmentId });
   }
 
   function handleRequestGenerated(request: Request) {
@@ -344,6 +355,7 @@ function HomePage() {
               sort={sort}
               userId={selectedUser?.id}
               onCardClick={handleCardClick}
+              onCreateRequest={handleCreateRequestForDepartment}
               priorities={selectedPriorities}
               floors={selectedFloors}
             />
