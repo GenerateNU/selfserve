@@ -52,9 +52,9 @@ func (r *ViewsRepository) Insert(ctx context.Context, userID string, input model
 	}
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO public.views (id, user_id, slug, display_name, filters)
-		VALUES ($1, $2, $3, $4, $5)
+		VALUES ($1, $2, $3, $4, $5::jsonb)
 		RETURNING created_at, updated_at
-	`, v.ID, v.UserID, v.Slug, v.DisplayName, []byte(v.Filters)).Scan(&v.CreatedAt, &v.UpdatedAt)
+	`, v.ID, v.UserID, v.Slug, v.DisplayName, string(v.Filters)).Scan(&v.CreatedAt, &v.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +65,10 @@ func (r *ViewsRepository) Update(ctx context.Context, id, userID string, input m
 	v := &models.View{ID: id, UserID: userID}
 	err := r.db.QueryRow(ctx, `
 		UPDATE public.views
-		SET filters = $3, updated_at = NOW()
+		SET filters = $3::jsonb, updated_at = NOW()
 		WHERE id = $1 AND user_id = $2
 		RETURNING slug, display_name, filters, created_at, updated_at
-	`, id, userID, []byte(input.Filters)).Scan(&v.Slug, &v.DisplayName, &v.Filters, &v.CreatedAt, &v.UpdatedAt)
+	`, id, userID, string(input.Filters)).Scan(&v.Slug, &v.DisplayName, &v.Filters, &v.CreatedAt, &v.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
