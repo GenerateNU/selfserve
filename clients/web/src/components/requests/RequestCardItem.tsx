@@ -44,7 +44,6 @@ type RequestCardItemProps = {
 
 export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
   const status = request.status;
-  const queryClient = useQueryClient();
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: request.id,
