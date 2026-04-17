@@ -3,6 +3,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { useUpdateRequestDepartment } from "@shared/api/requests";
+import {
   MakeRequestPriority,
   useCreateView,
   useDeleteView,
@@ -12,6 +20,7 @@ import {
   useGetUsersIdHook,
   useGetViews,
 } from "@shared";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import type {
   Request,
   RequestFeedItem,
@@ -25,7 +34,12 @@ import { HomeToolbar } from "@/components/home/HomeToolbar";
 import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
-import { RequestCardItem } from "@/components/requests/RequestCardItem";
+import {
+  RequestCardItem,
+  formatRequestTime,
+} from "@/components/requests/RequestCardItem";
+import { RequestCard } from "@/components/requests/RequestCard";
+import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
 import { DeleteViewModal } from "@/components/home/DeleteViewModal";
 
 const REQUESTS_WEB_SLUG = "requests_web";
@@ -103,6 +117,7 @@ function KanbanColumnData({
   return (
     <KanbanColumn
       title={title}
+      droppableId={department}
       onCreateRequest={() => onCreateRequest(department)}
     >
       {requests.map((request: RequestFeedItem) => (
@@ -114,6 +129,25 @@ function KanbanColumnData({
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
     </KanbanColumn>
+  );
+}
+
+function DragOverlayCard({ request }: { request: RequestFeedItem }) {
+  return (
+    <RequestCard
+      status={request.status}
+      className="w-[22rem] shadow-xl rotate-1 opacity-95"
+    >
+      <RequestCardTimestamp
+        status={request.status}
+        time={formatRequestTime(request.created_at)}
+      />
+      <div className="mt-3">
+        <span className="text-base font-medium leading-snug text-text-default line-clamp-2">
+          {request.name}
+        </span>
+      </div>
+    </RequestCard>
   );
 }
 
@@ -132,6 +166,9 @@ function HomePage() {
   );
   const [viewIsPending, setViewIsPending] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [activeDragItem, setActiveDragItem] = useState<RequestFeedItem | null>(
+    null,
+  );
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -147,6 +184,7 @@ function HomePage() {
   const { mutate: deleteView, isPending: isDeletingView } =
     useDeleteView(REQUESTS_WEB_SLUG);
   const [viewToDelete, setViewToDelete] = useState<View | null>(null);
+  const { mutate: updateRequestDepartment } = useUpdateRequestDepartment();
 
   const [drawerData, setDrawerData] = useState<{
     name?: string;
@@ -162,6 +200,41 @@ function HomePage() {
   );
 
   const { data: selectedRequest } = useGetRequestById(selectedRequestId);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+  );
+
+  function handleDragStart(event: DragStartEvent) {
+    setActiveDragItem(event.active.data.current?.request ?? null);
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    setActiveDragItem(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const request = active.data.current?.request as RequestFeedItem | undefined;
+    const targetDeptId = over.id as string;
+
+    if (!request || request.department_id === targetDeptId) return;
+
+    const targetDept = (departments ?? []).find((d) => d.id === targetDeptId);
+    if (!targetDept) return;
+
+    updateRequestDepartment({
+      requestId: request.id,
+      departmentId: targetDeptId,
+      sourceDepartmentId: request.department_id ?? "",
+      updatedItem: {
+        ...request,
+        department_id: targetDeptId,
+        department_name: targetDept.name,
+      },
+    });
+  }
 
   function handleApplyView(view: View) {
     const filters = view.filters as RequestsWebFilters;
@@ -341,26 +414,35 @@ function HomePage() {
       }
     >
       <div className="relative flex-1 min-h-0">
-        <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
-          {(selectedDepartments.length > 0
-            ? (departments ?? []).filter((d) =>
-                selectedDepartments.includes(d.name),
-              )
-            : (departments ?? [])
-          ).map((dep) => (
-            <KanbanColumnData
-              key={dep.id}
-              title={dep.name}
-              department={dep.id}
-              sort={sort}
-              userId={selectedUser?.id}
-              onCardClick={handleCardClick}
-              onCreateRequest={handleCreateRequestForDepartment}
-              priorities={selectedPriorities}
-              floors={selectedFloors}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
+            {(selectedDepartments.length > 0
+              ? (departments ?? []).filter((d) =>
+                  selectedDepartments.includes(d.name),
+                )
+              : (departments ?? [])
+            ).map((dep) => (
+              <KanbanColumnData
+                key={dep.id}
+                title={dep.name}
+                department={dep.id}
+                sort={sort}
+                userId={selectedUser?.id}
+                onCardClick={handleCardClick}
+                onCreateRequest={handleCreateRequestForDepartment}
+                priorities={selectedPriorities}
+                floors={selectedFloors}
+              />
+            ))}
+          </div>
+          <DragOverlay dropAnimation={null}>
+            {activeDragItem && <DragOverlayCard request={activeDragItem} />}
+          </DragOverlay>
+        </DndContext>
       </div>
       <DeleteViewModal
         view={viewToDelete}
