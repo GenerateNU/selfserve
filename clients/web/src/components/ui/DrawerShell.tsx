@@ -17,7 +17,7 @@ export function DrawerShell({
 }: DrawerShellProps) {
   return (
     <aside className="flex h-full w-full flex-col">
-      <header className="flex flex-col px-6 pt-5 pb-4">
+      <header className="flex flex-col pl-5 pr-6 pt-5 pb-4">
         <button
           type="button"
           onClick={onClose}
@@ -25,7 +25,7 @@ export function DrawerShell({
         >
           <X className="size-5" />
         </button>
-        <div className="mt-2 text-center">{title}</div>
+        <div className="mt-2 px-5">{title}</div>
       </header>
       <div
         className={cn(
