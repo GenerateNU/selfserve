@@ -36,6 +36,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		)
 		SELECT
 			pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status, pr.is_accessible,
+			CASE WHEN COUNT(guest_bookings.id) > 0 THEN 'active' ELSE 'inactive' END AS booking_status,
 			json_agg(
 				json_build_object(
 					'id',              guests.id,
@@ -64,6 +65,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		var guestsJSON json.RawMessage
 		err := rows.Scan(
 			&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible,
+			&rb.BookingStatus,
 			&guestsJSON,
 		)
 		if err != nil {
@@ -110,6 +112,7 @@ func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id s
 	row := r.db.QueryRow(ctx, `
 		SELECT
 			r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible,
+			CASE WHEN COUNT(gb.id) > 0 THEN 'active' ELSE 'inactive' END AS booking_status,
 			json_agg(
 				json_build_object(
 					'id',              g.id,
@@ -129,7 +132,7 @@ func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id s
 
 	var rb models.RoomWithOptionalGuestBooking
 	var guestsJSON json.RawMessage
-	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible, &guestsJSON)
+	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible, &rb.BookingStatus, &guestsJSON)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
