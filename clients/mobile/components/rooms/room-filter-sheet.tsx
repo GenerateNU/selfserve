@@ -14,21 +14,11 @@ import { Colors } from "@/constants/theme";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-export type RoomStatusFilter =
-  | "occupied"
-  | "vacant"
-  | "reserved"
-  | "out-of-order"
-  | "needs-cleaning"
-  | "open-tasks";
+export type RoomStatusFilter = "occupied" | "vacant" | "open-tasks";
 
 export type RoomAttributeFilter = "standard" | "deluxe" | "suite" | "accessible";
 
-export type RoomAdvancedFilter =
-  | "arrivals-today"
-  | "departures-today"
-  | "late-checkouts"
-  | "early-check-ins";
+export type RoomAdvancedFilter = "arrivals-today" | "departures-today";
 
 export type RoomFilters = {
   status: RoomStatusFilter[];
@@ -52,9 +42,6 @@ type RoomFilterSheetProps = {
 const STATUS_OPTIONS: { value: RoomStatusFilter; label: string }[] = [
   { value: "occupied", label: "Occupied" },
   { value: "vacant", label: "Vacant" },
-  { value: "reserved", label: "Reserved" },
-  { value: "out-of-order", label: "Out of Order" },
-  { value: "needs-cleaning", label: "Needs Cleaning" },
   { value: "open-tasks", label: "Open Tasks" },
 ];
 
@@ -68,8 +55,6 @@ const ATTRIBUTE_OPTIONS: { value: RoomAttributeFilter; label: string }[] = [
 const ADVANCED_OPTIONS: { value: RoomAdvancedFilter; label: string }[] = [
   { value: "arrivals-today", label: "Arrivals Today" },
   { value: "departures-today", label: "Departures Today" },
-  { value: "late-checkouts", label: "Late Checkouts" },
-  { value: "early-check-ins", label: "Early Check-ins" },
 ];
 
 function toggle<T>(arr: T[], val: T): T[] {
