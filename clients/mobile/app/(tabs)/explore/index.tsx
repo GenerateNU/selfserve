@@ -25,11 +25,7 @@ import {
   DEFAULT_ROOM_SORT,
 } from "@/components/rooms/room-sort-sheet";
 import { OverviewTab } from "@/components/rooms/overview-tab";
-import {
-  useGetRoomsForFloor,
-  BookingStatus,
-  RoomStatusValue,
-} from "@shared/api/rooms";
+import { useGetRooms, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 
 const FLOORS: Floor[] = [
@@ -76,7 +72,13 @@ export default function RoomsScreen() {
   const [sort, setSort] = useState<RoomSort>(DEFAULT_ROOM_SORT);
 
   const floorId = parseInt(selectedFloor.id);
-  const { data: roomsData } = useGetRoomsForFloor([floorId]);
+  const { data: roomsData } = useGetRooms({
+    floors: [floorId],
+    status: filters.status.length ? filters.status : undefined,
+    attributes: filters.attributes.length ? filters.attributes : undefined,
+    advanced: filters.advanced.length ? filters.advanced : undefined,
+    sort: sort !== "ascending" ? sort : undefined,
+  });
   const rooms = roomsData?.items ?? [];
 
   return (

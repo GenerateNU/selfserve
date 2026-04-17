@@ -11,20 +11,36 @@ export const RoomStatusValue = {
   OutOfOrder: "out-of-order",
 } as const;
 
+export type RoomStatusFilter = "occupied" | "vacant" | "open-tasks";
+export type RoomAttributeFilter = "standard" | "deluxe" | "suite" | "accessible";
+export type RoomAdvancedFilter = "arrivals-today" | "departures-today";
+export type RoomSortOption = "ascending" | "descending" | "urgency";
+
+export type RoomFiltersParams = {
+  floors?: number[];
+  status?: RoomStatusFilter[];
+  attributes?: RoomAttributeFilter[];
+  advanced?: RoomAdvancedFilter[];
+  sort?: RoomSortOption;
+  cursor?: string;
+  limit?: number;
+};
+
 type RoomsPage = {
   items: RoomWithOptionalGuestBooking[] | null;
   has_more: boolean;
   next_cursor: string | null;
 };
 
-export const getRoomsQueryKey = (floors: number[]) =>
-  ["rooms", ...floors] as const;
+export const getRoomsQueryKey = (params: RoomFiltersParams) =>
+  ["rooms", params] as const;
 
-export const useGetRoomsForFloor = (floors: number[]) => {
+export const useGetRooms = (params: RoomFiltersParams, enabled = true) => {
   const api = useAPIClient();
   return useQuery({
-    queryKey: getRoomsQueryKey(floors),
-    queryFn: () => api.post<RoomsPage>("/rooms", { floors, limit: 200 }),
-    enabled: floors.length > 0,
+    queryKey: getRoomsQueryKey(params),
+    queryFn: () =>
+      api.post<RoomsPage>("/rooms", { limit: 200, ...params }),
+    enabled,
   });
 };
