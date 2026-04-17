@@ -116,6 +116,7 @@ export {
   useDropTask,
   useMarkTaskPending,
   useAssignRequestToSelf,
+  useDeleteTask,
   getRoomRequestsByRoomIdQueryKey,
 } from "./api/requests";
 

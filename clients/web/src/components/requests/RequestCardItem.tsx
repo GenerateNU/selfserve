@@ -1,10 +1,16 @@
-import { Home, MapPin } from "lucide-react";
+import { Home, MapPin, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useDeleteTask, useGetUsersIdHook } from "@shared";
 import { useDraggable } from "@dnd-kit/core";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users";
-import type { RequestFeedItem } from "@shared/api/requests";
+import type { RequestFeedItem } from "@shared";
 import { RequestCard } from "@/components/requests/RequestCard";
 import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
 
 export function formatRequestTime(isoString?: string): string {
@@ -44,6 +50,8 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
     enabled: !!request.user_id,
   });
 
+  const { mutate: deleteTask } = useDeleteTask();
+
   const assigneeName = assignee
     ? `${assignee.first_name ?? ""} ${assignee.last_name ?? ""}`.trim()
     : null;
@@ -59,63 +67,80 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
   const hasBottomRow = roomLabel || request.department_name;
 
   return (
-    <div
-      ref={setNodeRef}
-      className={cn(
-        "touch-none cursor-grab active:cursor-grabbing",
-        isDragging && "opacity-30",
-      )}
-      {...attributes}
-      {...listeners}
-    >
-      <RequestCard
-        status={status}
-        className="w-full"
-        onClick={isDragging ? undefined : onClick}
-      >
-        <RequestCardTimestamp
-          status={status}
-          time={formatRequestTime(request.created_at)}
-        />
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div
+          ref={setNodeRef}
+          className={cn(
+            "touch-none cursor-grab active:cursor-grabbing",
+            isDragging && "opacity-30",
+          )}
+          {...attributes}
+          {...listeners}
+          onPointerDown={(e) => {
+            if (e.button !== 0 || !listeners) return;
+            listeners.onPointerDown(e);
+          }}
+        >
+          <RequestCard
+            status={status}
+            className="w-full"
+            onClick={isDragging ? undefined : onClick}
+          >
+            <RequestCardTimestamp
+              status={status}
+              time={formatRequestTime(request.created_at)}
+            />
 
-        <div className="mt-3 flex flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <span className="text-base font-medium leading-snug text-text-default">
-              {request.name}
-            </span>
+            <div className="mt-3 flex flex-col gap-2">
+              <div className="flex flex-col gap-1">
+                <span className="text-base font-medium leading-snug text-text-default">
+                  {request.name}
+                </span>
 
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded px-2 py-1 text-[11px] tracking-[-0.11px] text-text-secondary bg-stroke-disabled"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded px-2 py-1 text-[11px] tracking-[-0.11px] text-text-secondary bg-stroke-disabled"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {hasBottomRow && (
-            <div className="flex items-center gap-3">
-              {roomLabel && (
-                <span className="flex items-center gap-1 text-xs text-text-subtle">
-                  <MapPin className="size-3 shrink-0" />
-                  {roomLabel}
-                </span>
-              )}
-              {request.department_name && (
-                <span className="flex items-center gap-1 text-xs text-text-subtle">
-                  <Home className="size-3 shrink-0" />
-                  {request.department_name}
-                </span>
+              {hasBottomRow && (
+                <div className="flex items-center gap-3">
+                  {roomLabel && (
+                    <span className="flex items-center gap-1 text-xs text-text-subtle">
+                      <MapPin className="size-3 shrink-0" />
+                      {roomLabel}
+                    </span>
+                  )}
+                  {request.department_name && (
+                    <span className="flex items-center gap-1 text-xs text-text-subtle">
+                      <Home className="size-3 shrink-0" />
+                      {request.department_name}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
-          )}
+          </RequestCard>
         </div>
-      </RequestCard>
-    </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem
+          variant="destructive"
+          onSelect={() => deleteTask(request.id)}
+        >
+          <Trash2 />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }

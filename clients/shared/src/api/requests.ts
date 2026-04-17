@@ -262,6 +262,53 @@ export const useMarkTaskPending = () => {
   });
 };
 
+export const useDeleteTask = () => {
+  const api = useAPIClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      api.put<void>(`/request/${taskId}`, { status: RequestStatus.archived }),
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
+      const previousData = queryClient.getQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY });
+      queryClient.setQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: (page.items ?? []).filter((item) => item.id !== taskId),
+          })),
+        };
+      });
+      return { previousData };
+    },
+    onError: (_err, _taskId, context) => {
+      if (context?.previousData) {
+        for (const [key, data] of context.previousData) {
+          queryClient.setQueryData(key, data);
+        }
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
+    },
+  });
+};
+
 export const useGetRequestById = (requestId: string | null) => {
   const api = useAPIClient();
   return useQuery({
