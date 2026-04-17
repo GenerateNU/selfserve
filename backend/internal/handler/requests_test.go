@@ -20,9 +20,10 @@ import (
 
 type mockRequestRepository struct {
 	makeRequestFunc                    func(ctx context.Context, req *models.Request) (*models.Request, error)
-	updateRequestFunc                  func(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error)
+	updateRequestFunc                  func(ctx context.Context, id string, update *models.RequestUpdateInput, changedBy *string) (*models.Request, error)
 	findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
+	findRequestsByStatusPaginatedFunc  func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
 	findRequestsByGuestIDFunc          func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findRequestsByRoomIDAndUserIDFunc  func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findUnassignedRequestsByRoomIDFunc func(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
@@ -34,8 +35,8 @@ func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.R
 	return m.makeRequestFunc(ctx, req)
 }
 
-func (m *mockRequestRepository) UpdateRequest(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
-	return m.updateRequestFunc(ctx, id, update)
+func (m *mockRequestRepository) UpdateRequest(ctx context.Context, id string, update *models.RequestUpdateInput, changedBy *string) (*models.Request, error) {
+	return m.updateRequestFunc(ctx, id, update, changedBy)
 }
 
 func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
@@ -44,6 +45,13 @@ func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*mo
 
 func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
 	return m.findRequestsFunc(ctx)
+}
+
+func (m *mockRequestRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
+	if m.findRequestsByStatusPaginatedFunc == nil {
+		return nil, "", nil
+	}
+	return m.findRequestsByStatusPaginatedFunc(ctx, cursor, status, hotelID, pageSize)
 }
 
 func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
@@ -64,6 +72,10 @@ func (m *mockRequestRepository) FindRequestsPaginated(ctx context.Context, input
 
 func (m *mockRequestRepository) GetRequestsOverview(ctx context.Context, hotelID string, filters *models.FilterRoomsRequest) (*models.RequestsOverview, error) {
 	return m.getRequestsOverviewFunc(ctx, hotelID, filters)
+}
+
+func (m *mockRequestRepository) FindRequestVersions(ctx context.Context, id string) ([]*models.Request, error) {
+	return nil, nil
 }
 
 type mockLLMService struct {
@@ -1063,7 +1075,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 
 		var gotUpdate *models.RequestUpdateInput
 		mock := &mockRequestRepository{
-			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput, _ *string) (*models.Request, error) {
 				gotUpdate = update
 				return &models.Request{
 					ID:             id,
@@ -1114,7 +1126,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		updated := "completed"
 		var gotUpdate *models.RequestUpdateInput
 		mock := &mockRequestRepository{
-			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput, _ *string) (*models.Request, error) {
 				gotUpdate = update
 				return &models.Request{
 					ID:             id,
@@ -1156,7 +1168,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		var gotUpdate *models.RequestUpdateInput
 
 		mock := &mockRequestRepository{
-			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput, _ *string) (*models.Request, error) {
 				gotUpdate = update
 				return &models.Request{
 					ID:             id,
@@ -1239,7 +1251,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput, _ *string) (*models.Request, error) {
 				require.NotNil(t, update.Status)
 				require.Equal(t, "in progress", *update.Status)
 				return &models.Request{
@@ -1323,7 +1335,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			updateRequestFunc: func(_ context.Context, _ string, _ *models.RequestUpdateInput) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, _ string, _ *models.RequestUpdateInput, _ *string) (*models.Request, error) {
 				return nil, errs.ErrNotFoundInDB
 			},
 		}
@@ -1343,7 +1355,7 @@ func TestRequestHandler_UpdateRequest(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRequestRepository{
-			updateRequestFunc: func(_ context.Context, _ string, _ *models.RequestUpdateInput) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, _ string, _ *models.RequestUpdateInput, _ *string) (*models.Request, error) {
 				return nil, errors.New("db connection failed")
 			},
 		}
@@ -1457,7 +1469,7 @@ func TestRequestHandler_AssignRequest(t *testing.T) {
 			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return baseRequest(), nil
 			},
-			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput, _ *string) (*models.Request, error) {
 				gotUpdate = update
 				return &models.Request{
 					ID:             id,
@@ -1499,7 +1511,7 @@ func TestRequestHandler_AssignRequest(t *testing.T) {
 			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return baseRequest(), nil
 			},
-			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput, _ *string) (*models.Request, error) {
 				gotUpdate = update
 				return &models.Request{
 					ID:             id,
@@ -1542,7 +1554,7 @@ func TestRequestHandler_AssignRequest(t *testing.T) {
 			findRequestFunc: func(_ context.Context, id string) (*models.Request, error) {
 				return baseRequest(), nil
 			},
-			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+			updateRequestFunc: func(_ context.Context, id string, update *models.RequestUpdateInput, _ *string) (*models.Request, error) {
 				gotUpdate = update
 				return &models.Request{
 					ID:             id,

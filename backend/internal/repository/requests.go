@@ -29,17 +29,18 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 			id, hotel_id, guest_id, user_id, reservation_id, name, description,
 			room_id, request_category, request_type, department, status,
 			priority, estimated_completion_time, scheduled_time, notes,
-			request_version, created_at
+			request_version, created_at, changed_by
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
 			NOW(),
-			COALESCE((SELECT MIN(created_at) FROM requests WHERE id = $1), NOW())
+			COALESCE((SELECT MIN(created_at) FROM requests WHERE id = $1), NOW()),
+			$17
 		)
 		RETURNING id, created_at, request_version
 	`, req.ID, req.HotelID, req.GuestID, req.UserID, req.ReservationID, req.Name,
 		req.Description, req.RoomID, req.RequestCategory, req.RequestType, req.Department,
 		req.Status, req.Priority, req.EstimatedCompletionTime,
-		req.ScheduledTime, req.Notes).Scan(&req.ID, &req.CreatedAt, &req.RequestVersion)
+		req.ScheduledTime, req.Notes, req.ChangedBy).Scan(&req.ID, &req.CreatedAt, &req.RequestVersion)
 
 	if err != nil {
 		return nil, err
@@ -48,7 +49,7 @@ func (r *RequestsRepository) InsertRequest(ctx context.Context, req *models.Requ
 	return req, nil
 }
 
-func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
+func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, update *models.RequestUpdateInput, changedBy *string) (*models.Request, error) {
 	row := r.db.QueryRow(ctx, `
 		WITH current AS (
 			SELECT *
@@ -61,7 +62,7 @@ func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, updat
 			id, hotel_id, guest_id, user_id, reservation_id, name, description,
 			room_id, request_category, request_type, department, status,
 			priority, estimated_completion_time, scheduled_time, completed_at, notes,
-			request_version, created_at
+			request_version, created_at, changed_by
 		)
 		SELECT
 			current.id,
@@ -82,7 +83,8 @@ func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, updat
 			COALESCE($15, current.completed_at),
 			COALESCE($16, current.notes),
 			NOW(),
-			current.created_at
+			current.created_at,
+			$18
 		FROM current
 		RETURNING id, created_at, request_version
 	`, id,
@@ -102,6 +104,7 @@ func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, updat
 		update.CompletedAt,
 		update.Notes,
 		update.Unassign,
+		changedBy,
 	)
 
 	var req models.Request
@@ -130,7 +133,7 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 		&request.ReservationID, &request.Name, &request.Description,
 		&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 		&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-		&request.CreatedAt, &request.UserID, &request.RequestVersion)
+		&request.CreatedAt, &request.UserID, &request.RequestVersion, &request.ChangedBy)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -162,7 +165,7 @@ func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request
 			&request.ReservationID, &request.Name, &request.Description,
 			&request.RoomID, &request.RequestCategory, &request.RequestType, &request.Department, &request.Status,
 			&request.Priority, &request.EstimatedCompletionTime, &request.ScheduledTime, &request.CompletedAt, &request.Notes,
-			&request.CreatedAt, &request.UserID, &request.RequestVersion)
+			&request.CreatedAt, &request.UserID, &request.RequestVersion, &request.ChangedBy)
 		if err != nil {
 			return nil, err
 		}
@@ -446,6 +449,89 @@ func (r *RequestsRepository) GetRequestsOverview(ctx context.Context, hotelID st
 	}
 
 	return &overview, nil
+}
+
+func (r *RequestsRepository) FindRequestVersions(ctx context.Context, id string) ([]*models.Request, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, hotel_id, guest_id, reservation_id, name, description,
+		       room_id, request_category, request_type, department, status,
+		       priority, estimated_completion_time, scheduled_time, completed_at, notes,
+		       created_at, user_id, request_version, changed_by
+		FROM requests
+		WHERE id = $1
+		ORDER BY request_version ASC
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var versions []*models.Request
+	for rows.Next() {
+		var req models.Request
+		if err := rows.Scan(
+			&req.ID, &req.HotelID, &req.GuestID,
+			&req.ReservationID, &req.Name, &req.Description,
+			&req.RoomID, &req.RequestCategory, &req.RequestType, &req.Department, &req.Status,
+			&req.Priority, &req.EstimatedCompletionTime, &req.ScheduledTime, &req.CompletedAt, &req.Notes,
+			&req.CreatedAt, &req.UserID, &req.RequestVersion, &req.ChangedBy,
+		); err != nil {
+			return nil, err
+		}
+		versions = append(versions, &req)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(versions) == 0 {
+		return nil, errs.ErrNotFoundInDB
+	}
+	return versions, nil
+}
+
+func (r *RequestsRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
+	rows, err := r.db.Query(ctx, `
+		WITH latest AS (
+			SELECT DISTINCT ON (id) *
+			FROM requests
+			WHERE hotel_id = $1
+			ORDER BY id, request_version DESC
+		)
+		SELECT *
+		FROM latest
+		WHERE status != 'archived'
+		  AND status = $2
+		  AND ($3::text = '' OR id::text > $3)
+		ORDER BY id
+		LIMIT $4
+	`, hotelID, status, cursor, pageSize+1)
+	if err != nil {
+		return nil, "", err
+	}
+	defer rows.Close()
+
+	requests := make([]*models.Request, 0, pageSize)
+	for rows.Next() {
+		var req models.Request
+		if err := rows.Scan(
+			&req.ID, &req.HotelID, &req.GuestID,
+			&req.ReservationID, &req.Name, &req.Description,
+			&req.RoomID, &req.RequestCategory, &req.RequestType, &req.Department, &req.Status,
+			&req.Priority, &req.EstimatedCompletionTime, &req.ScheduledTime, &req.CompletedAt, &req.Notes,
+			&req.CreatedAt, &req.UserID, &req.RequestVersion, &req.ChangedBy,
+		); err != nil {
+			return nil, "", err
+		}
+		requests = append(requests, &req)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, "", err
+	}
+
+	if len(requests) == pageSize+1 {
+		return requests[:pageSize], requests[pageSize-1].ID, nil
+	}
+	return requests, "", nil
 }
 
 func scanGuestRequests(rows pgx.Rows) ([]*models.GuestRequest, error) {

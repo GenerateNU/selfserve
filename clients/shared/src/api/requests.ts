@@ -384,6 +384,35 @@ export const useUpdateRequestDepartment = () => {
   });
 };
 
+export type RequestActivityType =
+  | "created"
+  | "status_changed"
+  | "priority_changed"
+  | "assigned"
+  | "unassigned"
+  | "name_changed";
+
+export type RequestActivityItem = {
+  type: RequestActivityType;
+  changed_by: string | null;
+  old_value?: string | null;
+  new_value?: string | null;
+  timestamp: string;
+};
+
+export const getRequestActivityQueryKey = (requestId: string) =>
+  ["request", requestId, "activity"] as const;
+
+export const useGetRequestActivity = (requestId: string | null) => {
+  const api = useAPIClient();
+  return useQuery({
+    queryKey: getRequestActivityQueryKey(requestId ?? ""),
+    queryFn: () => api.get<RequestActivityItem[]>(`/request/${requestId}/activity`),
+    select: (data) => [...data].reverse(),
+    enabled: !!requestId,
+  });
+};
+
 export const useGetRequestsFeed = (params: RequestFeedParams) => {
   const api = useAPIClient();
   return useInfiniteQuery({
@@ -408,3 +437,4 @@ export const useGetRequestsFeed = (params: RequestFeedParams) => {
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
   });
 };
+

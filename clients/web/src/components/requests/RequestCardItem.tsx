@@ -1,7 +1,14 @@
 import { Home, MapPin, Trash2 } from "lucide-react";
+import confetti from "canvas-confetti";
 import { useQuery } from "@tanstack/react-query";
-import { useDeleteTask, useGetUsersIdHook } from "@shared";
+import {
+  useCompleteTask,
+  useDeleteTask,
+  useGetUsersIdHook,
+  useMarkTaskPending,
+} from "@shared";
 import { useDraggable } from "@dnd-kit/core";
+import { TaskStatusToggle } from "./TaskStatusToggle";
 import type { RequestFeedItem } from "@shared";
 import { RequestCard } from "@/components/requests/RequestCard";
 import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
@@ -51,6 +58,9 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
   });
 
   const { mutate: deleteTask } = useDeleteTask();
+  const { mutate: completeTask, isPending: isCompleting } = useCompleteTask();
+  const { mutate: markTaskPending, isPending: isMarkingPending } =
+    useMarkTaskPending();
 
   const assigneeName = assignee
     ? `${assignee.first_name ?? ""} ${assignee.last_name ?? ""}`.trim()
@@ -66,13 +76,26 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
   const tags = [assigneeName].filter(Boolean) as Array<string>;
   const hasBottomRow = roomLabel || request.department_name;
 
+  const launchGreenConfetti = (target: HTMLElement) => {
+    const rect = target.getBoundingClientRect();
+    confetti({
+      particleCount: 70,
+      spread: 70,
+      origin: {
+        x: (rect.left + rect.width / 2) / window.innerWidth,
+        y: (rect.top + rect.height / 2) / window.innerHeight,
+      },
+      colors: ["#22c55e", "#16a34a", "#86efac"],
+    });
+  };
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
           ref={setNodeRef}
           className={cn(
-            "touch-none cursor-grab active:cursor-grabbing",
+            "relative touch-none cursor-grab active:cursor-grabbing",
             isDragging && "opacity-30",
           )}
           {...attributes}
@@ -82,6 +105,13 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
             listeners.onPointerDown(e);
           }}
         >
+          <TaskStatusToggle
+            status={request.status}
+            isPending={isCompleting || isMarkingPending}
+            onComplete={() => completeTask(request.id)}
+            onMarkPending={() => markTaskPending(request.id)}
+            onCelebrate={launchGreenConfetti}
+          />
           <RequestCard
             status={status}
             className="w-full"
