@@ -5,9 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
 import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
 import { useGetDepartments } from "@shared/api/departments";
+import { useCreateView, useGetViews } from "@shared/api/views";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
 import type { Request, User } from "@shared";
+import type { View } from "@shared/types/views";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
@@ -16,6 +18,17 @@ import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { ViewRequestDrawer } from "@/components/requests/ViewRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
+
+const REQUESTS_WEB_SLUG = "requests_web";
+
+type RequestsWebFilters = {
+  sort?: RequestFeedSort;
+  priorities?: Array<string>;
+  departments?: Array<string>;
+  floors?: Array<number>;
+  userId?: string;
+  userName?: string;
+};
 
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
@@ -96,6 +109,9 @@ function HomePage() {
     [],
   );
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
+  const [activeViewId, setActiveViewId] = useState<string | undefined>(
+    undefined,
+  );
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -106,6 +122,8 @@ function HomePage() {
   });
 
   const { data: departments } = useGetDepartments(backendUser?.hotel_id);
+  const { data: views = [] } = useGetViews(REQUESTS_WEB_SLUG);
+  const { mutate: createView } = useCreateView(REQUESTS_WEB_SLUG);
 
   const [drawerData, setDrawerData] = useState<{
     name?: string;
@@ -120,6 +138,48 @@ function HomePage() {
   );
 
   const { data: selectedRequest } = useGetRequestById(selectedRequestId);
+
+  function handleApplyView(view: View) {
+    const filters = view.filters as RequestsWebFilters;
+    setSort(filters.sort ?? "priority");
+    setSelectedPriorities(filters.priorities ?? []);
+    setSelectedDepartments(filters.departments ?? []);
+    setSelectedFloors(filters.floors ?? []);
+    if (filters.userId) {
+      const [firstName = "", ...rest] = (filters.userName ?? "").split(" ");
+      setSelectedUser({
+        id: filters.userId,
+        first_name: firstName,
+        last_name: rest.join(" "),
+      } as User);
+    } else {
+      setSelectedUser(undefined);
+    }
+    setActiveViewId(view.id);
+  }
+
+  function handleSaveView(name: string) {
+    const filters: RequestsWebFilters = {
+      sort,
+      priorities: selectedPriorities,
+      departments: selectedDepartments,
+      floors: selectedFloors,
+      userId: selectedUser?.id,
+      userName: selectedUser
+        ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
+        : undefined,
+    };
+    createView({ slug: REQUESTS_WEB_SLUG, display_name: name, filters });
+  }
+
+  function handleClearAll() {
+    setSort("priority");
+    setSelectedUser(undefined);
+    setSelectedPriorities([]);
+    setSelectedDepartments([]);
+    setSelectedFloors([]);
+    setActiveViewId(undefined);
+  }
 
   function handleCreateRequest() {
     setSelectedRequestId(null);
@@ -171,20 +231,46 @@ function HomePage() {
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
-      <HomeToolbar className="mt-2" onCreateRequest={handleCreateRequest} />
+      <HomeToolbar
+        className="mt-2"
+        onCreateRequest={handleCreateRequest}
+        views={views}
+        activeViewId={activeViewId}
+        onSelectView={(view) =>
+          view ? handleApplyView(view) : handleClearAll()
+        }
+      />
+
       <HomeFilterBar
         sort={sort}
-        onSortChange={setSort}
+        onSortChange={(s) => {
+          setSort(s);
+          setActiveViewId(undefined);
+        }}
         selectedUser={selectedUser}
-        onUserChange={setSelectedUser}
+        onUserChange={(u) => {
+          setSelectedUser(u);
+          setActiveViewId(undefined);
+        }}
         selectedPriorities={selectedPriorities}
-        onPrioritiesChange={setSelectedPriorities}
+        onPrioritiesChange={(p) => {
+          setSelectedPriorities(p);
+          setActiveViewId(undefined);
+        }}
         selectedDepartments={selectedDepartments}
-        onDepartmentsChange={setSelectedDepartments}
+        onDepartmentsChange={(d) => {
+          setSelectedDepartments(d);
+          setActiveViewId(undefined);
+        }}
         selectedFloors={selectedFloors}
-        onFloorsChange={setSelectedFloors}
+        onFloorsChange={(f) => {
+          setSelectedFloors(f);
+          setActiveViewId(undefined);
+        }}
         hotelId={backendUser?.hotel_id}
         currentUserId={backendUser?.id}
+        onClearAll={handleClearAll}
+        onSaveView={handleSaveView}
       />
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">

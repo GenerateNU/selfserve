@@ -1,30 +1,53 @@
 import { ArrowDownUp, LayoutGrid, Search, Settings } from "lucide-react";
+import type { View } from "@shared/types/views";
 import { cn } from "@/lib/utils";
 
 type HomeToolbarProps = {
   className?: string;
   onCreateRequest?: () => void;
+  views?: Array<View>;
+  activeViewId?: string;
+  onSelectView?: (view: View | undefined) => void;
 };
 
-const TABS = ["Departments", "View 2", "View 3"];
-
-export function HomeToolbar({ className, onCreateRequest }: HomeToolbarProps) {
+export function HomeToolbar({
+  className,
+  onCreateRequest,
+  views = [],
+  activeViewId,
+  onSelectView,
+}: HomeToolbarProps) {
   return (
     <div className={cn("px-6", className)}>
       <div className="flex items-center justify-between border-b border-stroke-subtle">
         <div className="flex items-center">
-          {TABS.map((tab, i) => (
+          <button
+            type="button"
+            onClick={() => onSelectView?.(undefined)}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+              activeViewId === undefined
+                ? "text-text-default border-b-2 border-text-default"
+                : "text-text-subtle hover:text-text-default",
+            )}
+          >
+            <LayoutGrid className="size-4" />
+            Departments
+          </button>
+          {views.map((view) => (
             <button
-              key={tab}
+              key={view.id}
               type="button"
-              className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
-                i === 0
+              onClick={() => onSelectView?.(view)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+                view.id === activeViewId
                   ? "text-text-default border-b-2 border-text-default"
-                  : "text-text-subtle hover:text-text-default"
-              }`}
+                  : "text-text-subtle hover:text-text-default",
+              )}
             >
               <LayoutGrid className="size-4" />
-              {tab}
+              {view.display_name}
             </button>
           ))}
         </div>
