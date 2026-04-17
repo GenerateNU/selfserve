@@ -1,23 +1,21 @@
 import type { ReactNode } from "react";
-import type { RequestStatus } from "@shared";
 import { cn } from "@/lib/utils";
 
 type RequestCardProps = {
-  status: RequestStatus;
+  priority: string;
   children: ReactNode;
   className?: string;
   onClick?: () => void;
 };
 
-const accentClass: Record<RequestStatus, string> = {
-  pending: "bg-request-pending",
-  "in progress": "bg-request-assigned",
-  completed: "bg-request-completed",
-  archived: "bg-bg-disabled",
+const accentClass: Record<string, string> = {
+  high: "bg-priority-high",
+  medium: "bg-priority-medium",
+  low: "bg-priority-low",
 };
 
 export function RequestCard({
-  status,
+  priority,
   children,
   className,
   onClick,
@@ -34,7 +32,7 @@ export function RequestCard({
       <div
         className={cn(
           "absolute left-0 top-0 bottom-0 w-2 rounded-l-xl",
-          accentClass[status],
+          accentClass[priority] ?? "bg-priority-low",
         )}
       />
       {children}

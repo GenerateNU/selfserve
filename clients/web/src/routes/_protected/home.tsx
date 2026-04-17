@@ -138,11 +138,11 @@ function KanbanColumnData({
 function DragOverlayCard({ request }: { request: RequestFeedItem }) {
   return (
     <RequestCard
-      status={request.status}
+      priority={request.priority}
       className="w-[22rem] shadow-xl rotate-1 opacity-95"
     >
       <RequestCardTimestamp
-        status={request.status}
+        priority={request.priority}
         time={formatRequestTime(request.created_at)}
       />
       <div className="mt-3">

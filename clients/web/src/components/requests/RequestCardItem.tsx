@@ -113,12 +113,12 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
             onCelebrate={launchGreenConfetti}
           />
           <RequestCard
-            status={status}
+            priority={request.priority}
             className="w-full"
             onClick={isDragging ? undefined : onClick}
           >
             <RequestCardTimestamp
-              status={status}
+              priority={request.priority}
               time={formatRequestTime(request.created_at)}
             />
 
