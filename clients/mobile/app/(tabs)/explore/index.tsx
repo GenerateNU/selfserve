@@ -25,11 +25,7 @@ import {
   DEFAULT_ROOM_SORT,
 } from "@/components/rooms/room-sort-sheet";
 import { OverviewTab } from "@/components/rooms/overview-tab";
-import {
-  useGetRooms,
-  BookingStatus,
-  RoomStatusValue,
-} from "@shared/api/rooms";
+import { useGetRooms, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 
 const FLOORS: Floor[] = [
