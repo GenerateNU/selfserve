@@ -62,6 +62,11 @@ export default function RoomsScreen() {
   const [filters, setFilters] = useState<RoomFilters>(EMPTY_ROOM_FILTERS);
   const [sort, setSort] = useState<RoomSort>(DEFAULT_ROOM_SORT);
 
+  const hasActiveFilters =
+    filters.status.length > 0 ||
+    filters.attributes.length > 0 ||
+    filters.advanced.length > 0;
+
   const floorId = parseInt(selectedFloor.id);
   const { data: roomsData } = useGetRooms({
     floors: [floorId],
@@ -95,12 +100,11 @@ export default function RoomsScreen() {
           >
             <SlidersHorizontal
               size={19}
-              color={
-                filterVisible
-                  ? Colors.light.tabBarActive
-                  : Colors.light.textDefault
-              }
+              color={filterVisible ? Colors.light.tabBarActive : Colors.light.textDefault}
             />
+            {hasActiveFilters && (
+              <View className="absolute top-[5px] right-[5px] w-[6px] h-[6px] rounded-full bg-primary" />
+            )}
           </Pressable>
           <Pressable
             className={`items-center justify-center rounded w-[34px] h-[34px] ${sortVisible ? "bg-bg-selected" : ""}`}
@@ -108,11 +112,7 @@ export default function RoomsScreen() {
           >
             <ArrowUpDown
               size={18}
-              color={
-                sortVisible
-                  ? Colors.light.tabBarActive
-                  : Colors.light.textDefault
-              }
+              color={sortVisible ? Colors.light.tabBarActive : Colors.light.textDefault}
             />
           </Pressable>
         </View>
