@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Building2, Clock, DoorOpen, Flag, UserRound } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -90,11 +90,18 @@ export function CreateRequestDrawer({
   const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>();
   const [department, setDepartment] = useState<Department | undefined>();
 
-  const [isDirty, setIsDirty] = useState(false);
-
-  function markChanged() {
-    if (!isDirty) setIsDirty(true);
-  }
+  // Snapshot original values at mount so isDirty resets correctly if user reverts
+  const origName = useRef((existingRequest?.name ?? "").trim());
+  const origDescription = useRef((existingRequest?.description ?? "").trim());
+  const origPriority = useRef(existingRequest?.priority ?? "medium");
+  const origDeadline = useRef(
+    existingRequest?.scheduled_time
+      ? new Date(existingRequest.scheduled_time).getTime()
+      : undefined,
+  );
+  const origUserId = useRef(existingRequest?.user_id);
+  const origRoomId = useRef(existingRequest?.room_id);
+  const origDepartmentId = useRef(existingRequest?.department);
 
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
@@ -168,6 +175,16 @@ export function CreateRequestDrawer({
     }
   }
 
+  const isDirty =
+    isEditMode &&
+    (name.trim() !== origName.current ||
+      description.trim() !== origDescription.current ||
+      priority !== origPriority.current ||
+      (assignee?.id ?? origUserId.current) !== origUserId.current ||
+      (room?.id ?? origRoomId.current) !== origRoomId.current ||
+      (department?.id ?? origDepartmentId.current) !== origDepartmentId.current ||
+      (deadline?.getTime() ?? origDeadline.current) !== origDeadline.current);
+
   const canSubmit = isEditMode ? isDirty && !!name.trim() : !!name.trim();
   const buttonLabel = isPending
     ? isEditMode
@@ -183,7 +200,6 @@ export function CreateRequestDrawer({
       value={name}
       onChange={(e) => {
         setName(e.target.value);
-        if (isEditMode) markChanged();
       }}
       onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
       placeholder="New Request"
@@ -205,7 +221,6 @@ export function CreateRequestDrawer({
               initialUserId={assignee ? undefined : existingRequest?.user_id}
               onSelect={(user) => {
                 setAssignee(user);
-                markChanged();
               }}
             />
           )}
@@ -218,7 +233,6 @@ export function CreateRequestDrawer({
             selectedDate={deadline}
             onSelect={(date) => {
               setDeadline(date);
-              markChanged();
             }}
           />
         </div>
@@ -233,7 +247,6 @@ export function CreateRequestDrawer({
                 type="button"
                 onClick={() => {
                   setPriority(p);
-                  markChanged();
                 }}
                 className={cn(
                   "rounded px-2 py-0.5 text-xs capitalize transition-colors",
@@ -260,7 +273,6 @@ export function CreateRequestDrawer({
             }
             onSelect={(r) => {
               setRoom(r);
-              markChanged();
             }}
           />
         </div>
@@ -277,7 +289,6 @@ export function CreateRequestDrawer({
               }
               onSelect={(d) => {
                 setDepartment(d);
-                markChanged();
               }}
             />
           )}
@@ -290,7 +301,6 @@ export function CreateRequestDrawer({
           value={description}
           onChange={(e) => {
             setDescription(e.target.value);
-            if (isEditMode) markChanged();
           }}
           placeholder="Add a description..."
           rows={3}

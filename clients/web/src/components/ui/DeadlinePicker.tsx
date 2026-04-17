@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 type TimeSlot = { hour: number; minute: number };
 
 const TIME_SLOTS: Array<TimeSlot> = [];
-for (let h = 6; h <= 22; h++) {
+for (let h = 1; h <= 12; h++) {
   for (const m of [0, 15, 30, 45]) {
     TIME_SLOTS.push({ hour: h, minute: m });
   }
