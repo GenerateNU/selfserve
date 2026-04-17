@@ -128,8 +128,28 @@ type Request struct {
 	ID             string    `json:"id" example:"530e8400-e458-41d4-a716-446655440000"`
 	CreatedAt      time.Time `json:"created_at" example:"2024-01-02T00:00:00Z"`
 	RequestVersion time.Time `json:"request_version" example:"2024-01-02T00:00:00Z"`
+	ChangedBy      *string   `json:"changed_by,omitempty"`
 	MakeRequest
 } //@name Request
+
+type RequestActivityType string
+
+const (
+	ActivityCreated         RequestActivityType = "created"
+	ActivityStatusChanged   RequestActivityType = "status_changed"
+	ActivityPriorityChanged RequestActivityType = "priority_changed"
+	ActivityAssigned        RequestActivityType = "assigned"
+	ActivityUnassigned      RequestActivityType = "unassigned"
+	ActivityNameChanged     RequestActivityType = "name_changed"
+)
+
+type RequestActivityItem struct {
+	Type      RequestActivityType `json:"type"`
+	ChangedBy *string             `json:"changed_by"`
+	OldValue  *string             `json:"old_value,omitempty"`
+	NewValue  *string             `json:"new_value,omitempty"`
+	Timestamp time.Time           `json:"timestamp"`
+} //@name RequestActivityItem
 
 // RequestsFeedInput is the body for POST /requests/feed.
 type RequestsFeedInput struct {
