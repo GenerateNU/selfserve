@@ -100,13 +100,27 @@ export default function RoomsScreen() {
             className={`items-center justify-center rounded w-[34px] h-[34px] ${filterVisible ? "bg-bg-selected" : ""}`}
             onPress={() => setFilterVisible(true)}
           >
-            <SlidersHorizontal size={19} color={filterVisible ? Colors.light.tabBarActive : Colors.light.textDefault} />
+            <SlidersHorizontal
+              size={19}
+              color={
+                filterVisible
+                  ? Colors.light.tabBarActive
+                  : Colors.light.textDefault
+              }
+            />
           </Pressable>
           <Pressable
             className={`items-center justify-center rounded w-[34px] h-[34px] ${sortVisible ? "bg-bg-selected" : ""}`}
             onPress={() => setSortVisible(true)}
           >
-            <ArrowUpDown size={18} color={sortVisible ? Colors.light.tabBarActive : Colors.light.textDefault} />
+            <ArrowUpDown
+              size={18}
+              color={
+                sortVisible
+                  ? Colors.light.tabBarActive
+                  : Colors.light.textDefault
+              }
+            />
           </Pressable>
         </View>
       </View>

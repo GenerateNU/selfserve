@@ -108,13 +108,18 @@ export function RoomSortSheet({
           onStartShouldSetResponder={() => true}
         >
           {/* Drag handle */}
-          <View {...panResponder.panHandlers} className="items-center pt-3 pb-2">
+          <View
+            {...panResponder.panHandlers}
+            className="items-center pt-3 pb-2"
+          >
             <View className="w-11 h-1 rounded-full bg-stroke-subtle" />
           </View>
 
           {/* Title */}
           <View className="px-6 py-4">
-            <Text className="text-[15px] text-black tracking-tight">Sort by</Text>
+            <Text className="text-[15px] text-black tracking-tight">
+              Sort by
+            </Text>
           </View>
 
           {/* Sort options */}
@@ -132,10 +137,7 @@ export function RoomSortSheet({
                   style={selected ? { backgroundColor: "#f3f6f4" } : undefined}
                 >
                   <View className="flex-row items-center gap-2">
-                    <Icon
-                      size={14}
-                      color={Colors.light.textDefault}
-                    />
+                    <Icon size={14} color={Colors.light.textDefault} />
                     <Text className="text-[15px] text-black tracking-tight">
                       {label}
                     </Text>

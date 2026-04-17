@@ -16,7 +16,11 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export type RoomStatusFilter = "occupied" | "vacant" | "open-tasks";
 
-export type RoomAttributeFilter = "standard" | "deluxe" | "suite" | "accessible";
+export type RoomAttributeFilter =
+  | "standard"
+  | "deluxe"
+  | "suite"
+  | "accessible";
 
 export type RoomAdvancedFilter = "arrivals-today" | "departures-today";
 
@@ -74,7 +78,9 @@ function Chip({
     <Pressable
       onPress={onPress}
       className={`px-4 py-2 rounded border ${
-        selected ? "bg-bg-selected border-primary" : "bg-white border-input-border"
+        selected
+          ? "bg-bg-selected border-primary"
+          : "bg-white border-input-border"
       }`}
     >
       <Text
@@ -199,14 +205,21 @@ export function RoomFilterSheet({
           onStartShouldSetResponder={() => true}
         >
           {/* Drag handle */}
-          <View {...panResponder.panHandlers} className="items-center pt-3 pb-2">
+          <View
+            {...panResponder.panHandlers}
+            className="items-center pt-3 pb-2"
+          >
             <View className="w-11 h-1 rounded-full bg-stroke-subtle" />
           </View>
 
           {/* Scrollable filter content */}
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 20, gap: 20 }}
+            contentContainerStyle={{
+              paddingHorizontal: 24,
+              paddingVertical: 20,
+              gap: 20,
+            }}
           >
             {/* Header */}
             <View className="flex-row items-center justify-between">
@@ -283,7 +296,11 @@ export function RoomFilterSheet({
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 style={{ flex: 1 }}
-                contentContainerStyle={{ gap: 4, flexDirection: "row", alignItems: "center" }}
+                contentContainerStyle={{
+                  gap: 4,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
               >
                 {allSelected.map(({ label, onRemove }) => (
                   <Pressable
@@ -314,7 +331,9 @@ export function RoomFilterSheet({
                 onPress={close}
                 className="flex-1 items-center justify-center py-[10px] rounded"
               >
-                <Text className="text-[14px] leading-5 text-primary">Cancel</Text>
+                <Text className="text-[14px] leading-5 text-primary">
+                  Cancel
+                </Text>
               </Pressable>
               <Pressable
                 onPress={() => {
