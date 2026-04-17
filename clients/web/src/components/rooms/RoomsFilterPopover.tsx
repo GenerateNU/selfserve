@@ -141,7 +141,7 @@ export function RoomsFilterPopover({
       </PopoverTrigger>
       <PopoverContent
         sideOffset={8}
-        align="start"
+        align="center"
         className="rounded-lg shadow-md w-115.75"
       >
         <div className="flex flex-col gap-3 px-6 py-5">

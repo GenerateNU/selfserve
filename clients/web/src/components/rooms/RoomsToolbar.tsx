@@ -38,7 +38,7 @@ export function RoomsToolbar({
           value={searchTerm}
           onChange={onChangeSearchTerm}
           placeholder="Search for a room..."
-          className="w-full max-w-[16rem]"
+          className="w-56.25"
         />
         <FloorDropdown
           selected={filters.floors}
@@ -77,7 +77,7 @@ export function RoomsToolbar({
           ))}
         </div>
       ) : (
-        <div className="h-1" />
+        <div className="h-3" />
       )}
     </div>
   );

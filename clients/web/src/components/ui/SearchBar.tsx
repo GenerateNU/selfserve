@@ -37,7 +37,7 @@ export function SearchBar({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         className={cn(
-          "w-full bg-transparent text-sm leading-tight text-text-default outline-none placeholder:text-text-subtle",
+          "w-full bg-transparent text-sm text-text-default outline-none placeholder:text-text-subtle",
           inputClassName,
         )}
         {...inputProps}
