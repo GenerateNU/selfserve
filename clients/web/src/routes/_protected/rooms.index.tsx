@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
 import { useQuery } from "@tanstack/react-query";
-import { MakeRequestPriority } from "@shared";
+import { MakeRequestPriority, usePostRoomsHook } from "@shared";
 import type { Request, RoomWithOptionalGuestBooking } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";

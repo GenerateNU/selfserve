@@ -21,7 +21,7 @@ export function Button({
     <button
       type="button"
       className={cn(
-        "px-6 py-2.5 w-33 h-10 text-sm rounded-sm",
+        "px-6 py-2.5 w-33 h-10 text-sm rounded-sm disabled:opacity-50 disabled:pointer-events-none",
         variantStyles[variant],
         className,
       )}
