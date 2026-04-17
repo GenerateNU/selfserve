@@ -1,17 +1,34 @@
-import { ChefHat, MoreHorizontal, Plus } from "lucide-react";
+import { useDroppable } from "@dnd-kit/core";
+import { Building2, MoreHorizontal, Plus } from "lucide-react";
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 type KanbanColumnProps = {
   title: string;
   children: ReactNode;
+  droppableId: string;
+  onCreateRequest?: () => void;
 };
 
-export function KanbanColumn({ title, children }: KanbanColumnProps) {
+export function KanbanColumn({
+  title,
+  children,
+  droppableId,
+  onCreateRequest,
+}: KanbanColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: droppableId });
+
   return (
-    <div className="flex flex-col gap-3 rounded-t-2xl border border-b-0 border-stroke-subtle bg-white p-4 h-full">
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex flex-col gap-3 rounded-t-2xl border border-b-0 border-stroke-subtle bg-white p-4 h-full min-w-[22rem] transition-colors duration-150",
+        isOver && "bg-bg-selected",
+      )}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ChefHat className="size-5 text-text-default" />
+          <Building2 className="size-5 text-text-default" />
           <span className="text-base font-semibold text-text-default">
             {title}
           </span>
@@ -19,6 +36,7 @@ export function KanbanColumn({ title, children }: KanbanColumnProps) {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={onCreateRequest}
             className="text-text-subtle hover:text-text-default transition-colors"
           >
             <Plus className="size-4" />
@@ -31,8 +49,8 @@ export function KanbanColumn({ title, children }: KanbanColumnProps) {
           </button>
         </div>
       </div>
-      <div className="flex flex-col gap-3 overflow-y-auto flex-1">
-        {children}
+      <div className="overflow-y-auto flex-1 min-h-0 pb-24">
+        <div className="flex flex-col gap-3">{children}</div>
       </div>
     </div>
   );

@@ -33,6 +33,16 @@ func ToFieldErrors(err error) map[string]string {
 			fieldErrors[fieldName] = "invalid uuid"
 		case "timezone":
 			fieldErrors[fieldName] = "invalid IANA timezone"
+		case "oneof":
+			if strings.EqualFold(fieldName, "priority") {
+				fieldErrors[fieldName] = "must be one of: low, medium, high"
+				continue
+			}
+			if strings.EqualFold(fieldName, "status") {
+				fieldErrors[fieldName] = "must be one of: pending, assigned, in progress, completed"
+				continue
+			}
+			fieldErrors[fieldName] = fmt.Sprintf("failed validation: %s", fieldError.Tag())
 		default:
 			fieldErrors[fieldName] = fmt.Sprintf("failed validation: %s", fieldError.Tag())
 		}

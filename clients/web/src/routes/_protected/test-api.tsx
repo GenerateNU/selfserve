@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useGetHelloName } from "@shared/api/generated/endpoints/hello/hello.ts";
+import { useGetHelloName } from "@shared";
 import type { ApiError } from "@shared";
 
 export const Route = createFileRoute("/_protected/test-api")({
@@ -15,8 +15,8 @@ function TestApi() {
     submittedName,
   );
 
-  const handleSubmitName = (name: string) => {
-    setSubmittedName(name);
+  const handleSubmitName = (value: string) => {
+    setSubmittedName(value);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

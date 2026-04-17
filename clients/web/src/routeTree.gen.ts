@@ -11,11 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedTestApiRouteImport } from './routes/_protected/test-api'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedRoomsRouteImport } from './routes/_protected/rooms'
+import { Route as ProtectedProfileRouteImport } from './routes/_protected/profile'
 import { Route as ProtectedHomeRouteImport } from './routes/_protected/home'
 import { Route as ProtectedRoomsIndexRouteImport } from './routes/_protected/rooms.index'
 import { Route as ProtectedGuestsIndexRouteImport } from './routes/_protected/guests.index'
@@ -29,6 +31,11 @@ const SignUpRoute = SignUpRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedRoute = ProtectedRouteImport.update({
@@ -55,6 +62,11 @@ const ProtectedRoomsRoute = ProtectedRoomsRouteImport.update({
   path: '/rooms',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedProfileRoute = ProtectedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedHomeRoute = ProtectedHomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -78,9 +90,11 @@ const ProtectedGuestsGuestIdRoute = ProtectedGuestsGuestIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/home': typeof ProtectedHomeRoute
+  '/profile': typeof ProtectedProfileRoute
   '/rooms': typeof ProtectedRoomsRouteWithChildren
   '/settings': typeof ProtectedSettingsRoute
   '/test-api': typeof ProtectedTestApiRoute
@@ -90,9 +104,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/home': typeof ProtectedHomeRoute
+  '/profile': typeof ProtectedProfileRoute
   '/settings': typeof ProtectedSettingsRoute
   '/test-api': typeof ProtectedTestApiRoute
   '/guests/$guestId': typeof ProtectedGuestsGuestIdRoute
@@ -103,9 +119,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/_protected/home': typeof ProtectedHomeRoute
+  '/_protected/profile': typeof ProtectedProfileRoute
   '/_protected/rooms': typeof ProtectedRoomsRouteWithChildren
   '/_protected/settings': typeof ProtectedSettingsRoute
   '/_protected/test-api': typeof ProtectedTestApiRoute
@@ -117,9 +135,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/onboarding'
     | '/sign-in'
     | '/sign-up'
     | '/home'
+    | '/profile'
     | '/rooms'
     | '/settings'
     | '/test-api'
@@ -129,9 +149,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/onboarding'
     | '/sign-in'
     | '/sign-up'
     | '/home'
+    | '/profile'
     | '/settings'
     | '/test-api'
     | '/guests/$guestId'
@@ -141,9 +163,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_protected'
+    | '/onboarding'
     | '/sign-in'
     | '/sign-up'
     | '/_protected/home'
+    | '/_protected/profile'
     | '/_protected/rooms'
     | '/_protected/settings'
     | '/_protected/test-api'
@@ -155,6 +179,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRoute: typeof ProtectedRouteWithChildren
+  OnboardingRoute: typeof OnboardingRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
 }
@@ -173,6 +198,13 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected': {
@@ -208,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/rooms'
       fullPath: '/rooms'
       preLoaderRoute: typeof ProtectedRoomsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/profile': {
+      id: '/_protected/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProtectedProfileRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/home': {
@@ -255,6 +294,7 @@ const ProtectedRoomsRouteWithChildren = ProtectedRoomsRoute._addFileChildren(
 
 interface ProtectedRouteChildren {
   ProtectedHomeRoute: typeof ProtectedHomeRoute
+  ProtectedProfileRoute: typeof ProtectedProfileRoute
   ProtectedRoomsRoute: typeof ProtectedRoomsRouteWithChildren
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
   ProtectedTestApiRoute: typeof ProtectedTestApiRoute
@@ -264,6 +304,7 @@ interface ProtectedRouteChildren {
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedHomeRoute: ProtectedHomeRoute,
+  ProtectedProfileRoute: ProtectedProfileRoute,
   ProtectedRoomsRoute: ProtectedRoomsRouteWithChildren,
   ProtectedSettingsRoute: ProtectedSettingsRoute,
   ProtectedTestApiRoute: ProtectedTestApiRoute,
@@ -278,6 +319,7 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
+  OnboardingRoute: OnboardingRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
 }

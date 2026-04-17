@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"log/slog"
+	"strings"
 
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/httpx"
@@ -14,10 +16,19 @@ import (
 
 type GuestsHandler struct {
 	GuestsRepository storage.GuestsRepository
+	UsersRepository  storage.UsersRepository
+	searchGuests     func(ctx context.Context, filters *models.GuestFilters) (*models.GuestPage, error)
 }
 
-func NewGuestsHandler(repo storage.GuestsRepository) *GuestsHandler {
-	return &GuestsHandler{GuestsRepository: repo}
+func NewGuestsHandler(repo storage.GuestsRepository, usersRepo storage.UsersRepository, searchRepo storage.GuestsSearchRepository) *GuestsHandler {
+	// TODO: once OpenSearch setup is complete —
+	// 1. enforce searchRepo as required (fail startup if nil)
+	// 2. remove the Postgres fallback below
+	search := repo.FindGuestsWithActiveBooking
+	if searchRepo != nil {
+		search = searchRepo.SearchGuests
+	}
+	return &GuestsHandler{GuestsRepository: repo, UsersRepository: usersRepo, searchGuests: search}
 }
 
 // CreateGuest godoc
@@ -31,7 +42,7 @@ func NewGuestsHandler(repo storage.GuestsRepository) *GuestsHandler {
 // @Failure      400   {object}  map[string]string "Invalid guest body format"
 // @Failure      500   {object}  map[string]string  "Internal server error"
 // @Security     BearerAuth
-// @Router       /api/v1/guests [post]
+// @Router       /guests [post]
 func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 	var CreateGuestRequest models.CreateGuest
 	if err := httpx.BindAndValidate(c, &CreateGuestRequest); err != nil {
@@ -61,7 +72,7 @@ func (h *GuestsHandler) CreateGuest(c *fiber.Ctx) error {
 // @Failure      404  {object}  errs.HTTPError  "Guest not found"
 // @Failure      500   {object}  map[string]string "Internal server error"
 // @Security     BearerAuth
-// @Router       /api/v1/guests/{id} [get]
+// @Router       /guests/{id} [get]
 func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 	id := c.Params("id")
 	_, err := uuid.Parse(id)
@@ -92,12 +103,12 @@ func (h *GuestsHandler) GetGuest(c *fiber.Ctx) error {
 // @Failure      400   {object}  map[string]string "Invalid guest ID format"
 // @Failure      404  {object}  errs.HTTPError  "Guest not found"
 // @Failure      500   {object}  map[string]string "Internal server error"
+// @ID           getGuestsStaysId
 // @Security     BearerAuth
-// @Router       /api/v1/guests/stays/{id} [get]
+// @Router       /guests/stays/{id} [get]
 func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 	id := c.Params("id")
-	_, err := uuid.Parse(id)
-	if err != nil {
+	if !validUUID(id) {
 		return errs.BadRequest("guest id is not a valid UUID")
 	}
 
@@ -105,11 +116,11 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("guest", "id", id)
+
 		}
-		slog.Error("failed to get guest", "id", id, "error", err)
+		slog.Error("failed to get guest with stays", "id", id, "error", err)
 		return errs.InternalServerError()
 	}
-
 	return c.JSON(guest)
 }
 
@@ -126,7 +137,7 @@ func (h *GuestsHandler) GetGuestWithStays(c *fiber.Ctx) error {
 // @Failure      404   {object}  map[string]string
 // @Failure      500   {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /api/v1/guests/{id} [put]
+// @Router       /guests/{id} [put]
 func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -159,30 +170,53 @@ func (h *GuestsHandler) UpdateGuest(c *fiber.Ctx) error {
 
 // GetGuests godoc
 // @Summary      Get Guests
-// @Description  Retrieves guests optionally filtered by floor in which they are staying
+// @Description  Retrieves guests optionally filtered by floor
 // @Tags         guests
+// @Accept       json
 // @Produce      json
-// @Param        X-Hotel-ID  header    string  true   "Hotel ID (UUID)"
-// @Param        number      query     string  false  "Floor"
-// @Success      200         {object}  []models.GuestWithBooking
+// @Param        X-Hotel-ID  header    string             true   "Hotel ID (UUID)"
+// @Param        body        body      models.GuestFilters true   "Guest filters"
+// @Success      200         {object}  models.GuestPage
 // @Failure      400         {object}  map[string]string
 // @Failure      500         {object}  map[string]string
 // @Security     BearerAuth
-// @Router       /api/v1/guests [get]
+// @Router       /guests/search [post]
 func (h *GuestsHandler) GetGuests(c *fiber.Ctx) error {
 	hotelID := c.Get("X-Hotel-ID")
-	if !validUUID(hotelID) {
-		return errs.BadRequest("invalid hotel id")
+	var filters models.GuestFilters
+	filters.HotelID = hotelID
+	if err := httpx.BindAndValidate(c, &filters); err != nil {
+		return err
 	}
 
-	filter := new(models.GuestFilters)
-	filter.HotelID = hotelID
-	if err := c.QueryParser(filter); err != nil {
-		return errs.BadRequest("invalid filters")
+	if len(filters.Floors) == 0 {
+		filters.Floors = nil
+	}
+	if len(filters.GroupSize) == 0 {
+		filters.GroupSize = nil
+	}
+	if len(filters.Status) == 0 {
+		filters.Status = nil
+	}
+	if len(filters.Assistance) == 0 {
+		filters.Assistance = nil
 	}
 
-	guests, err := h.GuestsRepository.FindGuestsWithActiveBooking(c.Context(), filter)
+	if filters.Cursor != "" {
+		parts := strings.SplitN(filters.Cursor, "|", 2)
+		if len(parts) != 2 {
+			return errs.BadRequest("invalid cursor")
+		}
+		if _, err := uuid.Parse(parts[1]); err != nil {
+			return errs.BadRequest("invalid cursor")
+		}
+		filters.CursorName = parts[0]
+		filters.CursorID = parts[1]
+	}
+
+	guests, err := h.searchGuests(c.Context(), &filters)
 	if err != nil {
+		slog.Error("failed to get guests", "error", err)
 		return errs.InternalServerError()
 	}
 

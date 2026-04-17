@@ -1,6 +1,7 @@
 import React from "react";
-import { View, TextInput } from "react-native";
-import { Search } from "lucide-react-native";
+import { View, TextInput, Pressable } from "react-native";
+import { Search, X } from "lucide-react-native";
+import { Colors } from "@/constants/theme";
 
 interface SearchBarProps {
   value: string;
@@ -14,17 +15,20 @@ export function SearchBar({
   placeholder = "Search Guests",
 }: SearchBarProps) {
   return (
-    <View className="relative">
+    <View className="flex-row items-center border border-stroke-subtle rounded-lg px-[10px] py-2 gap-1">
+      <Search size={14} color={Colors.light.iconDisabled} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
-        className="w-full h-[6vh] px-[4vw] pr-[12vw] border border-gray-300 rounded-md"
+        placeholderTextColor={Colors.light.iconDisabled}
+        className="flex-1 text-sm text-text-default"
       />
-      <View className="absolute right-[4vw] top-0 h-full justify-center w-[5vw] h-[5vw]">
-        <Search className="w-full h-full" color="#9CA3AF" />
-      </View>
+      {value.length > 0 && (
+        <Pressable onPress={() => onChangeText("")} hitSlop={8}>
+          <X size={16} color={Colors.light.iconDisabled} />
+        </Pressable>
+      )}
     </View>
   );
 }

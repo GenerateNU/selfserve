@@ -1,51 +1,352 @@
-import { ChevronDown, LayoutGrid } from "lucide-react";
+import { Check, ChevronDown, LayoutGrid, User, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { FilterSortMenu } from "./FilterSortMenu";
+import { AssigneeFilterMenu } from "./AssigneeFilterMenu";
+import { DepartmentFilterMenu } from "./DepartmentFilterMenu";
+import { FloorFilterMenu } from "./FloorFilterMenu";
+import { PriorityFilterMenu } from "./PriorityFilterMenu";
+import type { RequestFeedSort, User as UserModel } from "@shared";
+import { cn } from "@/lib/utils";
 
-const FILTER_PILLS = [
-  { label: "Grouping", value: "Departments" },
-  { label: "Assignee", value: "All" },
-  { label: "Priority", value: "All" },
-  { label: "Location", value: "All" },
-  { label: "Deadline", value: "All" },
+const SORT_OPTIONS: Array<{ label: string; value: string }> = [
+  { label: "Priority", value: "priority" },
+  { label: "Newest", value: "newest" },
+  { label: "Oldest", value: "oldest" },
 ];
 
-export function HomeFilterBar() {
+type HomeFilterBarProps = {
+  sort?: RequestFeedSort;
+  onSortChange?: (sort: RequestFeedSort | undefined) => void;
+  selectedUser?: UserModel;
+  onUserChange?: (user: UserModel | undefined) => void;
+  selectedPriorities?: Array<string>;
+  onPrioritiesChange?: (priorities: Array<string>) => void;
+  selectedDepartments?: Array<string>;
+  onDepartmentsChange?: (departments: Array<string>) => void;
+  selectedFloors?: Array<number>;
+  onFloorsChange?: (floors: Array<number>) => void;
+  hotelId?: string;
+  currentUserId?: string;
+  onClearAll?: () => void;
+  onSaveView?: (name: string) => void;
+};
+
+const SORT_LABELS: Record<RequestFeedSort, string> = {
+  priority: "Priority",
+  newest: "Newest",
+  oldest: "Oldest",
+};
+
+type FilterChipProps = {
+  label: string;
+  active?: boolean;
+  activeValue?: string;
+  icon?: "grid" | "user";
+  onClick?: () => void;
+  ref?: React.Ref<HTMLButtonElement>;
+};
+
+function FilterChip({
+  label,
+  active,
+  activeValue,
+  icon = "grid",
+  onClick,
+  ref,
+}: FilterChipProps) {
   return (
-    <div className="flex items-center justify-between px-6 py-3 border-b border-stroke-subtle">
-      <div className="flex items-center gap-2">
-        {FILTER_PILLS.map((pill) => (
-          <button
-            key={pill.label}
-            type="button"
-            className="flex items-center gap-1.5 bg-request-completed-secondary rounded-full border border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
-          >
-            <LayoutGrid className="size-3" />
-            <span>
-              {pill.label}: <span className="font-semibold">{pill.value}</span>
-            </span>
-            <ChevronDown className="size-3" />
-          </button>
-        ))}
-        <button
-          type="button"
-          className="text-xs font-medium text-text-subtle hover:text-text-default transition-colors px-2"
-        >
-          + Filter
-        </button>
-      </div>
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          className="text-sm text-text-subtle hover:text-text-default transition-colors"
-        >
-          Reset
-        </button>
-        <button
-          type="button"
-          className="rounded-lg border border-text-default px-4 py-1.5 text-sm font-medium text-text-default hover:bg-zinc-50 transition-colors"
-        >
-          Save as New View
-        </button>
-      </div>
+    <button
+      ref={ref}
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm whitespace-nowrap transition-colors",
+        active
+          ? "bg-[#edf5f1] border-primary text-primary"
+          : "bg-white border-stroke-default text-text-secondary hover:bg-bg-container",
+      )}
+    >
+      {icon === "user" ? (
+        <User className="size-[13px]" />
+      ) : (
+        <LayoutGrid className="size-[13px]" />
+      )}
+      <span>
+        {active && activeValue ? (
+          <>
+            {label}: <span className="font-bold">{activeValue}</span>
+          </>
+        ) : (
+          label
+        )}
+      </span>
+      <ChevronDown className="size-[11px]" />
+    </button>
+  );
+}
+
+type SaveViewButtonProps = {
+  onSave?: (name: string) => void;
+};
+
+function SaveViewButton({ onSave }: SaveViewButtonProps) {
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState("");
+
+  function submit() {
+    if (!name.trim()) return;
+    onSave?.(name.trim());
+    setName("");
+    setSaving(false);
+  }
+
+  function cancel() {
+    setName("");
+    setSaving(false);
+  }
+
+  if (!saving) {
+    return (
+      <button
+        type="button"
+        onClick={() => setSaving(true)}
+        className="rounded border border-stroke-default px-2 py-1 text-sm text-text-secondary hover:bg-bg-container transition-colors"
+      >
+        Save as New View
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        autoFocus
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+          if (e.key === "Escape") cancel();
+        }}
+        placeholder="View name"
+        className="rounded border border-stroke-default px-2 py-1 text-sm text-text-default outline-none focus:border-primary w-32"
+      />
+      <button
+        type="button"
+        disabled={!name.trim()}
+        onClick={submit}
+        className="rounded p-1 text-primary hover:bg-[#edf5f1] transition-colors disabled:opacity-40"
+      >
+        <Check className="size-4" />
+      </button>
+      <button
+        type="button"
+        onClick={cancel}
+        className="rounded p-1 text-text-secondary hover:bg-bg-container transition-colors"
+      >
+        <X className="size-4" />
+      </button>
     </div>
+  );
+}
+
+export function HomeFilterBar({
+  sort,
+  onSortChange,
+  selectedUser,
+  onUserChange,
+  selectedPriorities = [],
+  onPrioritiesChange,
+  selectedDepartments = [],
+  onDepartmentsChange,
+  selectedFloors = [],
+  onFloorsChange,
+  hotelId,
+  currentUserId,
+  onClearAll,
+  onSaveView,
+}: HomeFilterBarProps) {
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false);
+  const [priorityMenuOpen, setPriorityMenuOpen] = useState(false);
+  const [departmentMenuOpen, setDepartmentMenuOpen] = useState(false);
+  const [floorMenuOpen, setFloorMenuOpen] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 });
+  const sortButtonRef = useRef<HTMLButtonElement>(null);
+  const assigneeButtonRef = useRef<HTMLButtonElement>(null);
+  const priorityButtonRef = useRef<HTMLButtonElement>(null);
+  const departmentButtonRef = useRef<HTMLButtonElement>(null);
+  const floorButtonRef = useRef<HTMLButtonElement>(null);
+
+  function openSortMenu() {
+    if (sortButtonRef.current) {
+      const rect = sortButtonRef.current.getBoundingClientRect();
+      setMenuAnchor({ x: rect.left, y: rect.bottom + 6 });
+    }
+    setSortMenuOpen(true);
+  }
+
+  function openAssigneeMenu() {
+    if (!hotelId) return;
+    if (assigneeButtonRef.current) {
+      const rect = assigneeButtonRef.current.getBoundingClientRect();
+      setMenuAnchor({ x: rect.left, y: rect.bottom + 6 });
+    }
+    setAssigneeMenuOpen(true);
+  }
+
+  function openPriorityMenu() {
+    if (priorityButtonRef.current) {
+      const rect = priorityButtonRef.current.getBoundingClientRect();
+      setMenuAnchor({ x: rect.left, y: rect.bottom + 6 });
+    }
+    setPriorityMenuOpen(true);
+  }
+
+  function openDepartmentMenu() {
+    if (!hotelId) return;
+    if (departmentButtonRef.current) {
+      const rect = departmentButtonRef.current.getBoundingClientRect();
+      setMenuAnchor({ x: rect.left, y: rect.bottom + 6 });
+    }
+    setDepartmentMenuOpen(true);
+  }
+
+  function openFloorMenu() {
+    if (floorButtonRef.current) {
+      const rect = floorButtonRef.current.getBoundingClientRect();
+      setMenuAnchor({ x: rect.left, y: rect.bottom + 6 });
+    }
+    setFloorMenuOpen(true);
+  }
+
+  const activeSortLabel = sort ? SORT_LABELS[sort] : undefined;
+  const activeAssigneeName = selectedUser
+    ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
+    : undefined;
+  const activePriorityLabel =
+    selectedPriorities.length === 1
+      ? selectedPriorities[0].charAt(0).toUpperCase() +
+        selectedPriorities[0].slice(1)
+      : selectedPriorities.length > 1
+        ? `${selectedPriorities.length} priorities`
+        : undefined;
+  const activeDepartmentLabel =
+    selectedDepartments.length === 1
+      ? selectedDepartments[0]
+      : selectedDepartments.length > 1
+        ? `${selectedDepartments.length} departments`
+        : undefined;
+  const activeFloorLabel =
+    selectedFloors.length === 1
+      ? `Floor ${selectedFloors[0]}`
+      : selectedFloors.length > 1
+        ? `${selectedFloors.length} floors`
+        : undefined;
+
+  return (
+    <>
+      <div className="flex items-start justify-between px-6 py-2 border-b border-stroke-subtle">
+        <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0 mr-4">
+          <FilterChip
+            ref={sortButtonRef}
+            label="Sorting"
+            active={!!activeSortLabel}
+            activeValue={activeSortLabel}
+            onClick={openSortMenu}
+          />
+          <FilterChip
+            ref={assigneeButtonRef}
+            label="Assignee"
+            active={!!activeAssigneeName}
+            activeValue={activeAssigneeName}
+            icon="user"
+            onClick={openAssigneeMenu}
+          />
+          <FilterChip
+            ref={departmentButtonRef}
+            label="Department"
+            active={selectedDepartments.length > 0}
+            activeValue={activeDepartmentLabel}
+            onClick={openDepartmentMenu}
+          />
+          <FilterChip
+            ref={priorityButtonRef}
+            label="Priority"
+            active={selectedPriorities.length > 0}
+            activeValue={activePriorityLabel}
+            onClick={openPriorityMenu}
+          />
+          <FilterChip
+            ref={floorButtonRef}
+            label="Floor"
+            active={selectedFloors.length > 0}
+            activeValue={activeFloorLabel}
+            onClick={openFloorMenu}
+          />
+        </div>
+        <div className="flex shrink-0 items-center gap-3 pt-1">
+          <button
+            type="button"
+            onClick={onClearAll}
+            className="text-sm text-text-secondary hover:text-text-default transition-colors"
+          >
+            Clear All
+          </button>
+          <SaveViewButton onSave={onSaveView} />
+        </div>
+      </div>
+
+      {sortMenuOpen && (
+        <FilterSortMenu
+          options={SORT_OPTIONS}
+          selected={sort}
+          anchor={menuAnchor}
+          onApply={(value) =>
+            onSortChange?.(value as RequestFeedSort | undefined)
+          }
+          onClose={() => setSortMenuOpen(false)}
+        />
+      )}
+
+      {assigneeMenuOpen && hotelId && (
+        <AssigneeFilterMenu
+          hotelId={hotelId}
+          currentUserId={currentUserId}
+          selectedUser={selectedUser}
+          anchor={menuAnchor}
+          onApply={(user) => onUserChange?.(user)}
+          onClose={() => setAssigneeMenuOpen(false)}
+        />
+      )}
+
+      {priorityMenuOpen && (
+        <PriorityFilterMenu
+          selectedPriorities={selectedPriorities}
+          anchor={menuAnchor}
+          onApply={(priorities) => onPrioritiesChange?.(priorities)}
+          onClose={() => setPriorityMenuOpen(false)}
+        />
+      )}
+
+      {departmentMenuOpen && hotelId && (
+        <DepartmentFilterMenu
+          hotelId={hotelId}
+          selectedNames={selectedDepartments}
+          anchor={menuAnchor}
+          onApply={(names) => onDepartmentsChange?.(names)}
+          onClose={() => setDepartmentMenuOpen(false)}
+        />
+      )}
+
+      {floorMenuOpen && (
+        <FloorFilterMenu
+          selectedFloors={selectedFloors}
+          anchor={menuAnchor}
+          onApply={(floors) => onFloorsChange?.(floors)}
+          onClose={() => setFloorMenuOpen(false)}
+        />
+      )}
+    </>
   );
 }

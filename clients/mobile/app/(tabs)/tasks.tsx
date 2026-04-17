@@ -1,54 +1,138 @@
+import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ActiveFilterChips } from "@/components/tasks/active-filter-chips";
 import { TabBar } from "@/components/tasks/tab-bar";
+import { TaskDetailSheet } from "@/components/tasks/task-detail-sheet";
+import { TaskFilterSheet } from "@/components/tasks/task-filter-sheet";
 import { TaskList } from "@/components/tasks/task-list";
 import { TasksHeader } from "@/components/tasks/tasks-header";
-import { TAB, TabName, TASK_ASSIGNMENT_STATE } from "@/constants/tasks";
-import { myTasks, unassignedTasks } from "@/data/mockTasks";
-
-const tabConfigs: Record<
-  TabName,
-  {
-    tasks: typeof myTasks;
-    variant: (typeof TASK_ASSIGNMENT_STATE)[keyof typeof TASK_ASSIGNMENT_STATE];
-    showFilters: boolean;
-  }
-> = {
-  [TAB.MY_TASKS]: {
-    tasks: myTasks,
-    variant: TASK_ASSIGNMENT_STATE.ASSIGNED,
-    showFilters: false,
-  },
-  [TAB.UNASSIGNED]: {
-    tasks: unassignedTasks,
-    variant: TASK_ASSIGNMENT_STATE.UNASSIGNED,
-    showFilters: true,
-  },
-};
+import { TAB, TabName } from "@/constants/tasks";
+import {
+  useAssignRequestToSelf,
+  useCompleteTask,
+  useDropTask,
+  useMarkTaskPending,
+  useGetRequestsFeed,
+  type RequestFeedItem,
+  type RequestFeedSort,
+} from "@shared/api/requests";
 
 export default function TasksScreen() {
   const [activeTab, setActiveTab] = useState<TabName>(TAB.MY_TASKS);
-  const currentTab = tabConfigs[activeTab];
+  const [selectedTask, setSelectedTask] = useState<RequestFeedItem | null>(
+    null,
+  );
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<RequestFeedSort>("priority");
+  const [priorities, setPriorities] = useState<string[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
+  const [floors, setFloors] = useState<number[]>([]);
+  const { userId } = useAuth();
+  const { mutate: completeTask } = useCompleteTask();
+  const { mutate: markTaskPending } = useMarkTaskPending();
+  const { mutate: dropTask } = useDropTask();
+  const { mutate: pickUpTask } = useAssignRequestToSelf(undefined);
+
+  const myTasksQuery = useGetRequestsFeed({
+    userId: userId ?? undefined,
+    sort,
+    priorities,
+    departments,
+    floors,
+    search: search || undefined,
+  });
+  const myTaskItems =
+    myTasksQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
+
+  const unassignedQuery = useGetRequestsFeed({
+    unassigned: true,
+    sort,
+    priorities,
+    departments,
+    floors,
+    search: search || undefined,
+  });
+  const unassignedItems =
+    unassignedQuery.data?.pages.flatMap((page) => page.items ?? []) ?? [];
+
+  const activeQuery =
+    activeTab === TAB.MY_TASKS ? myTasksQuery : unassignedQuery;
+
+  function handleEndReached() {
+    if (activeQuery.hasNextPage && !activeQuery.isFetchingNextPage) {
+      activeQuery.fetchNextPage();
+    }
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
-      <TasksHeader />
+    <SafeAreaView className="flex-1 bg-bg-surface" edges={["top"]}>
+      <TasksHeader
+        onFilterPress={() => setFilterSheetOpen(true)}
+        filterActive={filterSheetOpen}
+        searchOpen={searchOpen}
+        onSearchOpen={() => setSearchOpen(true)}
+        onSearchClose={() => {
+          setSearchOpen(false);
+          setSearch("");
+        }}
+        search={search}
+        onSearchChange={setSearch}
+      />
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-      {currentTab.showFilters && (
-        <ActiveFilterChips
-          filters={[
-            { label: "Department: Room Service", value: "room-service" },
-          ]}
-          onRemoveFilter={() => {}}
-          onClearAll={() => {}}
-        />
-      )}
       <View className="flex-1">
-        <TaskList tasks={currentTab.tasks} variant={currentTab.variant} />
+        {activeQuery.isLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator />
+          </View>
+        ) : (
+          <TaskList
+            tasks={activeTab === TAB.MY_TASKS ? myTaskItems : unassignedItems}
+            onEndReached={handleEndReached}
+            isLoadingMore={activeQuery.isFetchingNextPage}
+            onTaskPress={setSelectedTask}
+            onComplete={
+              activeTab === TAB.MY_TASKS
+                ? (id: string) => completeTask(id)
+                : undefined
+            }
+            onMarkPending={
+              activeTab === TAB.MY_TASKS
+                ? (id: string) => markTaskPending(id)
+                : undefined
+            }
+            onPickUp={
+              activeTab === TAB.UNASSIGNED
+                ? (id: string) => pickUpTask(id)
+                : undefined
+            }
+          />
+        )}
       </View>
+      <TaskDetailSheet
+        task={selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onComplete={(id) => completeTask(id)}
+        onMarkPending={(id) => markTaskPending(id)}
+        onDropTask={
+          activeTab === TAB.MY_TASKS ? (id) => dropTask(id) : undefined
+        }
+      />
+      <TaskFilterSheet
+        visible={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        sort={sort}
+        onSortChange={setSort}
+        priorities={priorities}
+        onPrioritiesChange={setPriorities}
+        departments={departments}
+        onDepartmentsChange={setDepartments}
+        floors={floors}
+        onFloorsChange={setFloors}
+      />
     </SafeAreaView>
   );
 }

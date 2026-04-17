@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/generate/selfserve/internal/errs"
@@ -15,11 +16,12 @@ import (
 )
 
 type mockRoomsRepository struct {
-	findRoomsFunc  func(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
-	findFloorsFunc func(ctx context.Context, hotelID string) ([]int, error)
+	findRoomsFunc    func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error)
+	findFloorsFunc   func(ctx context.Context, hotelID string) ([]int, error)
+	findRoomByIDFunc func(ctx context.Context, hotelID string, id string) (*models.RoomWithOptionalGuestBooking, error)
 }
 
-func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+func (m *mockRoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 	return m.findRoomsFunc(ctx, filter, hotelID, cursorRoomNumber)
 }
 
@@ -27,21 +29,31 @@ func (m *mockRoomsRepository) FindAllFloors(ctx context.Context, hotelID string)
 	return m.findFloorsFunc(ctx, hotelID)
 }
 
+func (m *mockRoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id string) (*models.RoomWithOptionalGuestBooking, error) {
+	return m.findRoomByIDFunc(ctx, hotelID, id)
+}
+
 var _ RoomsRepository = (*mockRoomsRepository)(nil)
 
-const testHotelID = "00000000-0000-0000-0000-000000000001"
+const testHotelID = "org_00000000000000000000000001"
 
-func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
+func TestRoomsHandler_FilterRooms(t *testing.T) {
 	t.Parallel()
 
 	t.Run("returns 200 with rooms and no guests when rooms are vacant", func(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return []*models.RoomWithOptionalGuestBooking{
 					{
-						Room:   models.Room{RoomNumber: 101, Floor: 1, SuiteType: "standard", RoomStatus: "available"},
+						Room: models.Room{
+							ID:         "530e8400-e458-41d4-a716-446655440111",
+							RoomNumber: 101,
+							Floor:      1,
+							SuiteType:  "standard",
+							RoomStatus: "available",
+						},
 						Guests: nil,
 					},
 				}, nil
@@ -50,9 +62,10 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRoomsByFloor)
+		app.Post("/rooms", h.FilterRooms)
 
-		req := httptest.NewRequest("GET", "/rooms", nil)
+		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{}`))
+		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -61,6 +74,7 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), `"items"`)
+		assert.Contains(t, string(body), "530e8400-e458-41d4-a716-446655440111")
 		assert.Contains(t, string(body), "101")
 		assert.Contains(t, string(body), "standard")
 		assert.Contains(t, string(body), `"has_more":false`)
@@ -73,7 +87,7 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		doe := "Doe"
 		pic := "https://example.com/jane.jpg"
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return []*models.RoomWithOptionalGuestBooking{
 					{
 						Room: models.Room{RoomNumber: 202, Floor: 2, SuiteType: "deluxe", RoomStatus: "occupied"},
@@ -94,9 +108,10 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRoomsByFloor)
+		app.Post("/rooms", h.FilterRooms)
 
-		req := httptest.NewRequest("GET", "/rooms?floors=2", nil)
+		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{"floors":[2]}`))
+		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -115,16 +130,17 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return []*models.RoomWithOptionalGuestBooking{}, nil
 			},
 		}
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRoomsByFloor)
+		app.Post("/rooms", h.FilterRooms)
 
-		req := httptest.NewRequest("GET", "/rooms?floors=99", nil)
+		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{"floors":[99]}`))
+		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -147,16 +163,17 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		}
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return rooms, nil
 			},
 		}
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRoomsByFloor)
+		app.Post("/rooms", h.FilterRooms)
 
-		req := httptest.NewRequest("GET", "/rooms?limit=5", nil)
+		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{"limit":5}`))
+		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -171,13 +188,11 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 	t.Run("passes cursor, filter, and hotelID to repository", func(t *testing.T) {
 		t.Parallel()
 
-		cursor := "200"
-
-		var capturedFilter *models.RoomFilters
+		var capturedFilter *models.FilterRoomsRequest
 		var capturedHotelID string
 		var capturedCursor int
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				capturedFilter = filter
 				capturedHotelID = hotelID
 				capturedCursor = cursorRoomNumber
@@ -187,9 +202,10 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 
 		app := fiber.New()
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRoomsByFloor)
+		app.Post("/rooms", h.FilterRooms)
 
-		req := httptest.NewRequest("GET", "/rooms?cursor="+cursor+"&limit=10", nil)
+		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{"cursor":"200","limit":10}`))
+		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -205,37 +221,17 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return nil, nil
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRoomsByFloor)
+		app.Post("/rooms", h.FilterRooms)
 
-		req := httptest.NewRequest("GET", "/rooms", nil)
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-	})
-
-	t.Run("returns 400 when hotel_id header is invalid", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
-				return nil, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRoomsByFloor)
-
-		req := httptest.NewRequest("GET", "/rooms", nil)
-		req.Header.Set(hotelIDHeader, "not-a-uuid")
+		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{}`))
+		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
@@ -248,21 +244,44 @@ func TestRoomsHandler_GetRoomsByFloor(t *testing.T) {
 		t.Parallel()
 
 		mock := &mockRoomsRepository{
-			findRoomsFunc: func(ctx context.Context, filter *models.RoomFilters, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
 				return nil, errors.New("db error")
 			},
 		}
 
 		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
 		h := NewRoomsHandler(mock)
-		app.Get("/rooms", h.GetRoomsByFloor)
+		app.Post("/rooms", h.FilterRooms)
 
-		req := httptest.NewRequest("GET", "/rooms", nil)
+		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{}`))
+		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set(hotelIDHeader, testHotelID)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 500, resp.StatusCode)
+	})
+
+	t.Run("returns 400 when request body is invalid json", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRoomsRepository{
+			findRoomsFunc: func(ctx context.Context, filter *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+				return nil, nil
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRoomsHandler(mock)
+		app.Post("/rooms", h.FilterRooms)
+
+		req := httptest.NewRequest("POST", "/rooms", strings.NewReader(`{`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set(hotelIDHeader, testHotelID)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 400, resp.StatusCode)
 	})
 }
 
@@ -308,27 +327,6 @@ func TestRoomsHandler_GetFloors(t *testing.T) {
 		app.Get("/rooms/floors", h.GetFloors)
 
 		req := httptest.NewRequest("GET", "/rooms/floors", nil)
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-
-		assert.Equal(t, 400, resp.StatusCode)
-	})
-
-	t.Run("returns 400 when hotel_id header is invalid", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRoomsRepository{
-			findFloorsFunc: func(ctx context.Context, hotelID string) ([]int, error) {
-				return []int{}, nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRoomsHandler(mock)
-		app.Get("/rooms/floors", h.GetFloors)
-
-		req := httptest.NewRequest("GET", "/rooms/floors", nil)
-		req.Header.Set(hotelIDHeader, "not-a-uuid")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 

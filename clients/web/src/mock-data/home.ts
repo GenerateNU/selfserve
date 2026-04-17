@@ -1,4 +1,4 @@
-import type { RequestStatus } from "@/components/requests/RequestCard";
+import type { RequestStatus } from "@shared";
 
 export type TaskContent = {
   status: RequestStatus;

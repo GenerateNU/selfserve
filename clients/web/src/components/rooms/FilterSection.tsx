@@ -1,29 +1,33 @@
 import { FilterChip } from "@/components/rooms/FilterChip";
 
-type FilterSectionProps = {
-  title: string;
-  chips: Array<string>;
-  selectedChips: Set<string>;
-  onToggle: (chip: string) => void;
+type Option<T extends string> = {
+  value: T;
+  label: string;
 };
 
-export function FilterSection({
+type FilterSectionProps<T extends string> = {
+  title: string;
+  options: Array<Option<T>>;
+  selectedValues: Set<T>;
+  onToggle: (value: T) => void;
+};
+
+export function FilterSection<T extends string>({
   title,
-  chips,
-  selectedChips,
+  options,
+  selectedValues,
   onToggle,
-}: FilterSectionProps) {
+}: FilterSectionProps<T>) {
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm font-medium text-text-subtle">{title}</span>
+      <span className="text-sm text-text-subtle">{title}</span>
       <div className="flex flex-wrap gap-2">
-        {chips.map((chip) => (
+        {options.map((option) => (
           <FilterChip
-            key={chip}
-            label={chip}
-            isSelected={selectedChips.has(chip)}
-            onToggle={() => onToggle(chip)}
-            className="h-8"
+            key={option.value}
+            label={option.label}
+            isSelected={selectedValues.has(option.value)}
+            onToggle={() => onToggle(option.value)}
           />
         ))}
       </div>

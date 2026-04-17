@@ -19,10 +19,10 @@ export function FilterChip({
       onClick={onToggle}
       className={cn(
         className,
-        "rounded-lg border px-4 py-1.5 text-sm font-medium transition-colors",
+        "rounded border px-4 py-2 text-sm transition-colors",
         isSelected
           ? "border-primary bg-primary/10 text-primary"
-          : "border-stroke-subtle bg-white text-text-default hover:border-primary",
+          : "border-stroke-default bg-white text-text-secondary hover:border-primary hover:text-primary",
       )}
     >
       {label}

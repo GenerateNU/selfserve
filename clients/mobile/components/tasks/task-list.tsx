@@ -1,30 +1,207 @@
-import { FlatList, ListRenderItem } from "react-native";
+import Feather from "@expo/vector-icons/Feather";
+import type { ComponentProps } from "react";
+import { Colors } from "@/constants/theme";
+import * as Haptics from "expo-haptics";
+import { useRef } from "react";
+import ReanimatedSwipeable, {
+  SwipeableMethods,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 
-import { TaskCard } from "@/components/tasks/task-card";
-import type { Task } from "@/data/mockTasks";
-import { TASK_ASSIGNMENT_STATE } from "@/constants/tasks";
+import { TaskRow } from "@/components/tasks/task-row";
+import type { RequestFeedItem } from "@shared/api/requests";
 
-interface TaskListProps {
-  tasks: Task[];
-  variant: (typeof TASK_ASSIGNMENT_STATE)[keyof typeof TASK_ASSIGNMENT_STATE];
+type SectionHeader = { _type: "section-header"; title: string };
+type ListItem = RequestFeedItem | SectionHeader;
+
+function isSectionHeader(item: ListItem): item is SectionHeader {
+  return "_type" in item && item._type === "section-header";
 }
 
-export function TaskList({ tasks, variant }: TaskListProps) {
-  const renderItem: ListRenderItem<Task> = ({ item, index }) => {
-    const isExpanded =
-      variant === TASK_ASSIGNMENT_STATE.ASSIGNED
-        ? index === 0
-        : item.priority === "High";
-    return <TaskCard task={item} variant={variant} isExpanded={isExpanded} />;
-  };
+type TaskListProps = {
+  tasks: RequestFeedItem[];
+  onEndReached?: () => void;
+  isLoadingMore?: boolean;
+  onTaskPress?: (task: RequestFeedItem) => void;
+  onComplete?: (taskId: string) => void;
+  onMarkPending?: (taskId: string) => void;
+  onPickUp?: (taskId: string) => void;
+};
+
+type SwipeActionProps = {
+  iconName: ComponentProps<typeof Feather>["name"];
+  label: string;
+};
+
+function SwipeAction({ iconName, label }: SwipeActionProps) {
+  return (
+    <View
+      style={{ backgroundColor: Colors.light.tabBarHighlight }}
+      className="flex-1 justify-center items-center flex-row gap-3 px-8"
+    >
+      <View className="bg-primary rounded-lg w-9 h-9 items-center justify-center">
+        <Feather name={iconName} size={18} color="white" />
+      </View>
+      <Text className="text-primary text-base font-medium">{label}</Text>
+    </View>
+  );
+}
+
+type SwipeableRowProps = {
+  item: RequestFeedItem;
+  onTaskPress?: (task: RequestFeedItem) => void;
+  onAction: (taskId: string) => void;
+  actionIcon: ComponentProps<typeof Feather>["name"];
+  actionLabel: string;
+  mode: "complete" | "pickup";
+};
+
+function SwipeableTaskRow({
+  item,
+  onTaskPress,
+  onAction,
+  actionIcon,
+  actionLabel,
+  mode,
+}: SwipeableRowProps) {
+  const swipeableRef = useRef<SwipeableMethods>(null);
+  const touchStartX = useRef(0);
+  const hasSwiped = useRef(false);
+
+  function handleOpen(direction: "left" | "right") {
+    if (direction !== "left") return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    onAction(item.id);
+    setTimeout(() => swipeableRef.current?.close(), 300);
+  }
 
   return (
-    <FlatList
-      data={tasks}
-      keyExtractor={(item) => item.id}
-      renderItem={renderItem}
-      contentContainerClassName="px-[5vw] py-4 gap-4"
+    <ReanimatedSwipeable
+      ref={swipeableRef}
+      friction={1.5}
+      rightThreshold={60}
+      renderRightActions={() => (
+        <SwipeAction iconName={actionIcon} label={actionLabel} />
+      )}
+      onSwipeableOpen={handleOpen}
+    >
+      <View
+        onTouchStart={(e) => {
+          touchStartX.current = e.nativeEvent.pageX;
+          hasSwiped.current = false;
+        }}
+        onTouchMove={(e) => {
+          const dx = Math.abs(e.nativeEvent.pageX - touchStartX.current);
+          if (dx > 8) hasSwiped.current = true;
+        }}
+      >
+        <TaskRow
+          task={item}
+          onPress={(task) => {
+            if (!hasSwiped.current) onTaskPress?.(task);
+          }}
+          onCheckboxPress={
+            mode === "complete"
+              ? () => swipeableRef.current?.openRight()
+              : undefined
+          }
+          onPickUp={
+            mode === "pickup"
+              ? () => swipeableRef.current?.openRight()
+              : undefined
+          }
+        />
+      </View>
+    </ReanimatedSwipeable>
+  );
+}
+
+export function TaskList({
+  tasks,
+  onEndReached,
+  isLoadingMore,
+  onTaskPress,
+  onComplete,
+  onMarkPending,
+  onPickUp,
+}: TaskListProps) {
+  const active = tasks.filter((t) => t.status !== "completed");
+  const completed = tasks.filter((t) => t.status === "completed");
+
+  const data: ListItem[] = [
+    ...active,
+    ...(completed.length > 0
+      ? [
+          { _type: "section-header" as const, title: "Completed Tasks" },
+          ...completed,
+        ]
+      : []),
+  ];
+
+  return (
+    <FlatList<ListItem>
+      data={data}
+      keyExtractor={(item) =>
+        isSectionHeader(item) ? "section-completed" : item.id
+      }
+      renderItem={({ item }) => {
+        if (isSectionHeader(item)) {
+          return (
+            <View className="px-6 py-4">
+              <Text className="text-[15px] font-medium text-text-default tracking-tight">
+                {item.title}
+              </Text>
+            </View>
+          );
+        }
+
+        const isActive = item.status !== "completed";
+        if (isActive && onComplete) {
+          return (
+            <SwipeableTaskRow
+              item={item}
+              onTaskPress={onTaskPress}
+              onAction={onComplete}
+              actionIcon="check"
+              actionLabel="Task completed!"
+              mode="complete"
+            />
+          );
+        }
+
+        if (isActive && onPickUp) {
+          return (
+            <SwipeableTaskRow
+              item={item}
+              onTaskPress={onTaskPress}
+              onAction={onPickUp}
+              actionIcon="plus"
+              actionLabel="Task picked up!"
+              mode="pickup"
+            />
+          );
+        }
+
+        return (
+          <TaskRow
+            task={item}
+            onPress={onTaskPress}
+            onCheckboxPress={
+              onMarkPending ? () => onMarkPending(item.id) : undefined
+            }
+          />
+        );
+      }}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.2}
       showsVerticalScrollIndicator={false}
+      ListFooterComponent={
+        isLoadingMore ? (
+          <View className="py-4 items-center">
+            <ActivityIndicator />
+          </View>
+        ) : null
+      }
     />
   );
 }
