@@ -88,7 +88,7 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
             onClick={isDragging ? undefined : onClick}
           >
             <RequestCardTimestamp
-              status={status}
+              priority={request.priority}
               time={formatRequestTime(request.created_at)}
             />
 
