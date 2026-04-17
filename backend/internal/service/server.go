@@ -280,7 +280,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 
 	// views routes
 	api.Route("/views", func(r fiber.Router) {
-		r.Get("/", viewsHandler.ListViews)
+		r.Get("/", viewsHandler.GetAllViews)
 		r.Post("/", viewsHandler.CreateView)
 		r.Delete("/:id", viewsHandler.DeleteView)
 	})

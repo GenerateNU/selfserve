@@ -12,8 +12,8 @@ import (
 )
 
 type ViewsRepository interface {
-	ListByUserAndSlug(ctx context.Context, userID, slug string) ([]*models.View, error)
-	Create(ctx context.Context, userID string, input models.CreateViewInput) (*models.View, error)
+	FindAllByUserAndSlug(ctx context.Context, userID, slug string) ([]*models.View, error)
+	Insert(ctx context.Context, userID string, input models.CreateViewInput) (*models.View, error)
 	Delete(ctx context.Context, id, userID string) error
 }
 
@@ -25,7 +25,7 @@ func NewViewsHandler(repo ViewsRepository) *ViewsHandler {
 	return &ViewsHandler{repo: repo}
 }
 
-// ListViews godoc
+// GetAllViews godoc
 // @Summary      List views
 // @Description  Returns all saved filter views for the authenticated user scoped to a page slug
 // @Tags         views
@@ -36,7 +36,7 @@ func NewViewsHandler(repo ViewsRepository) *ViewsHandler {
 // @Failure      500   {object}  errs.HTTPError
 // @Security     BearerAuth
 // @Router       /views [get]
-func (h *ViewsHandler) ListViews(c *fiber.Ctx) error {
+func (h *ViewsHandler) GetAllViews(c *fiber.Ctx) error {
 	slug := c.Query("slug")
 	if slug == "" {
 		return errs.BadRequest("slug is required")
@@ -44,7 +44,7 @@ func (h *ViewsHandler) ListViews(c *fiber.Ctx) error {
 
 	userID := c.Locals("userId").(string)
 
-	views, err := h.repo.ListByUserAndSlug(c.Context(), userID, slug)
+	views, err := h.repo.FindAllByUserAndSlug(c.Context(), userID, slug)
 	if err != nil {
 		slog.Error("failed to list views", "err", err)
 		return errs.InternalServerError()
@@ -77,7 +77,7 @@ func (h *ViewsHandler) CreateView(c *fiber.Ctx) error {
 
 	userID := c.Locals("userId").(string)
 
-	view, err := h.repo.Create(c.Context(), userID, input)
+	view, err := h.repo.Insert(c.Context(), userID, input)
 	if err != nil {
 		slog.Error("failed to create view", "err", err)
 		return errs.InternalServerError()
