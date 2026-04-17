@@ -303,15 +303,6 @@ export function CreateRequestDrawer({
         />
       </div>
 
-      {isEditMode && (
-        <div className="flex flex-col gap-4">
-          <span className="text-base font-bold text-text-default">
-            Activity
-          </span>
-          <ActivityFeed requestId={existingRequest.id!} />
-        </div>
-      )}
-
       <Button
         variant={canSubmit ? "primary" : "secondary"}
         onClick={handleSubmit}
@@ -320,6 +311,15 @@ export function CreateRequestDrawer({
       >
         {buttonLabel}
       </Button>
+
+      {isEditMode && (
+        <div className="flex flex-col gap-4">
+          <span className="text-base font-bold text-text-default">
+            Activity
+          </span>
+          <ActivityFeed requestId={existingRequest.id!} />
+        </div>
+      )}
     </DrawerShell>
   );
 }
