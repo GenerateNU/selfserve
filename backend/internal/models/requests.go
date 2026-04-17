@@ -135,12 +135,14 @@ type Request struct {
 type RequestActivityType string
 
 const (
-	ActivityCreated         RequestActivityType = "created"
-	ActivityStatusChanged   RequestActivityType = "status_changed"
-	ActivityPriorityChanged RequestActivityType = "priority_changed"
-	ActivityAssigned        RequestActivityType = "assigned"
-	ActivityUnassigned      RequestActivityType = "unassigned"
-	ActivityNameChanged     RequestActivityType = "name_changed"
+	ActivityCreated            RequestActivityType = "created"
+	ActivityStatusChanged      RequestActivityType = "status_changed"
+	ActivityPriorityChanged    RequestActivityType = "priority_changed"
+	ActivityAssigned           RequestActivityType = "assigned"
+	ActivityUnassigned         RequestActivityType = "unassigned"
+	ActivityNameChanged        RequestActivityType = "name_changed"
+	ActivityDepartmentChanged  RequestActivityType = "department_changed"
+	ActivityRoomChanged        RequestActivityType = "room_changed"
 )
 
 type RequestActivityItem struct {
