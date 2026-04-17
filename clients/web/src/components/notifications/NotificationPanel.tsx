@@ -1,12 +1,11 @@
-import { Bell, Filter, MoreVertical, Search, UserRound } from "lucide-react";
+import { Filter, MoreVertical, Search } from "lucide-react";
 import { useRef, useState } from "react";
-import { MOCK_NOTIFICATIONS } from "./notification.types";
+import { useGetNotifications } from "@shared";
+import { groupNotifications } from "./notification.utils";
 import { NotificationItem } from "./NotificationItem";
 import { FilterPopover } from "./FilterPopover";
 import { MorePopover } from "./MorePopover";
 import { cn } from "@/lib/utils";
-
-type Tab = "notifications" | "complaints";
 
 type NotificationPanelProps = {
   open: boolean;
@@ -17,11 +16,13 @@ export function NotificationPanel({
   open,
   sidebarExpanded,
 }: NotificationPanelProps) {
-  const [activeTab, setActiveTab] = useState<Tab>("notifications");
   const [filterOpen, setFilterOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const filterContainerRef = useRef<HTMLDivElement>(null);
   const moreContainerRef = useRef<HTMLDivElement>(null);
+
+  const { data: notifications = [] } = useGetNotifications();
+  const groups = groupNotifications(notifications);
 
   if (!open) return null;
 
@@ -86,59 +87,23 @@ export function NotificationPanel({
             </div>
           </div>
         </div>
-
-        {/* Tabs */}
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => setActiveTab("notifications")}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
-              activeTab === "notifications"
-                ? "border-b-2 border-primary text-primary"
-                : "text-text-subtle hover:text-text-default",
-            )}
-          >
-            <Bell className="size-3.5" strokeWidth={2} />
-            Notifications
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("complaints")}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
-              activeTab === "complaints"
-                ? "border-b-2 border-primary text-primary"
-                : "text-text-subtle hover:text-text-default",
-            )}
-          >
-            <UserRound className="size-3.5" strokeWidth={2} />
-            Guest Complaints
-          </button>
-        </div>
       </div>
 
-      {/* Notification list */}
-      {activeTab === "notifications" && (
-        <div className="flex flex-col gap-6 px-6">
-          {MOCK_NOTIFICATIONS.map((group) => (
-            <div key={group.label} className="flex flex-col gap-1">
-              <span className="mb-1 text-xs text-primary">{group.label}</span>
-              <div className="flex flex-col gap-4">
-                {group.items.map((item) => (
-                  <NotificationItem key={item.id} item={item} />
-                ))}
-              </div>
+      <div className="flex flex-col gap-6 px-6">
+        {groups.length === 0 && (
+          <p className="text-sm text-text-subtle">No notifications</p>
+        )}
+        {groups.map((group) => (
+          <div key={group.label} className="flex flex-col gap-1">
+            <span className="mb-1 text-xs text-primary">{group.label}</span>
+            <div className="flex flex-col gap-4">
+              {group.items.map((item) => (
+                <NotificationItem key={item.id} item={item} />
+              ))}
             </div>
-          ))}
-        </div>
-      )}
-
-      {activeTab === "complaints" && (
-        <div className="flex flex-1 items-center justify-center px-6">
-          <p className="text-sm text-text-subtle">No guest complaints</p>
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
