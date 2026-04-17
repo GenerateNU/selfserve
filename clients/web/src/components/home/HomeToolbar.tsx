@@ -228,22 +228,24 @@ export function HomeToolbar({
         </div>
       </div>
 
-    <div
-      className={cn(
-        "grid transition-all duration-200 ease-out",
-        searchOpen ? "grid-rows-[1fr] pb-3 pt-2 opacity-100" : "grid-rows-[0fr] opacity-0",
-      )}
-    >
-      <div className="overflow-hidden">
-        <SearchBar
-          value={searchValue}
-          onChange={(value) => onSearchChange?.(value)}
-          placeholder="Search tasks..."
-          autoFocus={searchOpen}
-          className="w-full max-w-sm"
-        />
+      <div
+        className={cn(
+          "grid transition-all duration-200 ease-out",
+          searchOpen
+            ? "grid-rows-[1fr] pb-3 pt-2 opacity-100"
+            : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="overflow-hidden">
+          <SearchBar
+            value={searchValue}
+            onChange={(value) => onSearchChange?.(value)}
+            placeholder="Search tasks..."
+            autoFocus={searchOpen}
+            className="w-full max-w-sm"
+          />
+        </div>
       </div>
-    </div>
     </div>
   );
 }

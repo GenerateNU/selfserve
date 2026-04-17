@@ -66,7 +66,7 @@ function KanbanColumnData({
   userId,
   priorities,
   floors,
-  search, 
+  search,
 }: {
   title: string;
   department: string;
@@ -76,7 +76,7 @@ function KanbanColumnData({
   userId?: string;
   priorities?: Array<string>;
   floors?: Array<number>;
-  search?: string; 
+  search?: string;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
@@ -177,12 +177,12 @@ function HomePage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
-  const timeout = setTimeout(() => {
-    setDebouncedSearch(searchValue);
-  }, 300);
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 300);
 
-  return () => clearTimeout(timeout);
-}, [searchValue]);
+    return () => clearTimeout(timeout);
+  }, [searchValue]);
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
