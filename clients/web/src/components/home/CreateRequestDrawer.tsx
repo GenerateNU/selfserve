@@ -49,6 +49,16 @@ function FieldLabel({ icon: Icon, label }: FieldLabelProps) {
   );
 }
 
+type RequestForm = {
+  name: string;
+  description: string;
+  priority: MakeRequestPriority;
+  deadline: Date | undefined;
+  user_id: string | undefined;
+  room_id: string | undefined;
+  department: string | undefined;
+};
+
 type CreateRequestDrawerProps = {
   onClose: () => void;
   // Create mode
@@ -72,36 +82,29 @@ export function CreateRequestDrawer({
   const isEditMode = !!existingRequest;
 
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
-  const [name, setName] = useState(
-    existingRequest?.name ?? initialData?.name ?? "",
-  );
-  const [description, setDescription] = useState(
-    existingRequest?.description ?? initialData?.description ?? "",
-  );
-  const [priority, setPriority] = useState<MakeRequestPriority>(
-    existingRequest?.priority ?? initialData?.priority ?? "medium",
-  );
-  const [deadline, setDeadline] = useState<Date | undefined>(
-    existingRequest?.scheduled_time
+
+  
+  const [form, setForm] = useState<RequestForm>({
+    name: existingRequest?.name ?? initialData?.name ?? "",
+    description: existingRequest?.description ?? initialData?.description ?? "",
+    priority: existingRequest?.priority ?? initialData?.priority ?? "medium",
+    deadline: existingRequest?.scheduled_time
       ? new Date(existingRequest.scheduled_time)
       : undefined,
-  );
-  const [assignee, setAssignee] = useState<User | undefined>();
-  const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>();
-  const [department, setDepartment] = useState<Department | undefined>();
+    user_id: existingRequest?.user_id ?? undefined,
+    room_id: existingRequest?.room_id ?? undefined,
+    department: existingRequest?.department ?? undefined,
+  });
 
-  // Snapshot original values at mount so isDirty resets correctly if user reverts
-  const origName = useRef((existingRequest?.name ?? "").trim());
-  const origDescription = useRef((existingRequest?.description ?? "").trim());
-  const origPriority = useRef(existingRequest?.priority ?? "medium");
-  const origDeadline = useRef(
-    existingRequest?.scheduled_time
-      ? new Date(existingRequest.scheduled_time).getTime()
-      : undefined,
-  );
-  const origUserId = useRef(existingRequest?.user_id);
-  const origRoomId = useRef(existingRequest?.room_id);
-  const origDepartmentId = useRef(existingRequest?.department);
+  
+  const [pickers, setPickers] = useState<{
+    assignee: User | undefined;
+    room: RoomWithOptionalGuestBooking | undefined;
+    department: Department | undefined;
+  }>({ assignee: undefined, room: undefined, department: undefined });
+
+  
+  const orig = useRef(existingRequest);
 
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
@@ -144,48 +147,50 @@ export function CreateRequestDrawer({
   const isPending = isCreating || isUpdating;
 
   function handleSubmit() {
-    if (!name.trim() || isPending) return;
+    if (!form.name.trim() || isPending) return;
 
     if (existingRequest) {
       updateRequest({
-        name: name.trim(),
-        priority,
-        description: description.trim() || undefined,
-        user_id: assignee?.id ?? existingRequest.user_id,
-        room_id: room?.id ?? existingRequest.room_id,
-        department: department?.id ?? existingRequest.department,
-        scheduled_time:
-          deadline?.toISOString() ?? existingRequest.scheduled_time,
+        name: form.name.trim(),
+        priority: form.priority,
+        description: form.description.trim() || undefined,
+        user_id: form.user_id,
+        room_id: form.room_id,
+        department: form.department,
+        scheduled_time: form.deadline?.toISOString() ?? existingRequest.scheduled_time,
       });
     } else {
       if (!backendUser?.hotel_id) return;
       createRequest({
-        name: name.trim(),
+        name: form.name.trim(),
         hotel_id: backendUser.hotel_id,
-        priority,
+        priority: form.priority,
         status: "pending",
         request_type: "general",
-        description: description.trim() || undefined,
-        user_id: assignee?.id ?? initialData?.user_id,
-        room_id: room?.id ?? initialData?.room_id,
-        department: department?.id,
+        description: form.description.trim() || undefined,
+        user_id: form.user_id ?? initialData?.user_id,
+        room_id: form.room_id ?? initialData?.room_id,
+        department: form.department,
         guest_id: initialData?.guest_id,
-        scheduled_time: deadline?.toISOString(),
+        scheduled_time: form.deadline?.toISOString(),
       });
     }
   }
 
   const isDirty =
     isEditMode &&
-    (name.trim() !== origName.current ||
-      description.trim() !== origDescription.current ||
-      priority !== origPriority.current ||
-      (assignee?.id ?? origUserId.current) !== origUserId.current ||
-      (room?.id ?? origRoomId.current) !== origRoomId.current ||
-      (department?.id ?? origDepartmentId.current) !== origDepartmentId.current ||
-      (deadline?.getTime() ?? origDeadline.current) !== origDeadline.current);
+    (form.name.trim() !== (orig.current?.name ?? "") ||
+      form.description.trim() !== (orig.current?.description ?? "") ||
+      form.priority !== orig.current?.priority ||
+      form.user_id !== orig.current?.user_id ||
+      form.room_id !== orig.current?.room_id ||
+      form.department !== orig.current?.department ||
+      form.deadline?.getTime() !==
+        (orig.current?.scheduled_time
+          ? new Date(orig.current.scheduled_time).getTime()
+          : undefined));
 
-  const canSubmit = isEditMode ? isDirty && !!name.trim() : !!name.trim();
+  const canSubmit = isEditMode ? isDirty && !!form.name.trim() : !!form.name.trim();
   const buttonLabel = isPending
     ? isEditMode
       ? "Saving..."
@@ -197,10 +202,8 @@ export function CreateRequestDrawer({
   const titleInput = (
     <input
       type="text"
-      value={name}
-      onChange={(e) => {
-        setName(e.target.value);
-      }}
+      value={form.name}
+      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
       onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
       placeholder="New Request"
       className="w-full bg-transparent text-center text-3xl font-bold text-text-default placeholder:text-text-subtle outline-none"
@@ -217,10 +220,11 @@ export function CreateRequestDrawer({
           {backendUser?.hotel_id && (
             <AssigneePicker
               hotelId={backendUser.hotel_id}
-              selectedUser={assignee}
-              initialUserId={assignee ? undefined : existingRequest?.user_id}
+              selectedUser={pickers.assignee}
+              initialUserId={pickers.assignee ? undefined : existingRequest?.user_id}
               onSelect={(user) => {
-                setAssignee(user);
+                setPickers((p) => ({ ...p, assignee: user }));
+                setForm((f) => ({ ...f, user_id: user?.id }));
               }}
             />
           )}
@@ -230,10 +234,8 @@ export function CreateRequestDrawer({
         <div className="flex items-center gap-8">
           <FieldLabel icon={Clock} label="Deadline" />
           <DeadlinePicker
-            selectedDate={deadline}
-            onSelect={(date) => {
-              setDeadline(date);
-            }}
+            selectedDate={form.deadline}
+            onSelect={(date) => setForm((f) => ({ ...f, deadline: date }))}
           />
         </div>
 
@@ -245,12 +247,10 @@ export function CreateRequestDrawer({
               <button
                 key={p}
                 type="button"
-                onClick={() => {
-                  setPriority(p);
-                }}
+                onClick={() => setForm((f) => ({ ...f, priority: p }))}
                 className={cn(
                   "rounded px-2 py-0.5 text-xs capitalize transition-colors",
-                  priority === p
+                  form.priority === p
                     ? "bg-primary text-white"
                     : "text-text-subtle hover:text-text-default",
                 )}
@@ -265,14 +265,15 @@ export function CreateRequestDrawer({
         <div className="flex items-center gap-8">
           <FieldLabel icon={DoorOpen} label="Room" />
           <RoomPicker
-            selectedRoom={room}
+            selectedRoom={pickers.room}
             initialRoomId={
-              room
+              pickers.room
                 ? undefined
                 : (existingRequest?.room_id ?? initialData?.room_id)
             }
             onSelect={(r) => {
-              setRoom(r);
+              setPickers((p) => ({ ...p, room: r }));
+              setForm((f) => ({ ...f, room_id: r?.id }));
             }}
           />
         </div>
@@ -283,12 +284,13 @@ export function CreateRequestDrawer({
           {backendUser?.hotel_id && (
             <DepartmentPicker
               hotelId={backendUser.hotel_id}
-              selectedDepartment={department}
+              selectedDepartment={pickers.department}
               initialDepartmentId={
-                department ? undefined : existingRequest?.department
+                pickers.department ? undefined : existingRequest?.department
               }
               onSelect={(d) => {
-                setDepartment(d);
+                setPickers((p) => ({ ...p, department: d }));
+                setForm((f) => ({ ...f, department: d?.id }));
               }}
             />
           )}
@@ -298,10 +300,8 @@ export function CreateRequestDrawer({
       <div className="flex flex-col gap-1">
         <span className="text-xs text-text-subtle">Description</span>
         <textarea
-          value={description}
-          onChange={(e) => {
-            setDescription(e.target.value);
-          }}
+          value={form.description}
+          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
           placeholder="Add a description..."
           rows={3}
           className="resize-none bg-transparent text-sm text-text-default placeholder:text-text-subtle outline-none"
