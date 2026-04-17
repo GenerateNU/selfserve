@@ -163,7 +163,15 @@ export const useCompleteTask = () => {
       api.put<RequestFeedItem>(`/request/${taskId}`, {
         status: RequestStatus.completed,
       }),
-    onSuccess: (_data, taskId) => {
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
+      const previousData = queryClient.getQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY });
       queryClient.setQueriesData<{
         pages: RequestFeedPage[];
         pageParams: unknown[];
@@ -181,9 +189,20 @@ export const useCompleteTask = () => {
           })),
         };
       });
+      return { previousData };
+    },
+    onError: (_err, _taskId, context) => {
+      if (context?.previousData) {
+        for (const [key, data] of context.previousData) {
+          queryClient.setQueryData(key, data);
+        }
+      }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
     },
   });
 };
@@ -197,7 +216,15 @@ export const useMarkTaskPending = () => {
       api.put<RequestFeedItem>(`/request/${taskId}`, {
         status: RequestStatus.pending,
       }),
-    onSuccess: (_data, taskId) => {
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
+      const previousData = queryClient.getQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY });
       queryClient.setQueriesData<{
         pages: RequestFeedPage[];
         pageParams: unknown[];
@@ -215,9 +242,20 @@ export const useMarkTaskPending = () => {
           })),
         };
       });
+      return { previousData };
+    },
+    onError: (_err, _taskId, context) => {
+      if (context?.previousData) {
+        for (const [key, data] of context.previousData) {
+          queryClient.setQueryData(key, data);
+        }
+      }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
     },
   });
 };
