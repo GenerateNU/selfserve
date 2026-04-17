@@ -182,11 +182,11 @@ export function CreateRequestDrawer({
     (form.name.trim() !== (orig.current?.name ?? "") ||
       form.description.trim() !== (orig.current?.description ?? "") ||
       form.priority !== orig.current?.priority ||
-      form.user_id !== orig.current?.user_id ||
-      form.room_id !== orig.current?.room_id ||
-      form.department !== orig.current?.department ||
+      form.user_id !== orig.current.user_id ||
+      form.room_id !== orig.current.room_id ||
+      form.department !== orig.current.department ||
       form.deadline?.getTime() !==
-        (orig.current?.scheduled_time
+        (orig.current.scheduled_time
           ? new Date(orig.current.scheduled_time).getTime()
           : undefined));
 
@@ -224,7 +224,7 @@ export function CreateRequestDrawer({
               initialUserId={pickers.assignee ? undefined : existingRequest?.user_id}
               onSelect={(user) => {
                 setPickers((p) => ({ ...p, assignee: user }));
-                setForm((f) => ({ ...f, user_id: user?.id }));
+                setForm((f) => ({ ...f, user_id: user.id }));
               }}
             />
           )}
@@ -273,7 +273,7 @@ export function CreateRequestDrawer({
             }
             onSelect={(r) => {
               setPickers((p) => ({ ...p, room: r }));
-              setForm((f) => ({ ...f, room_id: r?.id }));
+              setForm((f) => ({ ...f, room_id: r.id }));
             }}
           />
         </div>
