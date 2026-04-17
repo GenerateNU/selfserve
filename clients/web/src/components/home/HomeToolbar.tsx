@@ -9,6 +9,8 @@ type HomeToolbarProps = {
   views?: Array<View>;
   activeViewId?: string;
   activeViewPending?: boolean;
+  filtersOpen?: boolean;
+  onToggleFilters?: () => void;
   onSelectView?: (view: View | undefined) => void;
 };
 
@@ -36,6 +38,8 @@ export function HomeToolbar({
   views = [],
   activeViewId,
   activeViewPending = false,
+  filtersOpen = false,
+  onToggleFilters,
   onSelectView,
 }: HomeToolbarProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -112,7 +116,11 @@ export function HomeToolbar({
           <div className="flex items-center gap-6">
             <button
               type="button"
-              className="text-text-subtle hover:text-text-default transition-colors"
+              onClick={onToggleFilters}
+              className={cn(
+                "transition-colors",
+                filtersOpen ? "text-text-default" : "text-text-subtle hover:text-text-default",
+              )}
             >
               <ListFilter className="size-6" />
             </button>

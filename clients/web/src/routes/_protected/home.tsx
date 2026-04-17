@@ -113,6 +113,7 @@ function HomePage() {
     undefined,
   );
   const [viewIsPending, setViewIsPending] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -237,11 +238,13 @@ function HomePage() {
             views={views}
             activeViewId={activeViewId}
             activeViewPending={viewIsPending}
+            filtersOpen={filtersOpen}
+            onToggleFilters={() => setFiltersOpen((o) => !o)}
             onSelectView={(view) =>
               view ? handleApplyView(view) : handleClearAll()
             }
           />
-          <HomeFilterBar
+          {filtersOpen && <HomeFilterBar
             sort={sort}
             onSortChange={(s) => { setSort(s); if (activeViewId) setViewIsPending(true); }}
             selectedUser={selectedUser}
@@ -256,7 +259,7 @@ function HomePage() {
             currentUserId={backendUser?.id}
             onClearAll={handleClearAll}
             onSaveView={handleSaveView}
-          />
+          />}
         </>
       }
       drawerOpen={drawerOpen}
