@@ -6,6 +6,7 @@ import { FilterListIcon } from "@/icons/filter-list";
 import { SearchIcon } from "@/icons/search";
 import { SettingsIcon } from "@/icons/settings";
 import { TabIcon } from "@/icons/tab";
+import { SearchBar } from "@/components/ui/SearchBar";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -30,6 +31,10 @@ type HomeToolbarProps = {
   onToggleFilters?: () => void;
   onSelectView?: (view: View | undefined) => void;
   onDeleteView?: (view: View) => void;
+  searchOpen?: boolean;
+  searchValue?: string;
+  onSearchOpenChange?: (open: boolean) => void;
+  onSearchChange?: (value: string) => void;
 };
 
 const DEPARTMENTS_KEY = "__departments__";
@@ -45,6 +50,10 @@ export function HomeToolbar({
   onToggleFilters,
   onSelectView,
   onDeleteView,
+  searchOpen = false,
+  searchValue = "",
+  onSearchOpenChange,
+  onSearchChange,
 }: HomeToolbarProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
   const tabButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -95,6 +104,7 @@ export function HomeToolbar({
             <TabIcon className="size-4" />
             Departments
           </button>
+
           {views.map((view) => {
             const isActive = view.id === activeViewId;
             return (
@@ -118,6 +128,7 @@ export function HomeToolbar({
                     )}
                   </button>
                 </ContextMenuTrigger>
+
                 <ContextMenuContent>
                   <ContextMenuItem
                     variant="destructive"
@@ -130,6 +141,7 @@ export function HomeToolbar({
               </ContextMenu>
             );
           })}
+
           {underline.ready && (
             <div
               className="absolute bottom-0 h-0.5 bg-text-default transition-all duration-200 ease-out"
@@ -137,6 +149,7 @@ export function HomeToolbar({
             />
           )}
         </div>
+
         <div className="flex items-center gap-6 py-2">
           <div className="flex items-center gap-6">
             <button
@@ -156,12 +169,25 @@ export function HomeToolbar({
                 <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-primary" />
               )}
             </button>
+
             <button
               type="button"
-              className="text-text-subtle hover:text-text-default transition-colors"
+              onClick={() => {
+                if (searchOpen) onSearchChange?.("");
+                onSearchOpenChange?.(!searchOpen);
+              }}
+              className={cn(
+                "relative rounded p-2 transition-colors",
+                searchOpen
+                  ? "bg-primary-container text-primary"
+                  : searchValue
+                    ? "text-primary hover:bg-primary-container"
+                    : "text-text-subtle hover:text-text-default",
+              )}
             >
               <SearchIcon className="size-4" />
             </button>
+
             {activeView ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -191,6 +217,7 @@ export function HomeToolbar({
               </button>
             )}
           </div>
+
           <button
             type="button"
             onClick={onCreateRequest}
@@ -198,6 +225,25 @@ export function HomeToolbar({
           >
             Create Task
           </button>
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          "grid transition-all duration-200 ease-out",
+          searchOpen
+            ? "grid-rows-[1fr] pb-3 pt-2 opacity-100"
+            : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="overflow-hidden">
+          <SearchBar
+            value={searchValue}
+            onChange={(value) => onSearchChange?.(value)}
+            placeholder="Search tasks..."
+            autoFocus={searchOpen}
+            className="w-full max-w-sm"
+          />
         </div>
       </div>
     </div>
