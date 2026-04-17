@@ -19,6 +19,7 @@ import {
   useGetRequestsFeed,
   useGetUsersIdHook,
   useGetViews,
+  useUpdateView,
 } from "@shared";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import type {
@@ -154,20 +155,32 @@ function DragOverlayCard({ request }: { request: RequestFeedItem }) {
   );
 }
 
+const DEFAULT_FILTERS: RequestsWebFilters = {
+  sort: "priority",
+  priorities: [],
+  departments: [],
+  floors: [],
+};
+
+function toViewFilters(
+  filters: RequestsWebFilters,
+  user: User | undefined,
+): RequestsWebFilters {
+  return {
+    ...filters,
+    userId: user?.id,
+    userName: user
+      ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
+      : undefined,
+  };
+}
+
 function HomePage() {
-  const [sort, setSort] = useState<RequestFeedSort | undefined>("priority");
+  const [filters, setFilters] = useState<RequestsWebFilters>(DEFAULT_FILTERS);
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
-  const [selectedPriorities, setSelectedPriorities] = useState<Array<string>>(
-    [],
-  );
-  const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>(
-    [],
-  );
-  const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
   const [activeViewId, setActiveViewId] = useState<string | undefined>(
     undefined,
   );
-  const [viewIsPending, setViewIsPending] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeDragItem, setActiveDragItem] = useState<RequestFeedItem | null>(
     null,
@@ -195,6 +208,7 @@ function HomePage() {
   const { data: departments } = useGetDepartments(backendUser?.hotel_id);
   const { data: views = [] } = useGetViews(REQUESTS_WEB_SLUG);
   const { mutate: createView } = useCreateView(REQUESTS_WEB_SLUG);
+  const { mutate: updateView } = useUpdateView(REQUESTS_WEB_SLUG);
   const { mutate: deleteView, isPending: isDeletingView } =
     useDeleteView(REQUESTS_WEB_SLUG);
   const [viewToDelete, setViewToDelete] = useState<View | null>(null);
@@ -251,15 +265,12 @@ function HomePage() {
   }
 
   function handleApplyView(view: View) {
-    const filters = view.filters as RequestsWebFilters;
-    setSort(filters.sort ?? "priority");
-    setSelectedPriorities(filters.priorities ?? []);
-    setSelectedDepartments(filters.departments ?? []);
-    setSelectedFloors(filters.floors ?? []);
-    if (filters.userId) {
-      const [firstName = "", ...rest] = (filters.userName ?? "").split(" ");
+    const viewFilters = view.filters as RequestsWebFilters;
+    setFilters(viewFilters);
+    if (viewFilters.userId) {
+      const [firstName = "", ...rest] = (viewFilters.userName ?? "").split(" ");
       setSelectedUser({
-        id: filters.userId,
+        id: viewFilters.userId,
         first_name: firstName,
         last_name: rest.join(" "),
       } as User);
@@ -267,31 +278,35 @@ function HomePage() {
       setSelectedUser(undefined);
     }
     setActiveViewId(view.id);
-    setViewIsPending(false);
+  }
+
+  function handleFilterChange(
+    update: Partial<RequestsWebFilters>,
+    user?: User | null,
+  ) {
+    const newFilters = { ...filters, ...update };
+    const newUser = user !== undefined ? (user ?? undefined) : selectedUser;
+    setFilters(newFilters);
+    if (user !== undefined) setSelectedUser(newUser);
+    if (activeViewId)
+      updateView({
+        id: activeViewId,
+        filters: toViewFilters(newFilters, newUser),
+      });
   }
 
   function handleSaveView(name: string) {
-    const filters: RequestsWebFilters = {
-      sort,
-      priorities: selectedPriorities,
-      departments: selectedDepartments,
-      floors: selectedFloors,
-      userId: selectedUser?.id,
-      userName: selectedUser
-        ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
-        : undefined,
-    };
-    createView({ slug: REQUESTS_WEB_SLUG, display_name: name, filters });
+    createView({
+      slug: REQUESTS_WEB_SLUG,
+      display_name: name,
+      filters: toViewFilters(filters, selectedUser),
+    });
   }
 
   function handleClearAll() {
-    setSort("priority");
+    setFilters(DEFAULT_FILTERS);
     setSelectedUser(undefined);
-    setSelectedPriorities([]);
-    setSelectedDepartments([]);
-    setSelectedFloors([]);
     setActiveViewId(undefined);
-    setViewIsPending(false);
   }
 
   function handleCreateRequest() {
@@ -315,6 +330,7 @@ function HomePage() {
       room_id: request.room_id,
       guest_id: request.guest_id,
       user_id: request.user_id,
+      department_id: request.department ?? undefined,
     });
   }
 
@@ -352,10 +368,10 @@ function HomePage() {
   const drawerOpen = drawerData !== null || selectedRequestId !== null;
   const filtersActive =
     !!selectedUser ||
-    selectedPriorities.length > 0 ||
-    selectedDepartments.length > 0 ||
-    selectedFloors.length > 0 ||
-    sort !== "priority";
+    (filters.priorities?.length ?? 0) > 0 ||
+    (filters.departments?.length ?? 0) > 0 ||
+    (filters.floors?.length ?? 0) > 0 ||
+    filters.sort !== "priority";
 
   return (
     <PageShell
@@ -370,7 +386,6 @@ function HomePage() {
             onCreateRequest={handleCreateRequest}
             views={views}
             activeViewId={activeViewId}
-            activeViewPending={viewIsPending}
             filtersOpen={filtersOpen}
             filtersActive={filtersActive}
             onToggleFilters={() => setFiltersOpen((o) => !o)}
@@ -388,31 +403,20 @@ function HomePage() {
           >
             <div className="overflow-hidden">
               <HomeFilterBar
-                sort={sort}
-                onSortChange={(s) => {
-                  setSort(s);
-                  if (activeViewId) setViewIsPending(true);
-                }}
+                sort={filters.sort}
+                onSortChange={(s) => handleFilterChange({ sort: s })}
                 selectedUser={selectedUser}
-                onUserChange={(u) => {
-                  setSelectedUser(u);
-                  if (activeViewId) setViewIsPending(true);
-                }}
-                selectedPriorities={selectedPriorities}
-                onPrioritiesChange={(p) => {
-                  setSelectedPriorities(p);
-                  if (activeViewId) setViewIsPending(true);
-                }}
-                selectedDepartments={selectedDepartments}
-                onDepartmentsChange={(d) => {
-                  setSelectedDepartments(d);
-                  if (activeViewId) setViewIsPending(true);
-                }}
-                selectedFloors={selectedFloors}
-                onFloorsChange={(f) => {
-                  setSelectedFloors(f);
-                  if (activeViewId) setViewIsPending(true);
-                }}
+                onUserChange={(u) => handleFilterChange({}, u ?? null)}
+                selectedPriorities={filters.priorities ?? []}
+                onPrioritiesChange={(p) =>
+                  handleFilterChange({ priorities: p })
+                }
+                selectedDepartments={filters.departments ?? []}
+                onDepartmentsChange={(d) =>
+                  handleFilterChange({ departments: d })
+                }
+                selectedFloors={filters.floors ?? []}
+                onFloorsChange={(f) => handleFilterChange({ floors: f })}
                 hotelId={backendUser?.hotel_id}
                 currentUserId={backendUser?.id}
                 onClearAll={handleClearAll}
@@ -438,9 +442,9 @@ function HomePage() {
           onDragEnd={handleDragEnd}
         >
           <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
-            {(selectedDepartments.length > 0
+            {((filters.departments?.length ?? 0) > 0
               ? (departments ?? []).filter((d) =>
-                  selectedDepartments.includes(d.name),
+                  filters.departments!.includes(d.name),
                 )
               : (departments ?? [])
             ).map((dep) => (
@@ -448,12 +452,12 @@ function HomePage() {
                 key={dep.id}
                 title={dep.name}
                 department={dep.id}
-                sort={sort}
+                sort={filters.sort}
                 userId={selectedUser?.id}
                 onCardClick={handleCardClick}
                 onCreateRequest={handleCreateRequestForDepartment}
-                priorities={selectedPriorities}
-                floors={selectedFloors}
+                priorities={filters.priorities ?? []}
+                floors={filters.floors ?? []}
                 search={debouncedSearch}
               />
             ))}

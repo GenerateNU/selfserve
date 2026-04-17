@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { useGetDepartments } from "@shared";
 import { cn } from "@/lib/utils";
@@ -18,13 +17,13 @@ export function DepartmentFilterMenu({
   onApply,
   onClose,
 }: DepartmentFilterMenuProps) {
-  const [draft, setDraft] = useState<Array<string>>(selectedNames);
-
   const { data: departments = [], isLoading } = useGetDepartments(hotelId);
 
   function toggle(name: string) {
-    setDraft((prev) =>
-      prev.includes(name) ? prev.filter((d) => d !== name) : [...prev, name],
+    onApply(
+      selectedNames.includes(name)
+        ? selectedNames.filter((d) => d !== name)
+        : [...selectedNames, name],
     );
   }
 
@@ -38,7 +37,7 @@ export function DepartmentFilterMenu({
         {/* Header */}
         <div className="flex items-start justify-between pl-4 pr-3 py-3 border-b border-stroke-subtle min-h-[48px]">
           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
-            {draft.map((name) => (
+            {selectedNames.map((name) => (
               <span
                 key={name}
                 className="inline-flex items-center gap-1 bg-bg-container rounded px-2 py-1 text-sm text-text-default"
@@ -56,7 +55,7 @@ export function DepartmentFilterMenu({
           </div>
           <button
             type="button"
-            onClick={() => setDraft([])}
+            onClick={() => onApply([])}
             className="shrink-0 text-sm text-text-subtle hover:text-text-default transition-colors ml-2"
           >
             Clear
@@ -76,7 +75,7 @@ export function DepartmentFilterMenu({
             </p>
           )}
           {departments.map((dept) => {
-            const isSelected = draft.includes(dept.name);
+            const isSelected = selectedNames.includes(dept.name);
             return (
               <button
                 key={dept.id}
@@ -101,27 +100,6 @@ export function DepartmentFilterMenu({
               </button>
             );
           })}
-        </div>
-
-        {/* Footer */}
-        <div className="flex gap-3 p-3 border-t border-stroke-subtle">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 bg-bg-container rounded px-6 py-2.5 text-sm text-text-default hover:bg-bg-selected transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onApply(draft);
-              onClose();
-            }}
-            className="flex-1 bg-primary rounded px-6 py-2.5 text-sm text-white hover:bg-primary-hover transition-colors"
-          >
-            Select
-          </button>
         </div>
       </div>
     </>

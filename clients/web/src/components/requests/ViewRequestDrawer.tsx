@@ -164,7 +164,7 @@ export function ViewRequestDrawer({
 
       <div className="flex flex-col gap-4">
         <span className="text-base font-bold text-text-default">Activity</span>
-        <ActivityFeed requestId={request.id!} />
+        <ActivityFeed requestId={request.id!} hotelId={request.hotel_id} />
       </div>
     </DrawerShell>
   );

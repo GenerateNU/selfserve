@@ -211,7 +211,9 @@ export function CreateRequestDrawer({
               hotelId={backendUser.hotel_id}
               selectedUser={pickers.assignee}
               initialUserId={
-                pickers.assignee ? undefined : existingRequest?.user_id
+                pickers.assignee
+                  ? undefined
+                  : (existingRequest?.user_id ?? initialData?.user_id)
               }
               onSelect={(user) => {
                 setPickers((p) => ({ ...p, assignee: user }));
@@ -302,6 +304,18 @@ export function CreateRequestDrawer({
           className="resize-none bg-transparent text-sm text-text-default placeholder:text-text-subtle outline-none"
         />
       </div>
+
+      {isEditMode && (
+        <div className="flex flex-col gap-4">
+          <span className="text-base font-bold text-text-default">
+            Activity
+          </span>
+          <ActivityFeed
+            requestId={existingRequest.id!}
+            hotelId={existingRequest.hotel_id}
+          />
+        </div>
+      )}
 
       <Button
         variant={canSubmit ? "primary" : "secondary"}

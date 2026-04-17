@@ -27,7 +27,6 @@ export function AssigneeFilterMenu({
   onApply,
   onClose,
 }: AssigneeFilterMenuProps) {
-  const [draft, setDraft] = useState<User | undefined>(selectedUser);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
 
@@ -51,8 +50,8 @@ export function AssigneeFilterMenu({
 
   const users = data?.pages.flatMap((p) => p.users) ?? [];
 
-  const draftName = draft
-    ? `${draft.first_name ?? ""} ${draft.last_name ?? ""}`.trim()
+  const selectedName = selectedUser
+    ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
     : undefined;
 
   return (
@@ -65,12 +64,12 @@ export function AssigneeFilterMenu({
         {/* Header */}
         <div className="flex items-center justify-between pl-4 pr-3 py-3 border-b border-stroke-subtle">
           <div className="min-w-0 flex-1">
-            {draftName && (
+            {selectedName && (
               <span className="inline-flex items-center gap-1 bg-bg-container rounded px-2 py-1 text-sm text-text-default">
-                {draftName}
+                {selectedName}
                 <button
                   type="button"
-                  onClick={() => setDraft(undefined)}
+                  onClick={() => onApply(undefined)}
                   className="text-text-subtle hover:text-text-default"
                 >
                   <X className="size-2" />
@@ -80,7 +79,7 @@ export function AssigneeFilterMenu({
           </div>
           <button
             type="button"
-            onClick={() => setDraft(undefined)}
+            onClick={() => onApply(undefined)}
             className="shrink-0 text-sm text-text-subtle hover:text-text-default transition-colors"
           >
             Clear
@@ -113,7 +112,7 @@ export function AssigneeFilterMenu({
             </p>
           )}
           {users.map((user) => {
-            const isSelected = draft?.id === user.id;
+            const isSelected = selectedUser?.id === user.id;
             const isCurrentUser = user.id === currentUserId;
             const name =
               `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
@@ -121,7 +120,10 @@ export function AssigneeFilterMenu({
               <button
                 key={user.id}
                 type="button"
-                onClick={() => setDraft(isSelected ? undefined : user)}
+                onClick={() => {
+                  onApply(isSelected ? undefined : user);
+                  onClose();
+                }}
                 className="flex items-center gap-3 w-full px-4 py-2 text-sm text-text-default hover:bg-bg-container transition-colors"
               >
                 <span
@@ -144,27 +146,6 @@ export function AssigneeFilterMenu({
               </button>
             );
           })}
-        </div>
-
-        {/* Footer */}
-        <div className="flex gap-3 p-3 border-t border-stroke-subtle">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 bg-bg-container rounded px-6 py-2.5 text-sm text-text-default hover:bg-bg-selected transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onApply(draft);
-              onClose();
-            }}
-            className="flex-1 bg-primary rounded px-6 py-2.5 text-sm text-white hover:bg-primary-hover transition-colors"
-          >
-            Select
-          </button>
         </div>
       </div>
     </>
