@@ -112,7 +112,7 @@ function ActivityRow({ item, isLast }: ActivityRowProps) {
   const detail = buildDetail(item);
 
   return (
-    <div className="flex gap-4">
+    <div className={cn("flex gap-4", !isLast && "mb-2")}>
       {/* Avatar + timeline line */}
       <div className="flex flex-col items-center">
         {actor?.profile_picture ? (
@@ -137,9 +137,11 @@ function ActivityRow({ item, isLast }: ActivityRowProps) {
       {/* Content */}
       <div className={cn("flex min-w-0 flex-1 items-start justify-between gap-4", !isLast && "pb-7")}>
         <div className="flex flex-col gap-1">
-          <p className="text-sm text-text-default">
-            {buildDescription(item, actorName, targetName)}
-          </p>
+          <div className="flex min-h-8 items-center">
+            <p className="text-sm text-text-default">
+              {buildDescription(item, actorName, targetName)}
+            </p>
+          </div>
           {detail && (
             <div className="flex items-center gap-1.5 text-xs">
               {detail}
