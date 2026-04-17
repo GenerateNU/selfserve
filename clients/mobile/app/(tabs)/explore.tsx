@@ -1,10 +1,18 @@
 import { useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
-import { ChevronDown, Search, SlidersHorizontal, ArrowUpDown } from "lucide-react-native";
+import {
+  ChevronDown,
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+} from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
 import { RoomCard, type RoomStatus } from "@/components/rooms/room-card";
-import { FloorPickerSheet, type Floor } from "@/components/rooms/floor-picker-sheet";
+import {
+  FloorPickerSheet,
+  type Floor,
+} from "@/components/rooms/floor-picker-sheet";
 
 type Room = {
   id: string;

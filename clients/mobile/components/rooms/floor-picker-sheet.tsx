@@ -1,5 +1,13 @@
 import { useEffect, useRef } from "react";
-import { Animated, Dimensions, Modal, PanResponder, Pressable, Text, View } from "react-native";
+import {
+  Animated,
+  Dimensions,
+  Modal,
+  PanResponder,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { Check } from "lucide-react-native";
 import { Colors } from "@/constants/theme";
 
@@ -64,11 +72,16 @@ export function FloorPickerSheet({
             stiffness: 280,
           }).start();
       },
-    })
+    }),
   ).current;
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={close}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={close}
+    >
       <Pressable className="flex-1 bg-black/40" onPress={close} />
       <Animated.View
         style={{ transform: [{ translateY }] }}
@@ -77,7 +90,9 @@ export function FloorPickerSheet({
         <View {...panResponder.panHandlers} className="items-center pt-3 pb-2">
           <View className="w-10 h-1 rounded-full bg-stroke-subtle" />
         </View>
-        <Text className="text-base font-medium text-text-default px-5 pb-3">Select Floor</Text>
+        <Text className="text-base font-medium text-text-default px-5 pb-3">
+          Select Floor
+        </Text>
         {floors.map((floor, i) => (
           <Pressable
             key={floor.id}

@@ -62,7 +62,9 @@ export function RoomCard({
 }: RoomCardProps) {
   const isVacantAvailable = status.type === "vacant" && status.isAvailable;
   const hasFeatureTags =
-    hasHighPriority || isAccessible || (extraTagCount != null && extraTagCount > 0);
+    hasHighPriority ||
+    isAccessible ||
+    (extraTagCount != null && extraTagCount > 0);
 
   return (
     <Pressable
@@ -91,18 +93,24 @@ export function RoomCard({
               {hasHighPriority && (
                 <View className="flex-row items-center gap-1 bg-priority-high-bg px-2 py-1 rounded">
                   <Flag size={12} color={Colors.light.danger} />
-                  <Text className="text-xs text-priority-high">High Priority</Text>
+                  <Text className="text-xs text-priority-high">
+                    High Priority
+                  </Text>
                 </View>
               )}
               {isAccessible && (
                 <View className="flex-row items-center gap-2 bg-bg-input h-6 px-2 rounded">
                   <Accessibility size={12} color={Colors.light.iconMuted} />
-                  <Text className="text-xs text-text-secondary">Accessible</Text>
+                  <Text className="text-xs text-text-secondary">
+                    Accessible
+                  </Text>
                 </View>
               )}
               {extraTagCount != null && extraTagCount > 0 && (
                 <View className="bg-bg-input px-2 py-1 rounded">
-                  <Text className="text-xs text-text-secondary">+{extraTagCount}</Text>
+                  <Text className="text-xs text-text-secondary">
+                    +{extraTagCount}
+                  </Text>
                 </View>
               )}
             </View>
