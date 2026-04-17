@@ -158,11 +158,18 @@ export default function RoomsScreen() {
               roomNumber={item.room_number ?? ""}
               roomType={item.suite_type ?? ""}
               status={getRoomStatus(item)}
-              onPress={() =>
+              onPress={() => {
+                const guestIds =
+                  item.booking_status === BookingStatus.BookingStatusActive
+                    ? (item.guests
+                        ?.map((g) => g.id)
+                        .filter(Boolean)
+                        .join(",") ?? "")
+                    : "";
                 router.push(
-                  `/explore/${item.id}?roomNumber=${item.room_number}`,
-                )
-              }
+                  `/explore/${item.id}?roomNumber=${item.room_number}&guestIds=${guestIds}`,
+                );
+              }}
             />
           )}
         />

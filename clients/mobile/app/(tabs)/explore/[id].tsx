@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useGetRequestRoomId, useAssignRequestToSelf } from "@shared";
 import type { GuestRequest } from "@shared";
 import { Colors } from "@/constants/theme";
+import { GuestInfoTab } from "@/components/rooms/guest-info-tab";
 
 type TabId = "tasks" | "guest-info" | "details";
 
@@ -115,10 +116,19 @@ function Section({
 }
 
 export default function RoomDetailScreen() {
-  const { id, roomNumber } = useLocalSearchParams<{
+  const {
+    id,
+    roomNumber,
+    guestIds: guestIdsParam,
+  } = useLocalSearchParams<{
     id: string;
     roomNumber: string;
+    guestIds: string;
   }>();
+
+  const guestIds = guestIdsParam
+    ? guestIdsParam.split(",").filter(Boolean)
+    : [];
 
   const [activeTab, setActiveTab] = useState<TabId>("tasks");
   const [yourTasksExpanded, setYourTasksExpanded] = useState(true);
@@ -215,6 +225,9 @@ export default function RoomDetailScreen() {
             </Section>
           </ScrollView>
         ))}
+
+      {/* Guest Info tab */}
+      {activeTab === "guest-info" && <GuestInfoTab guestIds={guestIds} />}
     </SafeAreaView>
   );
 }
