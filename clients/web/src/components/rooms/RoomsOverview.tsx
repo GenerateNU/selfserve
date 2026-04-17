@@ -28,55 +28,58 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const vacantRooms = totalRooms - occupiedRooms;
 
   return (
-    <aside className="w-full max-w-[24.875rem] shrink-0 min-h-0 overflow-y-auto px-6">
-      <div className="flex flex-col">
-        <OverviewCard
-          title="Tasks"
-          columns={[
-            {
-              field: "Urgent",
-              value: 0,
-              description: "Tasks",
-              urgent: true,
-            },
-            {
-              field: "Unassigned",
-              value: cleaningOnlyRooms,
-              description: "Tasks",
-            },
-            {
-              field: "Pending",
-              value: cleaningRooms,
-              description: "Tasks",
-            },
-          ]}
-        />
+    <aside className="w-full max-w-[24.875rem] shrink-0 min-h-0 flex flex-col px-6">
+      <div className="flex flex-col flex-1 min-h-0">
+        <div className="shrink-0">
+          <OverviewCard
+            title="Tasks"
+            columns={[
+              {
+                field: "Urgent",
+                value: 0,
+                description: "Tasks",
+                urgent: true,
+              },
+              {
+                field: "Unassigned",
+                value: cleaningOnlyRooms,
+                description: "Tasks",
+              },
+              {
+                field: "Pending",
+                value: cleaningRooms,
+                description: "Tasks",
+              },
+            ]}
+          />
 
-        <OverviewCard
-          title="Guest Flow"
-          columns={[
-            {
-              field: "Floor Occupancy",
-              value: occupiedRooms,
-              valueSecondary: totalRooms,
-              description: "Rooms occupied",
-            },
-            {
-              field: "Expected Arrivals",
-              value: vacantRooms,
-              description: "Guests",
-            },
-            {
-              field: "Expected Departures",
-              value: occupiedAndCleaningRooms,
-              description: "Guests",
-            },
-          ]}
-        />
+          <OverviewCard
+            title="Guest Flow"
+            columns={[
+              {
+                field: "Floor Occupancy",
+                value: occupiedRooms,
+                valueSecondary: totalRooms,
+                description: "Rooms occupied",
+              },
+              {
+                field: "Expected Arrivals",
+                value: vacantRooms,
+                description: "Guests",
+              },
+              {
+                field: "Expected Departures",
+                value: occupiedAndCleaningRooms,
+                description: "Guests",
+              },
+            ]}
+          />
+        </div>
         <RoomRequestList
           title="Unassigned Tasks"
           onAssignToSelf={onAssignToSelf}
           requests={unassignedTasks}
+          className="flex-1 min-h-0"
         />
       </div>
     </aside>
