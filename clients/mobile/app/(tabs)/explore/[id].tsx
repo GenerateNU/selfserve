@@ -163,7 +163,9 @@ export default function RoomDetailScreen() {
       <View className="flex-row border-b border-stroke-subtle">
         {TABS.map(({ id, label, Icon }) => {
           const active = activeTab === id;
-          const color = active ? Colors.light.tabBarActive : Colors.light.iconMuted;
+          const color = active
+            ? Colors.light.tabBarActive
+            : Colors.light.iconMuted;
           return (
             <Pressable
               key={id}
