@@ -9,9 +9,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {
-  useUpdateRequestDepartment,
-} from "@shared/api/requests";
+import { useUpdateRequestDepartment } from "@shared/api/requests";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import {
   MakeRequestPriority,
@@ -117,7 +115,11 @@ function KanbanColumnData({
   if (!isPending && requests.length === 0) return null;
 
   return (
-    <KanbanColumn title={title} droppableId={department} onCreateRequest={() => onCreateRequest(department)}>
+    <KanbanColumn
+      title={title}
+      droppableId={department}
+      onCreateRequest={() => onCreateRequest(department)}
+    >
       {requests.map((request: RequestFeedItem) => (
         <RequestCardItem
           key={request.id}
@@ -420,8 +422,8 @@ function HomePage() {
           <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
             {(selectedDepartments.length > 0
               ? (departments ?? []).filter((d) =>
-                selectedDepartments.includes(d.name),
-              )
+                  selectedDepartments.includes(d.name),
+                )
               : (departments ?? [])
             ).map((dep) => (
               <KanbanColumnData
