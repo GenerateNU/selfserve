@@ -6,10 +6,18 @@ import { useGetUser } from "@shared";
 import LogoutButton from "@/components/Logout";
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { ProfileInfoCard } from "@/components/profile/ProfileInfoCard";
+import { useProfilePicture } from "@/hooks/use-profile-picture";
 
 export default function Profile() {
   const { userId } = useAuth();
   const { data: user, isLoading } = useGetUser(userId ?? undefined);
+  const {
+    profilePicUrl,
+    status,
+    isLoading: isPicLoading,
+    isInitialLoading: isPicInitialLoading,
+    pickAndUpload,
+  } = useProfilePicture(userId ?? undefined);
 
   const onSignOut = () => {
     router.replace("/sign-in");
@@ -37,8 +45,19 @@ export default function Profile() {
           <ProfileHero
             firstName={firstName}
             lastName={lastName}
-            avatarUrl={user?.profile_picture ?? undefined}
+            avatarUrl={
+              (!isPicInitialLoading && profilePicUrl) ||
+              user?.profile_picture ||
+              undefined
+            }
+            onAvatarPress={() => void pickAndUpload()}
+            isAvatarBusy={isPicLoading}
           />
+          {status.startsWith("Error") ? (
+            <Text className="text-xs text-center mt-2 px-6 text-danger">
+              {status}
+            </Text>
+          ) : null}
           <ProfileInfoCard
             governmentName={displayName}
             email={user?.primary_email ?? "—"}

@@ -45,6 +45,13 @@
           "color": "#ffffff",
           "sounds": []
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow SelfServe to access your photos to set your profile picture.",
+          "cameraPermission": "Allow SelfServe to use the camera for your profile picture."
+        }
       ]
     ],
     "experiments": {

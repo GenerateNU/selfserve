@@ -65,3 +65,20 @@ export async function uploadFileToS3(
     throw new Error("Failed to upload to S3");
   }
 }
+
+export async function uploadToS3PresignedPut(
+  presignedUrl: string,
+  body: ArrayBuffer,
+  contentType: string,
+): Promise<void> {
+  const res = await fetch(presignedUrl, {
+    method: "PUT",
+    body,
+    headers: {
+      "Content-Type": contentType,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to upload to S3");
+  }
+}
