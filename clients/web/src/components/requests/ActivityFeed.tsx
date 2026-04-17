@@ -73,7 +73,14 @@ function buildDescription(
     case "unassigned":
       return <>{actor} removed assignee</>;
     case "name_changed":
+    case "title_changed":
       return <>{actor} renamed request</>;
+    case "description_changed":
+      return <>{actor} updated description</>;
+    case "department_changed":
+      return <>{actor} changed department</>;
+    case "room_changed":
+      return <>{actor} changed room</>;
     default:
       return <>{actor} updated request</>;
   }
@@ -99,13 +106,33 @@ function buildDetail(item: RequestActivityItem): React.ReactNode | null {
         </>
       );
     }
-    if (item.type === "name_changed") {
+    if (item.type === "name_changed" || item.type === "title_changed") {
       return (
         <Pill className="bg-bg-container text-text-default">
           {item.new_value}
         </Pill>
       );
     }
+    if (item.type === "department_changed" || item.type === "room_changed") {
+      return (
+        <>
+          <Pill className="bg-bg-container text-text-default">
+            {item.old_value}
+          </Pill>
+          <span className="text-text-subtle">to</span>
+          <Pill className="bg-bg-container text-text-default">
+            {item.new_value}
+          </Pill>
+        </>
+      );
+    }
+  }
+  if (item.type === "description_changed" && item.new_value) {
+    return (
+      <Pill className="bg-bg-container text-text-default max-w-xs truncate">
+        {item.new_value}
+      </Pill>
+    );
   }
   return null;
 }
