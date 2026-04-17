@@ -112,6 +112,7 @@ function HomePage() {
   const [activeViewId, setActiveViewId] = useState<string | undefined>(
     undefined,
   );
+  const [viewIsPending, setViewIsPending] = useState(false);
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -156,6 +157,7 @@ function HomePage() {
       setSelectedUser(undefined);
     }
     setActiveViewId(view.id);
+    setViewIsPending(false);
   }
 
   function handleSaveView(name: string) {
@@ -179,6 +181,7 @@ function HomePage() {
     setSelectedDepartments([]);
     setSelectedFloors([]);
     setActiveViewId(undefined);
+    setViewIsPending(false);
   }
 
   function handleCreateRequest() {
@@ -236,6 +239,7 @@ function HomePage() {
         onCreateRequest={handleCreateRequest}
         views={views}
         activeViewId={activeViewId}
+        activeViewPending={viewIsPending}
         onSelectView={(view) =>
           view ? handleApplyView(view) : handleClearAll()
         }
@@ -245,27 +249,27 @@ function HomePage() {
         sort={sort}
         onSortChange={(s) => {
           setSort(s);
-          setActiveViewId(undefined);
+          if (activeViewId) setViewIsPending(true);
         }}
         selectedUser={selectedUser}
         onUserChange={(u) => {
           setSelectedUser(u);
-          setActiveViewId(undefined);
+          if (activeViewId) setViewIsPending(true);
         }}
         selectedPriorities={selectedPriorities}
         onPrioritiesChange={(p) => {
           setSelectedPriorities(p);
-          setActiveViewId(undefined);
+          if (activeViewId) setViewIsPending(true);
         }}
         selectedDepartments={selectedDepartments}
         onDepartmentsChange={(d) => {
           setSelectedDepartments(d);
-          setActiveViewId(undefined);
+          if (activeViewId) setViewIsPending(true);
         }}
         selectedFloors={selectedFloors}
         onFloorsChange={(f) => {
           setSelectedFloors(f);
-          setActiveViewId(undefined);
+          if (activeViewId) setViewIsPending(true);
         }}
         hotelId={backendUser?.hotel_id}
         currentUserId={backendUser?.id}

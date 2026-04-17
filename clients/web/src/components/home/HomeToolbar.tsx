@@ -7,6 +7,7 @@ type HomeToolbarProps = {
   onCreateRequest?: () => void;
   views?: Array<View>;
   activeViewId?: string;
+  activeViewPending?: boolean;
   onSelectView?: (view: View | undefined) => void;
 };
 
@@ -15,6 +16,7 @@ export function HomeToolbar({
   onCreateRequest,
   views = [],
   activeViewId,
+  activeViewPending = false,
   onSelectView,
 }: HomeToolbarProps) {
   return (
@@ -34,22 +36,29 @@ export function HomeToolbar({
             <LayoutGrid className="size-4" />
             Departments
           </button>
-          {views.map((view) => (
-            <button
-              key={view.id}
-              type="button"
-              onClick={() => onSelectView?.(view)}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
-                view.id === activeViewId
-                  ? "text-text-default border-b-2 border-text-default"
-                  : "text-text-subtle hover:text-text-default",
-              )}
-            >
-              <LayoutGrid className="size-4" />
-              {view.display_name}
-            </button>
-          ))}
+          {views.map((view) => {
+            const isActive = view.id === activeViewId;
+            const isPending = isActive && activeViewPending;
+            return (
+              <button
+                key={view.id}
+                type="button"
+                onClick={() => onSelectView?.(view)}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+                  isActive
+                    ? "text-text-default border-b-2 border-text-default"
+                    : "text-text-subtle hover:text-text-default",
+                )}
+              >
+                <LayoutGrid className="size-4" />
+                {view.display_name}
+                {isPending && (
+                  <span className="size-1.5 rounded-full bg-current opacity-60" />
+                )}
+              </button>
+            );
+          })}
         </div>
         <div className="flex items-center gap-4">
           <button
