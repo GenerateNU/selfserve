@@ -117,7 +117,7 @@ function RoomsPage() {
             selectedRoomNumber={selectedRoom?.room_number ?? null}
           />
         </div>
-        <RoomsOverview rooms={rooms?.items ?? []} />
+        <RoomsOverview rooms={rooms?.items ?? []} floors={filters.floors} />
       </div>
     </PageShell>
   );

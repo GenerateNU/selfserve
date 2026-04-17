@@ -1,8 +1,16 @@
 import { useGetRequestsFeed } from "@shared/api/requests";
 import type { RoomRequestItem } from "@/components/rooms/RoomRequestList";
 
-export function useUnassignedTasks() {
-  const query = useGetRequestsFeed({ unassigned: true, sort: "priority" });
+type UseUnassignedTasksOptions = {
+  floors?: Array<number>;
+};
+
+export function useUnassignedTasks({ floors }: UseUnassignedTasksOptions = {}) {
+  const query = useGetRequestsFeed({
+    unassigned: true,
+    sort: "priority",
+    floors: floors && floors.length > 0 ? floors : undefined,
+  });
 
   const tasks: Array<RoomRequestItem> = (query.data?.pages ?? []).flatMap(
     (page) =>

@@ -6,29 +6,24 @@ import { useUnassignedTasks } from "@/hooks/use-unassigned-tasks";
 
 type RoomsOverviewProps = {
   rooms: Array<RoomWithOptionalGuestBooking>;
+  floors: Array<number>;
 };
-// TODO: Replace with hifi (this is just to confirm the data is correct for us to ship rooms list)
-export function RoomsOverview({ rooms }: RoomsOverviewProps) {
-  const { tasks: unassignedTasks } = useUnassignedTasks();
-  const { mutate: onAssignToSelf } = useAssignRequestToSelf(undefined);
-  const totalRooms = rooms.length;
 
+export function RoomsOverview({ rooms, floors }: RoomsOverviewProps) {
+  const { tasks: unassignedTasks, data } = useUnassignedTasks({ floors });
+  const { mutate: onAssignToSelf } = useAssignRequestToSelf(undefined);
+
+  const feedItems = data?.pages.flatMap((p) => p.items ?? []) ?? [];
+  const urgentCount = feedItems.filter((t) => t.priority === "high").length;
+  const pendingCount = feedItems.filter((t) => t.status === "pending").length;
+
+  const totalRooms = rooms.length;
   const occupiedRooms = rooms.filter(
     (r) => r.booking_status === "active",
   ).length;
-  const cleaningRooms = rooms.filter(
-    (r) => r.room_status === "cleaning",
-  ).length;
-  const cleaningOnlyRooms = rooms.filter(
-    (r) => r.room_status === "cleaning" && r.booking_status !== "active",
-  ).length;
-  const occupiedAndCleaningRooms = rooms.filter(
-    (r) => r.booking_status === "active" && r.room_status === "cleaning",
-  ).length;
-  const vacantRooms = totalRooms - occupiedRooms;
 
   return (
-    <aside className="w-full max-w-[24.875rem] shrink-0 min-h-0 flex flex-col px-6">
+    <aside className="w-full max-w-99.5 shrink-0 min-h-0 flex flex-col px-6">
       <div className="flex flex-col flex-1 min-h-0">
         <div className="shrink-0">
           <OverviewCard
@@ -36,18 +31,18 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
             columns={[
               {
                 field: "Urgent",
-                value: 0,
+                value: urgentCount,
                 description: "Tasks",
                 urgent: true,
               },
               {
                 field: "Unassigned",
-                value: cleaningOnlyRooms,
+                value: feedItems.length,
                 description: "Tasks",
               },
               {
                 field: "Pending",
-                value: cleaningRooms,
+                value: pendingCount,
                 description: "Tasks",
               },
             ]}
@@ -64,12 +59,12 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
               },
               {
                 field: "Expected Arrivals",
-                value: vacantRooms,
+                value: "—",
                 description: "Guests",
               },
               {
                 field: "Expected Departures",
-                value: occupiedAndCleaningRooms,
+                value: "—",
                 description: "Guests",
               },
             ]}

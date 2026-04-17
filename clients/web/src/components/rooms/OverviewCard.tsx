@@ -35,15 +35,15 @@ export function OverviewCard({
             key={col.field}
             className="flex min-h-px min-w-px flex-1 flex-col gap-1 p-4"
           >
-            <div className="text-sm leading-tight text-text-default">
+            <div className="flex h-5 items-center text-sm leading-tight text-text-default">
               {col.urgent ? (
-                <span className="inline-flex gap-0.5">
+                <>
                   <UrgentIcon
-                    className="h-4.5 w-4.5 shrink-0 text-text-default"
+                    className="mr-1 h-3.5 w-3.5 shrink-0 text-text-default"
                     aria-hidden
                   />
                   {col.field}
-                </span>
+                </>
               ) : (
                 col.field
               )}
