@@ -20,23 +20,31 @@ func NewRoomsRepository(pool *pgxpool.Pool) *RoomsRepository {
 	return &RoomsRepository{db: pool}
 }
 
-func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filters *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int) ([]*models.RoomWithOptionalGuestBooking, error) {
+func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.Context, filters *models.FilterRoomsRequest, hotelID string, cursorRoomNumber int, cursorRoomID string) ([]*models.RoomWithOptionalGuestBooking, error) {
 	limit := utils.ResolveLimit(filters.Limit)
+	var cursorNumber any
+	var cursorID any
+	if cursorRoomID == "" {
+		cursorNumber = nil
+		cursorID = nil
+	} else {
+		cursorNumber = cursorRoomNumber
+		cursorID = cursorRoomID
+	}
 
 	// Paginate before joining with guests
 	rows, err := r.db.Query(ctx, `
 		WITH paginated_rooms AS (
 			SELECT id, room_number, floor, suite_type, room_status, is_accessible
 			FROM rooms
-			WHERE hotel_id = $4
+			WHERE hotel_id = $5
 				AND ($1::int[] IS NULL OR floor = ANY($1))
-				AND room_number > $2
-			ORDER BY room_number ASC
-			LIMIT $3
+				AND ($2::int IS NULL OR (room_number, id) > ($2::int, $3::uuid))
+			ORDER BY room_number ASC, id ASC
+			LIMIT $4
 		)
 		SELECT
 			pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status, pr.is_accessible,
-			CASE WHEN COUNT(guest_bookings.id) > 0 THEN 'active' ELSE 'inactive' END AS booking_status,
 			json_agg(
 				json_build_object(
 					'id',              guests.id,
@@ -48,11 +56,11 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		FROM paginated_rooms pr
 		LEFT JOIN guest_bookings ON pr.id = guest_bookings.room_id
 			AND guest_bookings.status = 'active'
-			AND guest_bookings.hotel_id = $4
+			AND guest_bookings.hotel_id = $5
 		LEFT JOIN guests ON guests.id = guest_bookings.guest_id
 		GROUP BY pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status, pr.is_accessible
-		ORDER BY pr.room_number ASC`,
-		filters.Floors, cursorRoomNumber, limit+1, hotelID)
+		ORDER BY pr.room_number ASC, pr.id ASC`,
+		filters.Floors, cursorNumber, cursorID, limit+1, hotelID)
 
 	if err != nil {
 		return nil, err
@@ -65,7 +73,6 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		var guestsJSON json.RawMessage
 		err := rows.Scan(
 			&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible,
-			&rb.BookingStatus,
 			&guestsJSON,
 		)
 		if err != nil {
@@ -112,7 +119,6 @@ func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id s
 	row := r.db.QueryRow(ctx, `
 		SELECT
 			r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible,
-			CASE WHEN COUNT(gb.id) > 0 THEN 'active' ELSE 'inactive' END AS booking_status,
 			json_agg(
 				json_build_object(
 					'id',              g.id,
@@ -132,7 +138,7 @@ func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id s
 
 	var rb models.RoomWithOptionalGuestBooking
 	var guestsJSON json.RawMessage
-	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible, &rb.BookingStatus, &guestsJSON)
+	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible, &guestsJSON)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
