@@ -9,7 +9,6 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { MakeRequestPriority } from "@shared";
 import {
   useGetRequestById,
@@ -19,6 +18,7 @@ import {
 import { useGetDepartments } from "@shared/api/departments";
 import { useCreateView, useDeleteView, useGetViews } from "@shared/api/views";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
 import type { Request, User } from "@shared";
 import type { View } from "@shared/types/views";
@@ -196,9 +196,7 @@ function HomePage() {
   );
 
   function handleDragStart(event: DragStartEvent) {
-    setActiveDragItem(
-      (event.active.data.current?.request as RequestFeedItem) ?? null,
-    );
+    setActiveDragItem(event.active.data.current?.request ?? null);
   }
 
   function handleDragEnd(event: DragEndEvent) {
