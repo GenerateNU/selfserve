@@ -1,6 +1,7 @@
 import { SearchBar } from "../ui/SearchBar";
 import { FloorDropdown } from "./FloorDropdown";
 import { OrderByDropdown } from "./OrderByDropdown";
+import type { RoomSortOption } from "./OrderByDropdown";
 import type { RoomFilters, RoomsPageFilters } from "@/hooks/use-rooms-filters";
 import type {
   RoomAdvancedFilter,
@@ -26,8 +27,8 @@ type RoomsToolbarProps = {
   onRemoveStatus: (value: RoomStatusFilter) => void;
   onRemoveAttribute: (value: RoomAttributeFilter) => void;
   onRemoveAdvanced: (value: RoomAdvancedFilter) => void;
-  ascending: boolean;
-  setAscending: (ascending: boolean) => void;
+  sortOption: RoomSortOption;
+  setSortOption: (option: RoomSortOption) => void;
 };
 
 export function RoomsToolbar({
@@ -39,8 +40,8 @@ export function RoomsToolbar({
   onRemoveStatus,
   onRemoveAttribute,
   onRemoveAdvanced,
-  ascending,
-  setAscending,
+  sortOption,
+  setSortOption,
 }: RoomsToolbarProps) {
   const hasActiveFilterTags =
     filters.floors.length > 0 ||
@@ -50,30 +51,35 @@ export function RoomsToolbar({
 
   return (
     <div className="flex w-full flex-col">
-      <div className="flex flex-wrap items-center gap-3">
-        <SearchBar
-          value={searchTerm}
-          onChange={onChangeSearchTerm}
-          placeholder="Search for a room..."
-          className="w-56.25"
-        />
-        <FloorDropdown
-          selected={filters.floors}
-          onChangeSelectedFloors={onChangeFloors}
-        />
-        <RoomsFilterPopover
-          filters={{
-            status: filters.status,
-            attributes: filters.attributes,
-            advanced: filters.advanced,
-          }}
-          onApply={onApplyFilters}
-        />
-        <div className="ml-auto flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+          <SearchBar
+            value={searchTerm}
+            onChange={onChangeSearchTerm}
+            placeholder="Search for a room..."
+            className="w-56.25"
+          />
+          <FloorDropdown
+            selected={filters.floors}
+            onChangeSelectedFloors={onChangeFloors}
+          />
+          <RoomsFilterPopover
+            filters={{
+              status: filters.status,
+              attributes: filters.attributes,
+              advanced: filters.advanced,
+            }}
+            onApply={onApplyFilters}
+          />
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
           <span className="whitespace-nowrap text-sm text-text-subtle">
             Sort by:
           </span>
-          <OrderByDropdown ascending={ascending} setAscending={setAscending} />
+          <OrderByDropdown
+            sortOption={sortOption}
+            setSortOption={setSortOption}
+          />
         </div>
       </div>
       {hasActiveFilterTags ? (
