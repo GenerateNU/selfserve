@@ -189,6 +189,11 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	usersRepo := repository.NewUsersRepository(repo.DB)
 	hotelsRepo := repository.NewHotelsRepository(repo.DB)
 	usersReadRepo := buildUsersRepository(objectCache, usersRepo)
+	guestsRepo := repository.NewGuestsRepository(repo.DB)
+	guestsReadRepo := buildGuestsRepository(objectCache, guestsRepo)
+	hotelsReadRepo := buildHotelsRepository(objectCache, hotelsRepo)
+	guestBookingsRepo := repository.NewGuestBookingsRepository(repo.DB)
+	guestBookingsReadRepo := buildGuestBookingsRepository(objectCache, guestBookingsRepo)
 
 	// initialize notifications
 	notifRepo := repository.NewNotificationsRepository(repo.DB)
@@ -199,13 +204,13 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
 	usersHandler := handler.NewUsersHandler(usersReadRepo, s3Store)
-	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), repository.NewUsersRepository(repo.DB), openSearchRepos.Guests)
+	guestsHandler := handler.NewGuestsHandler(guestsReadRepo, usersReadRepo, openSearchRepos.Guests)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
 	reqsHandler.WorkflowClient = workflowClient
-	hotelsHandler := handler.NewHotelsHandler(repository.NewHotelsRepository(repo.DB), repository.NewUsersRepository(repo.DB))
+	hotelsHandler := handler.NewHotelsHandler(hotelsReadRepo, usersReadRepo)
 	s3Handler := handler.NewS3Handler(s3Store)
 	roomsHandler := handler.NewRoomsHandler(repository.NewRoomsRepository(repo.DB))
-	guestBookingsHandler := handler.NewGuestBookingsHandler(repository.NewGuestBookingsRepository(repo.DB))
+	guestBookingsHandler := handler.NewGuestBookingsHandler(guestBookingsReadRepo)
 	viewsHandler := handler.NewViewsHandler(repository.NewViewsRepository(repo.DB))
 
 	clerkWhSignatureVerifier, err := handler.NewWebhookVerifier(cfg)
