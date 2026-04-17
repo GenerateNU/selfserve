@@ -44,3 +44,11 @@ export const useGetRooms = (params: RoomFiltersParams, enabled = true) => {
     enabled,
   });
 };
+
+export const useGetRoomsFloors = () => {
+  const api = useAPIClient();
+  return useQuery({
+    queryKey: ["rooms", "floors"],
+    queryFn: () => api.get<number[]>("/rooms/floors"),
+  });
+};
