@@ -29,7 +29,7 @@ export const useUpdateView = (slug: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, filters }: { id: string; filters: object }) =>
-      api.patch<View>(`/views/${id}`, { filters }),
+      api.post<View>(`/views/${id}`, { filters }),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: getViewsQueryKey(slug) });
     },

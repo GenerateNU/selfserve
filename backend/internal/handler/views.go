@@ -100,7 +100,7 @@ func (h *ViewsHandler) CreateView(c *fiber.Ctx) error {
 // @Failure      404      {object}  errs.HTTPError
 // @Failure      500      {object}  errs.HTTPError
 // @Security     BearerAuth
-// @Router       /views/{id} [patch]
+// @Router       /views/{id} [post]
 func (h *ViewsHandler) UpdateView(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
