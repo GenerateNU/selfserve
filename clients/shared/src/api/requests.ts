@@ -7,6 +7,7 @@ import {
 import type { GuestRequest, Request } from "./generated/models";
 import { RequestStatus } from "./generated/models";
 import { useAPIClient } from "./client";
+import { getConfig } from "./config";
 
 type GuestRequestPage = {
   items: GuestRequest[] | null;
@@ -124,6 +125,7 @@ export type RequestFeedParams = {
   priorities?: string[];
   departments?: string[];
   floors?: number[];
+  search?: string;
 };
 
 export const useDropTask = () => {
@@ -341,16 +343,20 @@ export const useGetRequestsFeed = (params: RequestFeedParams) => {
     queryKey: [...REQUESTS_FEED_QUERY_KEY, params] as const,
     initialPageParam: "",
     queryFn: ({ pageParam }) => {
-      const query: Record<string, string> = { limit: "20" };
-      if (pageParam) query.cursor = pageParam;
-      if (params.userId) query.user_id = params.userId;
-      if (params.unassigned) query.unassigned = "true";
-      if (params.sort) query.sort = params.sort;
-      if (params.status) query.status = params.status;
-      if (params.priorities?.length) query.priorities = params.priorities.join(",");
-      if (params.departments?.length) query.departments = params.departments.join(",");
-      if (params.floors?.length) query.floors = params.floors.join(",");
-      return api.get<RequestFeedPage>("/requests", query);
+      const { hotelId } = getConfig();
+      return api.post<RequestFeedPage>("/requests/feed", {
+        hotel_id: hotelId,
+        cursor: pageParam || undefined,
+        limit: 20,
+        user_id: params.userId,
+        unassigned: params.unassigned,
+        sort: params.sort,
+        status: params.status,
+        priorities: params.priorities,
+        departments: params.departments,
+        floors: params.floors,
+        search: params.search,
+      });
     },
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
   });
