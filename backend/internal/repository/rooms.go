@@ -127,7 +127,14 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 	case models.RoomSortUrgency:
 		rows, err = r.db.Query(ctx, base+`
 			AND ($6::int = 0 OR room_number > $6)
-			ORDER BY has_unassigned_tasks DESC, room_number ASC
+			ORDER BY
+				CASE priority
+					WHEN 'high' THEN 3
+					WHEN 'medium' THEN 2
+					ELSE 1
+				END DESC,
+				has_unassigned_tasks DESC,
+				room_number ASC
 			LIMIT $7
 		`, hotelID, filters.Floors, statusFilters, attrFilters, advFilters, cursorRoomNumber, limit+1)
 
