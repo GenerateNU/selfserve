@@ -1,18 +1,19 @@
 import { OrderByDropdown } from "./OrderByDropdown";
+import type { RoomSortOption } from "./OrderByDropdown";
 
 type SortByContainerProps = {
-  ascending: boolean;
-  setAscending: (ascending: boolean) => void;
+  sortOption: RoomSortOption;
+  setSortOption: (option: RoomSortOption) => void;
 };
 
 export function SortByContainer({
-  ascending,
-  setAscending,
+  sortOption,
+  setSortOption,
 }: SortByContainerProps) {
   return (
     <span className="text-sm text-text-subtle flex items-center gap-1 pt-6">
       Sort by:{" "}
-      <OrderByDropdown ascending={ascending} setAscending={setAscending} />
+      <OrderByDropdown sortOption={sortOption} setSortOption={setSortOption} />
     </span>
   );
 }

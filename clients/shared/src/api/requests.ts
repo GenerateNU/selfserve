@@ -200,10 +200,13 @@ export const useCompleteTask = () => {
         }
       }
     },
-    onSettled: () => {
+    onSettled: (_data, _err, taskId) => {
       queryClient.invalidateQueries({
         queryKey: REQUESTS_FEED_QUERY_KEY,
         exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getRequestActivityQueryKey(taskId),
       });
     },
   });
@@ -253,10 +256,13 @@ export const useMarkTaskPending = () => {
         }
       }
     },
-    onSettled: () => {
+    onSettled: (_data, _err, taskId) => {
       queryClient.invalidateQueries({
         queryKey: REQUESTS_FEED_QUERY_KEY,
         exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getRequestActivityQueryKey(taskId),
       });
     },
   });
@@ -384,6 +390,52 @@ export const useUpdateRequestDepartment = () => {
   });
 };
 
+export type RequestActivityType =
+  | "created"
+  | "status_changed"
+  | "priority_changed"
+  | "assigned"
+  | "unassigned"
+  | "name_changed"
+  | "title_changed"
+  | "description_changed"
+  | "department_changed"
+  | "room_changed";
+
+export type RequestActivityItem = {
+  type: RequestActivityType;
+  changed_by: string | null;
+  old_value?: string | null;
+  new_value?: string | null;
+  timestamp: string;
+};
+
+export type RequestActivityPage = {
+  items: RequestActivityItem[];
+  next_cursor?: string | null;
+};
+
+const ACTIVITY_PAGE_SIZE = 8;
+
+export const getRequestActivityQueryKey = (requestId: string) =>
+  ["request", requestId, "activity"] as const;
+
+export const useGetRequestActivity = (requestId: string | null) => {
+  const api = useAPIClient();
+  return useInfiniteQuery({
+    queryKey: getRequestActivityQueryKey(requestId ?? ""),
+    queryFn: ({ pageParam }) => {
+      const url = pageParam
+        ? `/request/${requestId}/activity?cursor=${encodeURIComponent(pageParam)}&limit=${ACTIVITY_PAGE_SIZE}`
+        : `/request/${requestId}/activity?limit=${ACTIVITY_PAGE_SIZE}`;
+      return api.get<RequestActivityPage>(url);
+    },
+    getNextPageParam: (last) => last.next_cursor ?? undefined,
+    initialPageParam: "",
+    enabled: !!requestId,
+  });
+};
+
 export const useGetRequestsFeed = (params: RequestFeedParams) => {
   const api = useAPIClient();
   return useInfiniteQuery({
@@ -408,3 +460,4 @@ export const useGetRequestsFeed = (params: RequestFeedParams) => {
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
   });
 };
+

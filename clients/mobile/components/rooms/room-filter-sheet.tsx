@@ -43,23 +43,27 @@ type RoomFilterSheetProps = {
   onClose: () => void;
 };
 
-const STATUS_OPTIONS: { value: RoomStatusFilter; label: string }[] = [
+export const STATUS_OPTIONS: { value: RoomStatusFilter; label: string }[] = [
   { value: "occupied", label: "Occupied" },
   { value: "vacant", label: "Vacant" },
   { value: "open-tasks", label: "Open Tasks" },
 ];
 
-const ATTRIBUTE_OPTIONS: { value: RoomAttributeFilter; label: string }[] = [
+export const ATTRIBUTE_OPTIONS: {
+  value: RoomAttributeFilter;
+  label: string;
+}[] = [
   { value: "standard", label: "Standard" },
   { value: "deluxe", label: "Deluxe" },
   { value: "suite", label: "Suite" },
   { value: "accessible", label: "Accessible" },
 ];
 
-const ADVANCED_OPTIONS: { value: RoomAdvancedFilter; label: string }[] = [
-  { value: "arrivals-today", label: "Arrivals Today" },
-  { value: "departures-today", label: "Departures Today" },
-];
+export const ADVANCED_OPTIONS: { value: RoomAdvancedFilter; label: string }[] =
+  [
+    { value: "arrivals-today", label: "Arrivals Today" },
+    { value: "departures-today", label: "Departures Today" },
+  ];
 
 function toggle<T>(arr: T[], val: T): T[] {
   return arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val];

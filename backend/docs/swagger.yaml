@@ -129,6 +129,16 @@ definitions:
     type: object
   FilterRoomsRequest:
     properties:
+      advanced:
+        description: arrivals-today | departures-today
+        items:
+          type: string
+        type: array
+      attributes:
+        description: standard | deluxe | suite | accessible
+        items:
+          type: string
+        type: array
       cursor:
         type: string
       floors:
@@ -138,6 +148,13 @@ definitions:
       limit:
         minimum: 0
         type: integer
+      sort:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.RoomSortOption'
+      status:
+        description: occupied | vacant | open-tasks
+        items:
+          type: string
+        type: array
     type: object
   GenerateRequestInput:
     properties:
@@ -645,10 +662,14 @@ definitions:
         items:
           $ref: '#/definitions/Guest'
         type: array
+      has_unassigned_tasks:
+        type: boolean
       id:
         type: string
       is_accessible:
         type: boolean
+      priority:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.RequestPriority'
       room_number:
         type: integer
       room_status:
@@ -834,6 +855,16 @@ definitions:
     - SortByPriority
     - SortByNewest
     - SortByOldest
+  github_com_generate_selfserve_internal_models.RequestPriority:
+    enum:
+    - low
+    - medium
+    - high
+    type: string
+    x-enum-varnames:
+    - PriorityLow
+    - PriorityMedium
+    - PriorityHigh
   github_com_generate_selfserve_internal_models.RequestSortOrder:
     enum:
     - high_to_low
@@ -844,6 +875,16 @@ definitions:
     - RequestSortHighToLow
     - RequestSortLowToHigh
     - RequestSortUrgent
+  github_com_generate_selfserve_internal_models.RoomSortOption:
+    enum:
+    - ascending
+    - descending
+    - urgency
+    type: string
+    x-enum-varnames:
+    - RoomSortAscending
+    - RoomSortDescending
+    - RoomSortUrgency
   github_com_generate_selfserve_internal_models.UpdateDepartment:
     properties:
       name:
@@ -1901,10 +1942,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Retrieves rooms with optional floor filters and cursor pagination,
-        including any active guest bookings
+      description: Retrieves rooms with optional filters (status, attributes, advanced,
+        sort) and cursor pagination. Occupancy is derived from active guest_bookings;
+        open tasks from the latest request version per room.
       parameters:
-      - description: Hotel ID (UUID)
+      - description: Hotel ID
         in: header
         name: X-Hotel-ID
         required: true

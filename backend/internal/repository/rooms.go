@@ -39,17 +39,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 	// $1 = hotelID, $2 = floors, $3 = status filters, $4 = attribute filters,
 	// $5 = advanced filters, $6 = cursorRoomNumber, $7 = limit+1
 	const base = `
-		WITH open_task_rooms AS (
-			SELECT DISTINCT room_id::uuid AS room_id
-			FROM (
-				SELECT DISTINCT ON (id) id, room_id, status
-				FROM requests
-				WHERE hotel_id = $1 AND room_id IS NOT NULL
-				ORDER BY id, request_version DESC
-			) latest
-			WHERE status != 'archived'
-		),
-		room_task_info AS (
+		WITH room_task_info AS (
 			SELECT
 				room_id::uuid AS room_id,
 				COALESCE(
@@ -67,14 +57,13 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 				WHERE hotel_id = $1 AND room_id IS NOT NULL
 				ORDER BY id, request_version DESC
 			) latest
-			WHERE status != 'archived'
+			WHERE status NOT IN ('completed', 'archived')
 			GROUP BY room_id
 		),
 		room_enriched AS (
 			SELECT
 				r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible,
 				CASE WHEN COUNT(gb_active.id) > 0 THEN 'active' ELSE 'inactive' END AS booking_status,
-				BOOL_OR(otr.room_id IS NOT NULL)  AS has_open_tasks,
 				BOOL_OR(gb_arrive.id IS NOT NULL) AS has_arrivals_today,
 				BOOL_OR(gb_depart.id IS NOT NULL) AS has_departures_today,
 				json_agg(
@@ -98,7 +87,6 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 			LEFT JOIN guest_bookings gb_depart ON r.id = gb_depart.room_id
 				AND gb_depart.hotel_id = $1
 				AND gb_depart.departure_date = CURRENT_DATE
-			LEFT JOIN open_task_rooms otr ON r.id = otr.room_id
 			LEFT JOIN room_task_info rti ON r.id = rti.room_id
 			WHERE r.hotel_id = $1
 				AND ($2::int[] IS NULL OR r.floor = ANY($2))
@@ -109,7 +97,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		WHERE (cardinality($3::text[]) = 0 OR (
 				('occupied'   = ANY($3) AND booking_status = 'active')
 			 OR ('vacant'     = ANY($3) AND booking_status = 'inactive')
-			 OR ('open-tasks' = ANY($3) AND has_open_tasks)
+			 OR ('open-tasks' = ANY($3) AND has_unassigned_tasks)
 		))
 		  AND (cardinality($4::text[]) = 0 OR (
 				('standard'   = ANY($4) AND LOWER(suite_type) = 'standard')
@@ -139,7 +127,14 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 	case models.RoomSortUrgency:
 		rows, err = r.db.Query(ctx, base+`
 			AND ($6::int = 0 OR room_number > $6)
-			ORDER BY has_open_tasks DESC, room_number ASC
+			ORDER BY
+				CASE priority
+					WHEN 'high' THEN 3
+					WHEN 'medium' THEN 2
+					ELSE 1
+				END DESC,
+				has_unassigned_tasks DESC,
+				room_number ASC
 			LIMIT $7
 		`, hotelID, filters.Floors, statusFilters, attrFilters, advFilters, cursorRoomNumber, limit+1)
 

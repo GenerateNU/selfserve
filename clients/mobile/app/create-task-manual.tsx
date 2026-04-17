@@ -48,7 +48,7 @@ export default function CreateTaskManualScreen() {
     mutationFn: (task: MakeRequest) => api.post<unknown>("/request", task),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
-      router.back();
+      router.navigate("/(tabs)/tasks");
     },
   });
 

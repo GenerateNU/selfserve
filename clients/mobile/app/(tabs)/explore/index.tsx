@@ -5,35 +5,33 @@ import {
   Search,
   SlidersHorizontal,
   ArrowUpDown,
+  X,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Colors } from "@/constants/theme";
 import { RoomCard, type RoomStatus } from "@/components/rooms/room-card";
-import {
-  FloorPickerSheet,
-  type Floor,
-} from "@/components/rooms/floor-picker-sheet";
+import { FloorPickerSheet } from "@/components/rooms/floor-picker-sheet";
 import {
   RoomFilterSheet,
   type RoomFilters,
   EMPTY_ROOM_FILTERS,
+  STATUS_OPTIONS,
+  ATTRIBUTE_OPTIONS,
+  ADVANCED_OPTIONS,
 } from "@/components/rooms/room-filter-sheet";
 import {
   RoomSortSheet,
   type RoomSort,
   DEFAULT_ROOM_SORT,
 } from "@/components/rooms/room-sort-sheet";
-import { useGetRooms, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
+import {
+  useGetRooms,
+  useGetRoomsFloors,
+  BookingStatus,
+  RoomStatusValue,
+} from "@shared/api/rooms";
 import type { RoomWithOptionalGuestBooking } from "@shared";
-
-const FLOORS: Floor[] = [
-  { id: "1", label: "Floor 1" },
-  { id: "2", label: "Floor 2" },
-  { id: "3", label: "Floor 3" },
-  { id: "4", label: "Floor 4" },
-  { id: "5", label: "Floor 5" },
-];
 
 function getRoomStatus(room: RoomWithOptionalGuestBooking): RoomStatus {
   switch (true) {
@@ -54,17 +52,29 @@ function getRoomStatus(room: RoomWithOptionalGuestBooking): RoomStatus {
   }
 }
 
+function getFloorLabel(selectedFloors: number[]): string {
+  if (selectedFloors.length === 0) return "All Floors";
+  if (selectedFloors.length === 1) return `Floor ${selectedFloors[0]}`;
+  return `${selectedFloors.length} Floors`;
+}
+
 export default function RoomsScreen() {
-  const [selectedFloor, setSelectedFloor] = useState<Floor>(FLOORS[0]);
+  const [selectedFloors, setSelectedFloors] = useState<number[]>([]);
   const [floorPickerVisible, setFloorPickerVisible] = useState(false);
   const [filterVisible, setFilterVisible] = useState(false);
   const [sortVisible, setSortVisible] = useState(false);
   const [filters, setFilters] = useState<RoomFilters>(EMPTY_ROOM_FILTERS);
   const [sort, setSort] = useState<RoomSort>(DEFAULT_ROOM_SORT);
 
-  const floorId = parseInt(selectedFloor.id);
+  const { data: floors = [] } = useGetRoomsFloors();
+
+  const hasActiveFilters =
+    filters.status.length > 0 ||
+    filters.attributes.length > 0 ||
+    filters.advanced.length > 0;
+
   const { data: roomsData } = useGetRooms({
-    floors: [floorId],
+    floors: selectedFloors.length ? selectedFloors : undefined,
     status: filters.status.length ? filters.status : undefined,
     attributes: filters.attributes.length ? filters.attributes : undefined,
     advanced: filters.advanced.length ? filters.advanced : undefined,
@@ -81,7 +91,7 @@ export default function RoomsScreen() {
           onPress={() => setFloorPickerVisible(true)}
         >
           <Text className="text-2xl font-medium text-text-default tracking-tight">
-            {selectedFloor.label}
+            {getFloorLabel(selectedFloors)}
           </Text>
           <ChevronDown size={14} color={Colors.light.textDefault} />
         </Pressable>
@@ -101,6 +111,9 @@ export default function RoomsScreen() {
                   : Colors.light.textDefault
               }
             />
+            {hasActiveFilters && (
+              <View className="absolute top-[5px] right-[5px] w-[6px] h-[6px] rounded-full bg-primary" />
+            )}
           </Pressable>
           <Pressable
             className={`items-center justify-center rounded w-[34px] h-[34px] ${sortVisible ? "bg-bg-selected" : ""}`}
@@ -117,6 +130,50 @@ export default function RoomsScreen() {
           </Pressable>
         </View>
       </View>
+
+      {/* Active filter pills */}
+      {hasActiveFilters && (
+        <View className="flex-row flex-wrap gap-2 items-center px-6 py-4 border-b border-stroke-subtle">
+          {[
+            ...filters.status.map((v) => ({
+              label: STATUS_OPTIONS.find((o) => o.value === v)!.label,
+              onRemove: () =>
+                setFilters((f) => ({
+                  ...f,
+                  status: f.status.filter((s) => s !== v),
+                })),
+            })),
+            ...filters.attributes.map((v) => ({
+              label: ATTRIBUTE_OPTIONS.find((o) => o.value === v)!.label,
+              onRemove: () =>
+                setFilters((f) => ({
+                  ...f,
+                  attributes: f.attributes.filter((a) => a !== v),
+                })),
+            })),
+            ...filters.advanced.map((v) => ({
+              label: ADVANCED_OPTIONS.find((o) => o.value === v)!.label,
+              onRemove: () =>
+                setFilters((f) => ({
+                  ...f,
+                  advanced: f.advanced.filter((a) => a !== v),
+                })),
+            })),
+          ].map(({ label, onRemove }) => (
+            <Pressable
+              key={label}
+              onPress={onRemove}
+              className="flex-row items-center gap-2 bg-bg-selected px-3 py-1.5 rounded"
+            >
+              <Text className="text-[13px] text-primary">{label}</Text>
+              <X size={9} color={Colors.light.tabBarActive} />
+            </Pressable>
+          ))}
+          <Pressable onPress={() => setFilters(EMPTY_ROOM_FILTERS)}>
+            <Text className="text-[12px] text-text-subtle">Clear All</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* Content */}
       <FlatList
@@ -144,9 +201,9 @@ export default function RoomsScreen() {
       />
       <FloorPickerSheet
         visible={floorPickerVisible}
-        floors={FLOORS}
-        selectedFloorId={selectedFloor.id}
-        onSelect={setSelectedFloor}
+        floors={floors}
+        selectedFloors={selectedFloors}
+        onApply={setSelectedFloors}
         onClose={() => setFloorPickerVisible(false)}
       />
       <RoomFilterSheet
