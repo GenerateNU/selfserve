@@ -44,7 +44,7 @@ VALUES
    ARRAY['wifi','tv','jacuzzi','minibar'],           'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
 
   -- Floor 2
-  ('10000000-0000-0000-0000-000000000201', 201, 2, 'standard',  'available',
+  ('10000000-0000-0000-0000-000000000201', 201, 2, 'standard',  'occupied',
    TRUE,
    ARRAY['wifi','tv'],                              'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000202', 202, 2, 'deluxe',    'occupied',
@@ -58,7 +58,7 @@ VALUES
   ('10000000-0000-0000-0000-000000000301', 301, 3, 'standard',  'available',
    FALSE,
    ARRAY['wifi','tv'],                              'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
-  ('10000000-0000-0000-0000-000000000302', 302, 3, 'deluxe',    'available',
+  ('10000000-0000-0000-0000-000000000302', 302, 3, 'deluxe',    'occupied',
    TRUE,
    ARRAY['wifi','tv','balcony'],                    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000303', 303, 3, 'suite',     'occupied',
@@ -195,7 +195,7 @@ VALUES
    'Approach room 302 discreetly. If noise continues after first warning, escalate to manager.',
    '2026-04-01 23:30:00+00'),
 
-  -- ── Assigned (10) ────────────────────────────────────────────────────────
+  -- ── In Progress (10) ─────────────────────────────────────────────────────
 
   ('c0000000-0000-0000-0000-000000000011', '2026-04-01 00:11:00+00',
    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
@@ -204,7 +204,7 @@ VALUES
    'Full room cleaning',
    'Guest requested a full room cleaning: vacuuming, bathroom scrub, fresh linen, and restocking of all toiletries.',
    'Room Cleaning', 'recurring', 'Housekeeping',
-   'assigned', 'medium', 40,
+   'in progress','medium', 40,
    '2026-04-01 14:00:00+00', NULL,
    'Guest prefers unscented cleaning products. Note allergy to lavender on file.',
    '2026-04-01 08:30:00+00'),
@@ -216,7 +216,7 @@ VALUES
    'Minibar restock',
    'Guest consumed all sparkling water and soft drinks. Requesting full minibar restock including snacks.',
    'Minibar', 'on demand', 'Food & Beverage',
-   'assigned', 'low', 20,
+   'in progress','low', 20,
    '2026-04-01 16:00:00+00', NULL,
    'Guest requested extra sparkling water (x4) and no beer. Add mixed nuts and chocolate.',
    '2026-04-01 10:00:00+00'),
@@ -228,7 +228,7 @@ VALUES
    'Overnight shoe shine',
    'Guest left 2 pairs of dress shoes outside the door: one black Oxford, one tan leather pump.',
    'Valet', 'on demand', 'Concierge',
-   'assigned', 'low', 30,
+   'in progress','low', 30,
    '2026-04-02 07:00:00+00', NULL,
    'Return before 7 AM. Black shoes take high gloss, tan shoes take matte. No resoling.',
    '2026-04-01 21:00:00+00'),
@@ -240,7 +240,7 @@ VALUES
    'WiFi connection issues',
    'Guest laptop is unable to connect to hotel WiFi. Other devices in room connect fine. Error: "Authentication failed".',
    'Network', 'on demand', 'Maintenance',
-   'assigned', 'medium', 20,
+   'in progress','medium', 20,
    '2026-04-01 11:30:00+00', NULL,
    'Bring a network extender as a backup. Guest is on a work call at 2 PM and needs stable connection.',
    '2026-04-01 10:30:00+00'),
@@ -252,7 +252,7 @@ VALUES
    'Extra pillows requested',
    'Guest is requesting 2 additional firm pillows for back support. No feather pillows per profile.',
    'Linen & Towels', 'on demand', 'Housekeeping',
-   'assigned', 'low', 10,
+   'in progress','low', 10,
    '2026-04-01 15:00:00+00', NULL,
    'Memory foam or hypoallergenic pillows preferred. Check notes on guest profile.',
    '2026-04-01 13:00:00+00'),
@@ -264,7 +264,7 @@ VALUES
    'Morning newspaper delivery',
    'Guest requested daily delivery of the Financial Times and local newspaper before 7:30 AM.',
    'Amenities', 'recurring', 'Concierge',
-   'assigned', 'low', 5,
+   'in progress','low', 5,
    '2026-04-02 07:30:00+00', NULL,
    'Guest prefers papers left outside door without knocking. Fold neatly.',
    '2026-04-01 20:00:00+00'),
@@ -276,7 +276,7 @@ VALUES
    'Towel replacement',
    'Towels in room are stained. Guest requesting a fresh set of 4 bath towels and 2 hand towels.',
    'Linen & Towels', 'on demand', 'Housekeeping',
-   'assigned', 'low', 15,
+   'in progress','low', 15,
    '2026-04-01 13:30:00+00', NULL,
    'Collect old towels. Guest expressed dissatisfaction — apologize and offer complimentary amenity.',
    '2026-04-01 12:30:00+00'),
@@ -288,7 +288,7 @@ VALUES
    'Pool towel delivery',
    'Guest is heading to the pool and requested 4 large pool towels delivered to their room first.',
    'Pool', 'on demand', 'Housekeeping',
-   'assigned', 'medium', 10,
+   'in progress','medium', 10,
    '2026-04-01 12:00:00+00', NULL,
    'Deliver to room 203 if guest has not yet left. Otherwise deliver directly to pool deck.',
    '2026-04-01 11:30:00+00'),
@@ -300,7 +300,7 @@ VALUES
    'Luggage storage after checkout',
    'Guest is checking out at 11 AM but flight departs at 8 PM. Requesting secure storage for 2 suitcases and 1 carry-on.',
    'Luggage', 'on demand', 'Concierge',
-   'assigned', 'medium', 15,
+   'in progress','medium', 15,
    '2026-04-01 11:00:00+00', NULL,
    'Issue luggage claim ticket. Store in secure room B. Guest will collect between 5–6 PM.',
    '2026-04-01 09:00:00+00'),
@@ -312,7 +312,7 @@ VALUES
    'Wake-up call at 6:30 AM',
    'Guest has an early morning flight and requested a phone wake-up call at 6:30 AM with a follow-up at 6:45 AM if no answer.',
    'Alarm', 'scheduled', 'Front Desk',
-   'assigned', 'low', 5,
+   'in progress','low', 5,
    '2026-04-02 06:30:00+00', NULL,
    'Set both primary and backup calls. Guest checkout is at 7:30 AM — arrange taxi if requested.',
    '2026-04-01 22:00:00+00'),
@@ -446,19 +446,44 @@ ON CONFLICT (id, request_version) DO NOTHING;
 -- Rooms 102, 202, 303 are occupied (active bookings below).
 -- Room 101 has an inactive (past) booking — should NOT appear as occupied.
 -- -----------------------------------------------------------------------------
-INSERT INTO public.guests (id, first_name, last_name, profile_picture, timezone, phone, email, preferences, notes)
+INSERT INTO public.guests (id, first_name, last_name, profile_picture, timezone, phone, email, preferences, notes,
+                          pronouns, do_not_disturb_start, do_not_disturb_end, housekeeping_cadence, assistance)
 VALUES
   ('a0000000-0000-0000-0000-000000000001', 'Alice', 'Johnson',  NULL, 'America/New_York',
-   '+1 (212) 555-0101', 'alice.johnson@example.com', 'Extra pillows, high floor preferred', 'VIP — champagne on arrival'),
+   '+1 (212) 555-0101', 'alice.johnson@example.com',
+   'Extra pillows, Egyptian cotton linens, high floor preferred',
+   'VIP — champagne on arrival. Loyalty member since 2018. Allergy to lavender products.',
+   'she/her', '22:00:00', '08:00:00', 'daily', '{}'),
 
   ('a0000000-0000-0000-0000-000000000002', 'Bob',   'Smith',    NULL, 'America/Chicago',
-   '+1 (312) 555-0102', 'bob.smith@example.com',    'Hypoallergenic bedding', NULL),
+   '+1 (312) 555-0102', 'bob.smith@example.com',
+   'Hypoallergenic bedding, no feather products, firm pillows',
+   'Corporate account — Acme Corp. Business traveller, early checkout likely.',
+   'he/him', '23:00:00', '07:00:00', 'daily', '{"dietary":["gluten_free"]}'),
 
   ('a0000000-0000-0000-0000-000000000003', 'Carol', 'Williams', NULL, 'America/Los_Angeles',
-   '+1 (310) 555-0103', 'carol.williams@example.com', 'No feather pillows, quiet room', 'Celebrating anniversary'),
+   '+1 (310) 555-0103', 'carol.williams@example.com',
+   'No feather pillows, quiet room, low-level floor preferred',
+   'Celebrating anniversary. Requested rose petal turndown on 2026-04-02.',
+   'she/her', '21:00:00', '09:00:00', 'every_other_day', '{"medical":["low_noise_environment"]}'),
 
   ('a0000000-0000-0000-0000-000000000004', 'David', 'Brown',    NULL, 'Europe/London',
-   '+44 20 7946 0104', 'david.brown@example.com',   NULL, NULL)
+   '+44 20 7946 0104', 'david.brown@example.com',
+   'Earl Grey tea on arrival, Financial Times delivered daily',
+   'Regular guest — previous stays in 2024 and 2025. Prefers ground floor.',
+   'he/him', NULL, NULL, 'daily', '{}'),
+
+  ('a0000000-0000-0000-0000-000000000005', 'Emma',  'Davis',    NULL, 'America/New_York',
+   '+1 (646) 555-0105', 'emma.davis@example.com',
+   'Crib required (infant), blackout curtains, quiet room',
+   'Family with 8-month-old infant. Baby amenities pre-arranged.',
+   'she/her', '20:00:00', '09:00:00', 'daily', '{"dietary":["nut_free"]}'),
+
+  ('a0000000-0000-0000-0000-000000000006', 'Liam',  'Garcia',   NULL, 'America/Denver',
+   '+1 (720) 555-0106', 'liam.garcia@example.com',
+   'Accessible bathroom, roll-in shower, lowered bed if available',
+   'Uses manual wheelchair. Requires accessible room features.',
+   'he/him', NULL, NULL, 'daily', '{"accessibility":["wheelchair","roll_in_shower"]}')
 ON CONFLICT (id) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
@@ -472,31 +497,43 @@ ON CONFLICT (id) DO NOTHING;
 --   Carol  (a...003) → room 303 (10...303) — active
 --   David  (a...004) → room 101 (10...101) — inactive (past stay)
 -- -----------------------------------------------------------------------------
-INSERT INTO public.guest_bookings (id, guest_id, room_id, hotel_id, arrival_date, departure_date, notes, status)
+INSERT INTO public.guest_bookings (id, guest_id, room_id, hotel_id, arrival_date, departure_date, notes, status, group_size)
 VALUES
   ('b0000000-0000-0000-0000-000000000001',
    'a0000000-0000-0000-0000-000000000001',
    '10000000-0000-0000-0000-000000000102',
    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-   '2026-03-20', '2026-03-28', 'Early check-in requested', 'active'),
+   '2026-03-20', '2026-03-28', 'Early check-in requested', 'active', 1),
 
   ('b0000000-0000-0000-0000-000000000002',
    'a0000000-0000-0000-0000-000000000002',
    '10000000-0000-0000-0000-000000000202',
    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-   '2026-03-22', '2026-03-26', NULL, 'active'),
+   '2026-03-22', '2026-03-26', NULL, 'active', 2),
 
   ('b0000000-0000-0000-0000-000000000003',
    'a0000000-0000-0000-0000-000000000003',
    '10000000-0000-0000-0000-000000000303',
    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-   '2026-03-21', '2026-03-30', 'No feather pillows please', 'active'),
+   '2026-03-21', '2026-03-30', 'No feather pillows please', 'active', 2),
 
   ('b0000000-0000-0000-0000-000000000004',
    'a0000000-0000-0000-0000-000000000004',
    '10000000-0000-0000-0000-000000000101',
    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-   '2026-03-01', '2026-03-07', NULL, 'inactive')
+   '2026-03-01', '2026-03-07', NULL, 'inactive', NULL),
+
+  ('b0000000-0000-0000-0000-000000000005',
+   'a0000000-0000-0000-0000-000000000005',
+   '10000000-0000-0000-0000-000000000201',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   '2026-03-25', '2026-04-02', 'Crib pre-arranged', 'active', 3),
+
+  ('b0000000-0000-0000-0000-000000000006',
+   'a0000000-0000-0000-0000-000000000006',
+   '10000000-0000-0000-0000-000000000302',
+   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+   '2026-03-28', '2026-04-05', 'Accessible room confirmed', 'active', 1)
 ON CONFLICT (id) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
@@ -528,7 +565,7 @@ VALUES
 ON CONFLICT (id, request_version) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
--- Requests — 300 bulk rows: 100 pending · 100 assigned · 100 completed
+-- Requests — 300 bulk rows: 100 pending · 100 in progress · 100 completed
 -- UUIDs are deterministic (md5 of status+index) so the seed is idempotent.
 -- scheduled_time cycles through 08:00–19:00 (never below 8AM).
 -- -----------------------------------------------------------------------------
@@ -558,7 +595,7 @@ SELECT
   (ARRAY['room cleaning','towel replacement','minibar refill','maintenance repair','extra pillows',
          'wake-up call','laundry pickup','concierge request','turndown service','luggage assistance'])[((i-1) % 10) + 1],
   (ARRAY['recurring','one-time'])[((i-1) % 2) + 1],
-  'assigned',
+  'in progress',
   (ARRAY['low','medium','normal','high','urgent'])[((i-1) % 5) + 1],
   (ARRAY['101','102','103','201','202','203','301','302','303'])[((i-1) % 9) + 1],
   (ARRAY['Housekeeping','Maintenance','Concierge','Food & Beverage','Front Desk'])[((i-1) % 5) + 1],
@@ -626,7 +663,7 @@ VALUES
    '10000000-0000-0000-0000-000000000202',
    'Wake-up call', 'Requested wake-up call at 7:00 AM',
    'Concierge', 'scheduled', 'front desk',
-   'assigned', 'low', 5, '', '2026-04-01 22:00:00+00'),
+   'in progress','low', 5, '', '2026-04-01 22:00:00+00'),
 
   -- Room 303 (Carol, occupied) — pending high-priority DND override
   ('c0000000-0000-0000-0000-000000000005', '2026-04-02 08:45:00+00',
@@ -665,6 +702,8 @@ SELECT 'rooms',                      COUNT(*) FROM public.rooms         WHERE ho
 UNION ALL
 SELECT 'guests',                     COUNT(*) FROM public.guests        WHERE id::text LIKE 'a0000000%'
 UNION ALL
-SELECT 'guest_bookings',             COUNT(*) FROM public.guest_bookings WHERE id::text LIKE 'b0000000%'
+SELECT 'guest_bookings (active)',     COUNT(*) FROM public.guest_bookings WHERE id::text LIKE 'b0000000%' AND status = 'active'
+UNION ALL
+SELECT 'guest_bookings (inactive)',   COUNT(*) FROM public.guest_bookings WHERE id::text LIKE 'b0000000%' AND status = 'inactive'
 UNION ALL
 SELECT 'requests',                   COUNT(*) FROM public.requests       WHERE id::text LIKE 'c0000000%';
