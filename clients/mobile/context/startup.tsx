@@ -7,6 +7,7 @@ export enum StartupStatus {
   Loading,
   Unauthenticated,
   NoUserInfo,
+  Onboarding,
   Ready,
 }
 
@@ -48,6 +49,7 @@ export function StartupProvider({ children }: { children: React.ReactNode }) {
     if (!isSignedIn) return StartupStatus.Unauthenticated;
     if (status === "pending") return StartupStatus.Loading;
     if (status === "error") return StartupStatus.NoUserInfo;
+    if (data?.is_onboarded === false) return StartupStatus.Onboarding;
     return StartupStatus.Ready;
   }, [isLoaded, isSignedIn, status]);
 

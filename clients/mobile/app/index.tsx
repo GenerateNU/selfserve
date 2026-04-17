@@ -13,6 +13,11 @@ export default function Index() {
       return;
     }
 
+    if (status === StartupStatus.Onboarding) {
+      router.replace("/onboarding");
+      return;
+    }
+
     router.replace("/(tabs)");
   }, [status, router]);
 
