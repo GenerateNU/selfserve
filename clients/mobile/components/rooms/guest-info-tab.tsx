@@ -1,4 +1,10 @@
-import { View, Text, Pressable, ScrollView, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { ChevronRight, Accessibility, FileText } from "lucide-react-native";
 import { router } from "expo-router";
 import { useGetGuestsStaysId } from "@shared";
@@ -197,9 +203,7 @@ function GuestOverviewSection({ data }: { data: GuestWithStays }) {
           )}
         </View>
 
-        {data.notes && (
-          <OverviewField label="Notes" value={data.notes} />
-        )}
+        {data.notes && <OverviewField label="Notes" value={data.notes} />}
       </View>
     </View>
   );

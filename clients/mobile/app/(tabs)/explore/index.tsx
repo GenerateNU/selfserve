@@ -160,8 +160,7 @@ export default function RoomsScreen() {
               status={getRoomStatus(item)}
               onPress={() => {
                 const guestIds =
-                  item.booking_status ===
-                  BookingStatus.BookingStatusActive
+                  item.booking_status === BookingStatus.BookingStatusActive
                     ? (item.guests
                         ?.map((g) => g.id)
                         .filter(Boolean)

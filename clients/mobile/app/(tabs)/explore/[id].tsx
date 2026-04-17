@@ -116,7 +116,11 @@ function Section({
 }
 
 export default function RoomDetailScreen() {
-  const { id, roomNumber, guestIds: guestIdsParam } = useLocalSearchParams<{
+  const {
+    id,
+    roomNumber,
+    guestIds: guestIdsParam,
+  } = useLocalSearchParams<{
     id: string;
     roomNumber: string;
     guestIds: string;
@@ -223,9 +227,7 @@ export default function RoomDetailScreen() {
         ))}
 
       {/* Guest Info tab */}
-      {activeTab === "guest-info" && (
-        <GuestInfoTab guestIds={guestIds} />
-      )}
+      {activeTab === "guest-info" && <GuestInfoTab guestIds={guestIds} />}
     </SafeAreaView>
   );
 }
