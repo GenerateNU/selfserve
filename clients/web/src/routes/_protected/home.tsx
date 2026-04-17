@@ -5,9 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
 import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
 import { useGetDepartments } from "@shared/api/departments";
+import { useCreateView, useGetViews } from "@shared/api/views";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
 import type { Request, User } from "@shared";
+import type { View } from "@shared/types/views";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
@@ -17,11 +19,23 @@ import { ViewRequestDrawer } from "@/components/requests/ViewRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
 
+const REQUESTS_WEB_SLUG = "requests_web";
+
+type RequestsWebFilters = {
+  sort?: RequestFeedSort;
+  priorities?: Array<string>;
+  departments?: Array<string>;
+  floors?: Array<number>;
+  userId?: string;
+  userName?: string;
+};
+
 export const Route = createFileRoute("/_protected/home")({
   component: HomePage,
 });
 
 function KanbanColumnData({
+  title,
   department,
   onCardClick,
   sort,
@@ -29,6 +43,7 @@ function KanbanColumnData({
   priorities,
   floors,
 }: {
+  title: string;
   department: string;
   onCardClick: (requestId: string) => void;
   sort: RequestFeedSort | undefined;
@@ -37,7 +52,7 @@ function KanbanColumnData({
   floors?: Array<number>;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useGetRequestsFeed({
       departments: [department],
       sort,
@@ -72,8 +87,10 @@ function KanbanColumnData({
 
   const requests = (data?.pages ?? []).flatMap((page) => page.items ?? []);
 
+  if (!isPending && requests.length === 0) return null;
+
   return (
-    <>
+    <KanbanColumn title={title}>
       {requests.map((request: RequestFeedItem) => (
         <RequestCardItem
           key={request.id}
@@ -82,7 +99,7 @@ function KanbanColumnData({
         />
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
-    </>
+    </KanbanColumn>
   );
 }
 
@@ -96,6 +113,11 @@ function HomePage() {
     [],
   );
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
+  const [activeViewId, setActiveViewId] = useState<string | undefined>(
+    undefined,
+  );
+  const [viewIsPending, setViewIsPending] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -106,6 +128,8 @@ function HomePage() {
   });
 
   const { data: departments } = useGetDepartments(backendUser?.hotel_id);
+  const { data: views = [] } = useGetViews(REQUESTS_WEB_SLUG);
+  const { mutate: createView } = useCreateView(REQUESTS_WEB_SLUG);
 
   const [drawerData, setDrawerData] = useState<{
     name?: string;
@@ -120,6 +144,50 @@ function HomePage() {
   );
 
   const { data: selectedRequest } = useGetRequestById(selectedRequestId);
+
+  function handleApplyView(view: View) {
+    const filters = view.filters as RequestsWebFilters;
+    setSort(filters.sort ?? "priority");
+    setSelectedPriorities(filters.priorities ?? []);
+    setSelectedDepartments(filters.departments ?? []);
+    setSelectedFloors(filters.floors ?? []);
+    if (filters.userId) {
+      const [firstName = "", ...rest] = (filters.userName ?? "").split(" ");
+      setSelectedUser({
+        id: filters.userId,
+        first_name: firstName,
+        last_name: rest.join(" "),
+      } as User);
+    } else {
+      setSelectedUser(undefined);
+    }
+    setActiveViewId(view.id);
+    setViewIsPending(false);
+  }
+
+  function handleSaveView(name: string) {
+    const filters: RequestsWebFilters = {
+      sort,
+      priorities: selectedPriorities,
+      departments: selectedDepartments,
+      floors: selectedFloors,
+      userId: selectedUser?.id,
+      userName: selectedUser
+        ? `${selectedUser.first_name ?? ""} ${selectedUser.last_name ?? ""}`.trim()
+        : undefined,
+    };
+    createView({ slug: REQUESTS_WEB_SLUG, display_name: name, filters });
+  }
+
+  function handleClearAll() {
+    setSort("priority");
+    setSelectedUser(undefined);
+    setSelectedPriorities([]);
+    setSelectedDepartments([]);
+    setSelectedFloors([]);
+    setActiveViewId(undefined);
+    setViewIsPending(false);
+  }
 
   function handleCreateRequest() {
     setSelectedRequestId(null);
@@ -159,6 +227,12 @@ function HomePage() {
     ) : null;
 
   const drawerOpen = drawerData !== null || selectedRequestId !== null;
+  const filtersActive =
+    !!selectedUser ||
+    selectedPriorities.length > 0 ||
+    selectedDepartments.length > 0 ||
+    selectedFloors.length > 0 ||
+    sort !== "priority";
 
   return (
     <PageShell
@@ -167,25 +241,63 @@ function HomePage() {
         description: "Overview of all tasks currently at play",
       }}
       headerBorder={false}
+      subHeader={
+        <>
+          <HomeToolbar
+            onCreateRequest={handleCreateRequest}
+            views={views}
+            activeViewId={activeViewId}
+            activeViewPending={viewIsPending}
+            filtersOpen={filtersOpen}
+            filtersActive={filtersActive}
+            onToggleFilters={() => setFiltersOpen((o) => !o)}
+            onSelectView={(view) =>
+              view ? handleApplyView(view) : handleClearAll()
+            }
+          />
+          <div
+            className={`grid transition-all duration-200 ease-out ${filtersOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+          >
+            <div className="overflow-hidden">
+              <HomeFilterBar
+                sort={sort}
+                onSortChange={(s) => {
+                  setSort(s);
+                  if (activeViewId) setViewIsPending(true);
+                }}
+                selectedUser={selectedUser}
+                onUserChange={(u) => {
+                  setSelectedUser(u);
+                  if (activeViewId) setViewIsPending(true);
+                }}
+                selectedPriorities={selectedPriorities}
+                onPrioritiesChange={(p) => {
+                  setSelectedPriorities(p);
+                  if (activeViewId) setViewIsPending(true);
+                }}
+                selectedDepartments={selectedDepartments}
+                onDepartmentsChange={(d) => {
+                  setSelectedDepartments(d);
+                  if (activeViewId) setViewIsPending(true);
+                }}
+                selectedFloors={selectedFloors}
+                onFloorsChange={(f) => {
+                  setSelectedFloors(f);
+                  if (activeViewId) setViewIsPending(true);
+                }}
+                hotelId={backendUser?.hotel_id}
+                currentUserId={backendUser?.id}
+                onClearAll={handleClearAll}
+                onSaveView={handleSaveView}
+              />
+            </div>
+          </div>
+        </>
+      }
       drawerOpen={drawerOpen}
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
     >
-      <HomeToolbar className="mt-2" onCreateRequest={handleCreateRequest} />
-      <HomeFilterBar
-        sort={sort}
-        onSortChange={setSort}
-        selectedUser={selectedUser}
-        onUserChange={setSelectedUser}
-        selectedPriorities={selectedPriorities}
-        onPrioritiesChange={setSelectedPriorities}
-        selectedDepartments={selectedDepartments}
-        onDepartmentsChange={setSelectedDepartments}
-        selectedFloors={selectedFloors}
-        onFloorsChange={setSelectedFloors}
-        hotelId={backendUser?.hotel_id}
-        currentUserId={backendUser?.id}
-      />
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
           {(selectedDepartments.length > 0
@@ -194,16 +306,16 @@ function HomePage() {
               )
             : (departments ?? [])
           ).map((dep) => (
-            <KanbanColumn key={dep.id} title={dep.name}>
-              <KanbanColumnData
-                department={dep.id}
-                sort={sort}
-                userId={selectedUser?.id}
-                onCardClick={handleCardClick}
-                priorities={selectedPriorities}
-                floors={selectedFloors}
-              />
-            </KanbanColumn>
+            <KanbanColumnData
+              key={dep.id}
+              title={dep.name}
+              department={dep.id}
+              sort={sort}
+              userId={selectedUser?.id}
+              onCardClick={handleCardClick}
+              priorities={selectedPriorities}
+              floors={selectedFloors}
+            />
           ))}
         </div>
       </div>

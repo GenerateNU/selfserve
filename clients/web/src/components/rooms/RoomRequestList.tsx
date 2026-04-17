@@ -32,7 +32,12 @@ export function RoomRequestList({
         </>
       ) : null}
 
-      <div className={cn("flex flex-col gap-2", showHeader && "mt-3")}>
+      <div
+        className={cn(
+          "flex flex-col gap-2 overflow-y-auto flex-1 min-h-0",
+          showHeader && "mt-3",
+        )}
+      >
         {requests.map((item) => (
           <RoomRequestCard
             key={item.id}

@@ -132,6 +132,7 @@ function GuestsQuickListPage() {
         title: "Guests",
         description: "Description blah blah fries -> bag",
       }}
+      bodyClassName="pb-24"
       drawerOpen={generatedData !== null || guestId !== undefined}
       drawer={
         generatedData !== null ? (
@@ -162,15 +163,9 @@ function GuestsQuickListPage() {
         }}
       />
       {guestsContent}
-      {generatedData === null && (
+      {generatedData === null && guestId === undefined && (
         <GlobalTaskInput
           onRequestGenerated={(r: Request) => {
-            if (guestId) {
-              navigate({
-                to: "/guests",
-                search: { guestId: undefined, tab: GuestDrawerTab.Profile },
-              });
-            }
             const p = r.priority;
             setGeneratedData({
               name: r.name,
