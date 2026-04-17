@@ -66,6 +66,7 @@ function KanbanColumnData({
   userId,
   priorities,
   floors,
+  search, 
 }: {
   title: string;
   department: string;
@@ -75,6 +76,7 @@ function KanbanColumnData({
   userId?: string;
   priorities?: Array<string>;
   floors?: Array<number>;
+  search?: string; 
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
@@ -84,6 +86,7 @@ function KanbanColumnData({
       userId,
       priorities,
       floors,
+      search,
     });
 
   const hasNextPageRef = useRef(hasNextPage);
@@ -169,6 +172,17 @@ function HomePage() {
   const [activeDragItem, setActiveDragItem] = useState<RequestFeedItem | null>(
     null,
   );
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+  const timeout = setTimeout(() => {
+    setDebouncedSearch(searchValue);
+  }, 300);
+
+  return () => clearTimeout(timeout);
+}, [searchValue]);
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -364,6 +378,10 @@ function HomePage() {
               view ? handleApplyView(view) : handleClearAll()
             }
             onDeleteView={(view) => setViewToDelete(view)}
+            searchOpen={searchOpen}
+            searchValue={searchValue}
+            onSearchOpenChange={setSearchOpen}
+            onSearchChange={setSearchValue}
           />
           <div
             className={`grid transition-all duration-200 ease-out ${filtersOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
@@ -436,6 +454,7 @@ function HomePage() {
                 onCreateRequest={handleCreateRequestForDepartment}
                 priorities={selectedPriorities}
                 floors={selectedFloors}
+                search={debouncedSearch}
               />
             ))}
           </div>
