@@ -131,7 +131,8 @@ function HomePage() {
   const { data: departments } = useGetDepartments(backendUser?.hotel_id);
   const { data: views = [] } = useGetViews(REQUESTS_WEB_SLUG);
   const { mutate: createView } = useCreateView(REQUESTS_WEB_SLUG);
-  const { mutate: deleteView, isPending: isDeletingView } = useDeleteView(REQUESTS_WEB_SLUG);
+  const { mutate: deleteView, isPending: isDeletingView } =
+    useDeleteView(REQUESTS_WEB_SLUG);
   const [viewToDelete, setViewToDelete] = useState<View | null>(null);
 
   const [drawerData, setDrawerData] = useState<{

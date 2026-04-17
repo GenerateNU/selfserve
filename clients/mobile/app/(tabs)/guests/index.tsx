@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, FlatList, ActivityIndicator, Text } from "react-native";
+import { FlatList, ActivityIndicator, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GuestCard } from "@/components/ui/guest-card";
 import { router } from "expo-router";
