@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { MakeRequestPriority, usePostRoomsHook } from "@shared";
+import { MakeRequestPriority } from "@shared";
+import { useGetRooms } from "@shared/api/rooms";
 import type { Request, RoomWithOptionalGuestBooking } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
@@ -16,15 +16,21 @@ export const Route = createFileRoute("/_protected/rooms/")({
   component: RoomsPage,
 });
 
-const INITIAL_SELECTED = ["Occupied", "Open Tasks"];
-
 function RoomsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { filters, setFloors, setFilterChips, removeFilterChip } =
-    useRoomsFilters({
-      floors: [],
-      filterChips: INITIAL_SELECTED,
-    });
+  const {
+    filters,
+    setFloors,
+    applyFilters,
+    removeStatus,
+    removeAttribute,
+    removeAdvanced,
+  } = useRoomsFilters({
+    floors: [],
+    status: [],
+    attributes: [],
+    advanced: [],
+  });
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
   const [ascending, setAscending] = useState(true);
@@ -37,15 +43,12 @@ function RoomsPage() {
     user_id?: string;
   } | null>(null);
 
-  const postRooms = usePostRoomsHook();
-
-  const { data: rooms } = useQuery({
-    queryKey: ["rooms", filters.floors],
-    queryFn: () =>
-      postRooms({
-        floors: filters.floors.length > 0 ? filters.floors : undefined,
-        limit: 10,
-      }),
+  const { data: rooms } = useGetRooms({
+    floors: filters.floors.length > 0 ? filters.floors : undefined,
+    status: filters.status.length > 0 ? filters.status : undefined,
+    attributes: filters.attributes.length > 0 ? filters.attributes : undefined,
+    advanced: filters.advanced.length > 0 ? filters.advanced : undefined,
+    limit: 200,
   });
 
   const drawerContent =
@@ -101,8 +104,10 @@ function RoomsPage() {
             onChangeSearchTerm={setSearchTerm}
             filters={filters}
             onChangeFloors={setFloors}
-            onApplyFilterChips={setFilterChips}
-            onRemoveFilterChip={removeFilterChip}
+            onApplyFilters={applyFilters}
+            onRemoveStatus={removeStatus}
+            onRemoveAttribute={removeAttribute}
+            onRemoveAdvanced={removeAdvanced}
             ascending={ascending}
             setAscending={setAscending}
           />

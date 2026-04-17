@@ -1,9 +1,19 @@
 import { SearchBar } from "../ui/SearchBar";
 import { FloorDropdown } from "./FloorDropdown";
 import { OrderByDropdown } from "./OrderByDropdown";
-import type { RoomsPageFilters } from "@/hooks/use-rooms-filters";
+import type { RoomFilters, RoomsPageFilters } from "@/hooks/use-rooms-filters";
+import type {
+  RoomAdvancedFilter,
+  RoomAttributeFilter,
+  RoomStatusFilter,
+} from "@shared/api/rooms";
 import { FilterTag } from "@/components/rooms/FilterTag";
-import { RoomsFilterPopover } from "@/components/rooms/RoomsFilterPopover";
+import {
+  ADVANCED_OPTIONS,
+  ATTRIBUTE_OPTIONS,
+  RoomsFilterPopover,
+  STATUS_OPTIONS,
+} from "@/components/rooms/RoomsFilterPopover";
 
 export type { RoomsPageFilters };
 
@@ -12,8 +22,10 @@ type RoomsToolbarProps = {
   onChangeSearchTerm: (value: string) => void;
   filters: RoomsPageFilters;
   onChangeFloors: (floors: Array<number>) => void;
-  onRemoveFilterChip: (chip: string) => void;
-  onApplyFilterChips: (chips: Array<string>) => void;
+  onApplyFilters: (filters: RoomFilters) => void;
+  onRemoveStatus: (value: RoomStatusFilter) => void;
+  onRemoveAttribute: (value: RoomAttributeFilter) => void;
+  onRemoveAdvanced: (value: RoomAdvancedFilter) => void;
   ascending: boolean;
   setAscending: (ascending: boolean) => void;
 };
@@ -23,13 +35,18 @@ export function RoomsToolbar({
   onChangeSearchTerm,
   filters,
   onChangeFloors,
-  onApplyFilterChips,
-  onRemoveFilterChip,
+  onApplyFilters,
+  onRemoveStatus,
+  onRemoveAttribute,
+  onRemoveAdvanced,
   ascending,
   setAscending,
 }: RoomsToolbarProps) {
   const hasActiveFilterTags =
-    filters.floors.length > 0 || filters.filterChips.length > 0;
+    filters.floors.length > 0 ||
+    filters.status.length > 0 ||
+    filters.attributes.length > 0 ||
+    filters.advanced.length > 0;
 
   return (
     <div className="flex w-full flex-col">
@@ -45,8 +62,12 @@ export function RoomsToolbar({
           onChangeSelectedFloors={onChangeFloors}
         />
         <RoomsFilterPopover
-          appliedChips={filters.filterChips}
-          onApplyChips={onApplyFilterChips}
+          filters={{
+            status: filters.status,
+            attributes: filters.attributes,
+            advanced: filters.advanced,
+          }}
+          onApply={onApplyFilters}
         />
         <div className="ml-auto flex items-center gap-2">
           <span className="whitespace-nowrap text-sm text-text-subtle">
@@ -68,13 +89,39 @@ export function RoomsToolbar({
               }
             />
           ))}
-          {filters.filterChips.map((chip) => (
-            <FilterTag
-              key={chip}
-              label={chip}
-              onRemove={() => onRemoveFilterChip(chip)}
-            />
-          ))}
+          {filters.status.map((value) => {
+            const label =
+              STATUS_OPTIONS.find((o) => o.value === value)?.label ?? value;
+            return (
+              <FilterTag
+                key={`status-${value}`}
+                label={label}
+                onRemove={() => onRemoveStatus(value)}
+              />
+            );
+          })}
+          {filters.attributes.map((value) => {
+            const label =
+              ATTRIBUTE_OPTIONS.find((o) => o.value === value)?.label ?? value;
+            return (
+              <FilterTag
+                key={`attribute-${value}`}
+                label={label}
+                onRemove={() => onRemoveAttribute(value)}
+              />
+            );
+          })}
+          {filters.advanced.map((value) => {
+            const label =
+              ADVANCED_OPTIONS.find((o) => o.value === value)?.label ?? value;
+            return (
+              <FilterTag
+                key={`advanced-${value}`}
+                label={label}
+                onRemove={() => onRemoveAdvanced(value)}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="h-3" />
