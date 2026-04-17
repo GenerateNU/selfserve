@@ -400,15 +400,28 @@ export type RequestActivityItem = {
   timestamp: string;
 };
 
+export type RequestActivityPage = {
+  items: RequestActivityItem[];
+  next_cursor?: string | null;
+};
+
+const ACTIVITY_PAGE_SIZE = 8;
+
 export const getRequestActivityQueryKey = (requestId: string) =>
   ["request", requestId, "activity"] as const;
 
 export const useGetRequestActivity = (requestId: string | null) => {
   const api = useAPIClient();
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: getRequestActivityQueryKey(requestId ?? ""),
-    queryFn: () => api.get<RequestActivityItem[]>(`/request/${requestId}/activity`),
-    select: (data) => [...data].reverse(),
+    queryFn: ({ pageParam }) => {
+      const url = pageParam
+        ? `/request/${requestId}/activity?cursor=${encodeURIComponent(pageParam)}&limit=${ACTIVITY_PAGE_SIZE}`
+        : `/request/${requestId}/activity?limit=${ACTIVITY_PAGE_SIZE}`;
+      return api.get<RequestActivityPage>(url);
+    },
+    getNextPageParam: (last) => last.next_cursor ?? undefined,
+    initialPageParam: "",
     enabled: !!requestId,
   });
 };

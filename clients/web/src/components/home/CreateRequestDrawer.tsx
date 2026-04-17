@@ -4,7 +4,6 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   REQUESTS_FEED_QUERY_KEY,
-  useGetRequestActivity,
   useGetUsersIdHook,
   usePostRequestHook,
   usePutRequestIdHook,
@@ -106,10 +105,6 @@ export function CreateRequestDrawer({
   }>({ assignee: undefined, room: undefined, department: undefined });
 
   const orig = useRef(existingRequest);
-  const { data: activityItems = [] } = useGetRequestActivity(
-    existingRequest?.id ?? null,
-  );
-
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -344,7 +339,7 @@ export function CreateRequestDrawer({
           {activeTab === "comments" ? (
             <p className="text-sm text-text-subtle">No comments yet.</p>
           ) : (
-            <ActivityFeed items={activityItems} />
+            <ActivityFeed requestId={existingRequest.id!} />
           )}
         </div>
       )}
