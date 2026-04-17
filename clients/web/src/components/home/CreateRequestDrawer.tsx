@@ -211,7 +211,9 @@ export function CreateRequestDrawer({
               hotelId={backendUser.hotel_id}
               selectedUser={pickers.assignee}
               initialUserId={
-                pickers.assignee ? undefined : existingRequest?.user_id
+                pickers.assignee
+                  ? undefined
+                  : (existingRequest?.user_id ?? initialData?.user_id)
               }
               onSelect={(user) => {
                 setPickers((p) => ({ ...p, assignee: user }));
