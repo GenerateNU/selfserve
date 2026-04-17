@@ -14,6 +14,16 @@ import {
   FloorPickerSheet,
   type Floor,
 } from "@/components/rooms/floor-picker-sheet";
+import {
+  RoomFilterSheet,
+  type RoomFilters,
+  EMPTY_ROOM_FILTERS,
+} from "@/components/rooms/room-filter-sheet";
+import {
+  RoomSortSheet,
+  type RoomSort,
+  DEFAULT_ROOM_SORT,
+} from "@/components/rooms/room-sort-sheet";
 import { OverviewTab } from "@/components/rooms/overview-tab";
 import {
   useGetRoomsForFloor,
@@ -60,6 +70,10 @@ export default function RoomsScreen() {
   const [activeTab, setActiveTab] = useState<TabId>("rooms");
   const [selectedFloor, setSelectedFloor] = useState<Floor>(FLOORS[0]);
   const [floorPickerVisible, setFloorPickerVisible] = useState(false);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [sortVisible, setSortVisible] = useState(false);
+  const [filters, setFilters] = useState<RoomFilters>(EMPTY_ROOM_FILTERS);
+  const [sort, setSort] = useState<RoomSort>(DEFAULT_ROOM_SORT);
 
   const floorId = parseInt(selectedFloor.id);
   const { data: roomsData } = useGetRoomsForFloor([floorId]);
@@ -82,11 +96,31 @@ export default function RoomsScreen() {
           <Pressable className="items-center justify-center rounded w-[34px] h-[34px]">
             <Search size={19} color={Colors.light.textDefault} />
           </Pressable>
-          <Pressable className="items-center justify-center rounded w-[34px] h-[34px]">
-            <SlidersHorizontal size={19} color={Colors.light.textDefault} />
+          <Pressable
+            className={`items-center justify-center rounded w-[34px] h-[34px] ${filterVisible ? "bg-bg-selected" : ""}`}
+            onPress={() => setFilterVisible(true)}
+          >
+            <SlidersHorizontal
+              size={19}
+              color={
+                filterVisible
+                  ? Colors.light.tabBarActive
+                  : Colors.light.textDefault
+              }
+            />
           </Pressable>
-          <Pressable className="items-center justify-center rounded w-[34px] h-[34px]">
-            <ArrowUpDown size={18} color={Colors.light.textDefault} />
+          <Pressable
+            className={`items-center justify-center rounded w-[34px] h-[34px] ${sortVisible ? "bg-bg-selected" : ""}`}
+            onPress={() => setSortVisible(true)}
+          >
+            <ArrowUpDown
+              size={18}
+              color={
+                sortVisible
+                  ? Colors.light.tabBarActive
+                  : Colors.light.textDefault
+              }
+            />
           </Pressable>
         </View>
       </View>
@@ -139,6 +173,18 @@ export default function RoomsScreen() {
         selectedFloorId={selectedFloor.id}
         onSelect={setSelectedFloor}
         onClose={() => setFloorPickerVisible(false)}
+      />
+      <RoomFilterSheet
+        visible={filterVisible}
+        filters={filters}
+        onApply={setFilters}
+        onClose={() => setFilterVisible(false)}
+      />
+      <RoomSortSheet
+        visible={sortVisible}
+        sort={sort}
+        onSelect={setSort}
+        onClose={() => setSortVisible(false)}
       />
     </SafeAreaView>
   );
