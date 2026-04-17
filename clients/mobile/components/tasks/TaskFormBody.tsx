@@ -1,4 +1,10 @@
-import { View, Text, TextInput, Pressable, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { Colors } from "@/constants/theme";
 
 type TaskFormBodyProps = {

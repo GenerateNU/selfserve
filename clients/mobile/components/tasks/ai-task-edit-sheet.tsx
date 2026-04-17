@@ -7,11 +7,7 @@ import type {
   RoomWithOptionalGuestBooking,
   User,
 } from "@shared";
-import {
-  useGetDepartments,
-  useGetRoomsId,
-  useGetUsersId,
-} from "@shared";
+import { useGetDepartments, useGetRoomsId, useGetUsersId } from "@shared";
 import { getConfig } from "@shared/api/config";
 import { TaskFormBody } from "@/components/tasks/TaskFormBody";
 import { PriorityPicker } from "@/components/tasks/priority-picker";
@@ -68,7 +64,9 @@ export function AITaskEditSheet({
   const { hotelId } = getConfig();
 
   const { data: departments } = useGetDepartments(hotelId);
-  const resolvedDepartment = departments?.find((d) => d.id === task?.department);
+  const resolvedDepartment = departments?.find(
+    (d) => d.id === task?.department,
+  );
 
   const { data: resolvedUser } = useGetUsersId(task?.user_id ?? "", {
     query: { enabled: !!task?.user_id },
@@ -92,7 +90,9 @@ export function AITaskEditSheet({
     setTaskName(task.name ?? "");
     setDescription(task.description ?? "");
     setPriority((task.priority as MakeRequestPriority) ?? "medium");
-    setDeadline(task.scheduled_time ? new Date(task.scheduled_time) : undefined);
+    setDeadline(
+      task.scheduled_time ? new Date(task.scheduled_time) : undefined,
+    );
     setDepartment(resolvedDepartment ?? initialDepartment);
     setAssignee(resolvedUser ?? initialAssignee);
     setRoom(resolvedRoom ?? initialRoom);
@@ -107,7 +107,16 @@ export function AITaskEditSheet({
     if (allReady) {
       lastInitTaskRef.current = task;
     }
-  }, [task, visible, resolvedDepartment, resolvedUser, resolvedRoom, initialDepartment, initialAssignee, initialRoom]);
+  }, [
+    task,
+    visible,
+    resolvedDepartment,
+    resolvedUser,
+    resolvedRoom,
+    initialDepartment,
+    initialAssignee,
+    initialRoom,
+  ]);
 
   const handleSave = () => {
     if (!taskName.trim()) return;

@@ -30,7 +30,9 @@ export default function CreateTaskAIScreen() {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [screenState, setScreenState] = useState<ScreenState>("idle");
-  const [generatedTask, setGeneratedTask] = useState<GeneratedTask | null>(null);
+  const [generatedTask, setGeneratedTask] = useState<GeneratedTask | null>(
+    null,
+  );
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
   const api = useAPIClient();
