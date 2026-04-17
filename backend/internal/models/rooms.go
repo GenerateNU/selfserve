@@ -30,6 +30,8 @@ type FilterRoomsRequest struct {
 // Read model for rooms page on the frontend
 type RoomWithOptionalGuestBooking struct {
 	Room
-	Guests        []Guest       `json:"guests"`
-	BookingStatus BookingStatus `json:"booking_status"`
+	Guests             []Guest         `json:"guests"`
+	BookingStatus      BookingStatus   `json:"booking_status"`
+	Priority           RequestPriority `json:"priority"`
+	HasUnassignedTasks bool            `json:"has_unassigned_tasks"`
 } //@name RoomWithOptionalGuestBooking

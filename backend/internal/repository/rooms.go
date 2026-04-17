@@ -49,6 +49,27 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 			) latest
 			WHERE status != 'archived'
 		),
+		room_task_info AS (
+			SELECT
+				room_id::uuid AS room_id,
+				COALESCE(
+					CASE
+						WHEN BOOL_OR(priority = 'high') THEN 'high'
+						WHEN BOOL_OR(priority = 'medium') THEN 'medium'
+						ELSE 'low'
+					END,
+					'low'
+				) AS priority,
+				BOOL_OR(user_id IS NULL) AS has_unassigned_tasks
+			FROM (
+				SELECT DISTINCT ON (id) id, room_id, status, priority, user_id
+				FROM requests
+				WHERE hotel_id = $1 AND room_id IS NOT NULL
+				ORDER BY id, request_version DESC
+			) latest
+			WHERE status != 'archived'
+			GROUP BY room_id
+		),
 		room_enriched AS (
 			SELECT
 				r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible,
@@ -63,7 +84,9 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 						'last_name',       g.last_name,
 						'profile_picture', g.profile_picture
 					)
-				) FILTER (WHERE g.id IS NOT NULL) AS guests
+				) FILTER (WHERE g.id IS NOT NULL) AS guests,
+				COALESCE(MAX(rti.priority), 'low') AS priority,
+				COALESCE(BOOL_OR(rti.has_unassigned_tasks), FALSE) AS has_unassigned_tasks
 			FROM rooms r
 			LEFT JOIN guest_bookings gb_active ON r.id = gb_active.room_id
 				AND gb_active.status = 'active'
@@ -76,11 +99,12 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 				AND gb_depart.hotel_id = $1
 				AND gb_depart.departure_date = CURRENT_DATE
 			LEFT JOIN open_task_rooms otr ON r.id = otr.room_id
+			LEFT JOIN room_task_info rti ON r.id = rti.room_id
 			WHERE r.hotel_id = $1
 				AND ($2::int[] IS NULL OR r.floor = ANY($2))
 			GROUP BY r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible
 		)
-		SELECT id, room_number, floor, suite_type, room_status, is_accessible, booking_status, guests
+		SELECT id, room_number, floor, suite_type, room_status, is_accessible, booking_status, guests, priority, has_unassigned_tasks
 		FROM room_enriched
 		WHERE (cardinality($3::text[]) = 0 OR (
 				('occupied'   = ANY($3) AND booking_status = 'active')
@@ -140,6 +164,8 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 			&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible,
 			&rb.BookingStatus,
 			&guestsJSON,
+			&rb.Priority,
+			&rb.HasUnassignedTasks,
 		); err != nil {
 			return nil, err
 		}
@@ -182,6 +208,17 @@ func (r *RoomsRepository) FindAllFloors(ctx context.Context, hotelID string) ([]
 
 func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id string) (*models.RoomWithOptionalGuestBooking, error) {
 	row := r.db.QueryRow(ctx, `
+		WITH latest_requests AS (
+			SELECT DISTINCT ON (r.id)
+				r.id,
+				r.room_id,
+				r.user_id,
+				r.priority,
+				r.status
+			FROM public.requests r
+			WHERE r.hotel_id = $2
+			ORDER BY r.id ASC, r.request_version DESC
+		)
 		SELECT
 			r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible,
 			CASE WHEN COUNT(gb.id) > 0 THEN 'active' ELSE 'inactive' END AS booking_status,
@@ -192,19 +229,30 @@ func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id s
 					'last_name',       g.last_name,
 					'profile_picture', g.profile_picture
 				)
-			) FILTER (WHERE g.id IS NOT NULL) AS guests
+			) FILTER (WHERE g.id IS NOT NULL) AS guests,
+			COALESCE(
+				CASE
+					WHEN BOOL_OR(lr.status != 'completed' AND lr.priority = 'high') THEN 'high'
+					WHEN BOOL_OR(lr.status != 'completed' AND lr.priority = 'medium') THEN 'medium'
+					WHEN BOOL_OR(lr.status != 'completed' AND lr.priority = 'low') THEN 'low'
+					ELSE 'low'
+				END,
+				'low'
+			) AS priority,
+			COALESCE(BOOL_OR(lr.status != 'completed' AND lr.user_id IS NULL), FALSE) AS has_unassigned_tasks
 		FROM rooms r
 		LEFT JOIN guest_bookings gb ON r.id = gb.room_id
 			AND gb.status = 'active'
 			AND gb.hotel_id = $2
 		LEFT JOIN guests g ON g.id = gb.guest_id
+		LEFT JOIN latest_requests lr ON lr.room_id = r.id::text
 		WHERE r.id = $1 AND r.hotel_id = $2
 		GROUP BY r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible`,
 		id, hotelID)
 
 	var rb models.RoomWithOptionalGuestBooking
 	var guestsJSON json.RawMessage
-	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible, &rb.BookingStatus, &guestsJSON)
+	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible, &rb.BookingStatus, &guestsJSON, &rb.Priority, &rb.HasUnassignedTasks)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
