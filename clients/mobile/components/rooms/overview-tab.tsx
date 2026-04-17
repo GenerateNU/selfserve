@@ -9,7 +9,7 @@ import {
   type RequestFeedItem,
 } from "@shared/api/requests";
 import {
-  useGetRoomsForFloor,
+  useGetRooms,
   BookingStatus,
   RoomStatusValue,
 } from "@shared/api/rooms";
@@ -83,7 +83,7 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
     unassigned: true,
     floors: [floorId],
   });
-  const { data: roomsData } = useGetRoomsForFloor([floorId]);
+  const { data: roomsData } = useGetRooms({ floors: [floorId] });
   const {
     mutate: assignToSelf,
     isPending: isAssigning,
