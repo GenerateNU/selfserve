@@ -108,7 +108,10 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
         </RequestCard>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem variant="destructive" onSelect={() => deleteTask(request.id)}>
+        <ContextMenuItem
+          variant="destructive"
+          onSelect={() => deleteTask(request.id)}
+        >
           <Trash2 />
           Delete
         </ContextMenuItem>
