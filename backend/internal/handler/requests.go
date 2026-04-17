@@ -534,11 +534,13 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 
 // GetRequestActivity godoc
 // @Summary      Get request activity history
-// @Description  Returns an ordered list of activity events derived from the request's version history
+// @Description  Returns a cursor-paginated list of activity events derived from the request's version history, newest first
 // @Tags         requests
 // @Produce      json
-// @Param        id  path  string  true  "Request ID (UUID)"
-// @Success      200  {array}   models.RequestActivityItem
+// @Param        id      path   string  true   "Request ID (UUID)"
+// @Param        cursor  query  string  false  "Pagination cursor (timestamp of last seen item)"
+// @Param        limit   query  int     false  "Page size (default 20, max 100)"
+// @Success      200  {object}  models.RequestActivityPage
 // @Failure      400  {object}  errs.HTTPError
 // @Failure      404  {object}  errs.HTTPError
 // @Failure      500  {object}  errs.HTTPError
@@ -550,6 +552,20 @@ func (r *RequestsHandler) GetRequestActivity(c *fiber.Ctx) error {
 		return errs.BadRequest("request id is not a valid UUID")
 	}
 
+	limit := c.QueryInt("limit", 20)
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+
+	var cursor time.Time
+	if cursorStr := c.Query("cursor"); cursorStr != "" {
+		var err error
+		cursor, err = time.Parse(time.RFC3339Nano, cursorStr)
+		if err != nil {
+			return errs.BadRequest("invalid cursor")
+		}
+	}
+
 	versions, err := r.RequestRepository.FindRequestVersions(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
@@ -559,7 +575,35 @@ func (r *RequestsHandler) GetRequestActivity(c *fiber.Ctx) error {
 		return errs.InternalServerError()
 	}
 
-	return c.JSON(buildRequestActivity(versions))
+	all := buildRequestActivity(versions)
+	// Reverse to newest-first
+	for i, j := 0, len(all)-1; i < j; i, j = i+1, j-1 {
+		all[i], all[j] = all[j], all[i]
+	}
+
+	// Apply cursor: skip items at or after the cursor timestamp
+	start := 0
+	if !cursor.IsZero() {
+		for i, item := range all {
+			if item.Timestamp.Before(cursor) {
+				start = i
+				break
+			}
+		}
+		if start == 0 {
+			return c.JSON(&models.RequestActivityPage{Items: []*models.RequestActivityItem{}})
+		}
+	}
+
+	page := all[start:]
+	var nextCursor *string
+	if len(page) > limit {
+		page = page[:limit]
+		t := page[limit-1].Timestamp.UTC().Format(time.RFC3339Nano)
+		nextCursor = &t
+	}
+
+	return c.JSON(&models.RequestActivityPage{Items: page, NextCursor: nextCursor})
 }
 
 func buildRequestActivity(versions []*models.Request) []*models.RequestActivityItem {
