@@ -3,7 +3,6 @@ import * as ImagePicker from "expo-image-picker";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAPIClient } from "@shared/api/client";
 import {
-  deleteProfilePicture as deleteProfilePictureApi,
   getExtFromMime,
   getProfilePicture,
   getUploadUrl,
@@ -37,7 +36,6 @@ export function useProfilePicture(userId: string | undefined): {
   isLoading: boolean;
   isInitialLoading: boolean;
   pickAndUpload: () => Promise<void>;
-  handleRemove: () => Promise<void>;
 } {
   const startupStatus = useStartup();
   const api = useAPIClient();
@@ -107,45 +105,20 @@ export function useProfilePicture(userId: string | undefined): {
     const mimeType = asset.mimeType ?? undefined;
 
     setIsLoading(true);
-    setStatus("Reading image...");
+    setStatus("");
     try {
       const { body, contentType } = await readPickedImage(uri, mimeType);
       const ext = getExtFromMime(contentType);
 
-      setStatus("Getting upload URL...");
       const { presigned_url, key } = await getUploadUrl(api, userId, ext);
 
-      setStatus("Uploading...");
       await uploadToS3PresignedPut(presigned_url, body, contentType);
 
-      setStatus("Saving...");
       await saveProfilePictureKey(api, userId, key);
 
-      setStatus("Refreshing...");
       const refreshed = await getProfilePicture(api, userId);
       setProfilePicUrl(refreshed?.presigned_url ?? null);
       await queryClient.invalidateQueries({ queryKey: getUserQueryKey(userId) });
-      setStatus("Upload complete!");
-    } catch (err) {
-      setStatus(
-        `Error: ${err instanceof Error ? err.message : "Unknown error"}`,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [api, userId, startupStatus, queryClient]);
-
-  const handleRemove = useCallback(async () => {
-    if (!userId || startupStatus !== StartupStatus.Ready) {
-      return;
-    }
-    setIsLoading(true);
-    setStatus("Removing profile picture...");
-    try {
-      await deleteProfilePictureApi(api, userId);
-      setProfilePicUrl(null);
-      await queryClient.invalidateQueries({ queryKey: getUserQueryKey(userId) });
-      setStatus("Profile picture removed!");
     } catch (err) {
       setStatus(
         `Error: ${err instanceof Error ? err.message : "Unknown error"}`,
@@ -161,6 +134,5 @@ export function useProfilePicture(userId: string | undefined): {
     isLoading,
     isInitialLoading,
     pickAndUpload,
-    handleRemove,
   };
 }

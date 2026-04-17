@@ -27,6 +27,10 @@ export function ProfileHero({
 }: ProfileHeroProps) {
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const shouldSkipNextPressRef = useRef(false);
+  const closePreview = () => {
+    shouldSkipNextPressRef.current = false;
+    setIsPreviewVisible(false);
+  };
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || "User";
   const initial = displayName.charAt(0).toUpperCase();
 
@@ -85,11 +89,11 @@ export function ProfileHero({
           transparent
           animationType="fade"
           statusBarTranslucent
-          onRequestClose={() => setIsPreviewVisible(false)}
+          onRequestClose={closePreview}
         >
           <Pressable
             className="flex-1 bg-black/75 items-center justify-center px-6"
-            onPress={() => setIsPreviewVisible(false)}
+            onPress={closePreview}
           >
             <Pressable onPress={() => {}}>
               <View className="w-[320px] h-[320px] max-w-full rounded-full overflow-hidden border border-white/20">
