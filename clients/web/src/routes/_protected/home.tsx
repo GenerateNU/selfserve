@@ -30,7 +30,10 @@ import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
 import { ViewRequestDrawer } from "@/components/requests/ViewRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
-import { RequestCardItem, formatRequestTime } from "@/components/requests/RequestCardItem";
+import {
+  RequestCardItem,
+  formatRequestTime,
+} from "@/components/requests/RequestCardItem";
 import { RequestCard } from "@/components/requests/RequestCard";
 import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
 
@@ -120,7 +123,10 @@ function KanbanColumnData({
 
 function DragOverlayCard({ request }: { request: RequestFeedItem }) {
   return (
-    <RequestCard status={request.status} className="w-[22rem] shadow-xl rotate-1 opacity-95">
+    <RequestCard
+      status={request.status}
+      className="w-[22rem] shadow-xl rotate-1 opacity-95"
+    >
       <RequestCardTimestamp
         status={request.status}
         time={formatRequestTime(request.created_at)}
@@ -149,7 +155,9 @@ function HomePage() {
   );
   const [viewIsPending, setViewIsPending] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [activeDragItem, setActiveDragItem] = useState<RequestFeedItem | null>(null);
+  const [activeDragItem, setActiveDragItem] = useState<RequestFeedItem | null>(
+    null,
+  );
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();

@@ -9,7 +9,11 @@ type KanbanColumnProps = {
   droppableId: string;
 };
 
-export function KanbanColumn({ title, children, droppableId }: KanbanColumnProps) {
+export function KanbanColumn({
+  title,
+  children,
+  droppableId,
+}: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: droppableId });
 
   return (

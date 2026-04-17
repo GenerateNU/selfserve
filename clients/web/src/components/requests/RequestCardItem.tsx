@@ -68,7 +68,11 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
       {...attributes}
       {...listeners}
     >
-      <RequestCard status={status} className="w-full" onClick={isDragging ? undefined : onClick}>
+      <RequestCard
+        status={status}
+        className="w-full"
+        onClick={isDragging ? undefined : onClick}
+      >
         <RequestCardTimestamp
           status={status}
           time={formatRequestTime(request.created_at)}
