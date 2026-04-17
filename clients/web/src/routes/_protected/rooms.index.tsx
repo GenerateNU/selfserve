@@ -41,11 +41,12 @@ function RoomsPage() {
   const postRooms = usePostRoomsHook();
 
   const { data: rooms } = useQuery({
-    queryKey: ["rooms", filters.floors],
+    queryKey: ["rooms", filters.floors, sortOption],
     queryFn: () =>
       postRooms({
         floors: filters.floors.length > 0 ? filters.floors : undefined,
         limit: 10,
+        sort: sortOption,
       }),
   });
 
@@ -109,7 +110,6 @@ function RoomsPage() {
           />
           <RoomsList
             rooms={rooms?.items ?? []}
-            sortOption={sortOption}
             onRoomSelect={(room) => {
               setGeneratedData(null);
               setSelectedRoom(room);
