@@ -13,6 +13,7 @@ import {
   FloorPickerSheet,
   type Floor,
 } from "@/components/rooms/floor-picker-sheet";
+import { OverviewTab } from "@/components/rooms/overview-tab";
 
 type Room = {
   id: string;
@@ -160,9 +161,7 @@ export default function RoomsScreen() {
           )}
         />
       ) : (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-text-subtle">Overview coming soon</Text>
-        </View>
+        <OverviewTab floorId={parseInt(selectedFloor.id)} />
       )}
       <FloorPickerSheet
         visible={floorPickerVisible}
