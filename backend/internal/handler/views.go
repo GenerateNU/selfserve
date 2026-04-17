@@ -12,7 +12,7 @@ import (
 )
 
 type ViewsRepository interface {
-	FindAllByUserAndSlug(ctx context.Context, userID, slug string) ([]*models.View, error)
+	FindAllByUserAndSlug(ctx context.Context, userID string, slug models.ViewSlug) ([]*models.View, error)
 	Insert(ctx context.Context, userID string, input models.CreateViewInput) (*models.View, error)
 	Delete(ctx context.Context, id, userID string) error
 }
@@ -38,13 +38,13 @@ func NewViewsHandler(repo ViewsRepository) *ViewsHandler {
 // @Router       /views [get]
 func (h *ViewsHandler) GetAllViews(c *fiber.Ctx) error {
 	slug := c.Query("slug")
-	if slug == "" {
-		return errs.BadRequest("slug is required")
+	if !models.IsValidViewSlug(slug) {
+		return errs.BadRequest("invalid slug")
 	}
 
 	userID := c.Locals("userId").(string)
 
-	views, err := h.repo.FindAllByUserAndSlug(c.Context(), userID, slug)
+	views, err := h.repo.FindAllByUserAndSlug(c.Context(), userID, models.ViewSlug(slug))
 	if err != nil {
 		slog.Error("failed to list views", "err", err)
 		return errs.InternalServerError()

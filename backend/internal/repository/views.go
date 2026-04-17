@@ -17,7 +17,7 @@ func NewViewsRepository(db *pgxpool.Pool) *ViewsRepository {
 	return &ViewsRepository{db: db}
 }
 
-func (r *ViewsRepository) FindAllByUserAndSlug(ctx context.Context, userID, slug string) ([]*models.View, error) {
+func (r *ViewsRepository) FindAllByUserAndSlug(ctx context.Context, userID string, slug models.ViewSlug) ([]*models.View, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, user_id, slug, display_name, filters, created_at, updated_at
 		FROM public.views
