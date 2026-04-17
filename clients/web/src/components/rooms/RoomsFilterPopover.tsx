@@ -1,4 +1,10 @@
 import { useState } from "react";
+import type {
+  RoomAdvancedFilter,
+  RoomAttributeFilter,
+  RoomStatusFilter,
+} from "@shared/api/rooms";
+import type { RoomFilters } from "@/hooks/use-rooms-filters";
 import {
   Popover,
   PopoverContent,
@@ -8,25 +14,34 @@ import { FilterSection } from "@/components/rooms/FilterSection";
 import { FilterIcon } from "@/icons/filter";
 import { cn } from "@/lib/utils";
 
-const STATUS_CHIPS = [
-  "Occupied",
-  "Vacant",
-  "Reserved",
-  "Out of Order",
-  "Needs Cleaning",
-  "Open Tasks",
+export const STATUS_OPTIONS: Array<{ value: RoomStatusFilter; label: string }> =
+  [
+    { value: "occupied", label: "Occupied" },
+    { value: "vacant", label: "Vacant" },
+    { value: "open-tasks", label: "Open Tasks" },
+  ];
+
+export const ATTRIBUTE_OPTIONS: Array<{
+  value: RoomAttributeFilter;
+  label: string;
+}> = [
+  { value: "standard", label: "Standard" },
+  { value: "deluxe", label: "Deluxe" },
+  { value: "suite", label: "Suite" },
+  { value: "accessible", label: "Accessible" },
 ];
-const ATTRIBUTE_CHIPS = ["Standard", "Deluxe", "Suite", "Accessible"];
-const ADVANCED_CHIPS = [
-  "Arrivals Today",
-  "Departures Today",
-  "Late Checkouts",
-  "Early Check-ins",
+
+export const ADVANCED_OPTIONS: Array<{
+  value: RoomAdvancedFilter;
+  label: string;
+}> = [
+  { value: "arrivals-today", label: "Arrivals Today" },
+  { value: "departures-today", label: "Departures Today" },
 ];
 
 type RoomsFilterPopoverProps = {
-  appliedChips: ReadonlyArray<string>;
-  onApplyChips: (chips: Array<string>) => void;
+  filters: RoomFilters;
+  onApply: (filters: RoomFilters) => void;
 };
 
 function FilterPopoverHeader({ onReset }: { onReset: () => void }) {
@@ -48,10 +63,10 @@ function FilterPopoverHeader({ onReset }: { onReset: () => void }) {
 
 function FilterPopoverFooter({
   onCancel,
-  onSelect,
+  onApply,
 }: {
   onCancel: () => void;
-  onSelect: () => void;
+  onApply: () => void;
 }) {
   return (
     <div className="flex gap-3 px-3 py-5 border-t border-stroke-subtle">
@@ -64,7 +79,7 @@ function FilterPopoverFooter({
       </button>
       <button
         type="button"
-        onClick={onSelect}
+        onClick={onApply}
         className="flex-1 h-10 rounded text-sm text-white bg-primary hover:bg-primary-hover transition-colors"
       >
         Apply Filters
@@ -73,38 +88,65 @@ function FilterPopoverFooter({
   );
 }
 
+function toDraft(filters: RoomFilters) {
+  return {
+    status: new Set(filters.status),
+    attributes: new Set(filters.attributes),
+    advanced: new Set(filters.advanced),
+  };
+}
+
 export function RoomsFilterPopover({
-  appliedChips,
-  onApplyChips,
+  filters,
+  onApply,
 }: RoomsFilterPopoverProps) {
   const [open, setOpen] = useState(false);
-  const [pendingChips, setPendingChips] = useState<Set<string>>(
-    () => new Set(appliedChips),
-  );
+  const [draft, setDraft] = useState(() => toDraft(filters));
 
-  const toggle = (chip: string) => {
-    setPendingChips((prev) => {
-      const next = new Set(prev);
-      next.has(chip) ? next.delete(chip) : next.add(chip);
-      return next;
+  const toggleStatus = (value: RoomStatusFilter) => {
+    setDraft((prev) => {
+      const next = new Set(prev.status);
+      next.has(value) ? next.delete(value) : next.add(value);
+      return { ...prev, status: next };
     });
   };
 
-  const handleSelect = () => {
-    onApplyChips([...pendingChips]);
+  const toggleAttribute = (value: RoomAttributeFilter) => {
+    setDraft((prev) => {
+      const next = new Set(prev.attributes);
+      next.has(value) ? next.delete(value) : next.add(value);
+      return { ...prev, attributes: next };
+    });
+  };
+
+  const toggleAdvanced = (value: RoomAdvancedFilter) => {
+    setDraft((prev) => {
+      const next = new Set(prev.advanced);
+      next.has(value) ? next.delete(value) : next.add(value);
+      return { ...prev, advanced: next };
+    });
+  };
+
+  const handleApply = () => {
+    onApply({
+      status: [...draft.status],
+      attributes: [...draft.attributes],
+      advanced: [...draft.advanced],
+    });
     setOpen(false);
   };
 
   const handleCancel = () => {
-    setPendingChips(new Set(appliedChips));
+    setDraft(toDraft(filters));
     setOpen(false);
   };
 
   const handleReset = () => {
-    setPendingChips(new Set());
+    setDraft({ status: new Set(), attributes: new Set(), advanced: new Set() });
   };
 
-  const appliedCount = appliedChips.length;
+  const appliedCount =
+    filters.status.length + filters.attributes.length + filters.advanced.length;
   const filtersActive = appliedCount > 0;
 
   return (
@@ -112,7 +154,7 @@ export function RoomsFilterPopover({
       open={open}
       onOpenChange={(next) => {
         if (next) {
-          setPendingChips(new Set(appliedChips));
+          setDraft(toDraft(filters));
         }
         setOpen(next);
       }}
@@ -150,26 +192,26 @@ export function RoomsFilterPopover({
           <div className="flex flex-col gap-5">
             <FilterSection
               title="Status"
-              chips={STATUS_CHIPS}
-              selectedChips={pendingChips}
-              onToggle={toggle}
+              options={STATUS_OPTIONS}
+              selectedValues={draft.status}
+              onToggle={toggleStatus}
             />
             <FilterSection
               title="Room Attributes"
-              chips={ATTRIBUTE_CHIPS}
-              selectedChips={pendingChips}
-              onToggle={toggle}
+              options={ATTRIBUTE_OPTIONS}
+              selectedValues={draft.attributes}
+              onToggle={toggleAttribute}
             />
             <FilterSection
               title="Advanced"
-              chips={ADVANCED_CHIPS}
-              selectedChips={pendingChips}
-              onToggle={toggle}
+              options={ADVANCED_OPTIONS}
+              selectedValues={draft.advanced}
+              onToggle={toggleAdvanced}
             />
           </div>
         </div>
 
-        <FilterPopoverFooter onCancel={handleCancel} onSelect={handleSelect} />
+        <FilterPopoverFooter onCancel={handleCancel} onApply={handleApply} />
       </PopoverContent>
     </Popover>
   );

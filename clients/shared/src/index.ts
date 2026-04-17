@@ -118,13 +118,21 @@ export {
   useMarkTaskPending,
   useAssignRequestToSelf,
   useDeleteTask,
-  getRoomRequestsByRoomIdQueryKey,
+  getRoomRequestsByRoomIdQueryKey
 } from "./api/requests";
 
 export type {
   RequestFeedItem,
   RequestFeedSort,
   RequestFeedParams,
+  RequestActivityItem,
+  RequestActivityPage,
+  RequestActivityType,
+} from "./api/requests";
+
+export {
+  getRequestActivityQueryKey,
+  useGetRequestActivity,
 } from "./api/requests";
 
 export { useCustomInstance } from "./api/orval-mutator";
@@ -153,6 +161,7 @@ export {
   getViewsQueryKey,
   useGetViews,
   useCreateView,
+  useUpdateView,
   useDeleteView,
 } from "./api/views";
 

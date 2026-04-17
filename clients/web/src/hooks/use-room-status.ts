@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { AccessibilityIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { RequestPriority, RoomWithOptionalGuestBooking } from "@shared";
+import type { RoomWithOptionalGuestBooking } from "@shared";
 
 import { NotebookIcon } from "@/icons/notebook";
 
@@ -16,32 +16,17 @@ export type RoomStatusTag = {
 
 export type UseRoomStatusResult = Array<Array<RoomStatusTag>>;
 
-function isHighOrMediumPriority(
-  priority: RequestPriority | undefined,
-): priority is "high" | "medium" {
-  return priority === "high" || priority === "medium";
-}
-
 export function useRoomStatus(
   room: RoomWithOptionalGuestBooking,
 ): UseRoomStatusResult {
   return useMemo(() => {
-    const roomWithStatus = room as unknown as {
-      prio?: RequestPriority;
-      priority?: RequestPriority;
-      unassigned?: boolean;
-      is_accessible?: boolean;
-      isAccessible?: boolean;
-    };
-
-    const isAccessible =
-      roomWithStatus.is_accessible ?? roomWithStatus.isAccessible ?? false;
-
-    const prio = roomWithStatus.prio ?? roomWithStatus.priority ?? undefined;
-    const hasUnassigned = roomWithStatus.unassigned ?? false;
+    const prio = room.priority;
+    const isAccessible = room.is_accessible ?? false;
+    const hasUnassigned = room.has_unassigned_tasks ?? false;
 
     const tags: Array<RoomStatusTag> = [];
-    if (isHighOrMediumPriority(prio)) {
+
+    if (prio === "high" || prio === "medium") {
       tags.push({
         key: `priority:${prio}`,
         priority: prio,

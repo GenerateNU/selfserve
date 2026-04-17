@@ -2,22 +2,26 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
+export type RoomSortOption = "ascending" | "descending" | "urgency";
+
 type OrderByDropdownProps = {
-  ascending: boolean;
-  setAscending: (ascending: boolean) => void;
+  sortOption: RoomSortOption;
+  setSortOption: (option: RoomSortOption) => void;
 };
 
-const OPTIONS: Array<{ label: string; ascending: boolean }> = [
-  { label: "Ascending", ascending: true },
-  { label: "Descending", ascending: false },
+const OPTIONS: Array<{ label: string; value: RoomSortOption }> = [
+  { label: "Ascending", value: "ascending" },
+  { label: "Descending", value: "descending" },
+  { label: "Urgency", value: "urgency" },
 ];
 
 export function OrderByDropdown({
-  ascending,
-  setAscending,
+  sortOption,
+  setSortOption,
 }: OrderByDropdownProps) {
   const [open, setOpen] = useState(false);
-  const currentLabel = ascending ? "Ascending" : "Descending";
+  const currentLabel =
+    OPTIONS.find((o) => o.value === sortOption)?.label ?? "Ascending";
 
   return (
     <div
@@ -49,17 +53,17 @@ export function OrderByDropdown({
       {open && (
         <div className="absolute left-0 top-full z-10 flex w-full flex-col gap-1 rounded-b border border-t-0 border-stroke-subtle bg-bg-primary p-1 shadow-sm">
           {OPTIONS.map((option) => {
-            const isSelected = option.ascending === ascending;
+            const isSelected = option.value === sortOption;
             return (
               <button
-                key={option.label}
+                key={option.value}
                 type="button"
                 className={cn(
                   "flex items-center rounded px-3 py-1 text-left text-base text-text-default",
                   isSelected ? "bg-bg-selected" : "hover:bg-bg-container",
                 )}
                 onClick={() => {
-                  setAscending(option.ascending);
+                  setSortOption(option.value);
                   setOpen(false);
                 }}
               >

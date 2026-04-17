@@ -1,19 +1,11 @@
-import { useState } from "react";
 import { GripHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared";
 import type { Request } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { useRoomById } from "@/hooks/use-room-by-id";
+import { ActivityFeed } from "@/components/requests/ActivityFeed";
 import { cn } from "@/lib/utils";
-
-type ActivityTab = "all" | "comments" | "history";
-
-const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
-  { key: "all", label: "All" },
-  { key: "comments", label: "Comments" },
-  { key: "history", label: "History" },
-];
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: "text-info-default",
@@ -74,8 +66,6 @@ export function ViewRequestDrawer({
   request,
   onClose,
 }: ViewRequestDrawerProps) {
-  const [activeTab, setActiveTab] = useState<ActivityTab>("all");
-
   const getUserById = useGetUsersIdHook();
   const { data: assignee } = useQuery({
     queryKey: ["user", request?.user_id],
@@ -84,7 +74,6 @@ export function ViewRequestDrawer({
   });
 
   const { data: room } = useRoomById(request?.room_id);
-
   if (!request) {
     return (
       <DrawerShell title="" onClose={onClose}>
@@ -173,25 +162,9 @@ export function ViewRequestDrawer({
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
-        <span className="text-sm font-bold text-text-default">Activity</span>
-        <div className="flex items-end justify-between border-b border-stroke-subtle">
-          {ACTIVITY_TABS.map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setActiveTab(key)}
-              className={cn(
-                "px-3 py-2 text-sm transition-colors",
-                activeTab === key
-                  ? "border-b-2 border-text-default text-text-default"
-                  : "text-text-subtle hover:text-text-default",
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-col gap-4">
+        <span className="text-base font-bold text-text-default">Activity</span>
+        <ActivityFeed requestId={request.id!} hotelId={request.hotel_id} />
       </div>
     </DrawerShell>
   );

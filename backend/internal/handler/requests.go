@@ -61,7 +61,13 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 		return err
 	}
 
-	res, err := r.RequestRepository.InsertRequest(c.Context(), &models.Request{ID: uuid.New().String(), MakeRequest: requestBody})
+	var changedBy *string
+	if uid, ok := c.Locals("userId").(string); ok && uid != "" {
+		changedBy = &uid
+	}
+
+	req := models.Request{ID: uuid.New().String(), MakeRequest: requestBody, ChangedBy: changedBy}
+	res, err := r.RequestRepository.InsertRequest(c.Context(), &req)
 	if err != nil {
 		return errs.InternalServerError()
 	}
@@ -100,7 +106,12 @@ func (r *RequestsHandler) UpdateRequest(c *fiber.Ctx) error {
 		return err
 	}
 
-	res, err := r.RequestRepository.UpdateRequest(c.Context(), id, &patchInput)
+	var changedBy *string
+	if uid, ok := c.Locals("userId").(string); ok && uid != "" {
+		changedBy = &uid
+	}
+
+	res, err := r.RequestRepository.UpdateRequest(c.Context(), id, &patchInput, changedBy)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("Request", "id", id)
@@ -171,7 +182,7 @@ func (r *RequestsHandler) AssignRequest(c *fiber.Ctx) error {
 	}
 
 	update := models.RequestUpdateInput{UserID: &assigneeID}
-	res, err := r.RequestRepository.UpdateRequest(c.Context(), requestID, &update)
+	res, err := r.RequestRepository.UpdateRequest(c.Context(), requestID, &update, &userID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFoundInDB) {
 			return errs.NotFound("request", "id", requestID)
@@ -519,6 +530,212 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	page := utils.BuildCursorPage(requests, resolvedLimit, buildFeedCursor)
 
 	return c.JSON(page)
+}
+
+// GetRequestActivity godoc
+// @Summary      Get request activity history
+// @Description  Returns a cursor-paginated list of activity events derived from the request's version history, newest first
+// @Tags         requests
+// @Produce      json
+// @Param        id      path   string  true   "Request ID (UUID)"
+// @Param        cursor  query  string  false  "Pagination cursor (timestamp of last seen item)"
+// @Param        limit   query  int     false  "Page size (default 20, max 100)"
+// @Success      200  {object}  models.RequestActivityPage
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      404  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /request/{id}/activity [get]
+func (r *RequestsHandler) GetRequestActivity(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if !validUUID(id) {
+		return errs.BadRequest("request id is not a valid UUID")
+	}
+
+	limit := c.QueryInt("limit", 20)
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+
+	var cursor time.Time
+	if cursorStr := c.Query("cursor"); cursorStr != "" {
+		var err error
+		cursor, err = time.Parse(time.RFC3339Nano, cursorStr)
+		if err != nil {
+			return errs.BadRequest("invalid cursor")
+		}
+	}
+
+	versions, err := r.RequestRepository.FindRequestVersions(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFoundInDB) {
+			return errs.NotFound("Request", "id", id)
+		}
+		slog.Error("failed to fetch request versions", "err", err, "requestID", id)
+		return errs.InternalServerError()
+	}
+
+	all := buildRequestActivity(versions)
+	// Reverse to newest-first
+	for i, j := 0, len(all)-1; i < j; i, j = i+1, j-1 {
+		all[i], all[j] = all[j], all[i]
+	}
+
+	// Apply cursor: skip items at or after the cursor timestamp
+	start := 0
+	if !cursor.IsZero() {
+		for i, item := range all {
+			if item.Timestamp.Before(cursor) {
+				start = i
+				break
+			}
+		}
+		if start == 0 {
+			return c.JSON(&models.RequestActivityPage{Items: []*models.RequestActivityItem{}})
+		}
+	}
+
+	page := all[start:]
+	var nextCursor *string
+	if len(page) > limit {
+		page = page[:limit]
+		t := page[limit-1].Timestamp.UTC().Format(time.RFC3339Nano)
+		nextCursor = &t
+	}
+
+	return c.JSON(&models.RequestActivityPage{Items: page, NextCursor: nextCursor})
+}
+
+func buildRequestActivity(versions []*models.Request) []*models.RequestActivityItem {
+	items := make([]*models.RequestActivityItem, 0, len(versions))
+
+	for i, v := range versions {
+		if i == 0 {
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityCreated,
+				ChangedBy: v.ChangedBy,
+				Timestamp: v.RequestVersion,
+			})
+			continue
+		}
+
+		prev := versions[i-1]
+
+		if v.Status != prev.Status {
+			old, cur := prev.Status, v.Status
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityStatusChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &old,
+				NewValue:  &cur,
+				Timestamp: v.RequestVersion,
+			})
+		}
+
+		if v.Priority != prev.Priority {
+			old, cur := prev.Priority, v.Priority
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityPriorityChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &old,
+				NewValue:  &cur,
+				Timestamp: v.RequestVersion,
+			})
+		}
+
+		prevUserID := ""
+		if prev.UserID != nil {
+			prevUserID = *prev.UserID
+		}
+		curUserID := ""
+		if v.UserID != nil {
+			curUserID = *v.UserID
+		}
+		if prevUserID != curUserID {
+			if curUserID == "" {
+				items = append(items, &models.RequestActivityItem{
+					Type:      models.ActivityUnassigned,
+					ChangedBy: v.ChangedBy,
+					OldValue:  &prevUserID,
+					Timestamp: v.RequestVersion,
+				})
+			} else {
+				items = append(items, &models.RequestActivityItem{
+					Type:      models.ActivityAssigned,
+					ChangedBy: v.ChangedBy,
+					NewValue:  &curUserID,
+					Timestamp: v.RequestVersion,
+				})
+			}
+		}
+
+		if v.Name != prev.Name {
+			old, cur := prev.Name, v.Name
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityNameChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &old,
+				NewValue:  &cur,
+				Timestamp: v.RequestVersion,
+			})
+		}
+
+		prevDept := ""
+		if prev.Department != nil {
+			prevDept = *prev.Department
+		}
+		curDept := ""
+		if v.Department != nil {
+			curDept = *v.Department
+		}
+		if prevDept != curDept {
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityDepartmentChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &prevDept,
+				NewValue:  &curDept,
+				Timestamp: v.RequestVersion,
+			})
+		}
+
+		prevRoom := ""
+		if prev.RoomID != nil {
+			prevRoom = *prev.RoomID
+		}
+		curRoom := ""
+		if v.RoomID != nil {
+			curRoom = *v.RoomID
+		}
+		if prevRoom != curRoom {
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityRoomChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &prevRoom,
+				NewValue:  &curRoom,
+				Timestamp: v.RequestVersion,
+			})
+		}
+
+		prevDesc := ""
+		if prev.Description != nil {
+			prevDesc = *prev.Description
+		}
+		curDesc := ""
+		if v.Description != nil {
+			curDesc = *v.Description
+		}
+		if prevDesc != curDesc {
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityDescriptionChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &prevDesc,
+				NewValue:  &curDesc,
+				Timestamp: v.RequestVersion,
+			})
+		}
+	}
+
+	return items
 }
 
 // parseFeedCursor decodes a universal cursor: "priority_rank|created_at_nano|id".

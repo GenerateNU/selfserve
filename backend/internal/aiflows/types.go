@@ -34,7 +34,7 @@ type UserLookupInput struct {
 
 type EnrichedGenerateRequestOutput struct {
 	GuestID       *string `json:"guest_id,omitempty" validate:"omitempty,uuid"`
-	UserID        *string `json:"user_id,omitempty" validate:"omitempty,uuid"`
+	UserID        *string `json:"user_id,omitempty" validate:"omitempty,notblank"`
 	ReservationID *string `json:"reservation_id,omitempty" validate:"omitempty,uuid"`
 	RoomID        *string `json:"room_id,omitempty" validate:"omitempty,uuid"`
 	DepartmentID  *string `json:"department_id,omitempty" validate:"omitempty,uuid"`

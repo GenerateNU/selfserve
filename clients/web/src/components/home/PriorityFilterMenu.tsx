@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Check, X } from "lucide-react";
 
 const PRIORITY_OPTIONS: Array<{ value: string; label: string }> = [
@@ -20,11 +19,11 @@ export function PriorityFilterMenu({
   onApply,
   onClose,
 }: PriorityFilterMenuProps) {
-  const [draft, setDraft] = useState<Array<string>>(selectedPriorities);
-
   function toggle(value: string) {
-    setDraft((prev) =>
-      prev.includes(value) ? prev.filter((p) => p !== value) : [...prev, value],
+    onApply(
+      selectedPriorities.includes(value)
+        ? selectedPriorities.filter((p) => p !== value)
+        : [...selectedPriorities, value],
     );
   }
 
@@ -38,7 +37,7 @@ export function PriorityFilterMenu({
         {/* Header */}
         <div className="flex items-start justify-between pl-4 pr-3 py-3 border-b border-stroke-subtle min-h-[48px]">
           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
-            {draft.map((value) => {
+            {selectedPriorities.map((value) => {
               const label =
                 PRIORITY_OPTIONS.find((o) => o.value === value)?.label ?? value;
               return (
@@ -60,7 +59,7 @@ export function PriorityFilterMenu({
           </div>
           <button
             type="button"
-            onClick={() => setDraft([])}
+            onClick={() => onApply([])}
             className="shrink-0 text-sm text-text-subtle hover:text-text-default transition-colors ml-2"
           >
             Clear
@@ -70,7 +69,7 @@ export function PriorityFilterMenu({
         {/* Options */}
         <div>
           {PRIORITY_OPTIONS.map((option) => {
-            const isSelected = draft.includes(option.value);
+            const isSelected = selectedPriorities.includes(option.value);
             return (
               <button
                 key={option.value}
@@ -93,27 +92,6 @@ export function PriorityFilterMenu({
               </button>
             );
           })}
-        </div>
-
-        {/* Footer */}
-        <div className="flex gap-3 p-3 border-t border-stroke-subtle">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 bg-bg-container rounded px-6 py-2.5 text-sm text-text-default hover:bg-bg-selected transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onApply(draft);
-              onClose();
-            }}
-            className="flex-1 bg-primary rounded px-6 py-2.5 text-sm text-white hover:bg-primary-hover transition-colors"
-          >
-            Select
-          </button>
         </div>
       </div>
     </>

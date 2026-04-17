@@ -49,13 +49,14 @@ type GuestsSearchRepository interface {
 
 type RequestsRepository interface {
 	InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error)
-	UpdateRequest(ctx context.Context, id string, patch *models.RequestUpdateInput) (*models.Request, error)
+	UpdateRequest(ctx context.Context, id string, patch *models.RequestUpdateInput, changedBy *string) (*models.Request, error)
 	FindRequest(ctx context.Context, id string) (*models.Request, error)
 	FindRequests(ctx context.Context) ([]models.Request, error)
 	FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindUnassignedRequestsByRoomIDAndUserID(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	FindRequestsPaginated(ctx context.Context, input *models.RequestsFeedInput, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
+	FindRequestVersions(ctx context.Context, id string) ([]*models.Request, error)
 }
 
 type HotelsRepository interface {
