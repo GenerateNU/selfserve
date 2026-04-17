@@ -10,7 +10,6 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useUpdateRequestDepartment } from "@shared/api/requests";
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import {
   MakeRequestPriority,
   useCreateView,
@@ -21,6 +20,7 @@ import {
   useGetUsersIdHook,
   useGetViews,
 } from "@shared";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import type {
   Request,
   RequestFeedItem,
