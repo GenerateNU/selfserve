@@ -99,7 +99,9 @@ export function MemberDetailPanel({
                     className="flex items-start gap-3 px-3 py-2.5"
                   >
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-text-default">{r}</p>
+                      <p className="text-sm font-medium text-text-default">
+                        {r}
+                      </p>
                       <p className="text-xs text-text-subtle">{description}</p>
                     </div>
                     {r === member.role && (
@@ -110,7 +112,9 @@ export function MemberDetailPanel({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <span className="px-2 py-1 text-sm text-text-secondary">{member.role}</span>
+            <span className="px-2 py-1 text-sm text-text-secondary">
+              {member.role}
+            </span>
           )}
         </div>
 
