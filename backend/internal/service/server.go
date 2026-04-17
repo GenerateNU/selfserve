@@ -37,6 +37,12 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
+type redisClient = *goredis.Client
+
+var initRedisClient = func(cfg config.Redis) (redisClient, error) {
+	return redis.InitRedis(cfg)
+}
+
 type App struct {
 	Server         *fiber.App
 	Repo           *storage.Repository
@@ -44,6 +50,26 @@ type App struct {
 	RedisClient    *goredis.Client
 	TemporalClient client.Client
 	TemporalWorker worker.Worker
+}
+
+func (a *App) Close() error {
+	if a == nil {
+		return nil
+	}
+
+	if a.TemporalWorker != nil {
+		a.TemporalWorker.Stop()
+	}
+	if a.TemporalClient != nil {
+		a.TemporalClient.Close()
+	}
+
+	var err error
+	if a.Repo != nil {
+		err = errors.Join(err, a.Repo.Close())
+	}
+
+	return errors.Join(err, redis.Close(a.RedisClient))
 }
 
 func InitApp(cfg *config.Config) (*App, error) {
@@ -56,14 +82,11 @@ func InitApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	redisClient := tryInitRedis()
+	redisClient := tryInitRedis(cfg.Redis)
 
 	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
-		if e := repo.Close(); e != nil {
-			return nil, errors.Join(err, e)
-		}
-		return nil, err
+		return nil, errors.Join(err, repo.Close(), redis.Close(redisClient))
 	}
 
 	openSearchRepos := tryInitOpenSearchRepositories(cfg)
@@ -78,13 +101,10 @@ func InitApp(cfg *config.Config) (*App, error) {
 	setupClerk(cfg)
 
 	if err = setupRoutes(app, repo, genkitInstance, workflowClient, cfg, s3Store, openSearchRepos); err != nil { //nolint:wsl
-		if e := repo.Close(); e != nil {
-			return nil, errors.Join(err, e)
-		}
 		if temporalClient != nil {
 			temporalClient.Close()
 		}
-		return nil, err
+		return nil, errors.Join(err, repo.Close(), redis.Close(redisClient))
 	}
 
 	return &App{
@@ -116,8 +136,12 @@ func tryInitOpenSearchRepositories(cfg *config.Config) openSearchRepositories {
 	}
 }
 
-func tryInitRedis() *goredis.Client {
-	redisClient, err := redis.InitRedis()
+func tryInitRedis(cfg config.Redis) *goredis.Client {
+	if !cfg.Enabled {
+		return nil
+	}
+
+	redisClient, err := initRedisClient(cfg)
 	if err != nil {
 		log.Printf("Warning: Redis not available: %v", err)
 		return nil

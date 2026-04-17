@@ -1,34 +1,27 @@
 package redis
 
 import (
-	"context"
 	"testing"
+	"time"
+
+	"github.com/generate/selfserve/config"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestRedisConnection(t *testing.T) {
-	client, err := InitRedis()
-	if err != nil {
-		t.Skipf("Skipping test: Redis not available: %v", err)
-	}
-	defer func() {
-		_ = Close(client)
-	}()
+func TestNewOptionsUsesConfigValues(t *testing.T) {
+	t.Parallel()
 
-	ctx := context.Background()
+	cfg := config.Redis{
+		Enabled:     true,
+		Addr:        "cache.internal:6379",
+		Password:    "secret",
+		DB:          7,
+		PingTimeout: 3 * time.Second,
+	}
 
-	// Test Set
-	err = client.Set(ctx, "test_key", "test_value", 0).Err()
-	if err != nil {
-		t.Fatalf("Failed to set value: %v", err)
-	}
-	defer client.Del(ctx, "test_key")
+	options := newOptions(cfg)
 
-	// Test Get
-	val, err := client.Get(ctx, "test_key").Result()
-	if err != nil {
-		t.Fatalf("Failed to get value: %v", err)
-	}
-	if val != "test_value" {
-		t.Errorf("Expected 'test_value', got '%s'", val)
-	}
+	assert.Equal(t, "cache.internal:6379", options.Addr)
+	assert.Equal(t, "secret", options.Password)
+	assert.Equal(t, 7, options.DB)
 }
