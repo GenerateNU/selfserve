@@ -18,12 +18,12 @@ import (
 // ─── Seed data ────────────────────────────────────────────────────────────────
 
 type seedRoom struct {
-	number    int
-	floor     int
-	suiteType string
-	status    string
+	number     int
+	floor      int
+	suiteType  string
+	status     string
 	accessible bool
-	features  []string
+	features   []string
 }
 
 var seedRooms = []seedRoom{
