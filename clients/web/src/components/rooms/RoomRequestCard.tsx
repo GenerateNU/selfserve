@@ -1,34 +1,9 @@
-import { FlagIcon, MapPinIcon, Maximize2Icon, StoreIcon } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { MapPinIcon, Maximize2Icon, StoreIcon } from "lucide-react";
 
 import type { GuestRequest, RequestPriority } from "@shared";
 import { Button } from "@/components/ui/Button";
+import { Tag } from "@/components/ui/Tag";
 import { cn } from "@/lib/utils";
-
-type PriorityConfig = {
-  label: string;
-  Icon: LucideIcon;
-  containerClass: string;
-  contentClass: string;
-};
-
-const priorityConfig: Record<
-  Exclude<RequestPriority, "low">,
-  PriorityConfig
-> = {
-  high: {
-    label: "High Priority",
-    Icon: FlagIcon,
-    containerClass: "bg-bg-high-priority",
-    contentClass: "text-high-priority",
-  },
-  medium: {
-    label: "Medium Priority",
-    Icon: FlagIcon,
-    containerClass: "bg-bg-orange",
-    contentClass: "text-text-orange",
-  },
-};
 
 export type RoomRequestCardProps = GuestRequest & {
   isAssigned?: boolean;
@@ -86,34 +61,8 @@ export function RoomRequestCard({
         )}
 
         <div className="flex flex-wrap items-center gap-3">
-          {(p === "medium" || p === "high") &&
-            (() => {
-              const { label, Icon, containerClass, contentClass } =
-                priorityConfig[p];
-              return (
-                <div
-                  className={cn(
-                    "inline-flex items-center gap-1 rounded px-2 py-1",
-                    containerClass,
-                  )}
-                >
-                  <Icon
-                    className={cn("size-4", contentClass)}
-                    strokeWidth={2}
-                  />
-                  <span className={cn("text-xs", contentClass)}>{label}</span>
-                </div>
-              );
-            })()}
-          {department && (
-            <div className="inline-flex items-center gap-2 rounded border border-stroke-subtle bg-bg-primary px-2 py-1">
-              <StoreIcon
-                className="size-3 shrink-0 text-text-default"
-                strokeWidth={1.5}
-              />
-              <span className="text-xs text-text-default">{department}</span>
-            </div>
-          )}
+          <Tag priority={p === "high" || p === "medium" ? p : undefined} />
+          {department && <Tag label={department} icon={StoreIcon} />}
         </div>
       </div>
 
