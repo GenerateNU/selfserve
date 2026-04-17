@@ -200,10 +200,13 @@ export const useCompleteTask = () => {
         }
       }
     },
-    onSettled: () => {
+    onSettled: (_data, _err, taskId) => {
       queryClient.invalidateQueries({
         queryKey: REQUESTS_FEED_QUERY_KEY,
         exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getRequestActivityQueryKey(taskId),
       });
     },
   });
@@ -253,10 +256,13 @@ export const useMarkTaskPending = () => {
         }
       }
     },
-    onSettled: () => {
+    onSettled: (_data, _err, taskId) => {
       queryClient.invalidateQueries({
         queryKey: REQUESTS_FEED_QUERY_KEY,
         exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getRequestActivityQueryKey(taskId),
       });
     },
   });
