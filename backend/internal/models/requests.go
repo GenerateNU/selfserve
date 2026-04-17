@@ -65,7 +65,7 @@ type MakeRequest struct {
 	RequestCategory         *string    `json:"request_category" example:"Cleaning"`
 	RequestType             string     `json:"request_type" validate:"notblank" example:"recurring"`
 	Department              *string    `json:"department" example:"maintenance"`
-	Status                  string     `json:"status" validate:"oneof='pending' 'in progress' 'completed'" example:"pending"`
+	Status                  string     `json:"status" validate:"oneof='pending' 'in progress' 'completed' 'archived'" example:"pending"`
 	Priority                string     `json:"priority" validate:"oneof=low medium high" example:"high"`
 	EstimatedCompletionTime *int       `json:"estimated_completion_time" example:"30"`
 	ScheduledTime           *time.Time `json:"scheduled_time" example:"2024-01-01T00:00:00Z"`
@@ -104,7 +104,7 @@ type AssignRequestInput struct {
 
 type GetRequestsByStatusInput struct {
 	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank"`
-	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'in progress' 'completed'"`
+	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'in progress' 'completed' 'archived'"`
 	CursorTime *int64  `json:"cursor_time"`
 	CursorID   *string `json:"cursor_id"`
 } //@name GetRequestsByStatusInput
@@ -138,7 +138,7 @@ type RequestsFeedInput struct {
 	Limit       int             `json:"limit"       validate:"omitempty,min=1,max=100"`
 	UserID      string          `json:"user_id"`
 	Unassigned  bool            `json:"unassigned"`
-	Status      string          `json:"status"      validate:"omitempty,oneof='pending' 'in progress' 'completed'"`
+	Status      string          `json:"status"      validate:"omitempty,oneof='pending' 'in progress' 'completed' 'archived'"`
 	Priorities  []string        `json:"priorities"  validate:"omitempty,dive,oneof=low medium high"`
 	Departments []string        `json:"departments"`
 	Floors      []int           `json:"floors"`

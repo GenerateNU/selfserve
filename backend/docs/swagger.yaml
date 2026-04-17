@@ -418,6 +418,7 @@ definitions:
         - pending
         - in progress
         - completed
+        - archived
         example: pending
         type: string
       user_id:
@@ -529,6 +530,7 @@ definitions:
         - pending
         - in progress
         - completed
+        - archived
         example: pending
         type: string
       user_id:
@@ -615,6 +617,7 @@ definitions:
         - pending
         - in progress
         - completed
+        - archived
         type: string
       unassigned:
         type: boolean
