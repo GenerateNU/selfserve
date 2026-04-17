@@ -195,7 +195,7 @@ export function CreateRequestDrawer({
       onChange={(e) => updateForm((f) => ({ ...f, name: e.target.value }))}
       onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
       placeholder="New Request"
-      className="w-full bg-transparent text-center text-3xl font-bold text-text-default placeholder:text-text-subtle outline-none"
+      className="w-full bg-transparent text-left text-3xl font-bold text-text-default placeholder:text-text-subtle outline-none"
       autoFocus={!isEditMode}
     />
   );
@@ -305,18 +305,6 @@ export function CreateRequestDrawer({
         />
       </div>
 
-      {isEditMode && (
-        <div className="flex flex-col gap-4">
-          <span className="text-base font-bold text-text-default">
-            Activity
-          </span>
-          <ActivityFeed
-            requestId={existingRequest.id!}
-            hotelId={existingRequest.hotel_id}
-          />
-        </div>
-      )}
-
       <Button
         variant={canSubmit ? "primary" : "secondary"}
         onClick={handleSubmit}
@@ -331,7 +319,7 @@ export function CreateRequestDrawer({
           <span className="text-base font-bold text-text-default">
             Activity
           </span>
-          <ActivityFeed requestId={existingRequest.id!} />
+          <ActivityFeed requestId={existingRequest.id!} hotelId={existingRequest.hotel_id} />
         </div>
       )}
     </DrawerShell>
