@@ -15,7 +15,11 @@ type UnassignedTaskCardProps = {
   isAssigning: boolean;
 };
 
-function UnassignedTaskCard({ task, onAssignToSelf, isAssigning }: UnassignedTaskCardProps) {
+function UnassignedTaskCard({
+  task,
+  onAssignToSelf,
+  isAssigning,
+}: UnassignedTaskCardProps) {
   const location = [
     task.floor != null ? `Floor ${task.floor}` : null,
     task.room_number != null ? `Room ${task.room_number}` : null,
@@ -40,7 +44,10 @@ function UnassignedTaskCard({ task, onAssignToSelf, isAssigning }: UnassignedTas
             </View>
           ) : null}
         </View>
-        <Text className="text-[15px] font-medium text-text-default" numberOfLines={2}>
+        <Text
+          className="text-[15px] font-medium text-text-default"
+          numberOfLines={2}
+        >
           {task.name}
         </Text>
         {location ? (
@@ -68,27 +75,41 @@ type OverviewTabProps = {
 
 export function OverviewTab({ floorId }: OverviewTabProps) {
   const { data } = useGetRequestsFeed({ unassigned: true, floors: [floorId] });
-  const { mutate: assignToSelf, isPending: isAssigning, variables: assigningTaskId } =
-    useAssignRequestToSelf();
+  const {
+    mutate: assignToSelf,
+    isPending: isAssigning,
+    variables: assigningTaskId,
+  } = useAssignRequestToSelf();
 
   const unassignedTasks = data?.pages.flatMap((p) => p.items ?? []) ?? [];
 
   return (
-    <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32 }}>
+    <ScrollView
+      className="flex-1"
+      contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32 }}
+    >
       {/* Stats section */}
       <View>
         <View className="border-b border-stroke-subtle py-3">
-          <Text className="text-[15px] font-medium text-text-subtle">Overview</Text>
+          <Text className="text-[15px] font-medium text-text-subtle">
+            Overview
+          </Text>
         </View>
 
         {/* Row 1: Urgent · Unassigned · Pending */}
         <View className="flex-row">
           <View className="flex-1 p-4 gap-1">
             <View className="flex-row items-center gap-1">
-              <Feather name="alert-circle" size={16} color={Colors.light.textDefault} />
+              <Feather
+                name="alert-circle"
+                size={16}
+                color={Colors.light.textDefault}
+              />
               <Text className="text-[15px] text-text-default">Urgent</Text>
             </View>
-            <Text className="text-[32px] font-medium text-text-default leading-tight">1</Text>
+            <Text className="text-[32px] font-medium text-text-default leading-tight">
+              1
+            </Text>
             <Text className="text-[15px] text-text-subtle">Tasks</Text>
           </View>
           <View className="flex-1 p-4 gap-1">
@@ -100,7 +121,9 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
           </View>
           <View className="flex-1 p-4 gap-1">
             <Text className="text-[15px] text-text-default">Pending</Text>
-            <Text className="text-[32px] font-medium text-text-default leading-tight">12</Text>
+            <Text className="text-[32px] font-medium text-text-default leading-tight">
+              12
+            </Text>
             <Text className="text-[15px] text-text-subtle">Tasks</Text>
           </View>
         </View>
@@ -110,7 +133,9 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
           <View className="flex-1 p-4 gap-1">
             <Text className="text-[15px] text-text-default">{`Floor\nOccupancy`}</Text>
             <View className="flex-row items-baseline gap-1">
-              <Text className="text-[32px] font-medium text-text-default leading-tight">62</Text>
+              <Text className="text-[32px] font-medium text-text-default leading-tight">
+                62
+              </Text>
               <Text className="text-xs text-text-subtle">/</Text>
               <Text className="text-xs text-text-subtle">80</Text>
             </View>
@@ -118,12 +143,16 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
           </View>
           <View className="flex-1 p-4 gap-1">
             <Text className="text-[15px] text-text-default">{`Expected\nArrivals`}</Text>
-            <Text className="text-[32px] font-medium text-text-default leading-tight">8</Text>
+            <Text className="text-[32px] font-medium text-text-default leading-tight">
+              8
+            </Text>
             <Text className="text-[15px] text-text-subtle">Guests</Text>
           </View>
           <View className="flex-1 p-4 gap-1">
             <Text className="text-[15px] text-text-default">{`Expected\nDepartures`}</Text>
-            <Text className="text-[32px] font-medium text-text-default leading-tight">11</Text>
+            <Text className="text-[32px] font-medium text-text-default leading-tight">
+              11
+            </Text>
             <Text className="text-[15px] text-text-subtle">Guests</Text>
           </View>
         </View>
