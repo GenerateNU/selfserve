@@ -14,9 +14,12 @@ import { StartupStatus, useStartup } from "@/context/startup";
 
 const PADDING_H = 20;
 const INDICATOR_W = 56;
-const INDICATOR_H = 44;
-const TAB_H = 60;
 const TAB_COUNT = 5;
+
+// Color values for props that don't support className
+const COLOR_ACTIVE = "#124425"; // primary-surface
+const COLOR_INACTIVE = "#a2a2a2";
+const COLOR_WHITE = "#ffffff";
 
 type TabBarIconProps = {
   name: React.ComponentProps<typeof IconSymbol>["name"];
@@ -26,7 +29,11 @@ type TabBarIconProps = {
 
 const TabBarIcon = ({ name, focused, label }: TabBarIconProps) => (
   <View className="items-center gap-0.5 px-2 py-1">
-    <IconSymbol size={18} name={name} color={focused ? "#124425" : "#a2a2a2"} />
+    <IconSymbol
+      size={18}
+      name={name}
+      color={focused ? COLOR_ACTIVE : COLOR_INACTIVE}
+    />
     <Text
       numberOfLines={1}
       className={`text-xs font-medium ${focused ? "text-primary-surface" : "text-[#a2a2a2]"}`}
@@ -38,7 +45,7 @@ const TabBarIcon = ({ name, focused, label }: TabBarIconProps) => (
 
 const PlusButton = () => (
   <View className="bg-primary rounded-full size-10 items-center justify-center">
-    <IconSymbol size={22} name="plus" color="#ffffff" />
+    <IconSymbol size={22} name="plus" color={COLOR_WHITE} />
   </View>
 );
 
@@ -87,35 +94,15 @@ function CustomTabBar({ state, navigation, insets }: BottomTabBarProps) {
 
   return (
     <View
-      style={{
-        backgroundColor: "#ffffff",
-        borderTopWidth: 1,
-        borderTopColor: "#e9e9e9",
-        paddingBottom: Math.max(12, insets.bottom),
-      }}
+      className="bg-bg-surface border-t border-stroke-disabled"
+      style={{ paddingBottom: Math.max(12, insets.bottom) }}
     >
-      <View style={{ position: "relative" }}>
+      <View>
         <Animated.View
-          style={[
-            {
-              position: "absolute",
-              width: INDICATOR_W,
-              height: INDICATOR_H,
-              backgroundColor: "#edf5f1",
-              borderRadius: 8,
-              top: 8 + (TAB_H - INDICATOR_H) / 2,
-              left: PADDING_H,
-            },
-            indicatorStyle,
-          ]}
+          className="absolute w-[56px] h-[44px] bg-bg-selected rounded-lg top-4 left-5"
+          style={indicatorStyle}
         />
-        <View
-          style={{
-            flexDirection: "row",
-            paddingTop: 8,
-            paddingHorizontal: PADDING_H,
-          }}
-        >
+        <View className="flex-row pt-2 px-5">
           {state.routes.map((route, index) => {
             const focused = state.index === index;
             const isPlus = index === 2;
@@ -138,12 +125,7 @@ function CustomTabBar({ state, navigation, insets }: BottomTabBarProps) {
             return (
               <Pressable
                 key={route.key}
-                style={{
-                  flex: 1,
-                  height: TAB_H,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                className="flex-1 h-[60px] items-center justify-center"
                 onPress={handlePress}
               >
                 {isPlus ? (
