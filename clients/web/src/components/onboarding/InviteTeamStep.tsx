@@ -5,11 +5,17 @@ import type { OnboardingFormData } from "./types";
 type InviteTeamStepProps = {
   formData: OnboardingFormData;
   updateForm: (updates: Partial<OnboardingFormData>) => void;
+  onNext: () => void;
+  isSubmitting?: boolean;
 };
 
-export function InviteTeamStep({ formData, updateForm }: InviteTeamStepProps) {
+export function InviteTeamStep({
+  formData,
+  updateForm,
+  onNext,
+  isSubmitting,
+}: InviteTeamStepProps) {
   const [invited, setInvited] = useState(false);
-
   return (
     <div className="flex w-screen h-screen">
       <LeftPanel />
@@ -18,7 +24,6 @@ export function InviteTeamStep({ formData, updateForm }: InviteTeamStepProps) {
           <div className="w-[90%] max-w-[35.4375rem] flex flex-col items-center gap-6">
             {/* Logo */}
             <div className="w-20 h-20 border border-text-default rounded-lg bg-bg-primary shrink-0" />
-
             {/* Header */}
             <div className="flex flex-col items-center gap-2 text-center">
               <h1 className="font-normal text-[clamp(1.25rem,2.5vw,1.5rem)] leading-8 text-text-heading m-0">
@@ -28,7 +33,6 @@ export function InviteTeamStep({ formData, updateForm }: InviteTeamStepProps) {
                 SelfServe is better when the whole staff is connected.
               </p>
             </div>
-
             {/* Email input */}
             <div className="flex flex-col gap-2 w-full">
               <div className="w-full flex items-center gap-2 bg-bg-input rounded-lg px-3 py-2 box-border">
@@ -56,17 +60,18 @@ export function InviteTeamStep({ formData, updateForm }: InviteTeamStepProps) {
                 You can also do this later from your settings.
               </p>
             </div>
-
             {/* Actions */}
             <div className="flex flex-col gap-3 items-center w-full">
               <button
-                onClick={() => console.log("Go to dashboard")}
-                className="w-full h-14 rounded-[0.875rem] bg-primary text-bg-primary border-none text-base"
+                onClick={onNext}
+                disabled={isSubmitting}
+                className="w-full h-14 rounded-[0.875rem] bg-primary text-bg-primary border-none text-base disabled:opacity-50"
               >
-                Go to Dashboard
+                {isSubmitting ? "Setting up..." : "Go to Dashboard"}
               </button>
               <button
-                onClick={() => console.log("Skip for now")}
+                onClick={onNext}
+                disabled={isSubmitting}
                 className="text-sm text-text-muted bg-transparent border-none"
               >
                 Skip for now

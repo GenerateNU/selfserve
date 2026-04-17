@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAuth } from "@clerk/clerk-react";
+import { useNavigate } from "@tanstack/react-router";
 import { WelcomeStep } from "./WelcomeStep";
 import { RoleSelectionStep } from "./RoleSelectionStep";
 import { EmployeeRoleStep } from "./EmployeeRoleStep";
@@ -26,6 +28,10 @@ export function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState<Step>("welcome");
   const [formData, setFormData] =
     useState<OnboardingFormData>(INITIAL_FORM_DATA);
+  const [isPending, setIsPending] = useState(false);
+
+  const { userId, getToken } = useAuth();
+  const navigate = useNavigate();
 
   const updateForm = (updates: Partial<OnboardingFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -37,6 +43,29 @@ export function OnboardingPage() {
       setCurrentStep("employeeRole");
     } else {
       setCurrentStep("propertyDetails");
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!userId) return;
+    setIsPending(true);
+    try {
+      const token = await getToken();
+      await fetch(`${process.env.API_BASE_URL}/users/${userId}/onboard`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          role: formData.role ?? undefined,
+          hotel_name: formData.hotelName || undefined,
+          department: formData.employeeRole ?? undefined,
+        }),
+      });
+      navigate({ to: "/" });
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -75,7 +104,14 @@ export function OnboardingPage() {
           />
         );
       case "inviteTeam":
-        return <InviteTeamStep formData={formData} updateForm={updateForm} />;
+        return (
+          <InviteTeamStep
+            formData={formData}
+            updateForm={updateForm}
+            onNext={handleSubmit}
+            isSubmitting={isPending}
+          />
+        );
     }
   };
 

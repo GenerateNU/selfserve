@@ -178,3 +178,4 @@ export {
   useMarkAllNotificationsRead,
   usePostDeviceToken,
 } from "./api/notifications";
+export { usePutUsersIdOnboard } from "./api/generated/endpoints/users/users";
