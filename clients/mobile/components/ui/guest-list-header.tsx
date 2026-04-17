@@ -36,7 +36,7 @@ export function GuestListHeader({
     filters.floorSort !== null;
 
   return (
-    <View className="px-[4vw] pt-[5vh] pb-[2vh] border-b border-stroke-subtle">
+    <View className="px-6 py-3 border-b border-stroke-subtle">
       <View className="flex-row items-center gap-3">
         <View className="flex-1">
           <SearchBar value={search} onChangeText={setSearch} />

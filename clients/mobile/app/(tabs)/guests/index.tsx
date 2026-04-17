@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { View, FlatList, ActivityIndicator, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { GuestCard } from "@/components/ui/guest-card";
 import { router } from "expo-router";
 import { useAPIClient } from "@shared/api/client";
@@ -68,7 +69,7 @@ export default function GuestsList() {
     });
 
   return (
-    <View className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <FlatList
         data={allGuests}
         keyExtractor={(g, index) => g.id ?? `guest-${index}`}
@@ -120,6 +121,6 @@ export default function GuestsList() {
         onShowResults={() => setFilterSheetOpen(false)}
         onClearAll={clearAll}
       />
-    </View>
+    </SafeAreaView>
   );
 }
