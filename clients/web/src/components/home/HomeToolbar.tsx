@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import { ListFilter, Search, Settings } from "lucide-react";
 import type { View } from "@shared/types/views";
 import { cn } from "@/lib/utils";
@@ -10,6 +11,8 @@ type HomeToolbarProps = {
   activeViewPending?: boolean;
   onSelectView?: (view: View | undefined) => void;
 };
+
+const DEPARTMENTS_KEY = "__departments__";
 
 function TabIcon({ className }: { className?: string }) {
   return (
@@ -35,18 +38,43 @@ export function HomeToolbar({
   activeViewPending = false,
   onSelectView,
 }: HomeToolbarProps) {
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const tabButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const [underline, setUnderline] = useState({ left: 0, width: 0, ready: false });
+
+  const activeKey = activeViewId ?? DEPARTMENTS_KEY;
+
+  useLayoutEffect(() => {
+    const activeTab = tabButtonRefs.current.get(activeKey);
+    const container = tabsRef.current;
+    if (!activeTab || !container) return;
+    const containerRect = container.getBoundingClientRect();
+    const tabRect = activeTab.getBoundingClientRect();
+    setUnderline({
+      left: tabRect.left - containerRect.left,
+      width: tabRect.width,
+      ready: true,
+    });
+  }, [activeKey]);
+
+  function setTabRef(key: string) {
+    return (el: HTMLButtonElement | null) => {
+      if (el) tabButtonRefs.current.set(key, el);
+      else tabButtonRefs.current.delete(key);
+    };
+  }
+
   return (
     <div className={cn("px-6 border-b border-stroke-subtle", className)}>
       <div className="flex items-end justify-between">
-        <div className="flex items-start">
+        <div ref={tabsRef} className="relative flex items-start">
           <button
+            ref={setTabRef(DEPARTMENTS_KEY)}
             type="button"
             onClick={() => onSelectView?.(undefined)}
             className={cn(
               "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
-              activeViewId === undefined
-                ? "text-text-default border-b-2 border-text-default"
-                : "text-text-subtle hover:text-text-default",
+              activeViewId === undefined ? "text-text-default" : "text-text-subtle hover:text-text-default",
             )}
           >
             <TabIcon className="size-4" />
@@ -54,27 +82,31 @@ export function HomeToolbar({
           </button>
           {views.map((view) => {
             const isActive = view.id === activeViewId;
-            const isPending = isActive && activeViewPending;
             return (
               <button
                 key={view.id}
+                ref={setTabRef(view.id)}
                 type="button"
                 onClick={() => onSelectView?.(view)}
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
-                  isActive
-                    ? "text-text-default border-b-2 border-text-default"
-                    : "text-text-subtle hover:text-text-default",
+                  isActive ? "text-text-default" : "text-text-subtle hover:text-text-default",
                 )}
               >
                 <TabIcon className="size-4" />
                 {view.display_name}
-                {isPending && (
+                {isActive && activeViewPending && (
                   <span className="size-1.5 rounded-full bg-current opacity-60" />
                 )}
               </button>
             );
           })}
+          {underline.ready && (
+            <div
+              className="absolute bottom-0 h-0.5 bg-text-default transition-all duration-200 ease-out"
+              style={{ left: underline.left, width: underline.width }}
+            />
+          )}
         </div>
         <div className="flex items-center gap-6 py-2">
           <div className="flex items-center gap-6">
