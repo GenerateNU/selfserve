@@ -11,6 +11,8 @@ import (
 	clerksdk "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/generate/selfserve/config"
 	"github.com/generate/selfserve/internal/aiflows"
+	"github.com/generate/selfserve/internal/cache/object"
+	"github.com/generate/selfserve/internal/cache/store"
 	"github.com/generate/selfserve/internal/errs"
 	"github.com/generate/selfserve/internal/handler"
 	"github.com/generate/selfserve/internal/repository"
@@ -83,6 +85,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 	}
 
 	redisClient := tryInitRedis(cfg.Redis)
+	objectCache := object.New(store.NewRedisStore(redisClient))
 
 	s3Store, err := s3storage.NewS3Storage(cfg.S3)
 	if err != nil {
@@ -100,7 +103,7 @@ func InitApp(cfg *config.Config) (*App, error) {
 	app := setupApp()
 	setupClerk(cfg)
 
-	if err = setupRoutes(app, repo, genkitInstance, workflowClient, cfg, s3Store, openSearchRepos); err != nil { //nolint:wsl
+	if err = setupRoutes(app, repo, genkitInstance, workflowClient, cfg, s3Store, openSearchRepos, objectCache); err != nil { //nolint:wsl
 		if temporalClient != nil {
 			temporalClient.Close()
 		}
@@ -168,7 +171,7 @@ func tryInitTemporal(cfg *config.Config, genkitService aiflows.GenerateRequestSe
 }
 
 func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflows.GenkitService,
-	workflowClient temporalservice.GenerateRequestWorkflowClient, cfg *config.Config, s3Store *s3storage.Storage, openSearchRepos openSearchRepositories) error {
+	workflowClient temporalservice.GenerateRequestWorkflowClient, cfg *config.Config, s3Store *s3storage.Storage, openSearchRepos openSearchRepositories, objectCache *object.Cache) error {
 	// Swagger documentation
 	app.Get("/swagger/*", handler.ServeSwagger)
 
@@ -185,6 +188,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// initialize users and hotels repos for clerk webhook handler
 	usersRepo := repository.NewUsersRepository(repo.DB)
 	hotelsRepo := repository.NewHotelsRepository(repo.DB)
+	usersReadRepo := buildUsersRepository(objectCache, usersRepo)
 
 	// initialize notifications
 	notifRepo := repository.NewNotificationsRepository(repo.DB)
@@ -194,7 +198,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	// initialize handler(s)
 	helloHandler := handler.NewHelloHandler()
 	devsHandler := handler.NewDevsHandler(repository.NewDevsRepository(repo.DB))
-	usersHandler := handler.NewUsersHandler(repository.NewUsersRepository(repo.DB), s3Store)
+	usersHandler := handler.NewUsersHandler(usersReadRepo, s3Store)
 	guestsHandler := handler.NewGuestsHandler(repository.NewGuestsRepository(repo.DB), repository.NewUsersRepository(repo.DB), openSearchRepos.Guests)
 	reqsHandler := handler.NewRequestsHandler(repository.NewRequestsRepo(repo.DB), genkitInstance, notifService)
 	reqsHandler.WorkflowClient = workflowClient
