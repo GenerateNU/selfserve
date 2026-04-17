@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { GripHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useGetUsersIdHook } from "@shared";
+import { useGetRequestActivity, useGetUsersIdHook } from "@shared";
 import type { Request } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { useRoomById } from "@/hooks/use-room-by-id";
+import { ActivityFeed } from "@/components/requests/ActivityFeed";
 import { cn } from "@/lib/utils";
 
 type ActivityTab = "all" | "comments" | "history";
@@ -84,6 +85,9 @@ export function ViewRequestDrawer({
   });
 
   const { data: room } = useRoomById(request?.room_id);
+  const { data: activityItems = [] } = useGetRequestActivity(
+    request?.id ?? null,
+  );
 
   if (!request) {
     return (
@@ -173,7 +177,7 @@ export function ViewRequestDrawer({
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4">
         <span className="text-sm font-bold text-text-default">Activity</span>
         <div className="flex items-end justify-between border-b border-stroke-subtle">
           {ACTIVITY_TABS.map(({ key, label }) => (
@@ -192,6 +196,11 @@ export function ViewRequestDrawer({
             </button>
           ))}
         </div>
+        {activeTab === "comments" ? (
+          <p className="text-sm text-text-subtle">No comments yet.</p>
+        ) : (
+          <ActivityFeed items={activityItems} />
+        )}
       </div>
     </DrawerShell>
   );
