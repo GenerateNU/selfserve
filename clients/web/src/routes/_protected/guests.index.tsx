@@ -134,6 +134,24 @@ function GuestsQuickListPage() {
       }}
       bodyClassName="pb-24"
       drawerOpen={generatedData !== null || guestId !== undefined}
+      bottomBar={generatedData === null && guestId === undefined ? (
+        <GlobalTaskInput
+          onRequestGenerated={(r: Request) => {
+            const p = r.priority;
+            setGeneratedData({
+              name: r.name,
+              description: r.description,
+              priority:
+                p && p in MakeRequestPriority
+                  ? (p as MakeRequestPriority)
+                  : undefined,
+              room_id: r.room_id,
+              guest_id: r.guest_id,
+              user_id: r.user_id,
+            });
+          }}
+        />
+      ) : undefined}
       drawer={
         generatedData !== null ? (
           <CreateRequestDrawer
@@ -163,24 +181,6 @@ function GuestsQuickListPage() {
         }}
       />
       {guestsContent}
-      {generatedData === null && guestId === undefined && (
-        <GlobalTaskInput
-          onRequestGenerated={(r: Request) => {
-            const p = r.priority;
-            setGeneratedData({
-              name: r.name,
-              description: r.description,
-              priority:
-                p && p in MakeRequestPriority
-                  ? (p as MakeRequestPriority)
-                  : undefined,
-              room_id: r.room_id,
-              guest_id: r.guest_id,
-              user_id: r.user_id,
-            });
-          }}
-        />
-      )}
     </PageShell>
   );
 }

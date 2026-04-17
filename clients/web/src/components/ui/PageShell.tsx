@@ -11,6 +11,7 @@ type PageShellProps = {
   drawer?: ReactNode;
   drawerOpen?: boolean;
   children: ReactNode;
+  bottomBar?: ReactNode;
   contentClassName?: string;
   bodyClassName?: string;
 };
@@ -22,6 +23,7 @@ export function PageShell({
   drawer,
   drawerOpen = false,
   children,
+  bottomBar,
   contentClassName,
   bodyClassName,
 }: PageShellProps) {
@@ -59,6 +61,8 @@ export function PageShell({
           </div>
         </section>
       </div>
+
+      {bottomBar}
 
       {hasDrawer && (
         <aside
