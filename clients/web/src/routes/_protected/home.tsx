@@ -223,6 +223,12 @@ function HomePage() {
     ) : null;
 
   const drawerOpen = drawerData !== null || selectedRequestId !== null;
+  const filtersActive =
+    !!selectedUser ||
+    selectedPriorities.length > 0 ||
+    selectedDepartments.length > 0 ||
+    selectedFloors.length > 0 ||
+    sort !== "priority";
 
   return (
     <PageShell
@@ -239,24 +245,42 @@ function HomePage() {
             activeViewId={activeViewId}
             activeViewPending={viewIsPending}
             filtersOpen={filtersOpen}
+            filtersActive={filtersActive}
             onToggleFilters={() => setFiltersOpen((o) => !o)}
             onSelectView={(view) =>
               view ? handleApplyView(view) : handleClearAll()
             }
           />
-          <div className={`grid transition-all duration-200 ease-out ${filtersOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+          <div
+            className={`grid transition-all duration-200 ease-out ${filtersOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+          >
             <div className="overflow-hidden">
               <HomeFilterBar
                 sort={sort}
-                onSortChange={(s) => { setSort(s); if (activeViewId) setViewIsPending(true); }}
+                onSortChange={(s) => {
+                  setSort(s);
+                  if (activeViewId) setViewIsPending(true);
+                }}
                 selectedUser={selectedUser}
-                onUserChange={(u) => { setSelectedUser(u); if (activeViewId) setViewIsPending(true); }}
+                onUserChange={(u) => {
+                  setSelectedUser(u);
+                  if (activeViewId) setViewIsPending(true);
+                }}
                 selectedPriorities={selectedPriorities}
-                onPrioritiesChange={(p) => { setSelectedPriorities(p); if (activeViewId) setViewIsPending(true); }}
+                onPrioritiesChange={(p) => {
+                  setSelectedPriorities(p);
+                  if (activeViewId) setViewIsPending(true);
+                }}
                 selectedDepartments={selectedDepartments}
-                onDepartmentsChange={(d) => { setSelectedDepartments(d); if (activeViewId) setViewIsPending(true); }}
+                onDepartmentsChange={(d) => {
+                  setSelectedDepartments(d);
+                  if (activeViewId) setViewIsPending(true);
+                }}
                 selectedFloors={selectedFloors}
-                onFloorsChange={(f) => { setSelectedFloors(f); if (activeViewId) setViewIsPending(true); }}
+                onFloorsChange={(f) => {
+                  setSelectedFloors(f);
+                  if (activeViewId) setViewIsPending(true);
+                }}
                 hotelId={backendUser?.hotel_id}
                 currentUserId={backendUser?.id}
                 onClearAll={handleClearAll}
