@@ -352,6 +352,102 @@ func (r *RequestsRepository) FindRequestsPaginated(
 	return scanGuestRequests(rows)
 }
 
+func (r *RequestsRepository) GetRequestsOverview(ctx context.Context, hotelID string, filters *models.FilterRoomsRequest) (*models.RequestsOverview, error) {
+	statusFilters := filters.Status
+	if statusFilters == nil {
+		statusFilters = []string{}
+	}
+	attrFilters := filters.Attributes
+	if attrFilters == nil {
+		attrFilters = []string{}
+	}
+	advFilters := filters.Advanced
+	if advFilters == nil {
+		advFilters = []string{}
+	}
+
+	// $1 = hotelID, $2 = floors, $3 = status filters, $4 = attribute filters, $5 = advanced filters
+	var overview models.RequestsOverview
+	err := r.db.QueryRow(ctx, `
+		WITH room_task_info AS (
+			SELECT
+				room_id::uuid AS room_id,
+				BOOL_OR(user_id IS NULL) AS has_unassigned_tasks
+			FROM (
+				SELECT DISTINCT ON (id) id, room_id, status, user_id
+				FROM requests
+				WHERE hotel_id = $1 AND room_id IS NOT NULL
+				ORDER BY id, request_version DESC
+			) latest
+			WHERE status NOT IN ('completed', 'archived')
+			GROUP BY room_id
+		),
+		room_enriched AS (
+			SELECT
+				r.id, r.suite_type, r.room_status, r.is_accessible,
+				CASE WHEN COUNT(gb_active.id) > 0 THEN 'active' ELSE 'inactive' END AS booking_status,
+				BOOL_OR(gb_arrive.id IS NOT NULL) AS has_arrivals_today,
+				BOOL_OR(gb_depart.id IS NOT NULL) AS has_departures_today,
+				COALESCE(BOOL_OR(rti.has_unassigned_tasks), FALSE) AS has_unassigned_tasks
+			FROM rooms r
+			LEFT JOIN guest_bookings gb_active ON r.id = gb_active.room_id
+				AND gb_active.status = 'active'
+				AND gb_active.hotel_id = $1
+			LEFT JOIN guest_bookings gb_arrive ON r.id = gb_arrive.room_id
+				AND gb_arrive.hotel_id = $1
+				AND gb_arrive.arrival_date = CURRENT_DATE
+			LEFT JOIN guest_bookings gb_depart ON r.id = gb_depart.room_id
+				AND gb_depart.hotel_id = $1
+				AND gb_depart.departure_date = CURRENT_DATE
+			LEFT JOIN room_task_info rti ON r.id = rti.room_id
+			WHERE r.hotel_id = $1
+				AND ($2::int[] IS NULL OR r.floor = ANY($2))
+			GROUP BY r.id, r.suite_type, r.room_status, r.is_accessible
+		),
+		filtered_rooms AS (
+			SELECT id FROM room_enriched
+			WHERE (cardinality($3::text[]) = 0 OR (
+					('occupied'   = ANY($3) AND booking_status = 'active')
+				 OR ('vacant'     = ANY($3) AND booking_status = 'inactive')
+				 OR ('open-tasks' = ANY($3) AND has_unassigned_tasks)
+			))
+			  AND (cardinality($4::text[]) = 0 OR (
+					('standard'   = ANY($4) AND LOWER(suite_type) = 'standard')
+				 OR ('deluxe'     = ANY($4) AND LOWER(suite_type) = 'deluxe')
+				 OR ('suite'      = ANY($4) AND LOWER(suite_type) LIKE '%suite%')
+				 OR ('accessible' = ANY($4) AND is_accessible)
+			))
+			  AND (cardinality($5::text[]) = 0 OR (
+					('arrivals-today'   = ANY($5) AND has_arrivals_today)
+				 OR ('departures-today' = ANY($5) AND has_departures_today)
+			))
+		),
+		latest_requests AS (
+			SELECT DISTINCT ON (id) id, room_id, status, priority, user_id
+			FROM requests
+			WHERE hotel_id = $1 AND room_id IS NOT NULL
+			ORDER BY id, request_version DESC
+		),
+		active_requests AS (
+			SELECT lr.priority, lr.status, lr.user_id
+			FROM latest_requests lr
+			INNER JOIN filtered_rooms fr ON fr.id = lr.room_id::uuid
+			WHERE lr.status NOT IN ('completed', 'archived')
+		)
+		SELECT
+			COUNT(*) FILTER (WHERE priority = 'high')  AS urgent,
+			COUNT(*) FILTER (WHERE user_id IS NULL)     AS unassigned,
+			COUNT(*) FILTER (WHERE status = 'pending')  AS pending
+		FROM active_requests
+	`, hotelID, filters.Floors, statusFilters, attrFilters, advFilters).
+		Scan(&overview.Urgent, &overview.Unassigned, &overview.Pending)
+	if err != nil {
+		return nil, err
+	}
+
+	return &overview, nil
+}
+
 func scanGuestRequests(rows pgx.Rows) ([]*models.GuestRequest, error) {
 	requests := make([]*models.GuestRequest, 0)
 	for rows.Next() {

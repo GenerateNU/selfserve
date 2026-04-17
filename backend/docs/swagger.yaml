@@ -641,6 +641,15 @@ definitions:
       user_id:
         type: string
     type: object
+  RequestsOverview:
+    properties:
+      pending:
+        type: integer
+      unassigned:
+        type: integer
+      urgent:
+        type: integer
+    type: object
   RoomRequestsResponse:
     properties:
       assigned:
@@ -1936,6 +1945,44 @@ paths:
       security:
       - BearerAuth: []
       summary: Get requests feed
+      tags:
+      - requests
+  /requests/overview:
+    post:
+      consumes:
+      - application/json
+      description: Returns counts of urgent (high priority), unassigned, and pending
+        tasks scoped to the rooms matching the given filters. Accepts the same filter
+        body as POST /rooms. Does not mutate any data.
+      parameters:
+      - description: Hotel ID
+        in: header
+        name: X-Hotel-ID
+        required: true
+        type: string
+      - description: Room filters
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/FilterRoomsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/RequestsOverview'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get requests overview counts
       tags:
       - requests
   /rooms:

@@ -521,6 +521,39 @@ func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
 	return c.JSON(page)
 }
 
+// GetRequestsOverview godoc
+// @Summary      Get requests overview counts
+// @Description  Returns counts of urgent (high priority), unassigned, and pending tasks scoped to the rooms matching the given filters. Accepts the same filter body as POST /rooms. Does not mutate any data.
+// @Tags         requests
+// @Accept       json
+// @Produce      json
+// @Param        X-Hotel-ID  header  string                    true  "Hotel ID"
+// @Param        body        body    models.FilterRoomsRequest false "Room filters"
+// @Success      200  {object}  models.RequestsOverview
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
+// @Security     BearerAuth
+// @Router       /requests/overview [post]
+func (r *RequestsHandler) GetRequestsOverview(c *fiber.Ctx) error {
+	hotelID, err := hotelIDFromHeader(c)
+	if err != nil {
+		return err
+	}
+
+	var body models.FilterRoomsRequest
+	if err := httpx.BindAndValidate(c, &body); err != nil {
+		return err
+	}
+
+	overview, err := r.RequestRepository.GetRequestsOverview(c.Context(), hotelID, &body)
+	if err != nil {
+		slog.Error("failed to get requests overview", "err", err, "hotelID", hotelID)
+		return errs.InternalServerError()
+	}
+
+	return c.JSON(overview)
+}
+
 // parseFeedCursor decodes a universal cursor: "priority_rank|created_at_nano|id".
 // Returns zero values and nil error for an empty cursor (first page).
 func parseFeedCursor(cursor string) (id string, createdAt time.Time, priorityRank int, err error) {
