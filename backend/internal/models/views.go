@@ -36,3 +36,7 @@ type CreateViewInput struct {
 	DisplayName string          `json:"display_name" validate:"notblank"`
 	Filters     json.RawMessage `json:"filters"      validate:"required"`
 } //@name CreateViewInput
+
+type UpdateViewInput struct {
+	Filters json.RawMessage `json:"filters" validate:"required"`
+} //@name UpdateViewInput

@@ -160,6 +160,7 @@ export {
   getViewsQueryKey,
   useGetViews,
   useCreateView,
+  useUpdateView,
   useDeleteView,
 } from "./api/views";
 
