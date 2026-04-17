@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useGetUser } from "@shared";
 import type { RequestActivityItem } from "@shared";
 import { cn, formatFullDate, formatTimeAgo, getInitials, hashNameToColor } from "@/lib/utils";
@@ -19,9 +20,15 @@ function ActivityRow({ item }: ActivityRowProps) {
     item.type === "assigned" && item.new_value ? item.new_value : undefined,
   );
 
+  const randomSeed = useMemo(
+    () => Math.random().toString(36).slice(2, 4),
+    [],
+  );
+
   const actorName = actor
     ? [actor.first_name, actor.last_name].filter(Boolean).join(" ")
-    : "Someone";
+    : "Member";
+  const colorSeed = actor ? actorName : randomSeed;
   const targetName = target?.first_name;
 
   const description = buildDescription(item, actorName, targetName);
@@ -39,7 +46,7 @@ function ActivityRow({ item }: ActivityRowProps) {
         <div
           className={cn(
             "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-            hashNameToColor(actorName),
+            hashNameToColor(colorSeed),
           )}
         >
           {getInitials(actorName)}
