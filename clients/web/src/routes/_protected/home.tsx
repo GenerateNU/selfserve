@@ -101,7 +101,10 @@ function KanbanColumnData({
   if (!isPending && requests.length === 0) return null;
 
   return (
-    <KanbanColumn title={title} onCreateRequest={() => onCreateRequest(department)}>
+    <KanbanColumn
+      title={title}
+      onCreateRequest={() => onCreateRequest(department)}
+    >
       {requests.map((request: RequestFeedItem) => (
         <RequestCardItem
           key={request.id}

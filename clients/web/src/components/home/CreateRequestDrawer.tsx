@@ -93,7 +93,8 @@ export function CreateRequestDrawer({
       : undefined,
     user_id: existingRequest?.user_id ?? undefined,
     room_id: existingRequest?.room_id ?? undefined,
-    department: existingRequest?.department ?? initialData?.department_id ?? undefined,
+    department:
+      existingRequest?.department ?? initialData?.department_id ?? undefined,
   });
 
   const [pickers, setPickers] = useState<{

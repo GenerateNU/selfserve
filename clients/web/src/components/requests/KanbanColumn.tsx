@@ -7,7 +7,11 @@ type KanbanColumnProps = {
   onCreateRequest?: () => void;
 };
 
-export function KanbanColumn({ title, children, onCreateRequest }: KanbanColumnProps) {
+export function KanbanColumn({
+  title,
+  children,
+  onCreateRequest,
+}: KanbanColumnProps) {
   return (
     <div className="flex flex-col gap-3 rounded-t-2xl border border-b-0 border-stroke-subtle bg-white p-4 h-full min-w-[22rem]">
       <div className="flex items-center justify-between">
