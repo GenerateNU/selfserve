@@ -564,6 +564,7 @@ func (r *RequestsHandler) GetRequestsOverview(c *fiber.Ctx) error {
 
 	return c.JSON(overview)
 }
+
 // GetRequestActivity godoc
 // @Summary      Get request activity history
 // @Description  Returns an ordered list of activity events derived from the request's version history
