@@ -1,113 +1,176 @@
-import { Image } from "expo-image";
-import { Platform } from "react-native";
+import { useState } from "react";
+import { FlatList, Pressable, Text, View } from "react-native";
+import {
+  ChevronDown,
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+} from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors } from "@/constants/theme";
+import { RoomCard, type RoomStatus } from "@/components/rooms/room-card";
+import {
+  FloorPickerSheet,
+  type Floor,
+} from "@/components/rooms/floor-picker-sheet";
 
-import { Collapsible } from "@/components/ui/collapsible";
-import { ExternalLink } from "@/components/external-link";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Fonts } from "@/constants/theme";
+type Room = {
+  id: string;
+  roomNumber: number;
+  roomType: string;
+  status: RoomStatus;
+  hasHighPriority?: boolean;
+  isAccessible?: boolean;
+  extraTagCount?: number;
+};
 
-export default function TabTwoScreen() {
+const MOCK_ROOMS: Room[] = [
+  {
+    id: "1",
+    roomNumber: 100,
+    roomType: "Double Suite",
+    status: { type: "occupied", guestName: "John Doe" },
+    hasHighPriority: true,
+    isAccessible: true,
+    extraTagCount: 1,
+  },
+  {
+    id: "2",
+    roomNumber: 101,
+    roomType: "Double Suite",
+    status: { type: "out-of-order" },
+    hasHighPriority: true,
+    isAccessible: true,
+    extraTagCount: 1,
+  },
+  {
+    id: "3",
+    roomNumber: 102,
+    roomType: "Double Suite",
+    status: { type: "vacant", isAvailable: true },
+    isAccessible: true,
+  },
+  {
+    id: "4",
+    roomNumber: 103,
+    roomType: "Double Suite",
+    status: { type: "occupied", guestName: "Jane Smith" },
+    hasHighPriority: true,
+    isAccessible: true,
+    extraTagCount: 1,
+  },
+  {
+    id: "5",
+    roomNumber: 104,
+    roomType: "King Suite",
+    status: { type: "occupied", guestName: "Robert Chen" },
+    hasHighPriority: true,
+    isAccessible: true,
+    extraTagCount: 1,
+  },
+  {
+    id: "6",
+    roomNumber: 105,
+    roomType: "Double Suite",
+    status: { type: "vacant", isAvailable: false },
+  },
+];
+
+const FLOORS: Floor[] = [
+  { id: "1", label: "Floor 1" },
+  { id: "2", label: "Floor 2" },
+  { id: "3", label: "Floor 3" },
+  { id: "4", label: "Floor 4" },
+  { id: "5", label: "Floor 5" },
+];
+
+type TabId = "rooms" | "overview";
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: "rooms", label: "Rooms" },
+  { id: "overview", label: "Overview" },
+];
+
+export default function RoomsScreen() {
+  const [activeTab, setActiveTab] = useState<TabId>("rooms");
+  const [selectedFloor, setSelectedFloor] = useState<Floor>(FLOORS[0]);
+  const [floorPickerVisible, setFloorPickerVisible] = useState(false);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          className="absolute -bottom-[80px] -left-[35px]"
-        />
-      }
-    >
-      <ThemedView className="flex-row gap-2">
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      {/* Top app bar */}
+      <View className="flex-row items-center justify-between px-[22px] pb-2 pt-3">
+        <Pressable
+          className="flex-row items-center gap-[10px]"
+          onPress={() => setFloorPickerVisible(true)}
         >
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>
-        This app includes example code to help you get started.
-      </ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
-          and{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{" "}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the
-          web version, press <ThemedText type="defaultSemiBold">w</ThemedText>{" "}
-          in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the{" "}
-          <ThemedText type="defaultSemiBold">@2x</ThemedText> and{" "}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to
-          provide files for different screen densities
-        </ThemedText>
-        <Image
-          source={require("@/assets/images/react-logo.png")}
-          className="w-[100px] h-[100px] self-center"
+          <Text className="text-2xl font-medium text-text-default tracking-tight">
+            {selectedFloor.label}
+          </Text>
+          <ChevronDown size={14} color={Colors.light.textDefault} />
+        </Pressable>
+        <View className="flex-row items-center gap-2">
+          <Pressable className="items-center justify-center rounded w-[34px] h-[34px]">
+            <Search size={19} color={Colors.light.textDefault} />
+          </Pressable>
+          <Pressable className="items-center justify-center rounded w-[34px] h-[34px]">
+            <SlidersHorizontal size={19} color={Colors.light.textDefault} />
+          </Pressable>
+          <Pressable className="items-center justify-center rounded w-[34px] h-[34px]">
+            <ArrowUpDown size={18} color={Colors.light.textDefault} />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Tab selector */}
+      <View className="flex-row border-b border-stroke-subtle">
+        {TABS.map((tab) => (
+          <Pressable
+            key={tab.id}
+            className={`flex-1 flex-row items-center justify-center gap-1 h-10 px-3 ${
+              activeTab === tab.id ? "border-b-2 border-primary" : ""
+            }`}
+            onPress={() => setActiveTab(tab.id)}
+          >
+            <Text
+              className={`text-[15px] ${
+                activeTab === tab.id ? "text-primary" : "text-text-secondary"
+              }`}
+            >
+              {tab.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {/* Content */}
+      {activeTab === "rooms" ? (
+        <FlatList
+          data={MOCK_ROOMS}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <RoomCard
+              roomNumber={item.roomNumber}
+              roomType={item.roomType}
+              status={item.status}
+              hasHighPriority={item.hasHighPriority}
+              isAccessible={item.isAccessible}
+              extraTagCount={item.extraTagCount}
+            />
+          )}
         />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{" "}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook
-          lets you inspect what the user&apos;s current color scheme is, and so
-          you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{" "}
-          <ThemedText type="defaultSemiBold">
-            components/HelloWave.tsx
-          </ThemedText>{" "}
-          component uses the powerful{" "}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{" "}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The{" "}
-              <ThemedText type="defaultSemiBold">
-                components/ParallaxScrollView.tsx
-              </ThemedText>{" "}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+      ) : (
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-text-subtle">Overview coming soon</Text>
+        </View>
+      )}
+      <FloorPickerSheet
+        visible={floorPickerVisible}
+        floors={FLOORS}
+        selectedFloorId={selectedFloor.id}
+        onSelect={setSelectedFloor}
+        onClose={() => setFloorPickerVisible(false)}
+      />
+    </SafeAreaView>
   );
 }
