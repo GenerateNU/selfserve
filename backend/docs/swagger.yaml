@@ -572,6 +572,7 @@ definitions:
         - pending
         - in progress
         - completed
+        - archived
         type: string
       unassign:
         type: boolean
