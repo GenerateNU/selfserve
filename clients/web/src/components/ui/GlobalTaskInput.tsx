@@ -80,7 +80,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
   if (isPending) {
     return (
       <div
-        className="fixed bottom-6 left-[calc(50%+8rem)] -translate-x-1/2 z-50 w-[684px] min-h-[58px] flex items-center gap-[13px] rounded-lg bg-white border border-stroke-subtle px-6 py-3"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-[684px] min-h-[58px] flex items-center gap-[13px] rounded-lg bg-white border border-stroke-subtle px-6 py-3"
         style={containerStyle}
       >
         <Loader className="size-6 shrink-0 text-text-subtle animate-spin [animation-duration:2s]" />
@@ -91,7 +91,7 @@ export function GlobalTaskInput({ onRequestGenerated }: GlobalTaskInputProps) {
 
   return (
     <div
-      className="fixed bottom-6 left-[calc(50%+8rem)] -translate-x-1/2 z-50 w-[684px] min-h-[58px] flex items-center gap-[13px] rounded-lg bg-white border border-stroke-subtle px-6 py-3"
+      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-[684px] min-h-[58px] flex items-center gap-[13px] rounded-lg bg-white border border-stroke-subtle px-6 py-3"
       style={containerStyle}
     >
       <Sparkles className="size-6 shrink-0 text-primary" />
