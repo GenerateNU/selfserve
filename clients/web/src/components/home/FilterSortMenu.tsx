@@ -1,5 +1,4 @@
 import { Check, X } from "lucide-react";
-import { useState } from "react";
 
 type FilterSortMenuProps = {
   options: Array<{ label: string; value: string }>;
@@ -16,9 +15,7 @@ export function FilterSortMenu({
   onApply,
   onClose,
 }: FilterSortMenuProps) {
-  const [draft, setDraft] = useState<string | undefined>(selected);
-
-  const selectedLabel = options.find((o) => o.value === draft)?.label;
+  const selectedLabel = options.find((o) => o.value === selected)?.label;
 
   return (
     <>
@@ -35,7 +32,7 @@ export function FilterSortMenu({
                 {selectedLabel}
                 <button
                   type="button"
-                  onClick={() => setDraft(undefined)}
+                  onClick={() => onApply(undefined)}
                   className="text-text-subtle hover:text-text-default"
                 >
                   <X className="size-2" />
@@ -45,7 +42,7 @@ export function FilterSortMenu({
           </div>
           <button
             type="button"
-            onClick={() => setDraft(undefined)}
+            onClick={() => onApply(undefined)}
             className="shrink-0 text-sm text-text-subtle hover:text-text-default transition-colors"
           >
             Clear
@@ -55,12 +52,15 @@ export function FilterSortMenu({
         {/* Options */}
         <div>
           {options.map((option) => {
-            const isSelected = draft === option.value;
+            const isSelected = selected === option.value;
             return (
               <button
                 key={option.value}
                 type="button"
-                onClick={() => setDraft(option.value)}
+                onClick={() => {
+                  onApply(option.value);
+                  onClose();
+                }}
                 className="flex items-center gap-3 w-full px-4 py-2 text-sm text-text-default hover:bg-bg-container transition-colors"
               >
                 <span
@@ -78,27 +78,6 @@ export function FilterSortMenu({
               </button>
             );
           })}
-        </div>
-
-        {/* Footer */}
-        <div className="flex gap-3 p-3 border-t border-stroke-subtle">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 bg-bg-container rounded px-6 py-2.5 text-sm text-text-default hover:bg-bg-selected transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onApply(draft);
-              onClose();
-            }}
-            className="flex-1 bg-primary rounded px-6 py-2.5 text-sm text-white hover:bg-primary-hover transition-colors"
-          >
-            Select
-          </button>
         </div>
       </div>
     </>

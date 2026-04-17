@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { useGetRoomsFloors } from "@shared";
 
@@ -15,13 +14,13 @@ export function FloorFilterMenu({
   onApply,
   onClose,
 }: FloorFilterMenuProps) {
-  const [draft, setDraft] = useState<Array<number>>(selectedFloors);
-
   const { data: floors = [], isLoading } = useGetRoomsFloors();
 
   function toggle(floor: number) {
-    setDraft((prev) =>
-      prev.includes(floor) ? prev.filter((f) => f !== floor) : [...prev, floor],
+    onApply(
+      selectedFloors.includes(floor)
+        ? selectedFloors.filter((f) => f !== floor)
+        : [...selectedFloors, floor],
     );
   }
 
@@ -35,7 +34,7 @@ export function FloorFilterMenu({
         {/* Header */}
         <div className="flex items-start justify-between pl-4 pr-3 py-3 border-b border-stroke-subtle min-h-[48px]">
           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
-            {draft.map((floor) => (
+            {selectedFloors.map((floor) => (
               <span
                 key={floor}
                 className="inline-flex items-center gap-1 bg-bg-container rounded px-2 py-1 text-sm text-text-default"
@@ -53,7 +52,7 @@ export function FloorFilterMenu({
           </div>
           <button
             type="button"
-            onClick={() => setDraft([])}
+            onClick={() => onApply([])}
             className="shrink-0 text-sm text-text-subtle hover:text-text-default transition-colors ml-2"
           >
             Clear
@@ -73,7 +72,7 @@ export function FloorFilterMenu({
             </p>
           )}
           {floors.map((floor) => {
-            const isSelected = draft.includes(floor);
+            const isSelected = selectedFloors.includes(floor);
             return (
               <button
                 key={floor}
@@ -96,27 +95,6 @@ export function FloorFilterMenu({
               </button>
             );
           })}
-        </div>
-
-        {/* Footer */}
-        <div className="flex gap-3 p-3 border-t border-stroke-subtle">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 bg-bg-container rounded px-6 py-2.5 text-sm text-text-default hover:bg-bg-selected transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onApply(draft);
-              onClose();
-            }}
-            className="flex-1 bg-primary rounded px-6 py-2.5 text-sm text-white hover:bg-primary-hover transition-colors"
-          >
-            Select
-          </button>
         </div>
       </div>
     </>
