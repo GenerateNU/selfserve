@@ -29,7 +29,7 @@ export function OrderByDropdown({
       <button
         type="button"
         className={cn(
-          "flex w-full items-center justify-between pl-3 pr-2 py-2 text-left bg-bg-primary border border-stroke-subtle shadow-sm",
+          "flex w-full items-center justify-between pl-3 pr-2 py-2 text-left bg-bg-primary border border-stroke-subtle",
           open ? "rounded-t border-b-stroke-disabled" : "rounded",
         )}
         onClick={() => setOpen((o) => !o)}
