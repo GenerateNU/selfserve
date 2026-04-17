@@ -390,7 +390,11 @@ export type RequestActivityType =
   | "priority_changed"
   | "assigned"
   | "unassigned"
-  | "name_changed";
+  | "name_changed"
+  | "title_changed"
+  | "description_changed"
+  | "department_changed"
+  | "room_changed";
 
 export type RequestActivityItem = {
   type: RequestActivityType;

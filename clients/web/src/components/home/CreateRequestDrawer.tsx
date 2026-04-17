@@ -308,7 +308,10 @@ export function CreateRequestDrawer({
           <span className="text-base font-bold text-text-default">
             Activity
           </span>
-          <ActivityFeed requestId={existingRequest.id!} />
+          <ActivityFeed
+            requestId={existingRequest.id!}
+            hotelId={existingRequest.hotel_id}
+          />
         </div>
       )}
 

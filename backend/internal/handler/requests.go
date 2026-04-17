@@ -679,6 +679,60 @@ func buildRequestActivity(versions []*models.Request) []*models.RequestActivityI
 				Timestamp: v.RequestVersion,
 			})
 		}
+
+		prevDept := ""
+		if prev.Department != nil {
+			prevDept = *prev.Department
+		}
+		curDept := ""
+		if v.Department != nil {
+			curDept = *v.Department
+		}
+		if prevDept != curDept {
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityDepartmentChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &prevDept,
+				NewValue:  &curDept,
+				Timestamp: v.RequestVersion,
+			})
+		}
+
+		prevRoom := ""
+		if prev.RoomID != nil {
+			prevRoom = *prev.RoomID
+		}
+		curRoom := ""
+		if v.RoomID != nil {
+			curRoom = *v.RoomID
+		}
+		if prevRoom != curRoom {
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityRoomChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &prevRoom,
+				NewValue:  &curRoom,
+				Timestamp: v.RequestVersion,
+			})
+		}
+
+		prevDesc := ""
+		if prev.Description != nil {
+			prevDesc = *prev.Description
+		}
+		curDesc := ""
+		if v.Description != nil {
+			curDesc = *v.Description
+		}
+		if prevDesc != curDesc {
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityDescriptionChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &prevDesc,
+				NewValue:  &curDesc,
+				Timestamp: v.RequestVersion,
+			})
+		}
 	}
 
 	return items
