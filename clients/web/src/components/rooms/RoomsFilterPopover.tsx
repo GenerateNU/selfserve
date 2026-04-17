@@ -24,7 +24,10 @@ const ADVANCED_CHIPS = [
   "Early Check-ins",
 ];
 
-const INITIAL_SELECTED = new Set<string>(["Occupied", "Open Tasks"]);
+type RoomsFilterPopoverProps = {
+  appliedChips: ReadonlyArray<string>;
+  onApplyChips: (chips: Array<string>) => void;
+};
 
 function FilterPopoverHeader({ onReset }: { onReset: () => void }) {
   return (
@@ -70,12 +73,14 @@ function FilterPopoverFooter({
   );
 }
 
-export function RoomsFilterPopover() {
+export function RoomsFilterPopover({
+  appliedChips,
+  onApplyChips,
+}: RoomsFilterPopoverProps) {
   const [open, setOpen] = useState(false);
-  const [selectedChips, setSelectedChips] =
-    useState<Set<string>>(INITIAL_SELECTED);
-  const [pendingChips, setPendingChips] =
-    useState<Set<string>>(INITIAL_SELECTED);
+  const [pendingChips, setPendingChips] = useState<Set<string>>(
+    () => new Set(appliedChips),
+  );
 
   const toggle = (chip: string) => {
     setPendingChips((prev) => {
@@ -86,12 +91,12 @@ export function RoomsFilterPopover() {
   };
 
   const handleSelect = () => {
-    setSelectedChips(new Set(pendingChips));
+    onApplyChips([...pendingChips]);
     setOpen(false);
   };
 
   const handleCancel = () => {
-    setPendingChips(new Set(selectedChips));
+    setPendingChips(new Set(appliedChips));
     setOpen(false);
   };
 
@@ -99,14 +104,16 @@ export function RoomsFilterPopover() {
     setPendingChips(new Set());
   };
 
-  const appliedCount = selectedChips.size;
+  const appliedCount = appliedChips.length;
   const filtersActive = appliedCount > 0;
 
   return (
     <Popover
       open={open}
       onOpenChange={(next) => {
-        if (!next) setPendingChips(new Set(selectedChips));
+        if (next) {
+          setPendingChips(new Set(appliedChips));
+        }
         setOpen(next);
       }}
     >

@@ -2,12 +2,16 @@ import { SearchBar } from "../ui/SearchBar";
 import { FloorDropdown } from "./FloorDropdown";
 import { OrderByDropdown } from "./OrderByDropdown";
 import { RoomsFilterPopover } from "@/components/rooms/RoomsFilterPopover";
+import type { RoomsPageFilters } from "@/hooks/use-rooms-filters";
+
+export type { RoomsPageFilters };
 
 type RoomsToolbarProps = {
   searchTerm: string;
   onChangeSearchTerm: (value: string) => void;
-  selectedFloors: Array<number>;
-  onChangeSelectedFloors: (floors: Array<number>) => void;
+  filters: RoomsPageFilters;
+  onChangeFloors: (floors: Array<number>) => void;
+  onApplyFilterChips: (chips: Array<string>) => void;
   ascending: boolean;
   setAscending: (ascending: boolean) => void;
 };
@@ -15,8 +19,9 @@ type RoomsToolbarProps = {
 export function RoomsToolbar({
   searchTerm,
   onChangeSearchTerm,
-  selectedFloors,
-  onChangeSelectedFloors,
+  filters,
+  onChangeFloors,
+  onApplyFilterChips,
   ascending,
   setAscending,
 }: RoomsToolbarProps) {
@@ -29,10 +34,13 @@ export function RoomsToolbar({
         className="w-full max-w-[16rem]"
       />
       <FloorDropdown
-        selected={selectedFloors}
-        onChangeSelectedFloors={onChangeSelectedFloors}
+        selected={filters.floors}
+        onChangeSelectedFloors={onChangeFloors}
       />
-      <RoomsFilterPopover />
+      <RoomsFilterPopover
+        appliedChips={filters.filterChips}
+        onApplyChips={onApplyFilterChips}
+      />
       <OrderByDropdown ascending={ascending} setAscending={setAscending} />
     </div>
   );
