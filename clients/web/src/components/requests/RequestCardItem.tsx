@@ -79,7 +79,7 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
           {...listeners}
           onPointerDown={(e) => {
             if (e.button !== 0) return;
-            listeners.onPointerDown?.(e);
+            listeners.onPointerDown(e);
           }}
         >
           <RequestCard
