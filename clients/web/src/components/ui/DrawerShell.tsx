@@ -25,7 +25,7 @@ export function DrawerShell({
         >
           <X className="size-5" />
         </button>
-        <div className="mt-2 px-4">{title}</div>
+        <div className="mt-2 px-5">{title}</div>
       </header>
       <div
         className={cn(
