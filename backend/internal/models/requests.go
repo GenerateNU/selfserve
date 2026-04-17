@@ -24,11 +24,12 @@ const (
 	StatusPending    RequestStatus = "pending"
 	StatusInProgress RequestStatus = "in progress"
 	StatusCompleted  RequestStatus = "completed"
+	StatusArchived   RequestStatus = "archived"
 )
 
 func (s RequestStatus) IsValid() bool {
 	switch s {
-	case StatusPending, StatusInProgress, StatusCompleted:
+	case StatusPending, StatusInProgress, StatusCompleted, StatusArchived:
 		return true
 	}
 	return false
@@ -85,7 +86,7 @@ type RequestUpdateInput struct {
 	RequestCategory         *string    `json:"request_category"`
 	RequestType             *string    `json:"request_type" validate:"omitempty,notblank"`
 	Department              *string    `json:"department"`
-	Status                  *string    `json:"status" validate:"omitempty,oneof='pending' 'in progress' 'completed'"`
+	Status                  *string    `json:"status" validate:"omitempty,oneof='pending' 'in progress' 'completed' 'archived'"`
 	Priority                *string    `json:"priority" validate:"omitempty,oneof=low medium high"`
 	EstimatedCompletionTime *int       `json:"estimated_completion_time"`
 	ScheduledTime           *time.Time `json:"scheduled_time"`

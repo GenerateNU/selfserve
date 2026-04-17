@@ -118,12 +118,11 @@ func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, updat
 func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
 
 	row := r.db.QueryRow(ctx, `
-        SELECT *
-        FROM requests
-        WHERE id = $1
-        ORDER BY request_version DESC
-        LIMIT 1
-    `, id)
+		WITH latest AS (
+			SELECT * FROM requests WHERE id = $1 ORDER BY request_version DESC LIMIT 1
+		)
+		SELECT * FROM latest WHERE status != 'archived'
+	`, id)
 
 	var request models.Request
 
@@ -144,7 +143,13 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 }
 
 func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
-	rows, err := r.db.Query(ctx, `SELECT * FROM requests ORDER BY created_at DESC`)
+	rows, err := r.db.Query(ctx, `
+		SELECT * FROM (
+			SELECT DISTINCT ON (id) * FROM requests ORDER BY id, request_version DESC
+		) latest
+		WHERE status != 'archived'
+		ORDER BY created_at DESC
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +190,8 @@ func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID,
 			ORDER BY r.id ASC, r.request_version DESC
 		)
 		SELECT * FROM latest
-		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
+		WHERE status != 'archived'
+		  AND ($3::text = '' OR (id::text, request_version) > ($3, $4))
 		ORDER BY id ASC
 		LIMIT $5
 	`, guestID, hotelID, cursorID, cursorVersion, limit)
@@ -215,7 +221,8 @@ func (r *RequestsRepository) FindRequestsByRoomIDAndUserID(ctx context.Context, 
 		       request_type, request_category, created_at, request_version,
 		       department_id, department_name, user_id, floor
 		FROM latest
-		WHERE user_id = $3
+		WHERE status != 'archived'
+		  AND user_id = $3
 		  AND ($4::text = '' OR (id::text, request_version) > ($4, $5))
 		ORDER BY id ASC
 		LIMIT $6
@@ -246,7 +253,8 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context
 		       request_type, request_category, created_at, request_version,
 		       department_id, department_name, user_id, floor
 		FROM latest
-		WHERE user_id IS NULL
+		WHERE status != 'archived'
+		  AND user_id IS NULL
 		  AND ($3::text = '' OR (id::text, request_version) > ($3, $4))
 		ORDER BY id ASC
 		LIMIT $5
@@ -300,7 +308,8 @@ func (r *RequestsRepository) FindRequestsPaginated(
 		       request_type, request_category, created_at, request_version,
 		       department_id, department_name, user_id, floor
 		FROM latest
-		WHERE (
+		WHERE status != 'archived'
+		  AND (
 		    ($3::bool AND user_id IS NULL)
 		    OR (NOT $3::bool AND ($2::text = '' OR user_id = $2))
 		)
