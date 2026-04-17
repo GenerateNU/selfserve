@@ -141,8 +141,9 @@ const (
 	ActivityAssigned           RequestActivityType = "assigned"
 	ActivityUnassigned         RequestActivityType = "unassigned"
 	ActivityNameChanged        RequestActivityType = "name_changed"
-	ActivityDepartmentChanged  RequestActivityType = "department_changed"
-	ActivityRoomChanged        RequestActivityType = "room_changed"
+	ActivityDepartmentChanged   RequestActivityType = "department_changed"
+	ActivityRoomChanged         RequestActivityType = "room_changed"
+	ActivityDescriptionChanged  RequestActivityType = "description_changed"
 )
 
 type RequestActivityItem struct {

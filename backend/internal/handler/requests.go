@@ -715,6 +715,24 @@ func buildRequestActivity(versions []*models.Request) []*models.RequestActivityI
 				Timestamp: v.RequestVersion,
 			})
 		}
+
+		prevDesc := ""
+		if prev.Description != nil {
+			prevDesc = *prev.Description
+		}
+		curDesc := ""
+		if v.Description != nil {
+			curDesc = *v.Description
+		}
+		if prevDesc != curDesc {
+			items = append(items, &models.RequestActivityItem{
+				Type:      models.ActivityDescriptionChanged,
+				ChangedBy: v.ChangedBy,
+				OldValue:  &prevDesc,
+				NewValue:  &curDesc,
+				Timestamp: v.RequestVersion,
+			})
+		}
 	}
 
 	return items

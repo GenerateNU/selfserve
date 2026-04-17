@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import { useGetRequestActivity, useGetUser } from "@shared";
+import { useGetDepartments, useGetRequestActivity, useGetUser } from "@shared";
 import type { RequestActivityItem } from "@shared";
+import { useRoomById } from "@/hooks/use-room-by-id";
 import {
   cn,
   formatFullDate,
@@ -76,7 +77,7 @@ function buildDescription(
     case "title_changed":
       return <>{actor} renamed request</>;
     case "description_changed":
-      return <>{actor} updated description</>;
+      return <>{actor} updated the description</>;
     case "department_changed":
       return <>{actor} changed department</>;
     case "room_changed":
@@ -86,7 +87,14 @@ function buildDescription(
   }
 }
 
-function buildDetail(item: RequestActivityItem): React.ReactNode | null {
+function EmptyPill() {
+  return <Pill className="bg-bg-container text-text-subtle italic">Empty</Pill>;
+}
+
+function buildDetail(
+  item: RequestActivityItem,
+  deptById: Record<string, string>,
+): React.ReactNode | null {
   if (item.old_value && item.new_value) {
     if (item.type === "status_changed") {
       return (
@@ -113,28 +121,45 @@ function buildDetail(item: RequestActivityItem): React.ReactNode | null {
         </Pill>
       );
     }
-    if (item.type === "department_changed" || item.type === "room_changed") {
-      return (
-        <>
-          <Pill className="bg-bg-container text-text-default">
-            {item.old_value}
-          </Pill>
-          <span className="text-text-subtle">to</span>
-          <Pill className="bg-bg-container text-text-default">
-            {item.new_value}
-          </Pill>
-        </>
-      );
-    }
   }
-  if (item.type === "description_changed" && item.new_value) {
+  if (item.type === "department_changed" && item.new_value) {
+    const oldName = item.old_value
+      ? (deptById[item.old_value] ?? item.old_value)
+      : null;
+    const newName = deptById[item.new_value] ?? item.new_value;
     return (
-      <Pill className="bg-bg-container text-text-default max-w-xs truncate">
-        {item.new_value}
-      </Pill>
+      <>
+        {oldName ? (
+          <Pill className="bg-bg-container text-text-default">{oldName}</Pill>
+        ) : (
+          <EmptyPill />
+        )}
+        <span className="text-text-subtle">to</span>
+        <Pill className="bg-bg-container text-text-default">{newName}</Pill>
+      </>
     );
   }
   return null;
+}
+
+function RoomChangedDetail({ oldId, newId }: { oldId: string; newId: string }) {
+  const { data: oldRoom } = useRoomById(oldId || undefined);
+  const { data: newRoom } = useRoomById(newId || undefined);
+  const newLabel =
+    newRoom?.room_number != null ? String(newRoom.room_number) : newId;
+  return (
+    <>
+      {oldId ? (
+        <Pill className="bg-bg-container text-text-default">
+          {oldRoom?.room_number != null ? String(oldRoom.room_number) : oldId}
+        </Pill>
+      ) : (
+        <EmptyPill />
+      )}
+      <span className="text-text-subtle">to</span>
+      <Pill className="bg-bg-container text-text-default">Room {newLabel}</Pill>
+    </>
+  );
 }
 
 function capitalize(s: string): string {
@@ -144,9 +169,10 @@ function capitalize(s: string): string {
 type ActivityRowProps = {
   item: RequestActivityItem;
   isLast: boolean;
+  deptById: Record<string, string>;
 };
 
-function ActivityRow({ item, isLast }: ActivityRowProps) {
+function ActivityRow({ item, isLast, deptById }: ActivityRowProps) {
   const { data: actor } = useGetUser(item.changed_by ?? undefined);
   const { data: target } = useGetUser(
     item.type === "assigned" && item.new_value ? item.new_value : undefined,
@@ -156,7 +182,14 @@ function ActivityRow({ item, isLast }: ActivityRowProps) {
     ? [actor.first_name, actor.last_name].filter(Boolean).join(" ")
     : "Member";
   const targetName = target?.first_name;
-  const detail = buildDetail(item);
+  const detail =
+    item.type === "room_changed" &&
+    item.old_value != null &&
+    item.new_value != null ? (
+      <RoomChangedDetail oldId={item.old_value} newId={item.new_value} />
+    ) : (
+      buildDetail(item, deptById)
+    );
 
   return (
     <div className={cn("flex gap-4", !isLast && "mb-2")}>
@@ -215,11 +248,17 @@ function ActivityRow({ item, isLast }: ActivityRowProps) {
 
 type ActivityFeedProps = {
   requestId: string;
+  hotelId: string | undefined;
 };
 
-export function ActivityFeed({ requestId }: ActivityFeedProps) {
+export function ActivityFeed({ requestId, hotelId }: ActivityFeedProps) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useGetRequestActivity(requestId);
+  const { data: departments } = useGetDepartments(hotelId);
+  const deptById: Record<string, string> = {};
+  for (const d of departments ?? []) {
+    deptById[d.id] = d.name;
+  }
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -253,6 +292,7 @@ export function ActivityFeed({ requestId }: ActivityFeedProps) {
           key={`${item.type}-${item.timestamp}-${i}`}
           item={item}
           isLast={i === items.length - 1 && !hasNextPage}
+          deptById={deptById}
         />
       ))}
       {isFetchingNextPage && (
