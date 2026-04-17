@@ -67,17 +67,21 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
   const hasBottomRow = roomLabel || request.department_name;
 
   return (
-    <div
-      ref={setNodeRef}
-      className={cn(
-        "touch-none cursor-grab active:cursor-grabbing",
-        isDragging && "opacity-30",
-      )}
-      {...attributes}
-      {...listeners}
-    >
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div
+          ref={setNodeRef}
+          className={cn(
+            "touch-none cursor-grab active:cursor-grabbing",
+            isDragging && "opacity-30",
+          )}
+          {...attributes}
+          {...listeners}
+          onPointerDown={(e) => {
+            if (e.button !== 0) return;
+            listeners?.onPointerDown?.(e);
+          }}
+        >
           <RequestCard
             status={status}
             className="w-full"
@@ -126,17 +130,17 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
               )}
             </div>
           </RequestCard>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem
-            variant="destructive"
-            onSelect={() => deleteTask(request.id)}
-          >
-            <Trash2 />
-            Delete
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
-    </div>
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem
+          variant="destructive"
+          onSelect={() => deleteTask(request.id)}
+        >
+          <Trash2 />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }
