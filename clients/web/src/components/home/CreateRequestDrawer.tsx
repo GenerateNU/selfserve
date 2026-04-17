@@ -26,14 +26,6 @@ import { DeadlinePicker } from "@/components/ui/DeadlinePicker";
 import { ActivityFeed } from "@/components/requests/ActivityFeed";
 import { cn } from "@/lib/utils";
 
-type ActivityTab = "all" | "comments" | "history";
-
-const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
-  { key: "all", label: "All" },
-  { key: "comments", label: "Comments" },
-  { key: "history", label: "History" },
-];
-
 const PRIORITIES: Array<MakeRequestPriority> = ["low", "medium", "high"];
 
 type FieldLabelProps = {
@@ -82,8 +74,6 @@ export function CreateRequestDrawer({
   existingRequest,
 }: CreateRequestDrawerProps) {
   const isEditMode = !!existingRequest;
-
-  const [activeTab, setActiveTab] = useState<ActivityTab>("all");
 
   const [form, setForm] = useState<RequestForm>({
     name: existingRequest?.name ?? initialData?.name ?? "",
@@ -316,28 +306,7 @@ export function CreateRequestDrawer({
       {isEditMode && (
         <div className="flex flex-col gap-4">
           <span className="text-sm font-bold text-text-default">Activity</span>
-          <div className="flex items-end justify-between border-b border-stroke-subtle">
-            {ACTIVITY_TABS.map(({ key, label }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setActiveTab(key)}
-                className={cn(
-                  "px-3 py-2 text-sm text-text-default transition-colors",
-                  activeTab === key
-                    ? "border-b-2 border-text-default"
-                    : "text-text-subtle hover:text-text-default",
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          {activeTab === "comments" ? (
-            <p className="text-sm text-text-subtle">No comments yet.</p>
-          ) : (
-            <ActivityFeed requestId={existingRequest.id!} />
-          )}
+          <ActivityFeed requestId={existingRequest.id!} />
         </div>
       )}
 

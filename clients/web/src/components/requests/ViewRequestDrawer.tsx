@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { GripHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useGetUsersIdHook } from "@shared";
@@ -8,13 +7,6 @@ import { useRoomById } from "@/hooks/use-room-by-id";
 import { ActivityFeed } from "@/components/requests/ActivityFeed";
 import { cn } from "@/lib/utils";
 
-type ActivityTab = "all" | "comments" | "history";
-
-const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
-  { key: "all", label: "All" },
-  { key: "comments", label: "Comments" },
-  { key: "history", label: "History" },
-];
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: "text-info-default",
@@ -75,7 +67,6 @@ export function ViewRequestDrawer({
   request,
   onClose,
 }: ViewRequestDrawerProps) {
-  const [activeTab, setActiveTab] = useState<ActivityTab>("all");
 
   const getUserById = useGetUsersIdHook();
   const { data: assignee } = useQuery({
@@ -175,28 +166,7 @@ export function ViewRequestDrawer({
 
       <div className="flex flex-col gap-4">
         <span className="text-sm font-bold text-text-default">Activity</span>
-        <div className="flex items-end justify-between border-b border-stroke-subtle">
-          {ACTIVITY_TABS.map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setActiveTab(key)}
-              className={cn(
-                "px-3 py-2 text-sm transition-colors",
-                activeTab === key
-                  ? "border-b-2 border-text-default text-text-default"
-                  : "text-text-subtle hover:text-text-default",
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        {activeTab === "comments" ? (
-          <p className="text-sm text-text-subtle">No comments yet.</p>
-        ) : (
-          <ActivityFeed requestId={request.id!} />
-        )}
+        <ActivityFeed requestId={request.id!} />
       </div>
     </DrawerShell>
   );
