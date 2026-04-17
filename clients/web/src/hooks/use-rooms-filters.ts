@@ -1,8 +1,24 @@
 import { useCallback, useState } from "react";
+import type {
+  RoomAdvancedFilter,
+  RoomAttributeFilter,
+  RoomStatusFilter,
+} from "@shared/api/rooms";
 
-export type RoomsPageFilters = {
+export type RoomFilters = {
+  status: Array<RoomStatusFilter>;
+  attributes: Array<RoomAttributeFilter>;
+  advanced: Array<RoomAdvancedFilter>;
+};
+
+export type RoomsPageFilters = RoomFilters & {
   floors: Array<number>;
-  filterChips: Array<string>;
+};
+
+export const EMPTY_ROOM_FILTERS: RoomFilters = {
+  status: [],
+  attributes: [],
+  advanced: [],
 };
 
 function sortFloorsAscending(floors: Array<number>) {
@@ -22,16 +38,37 @@ export function useRoomsFilters(initialFilters: RoomsPageFilters) {
     }));
   }, []);
 
-  const setFilterChips = useCallback((filterChips: Array<string>) => {
-    setFilters((prev) => ({ ...prev, filterChips }));
+  const applyFilters = useCallback((group: RoomFilters) => {
+    setFilters((prev) => ({ ...prev, ...group }));
   }, []);
 
-  const removeFilterChip = useCallback((chip: string) => {
+  const removeStatus = useCallback((value: RoomStatusFilter) => {
     setFilters((prev) => ({
       ...prev,
-      filterChips: prev.filterChips.filter((value) => value !== chip),
+      status: prev.status.filter((s) => s !== value),
     }));
   }, []);
 
-  return { filters, setFloors, setFilterChips, removeFilterChip };
+  const removeAttribute = useCallback((value: RoomAttributeFilter) => {
+    setFilters((prev) => ({
+      ...prev,
+      attributes: prev.attributes.filter((a) => a !== value),
+    }));
+  }, []);
+
+  const removeAdvanced = useCallback((value: RoomAdvancedFilter) => {
+    setFilters((prev) => ({
+      ...prev,
+      advanced: prev.advanced.filter((a) => a !== value),
+    }));
+  }, []);
+
+  return {
+    filters,
+    setFloors,
+    applyFilters,
+    removeStatus,
+    removeAttribute,
+    removeAdvanced,
+  };
 }
