@@ -102,10 +102,16 @@ function KanbanColumnData({
 function HomePage() {
   const [sort, setSort] = useState<RequestFeedSort | undefined>("priority");
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
-  const [selectedPriorities, setSelectedPriorities] = useState<Array<string>>([]);
-  const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>([]);
+  const [selectedPriorities, setSelectedPriorities] = useState<Array<string>>(
+    [],
+  );
+  const [selectedDepartments, setSelectedDepartments] = useState<Array<string>>(
+    [],
+  );
   const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
-  const [activeViewId, setActiveViewId] = useState<string | undefined>(undefined);
+  const [activeViewId, setActiveViewId] = useState<string | undefined>(
+    undefined,
+  );
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -141,7 +147,11 @@ function HomePage() {
     setSelectedFloors(filters.floors ?? []);
     if (filters.userId) {
       const [firstName = "", ...rest] = (filters.userName ?? "").split(" ");
-      setSelectedUser({ id: filters.userId, first_name: firstName, last_name: rest.join(" ") } as User);
+      setSelectedUser({
+        id: filters.userId,
+        first_name: firstName,
+        last_name: rest.join(" "),
+      } as User);
     } else {
       setSelectedUser(undefined);
     }
@@ -226,20 +236,37 @@ function HomePage() {
         onCreateRequest={handleCreateRequest}
         views={views}
         activeViewId={activeViewId}
-        onSelectView={(view) => view ? handleApplyView(view) : handleClearAll()}
+        onSelectView={(view) =>
+          view ? handleApplyView(view) : handleClearAll()
+        }
       />
 
       <HomeFilterBar
         sort={sort}
-        onSortChange={(s) => { setSort(s); setActiveViewId(undefined); }}
+        onSortChange={(s) => {
+          setSort(s);
+          setActiveViewId(undefined);
+        }}
         selectedUser={selectedUser}
-        onUserChange={(u) => { setSelectedUser(u); setActiveViewId(undefined); }}
+        onUserChange={(u) => {
+          setSelectedUser(u);
+          setActiveViewId(undefined);
+        }}
         selectedPriorities={selectedPriorities}
-        onPrioritiesChange={(p) => { setSelectedPriorities(p); setActiveViewId(undefined); }}
+        onPrioritiesChange={(p) => {
+          setSelectedPriorities(p);
+          setActiveViewId(undefined);
+        }}
         selectedDepartments={selectedDepartments}
-        onDepartmentsChange={(d) => { setSelectedDepartments(d); setActiveViewId(undefined); }}
+        onDepartmentsChange={(d) => {
+          setSelectedDepartments(d);
+          setActiveViewId(undefined);
+        }}
         selectedFloors={selectedFloors}
-        onFloorsChange={(f) => { setSelectedFloors(f); setActiveViewId(undefined); }}
+        onFloorsChange={(f) => {
+          setSelectedFloors(f);
+          setActiveViewId(undefined);
+        }}
         hotelId={backendUser?.hotel_id}
         currentUserId={backendUser?.id}
         onClearAll={handleClearAll}

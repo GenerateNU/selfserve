@@ -29,7 +29,11 @@ export function HomeViewsBar({
               : "bg-white border-stroke-default text-text-secondary hover:bg-bg-container",
           )}
         >
-          <button type="button" onClick={() => onApply(view)} className="leading-none">
+          <button
+            type="button"
+            onClick={() => onApply(view)}
+            className="leading-none"
+          >
             {view.display_name}
           </button>
           <button
