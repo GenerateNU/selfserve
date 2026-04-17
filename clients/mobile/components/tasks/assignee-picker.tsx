@@ -1,34 +1,43 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { View, Text, Pressable, TextInput } from "react-native";
-import { House, ChevronRight, Search, X } from "lucide-react-native";
-import { useGetDepartments } from "@shared/api/departments";
-import type { Department } from "@shared";
+import { UserRound, ChevronRight, Search, X } from "lucide-react-native";
+import { useQuery } from "@tanstack/react-query";
+import { useAPIClient } from "@shared/api/client";
+import { getConfig } from "@shared/api/config";
+import type { User } from "@shared";
 import { Colors } from "@/constants/theme";
 
 const ICON_COLOR = Colors.light.textSubtle;
 
-type DepartmentPickerProps = {
-  hotelId: string;
-  value: Department | undefined;
-  onChange: (department: Department | undefined) => void;
+type SearchUsersResponse = {
+  users: Array<User>;
+  next_cursor: string;
 };
 
-export function DepartmentPicker({
-  hotelId,
-  value,
-  onChange,
-}: DepartmentPickerProps) {
+type AssigneePickerProps = {
+  value: User | undefined;
+  onChange: (user: User | undefined) => void;
+};
+
+export function AssigneePicker({ value, onChange }: AssigneePickerProps) {
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const inputRef = useRef<TextInput>(null);
 
-  const { data: departments, isLoading } = useGetDepartments(
-    expanded ? hotelId : undefined,
-  );
+  const api = useAPIClient();
+  const { hotelId } = getConfig();
 
-  const filtered = (departments ?? []).filter((d) =>
-    search ? d.name.toLowerCase().includes(search.toLowerCase()) : true,
-  );
+  const { data, isLoading } = useQuery({
+    queryKey: ["users", "search", hotelId, search],
+    queryFn: () =>
+      api.post<SearchUsersResponse>("/users/search", {
+        hotel_id: hotelId,
+        q: search || undefined,
+      }),
+    enabled: expanded,
+  });
+
+  const users = data?.users ?? [];
 
   function handleToggle() {
     const next = !expanded;
@@ -39,11 +48,15 @@ export function DepartmentPicker({
     }
   }
 
-  function handleSelect(department: Department) {
-    onChange(value?.id === department.id ? undefined : department);
+  function handleSelect(user: User) {
+    onChange(value?.id === user.id ? undefined : user);
     setExpanded(false);
     setSearch("");
   }
+
+  const displayName = value
+    ? [value.first_name, value.last_name].filter(Boolean).join(" ")
+    : undefined;
 
   return (
     <View className="gap-2">
@@ -52,16 +65,16 @@ export function DepartmentPicker({
         className="flex-row items-center justify-between h-6"
       >
         <View className="flex-row items-center gap-1">
-          <House size={16} color={ICON_COLOR} />
+          <UserRound size={16} color={ICON_COLOR} />
           <Text className="text-[15px] text-text-subtle tracking-tight">
-            Department
+            Assignee
           </Text>
         </View>
         <View className="flex-row items-center gap-1">
           <Text
-            className={`text-[15px] tracking-tight ${value ? "text-text-default" : "text-text-subtle"}`}
+            className={`text-[15px] tracking-tight ${displayName ? "text-text-default" : "text-text-subtle"}`}
           >
-            {value?.name ?? "Select..."}
+            {displayName ?? "Select..."}
           </Text>
           <ChevronRight
             size={14}
@@ -79,7 +92,7 @@ export function DepartmentPicker({
               {value && (
                 <View className="flex-row items-center gap-1 bg-bg-selected rounded px-1.5 py-0.5">
                   <Text className="text-[12px] text-text-default tracking-tight">
-                    {value.name}
+                    {displayName}
                   </Text>
                   <Pressable onPress={() => onChange(undefined)} hitSlop={4}>
                     <X size={10} color={ICON_COLOR} />
@@ -89,7 +102,7 @@ export function DepartmentPicker({
               <TextInput
                 ref={inputRef}
                 className="flex-1 text-[12px] text-text-default tracking-tight"
-                placeholder="Search departments..."
+                placeholder="Search by name..."
                 placeholderTextColor={ICON_COLOR}
                 value={search}
                 onChangeText={setSearch}
@@ -104,22 +117,27 @@ export function DepartmentPicker({
                 Loading...
               </Text>
             </View>
-          ) : filtered.length === 0 ? (
+          ) : users.length === 0 ? (
             <View className="px-4 py-3">
               <Text className="text-[12px] text-text-subtle tracking-tight">
-                No departments found
+                No staff found
               </Text>
             </View>
           ) : (
-            filtered.map((d) => (
+            users.map((user) => (
               <Pressable
-                key={d.id}
-                onPress={() => handleSelect(d)}
-                className={`px-4 py-2 ${value?.id === d.id ? "bg-bg-selected" : ""}`}
+                key={user.id}
+                onPress={() => handleSelect(user)}
+                className={`px-4 py-2 ${value?.id === user.id ? "bg-bg-selected" : ""}`}
               >
                 <Text className="text-[12px] text-text-default tracking-tight">
-                  {d.name}
+                  {[user.first_name, user.last_name].filter(Boolean).join(" ")}
                 </Text>
+                {user.role && (
+                  <Text className="text-[11px] text-text-subtle tracking-tight">
+                    {user.role}
+                  </Text>
+                )}
               </Pressable>
             ))
           )}
