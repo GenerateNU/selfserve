@@ -33,6 +33,17 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 				AND room_number > $2
 			ORDER BY room_number ASC
 			LIMIT $3
+		),
+		latest_requests AS (
+			SELECT DISTINCT ON (r.id)
+				r.id,
+				r.room_id,
+				r.user_id,
+				r.priority,
+				r.status
+			FROM paginated_rooms pr
+			JOIN public.requests r ON r.room_id = pr.id::text
+			ORDER BY r.id ASC, r.request_version DESC
 		)
 		SELECT
 			pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status, pr.is_accessible,
@@ -44,11 +55,23 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 					'profile_picture', guests.profile_picture
 				)
 			) FILTER (WHERE guests.id IS NOT NULL) AS guests
+			,
+			COALESCE(
+				CASE
+					WHEN BOOL_OR(lr.status != 'completed' AND lr.priority = 'high') THEN 'high'
+					WHEN BOOL_OR(lr.status != 'completed' AND lr.priority = 'medium') THEN 'medium'
+					WHEN BOOL_OR(lr.status != 'completed' AND lr.priority = 'low') THEN 'low'
+					ELSE 'low'
+				END,
+				'low'
+			) AS priority,
+			COALESCE(BOOL_OR(lr.status != 'completed' AND lr.user_id IS NULL), FALSE) AS has_unassigned_tasks
 		FROM paginated_rooms pr
 		LEFT JOIN guest_bookings ON pr.id = guest_bookings.room_id
 			AND guest_bookings.status = 'active'
 			AND guest_bookings.hotel_id = $4
 		LEFT JOIN guests ON guests.id = guest_bookings.guest_id
+		LEFT JOIN latest_requests lr ON lr.room_id = pr.id::text
 		GROUP BY pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status, pr.is_accessible
 		ORDER BY pr.room_number ASC`,
 		filters.Floors, cursorRoomNumber, limit+1, hotelID)
@@ -65,6 +88,8 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		err := rows.Scan(
 			&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible,
 			&guestsJSON,
+			&rb.Priority,
+			&rb.HasUnassignedTasks,
 		)
 		if err != nil {
 			return nil, err
@@ -108,6 +133,17 @@ func (r *RoomsRepository) FindAllFloors(ctx context.Context, hotelID string) ([]
 
 func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id string) (*models.RoomWithOptionalGuestBooking, error) {
 	row := r.db.QueryRow(ctx, `
+		WITH latest_requests AS (
+			SELECT DISTINCT ON (r.id)
+				r.id,
+				r.room_id,
+				r.user_id,
+				r.priority,
+				r.status
+			FROM public.requests r
+			WHERE r.hotel_id = $2
+			ORDER BY r.id ASC, r.request_version DESC
+		)
 		SELECT
 			r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible,
 			json_agg(
@@ -117,19 +153,30 @@ func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id s
 					'last_name',       g.last_name,
 					'profile_picture', g.profile_picture
 				)
-			) FILTER (WHERE g.id IS NOT NULL) AS guests
+			) FILTER (WHERE g.id IS NOT NULL) AS guests,
+			COALESCE(
+				CASE
+					WHEN BOOL_OR(lr.status != 'completed' AND lr.priority = 'high') THEN 'high'
+					WHEN BOOL_OR(lr.status != 'completed' AND lr.priority = 'medium') THEN 'medium'
+					WHEN BOOL_OR(lr.status != 'completed' AND lr.priority = 'low') THEN 'low'
+					ELSE 'low'
+				END,
+				'low'
+			) AS priority,
+			COALESCE(BOOL_OR(lr.status != 'completed' AND lr.user_id IS NULL), FALSE) AS has_unassigned_tasks
 		FROM rooms r
 		LEFT JOIN guest_bookings gb ON r.id = gb.room_id
 			AND gb.status = 'active'
 			AND gb.hotel_id = $2
 		LEFT JOIN guests g ON g.id = gb.guest_id
+		LEFT JOIN latest_requests lr ON lr.room_id = r.id::text
 		WHERE r.id = $1 AND r.hotel_id = $2
 		GROUP BY r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible`,
 		id, hotelID)
 
 	var rb models.RoomWithOptionalGuestBooking
 	var guestsJSON json.RawMessage
-	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible, &guestsJSON)
+	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible, &guestsJSON, &rb.Priority, &rb.HasUnassignedTasks)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
