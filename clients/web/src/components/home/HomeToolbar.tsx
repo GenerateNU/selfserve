@@ -1,10 +1,23 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { Trash2 } from "lucide-react";
 import type { View } from "@shared/types/views";
 import { cn } from "@/lib/utils";
 import { FilterListIcon } from "@/icons/filter-list";
 import { SearchIcon } from "@/icons/search";
 import { SettingsIcon } from "@/icons/settings";
 import { TabIcon } from "@/icons/tab";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type HomeToolbarProps = {
   className?: string;
@@ -16,6 +29,7 @@ type HomeToolbarProps = {
   filtersActive?: boolean;
   onToggleFilters?: () => void;
   onSelectView?: (view: View | undefined) => void;
+  onDeleteView?: (view: View) => void;
 };
 
 const DEPARTMENTS_KEY = "__departments__";
@@ -30,6 +44,7 @@ export function HomeToolbar({
   filtersActive = false,
   onToggleFilters,
   onSelectView,
+  onDeleteView,
 }: HomeToolbarProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
   const tabButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -40,6 +55,7 @@ export function HomeToolbar({
   });
 
   const activeKey = activeViewId ?? DEPARTMENTS_KEY;
+  const activeView = views.find((v) => v.id === activeViewId);
 
   useLayoutEffect(() => {
     const activeTab = tabButtonRefs.current.get(activeKey);
@@ -82,24 +98,36 @@ export function HomeToolbar({
           {views.map((view) => {
             const isActive = view.id === activeViewId;
             return (
-              <button
-                key={view.id}
-                ref={setTabRef(view.id)}
-                type="button"
-                onClick={() => onSelectView?.(view)}
-                className={cn(
-                  "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
-                  isActive
-                    ? "text-text-default"
-                    : "text-text-subtle hover:text-text-default",
-                )}
-              >
-                <TabIcon className="size-4" />
-                {view.display_name}
-                {isActive && activeViewPending && (
-                  <span className="size-1.5 rounded-full bg-current opacity-60" />
-                )}
-              </button>
+              <ContextMenu key={view.id}>
+                <ContextMenuTrigger asChild>
+                  <button
+                    ref={setTabRef(view.id)}
+                    type="button"
+                    onClick={() => onSelectView?.(view)}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+                      isActive
+                        ? "text-text-default"
+                        : "text-text-subtle hover:text-text-default",
+                    )}
+                  >
+                    <TabIcon className="size-4" />
+                    {view.display_name}
+                    {isActive && activeViewPending && (
+                      <span className="size-1.5 rounded-full bg-current opacity-60" />
+                    )}
+                  </button>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem
+                    variant="destructive"
+                    onSelect={() => onDeleteView?.(view)}
+                  >
+                    <Trash2 />
+                    Delete view
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
             );
           })}
           {underline.ready && (
@@ -134,12 +162,34 @@ export function HomeToolbar({
             >
               <SearchIcon className="size-4" />
             </button>
-            <button
-              type="button"
-              className="text-text-subtle hover:text-text-default transition-colors"
-            >
-              <SettingsIcon className="size-4" />
-            </button>
+            {activeView ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-text-subtle hover:text-text-default transition-colors"
+                  >
+                    <SettingsIcon className="size-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-auto min-w-36">
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={() => onDeleteView?.(activeView)}
+                  >
+                    <Trash2 />
+                    Delete view
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <button
+                type="button"
+                className="text-text-subtle hover:text-text-default transition-colors"
+              >
+                <SettingsIcon className="size-4" />
+              </button>
+            )}
           </div>
           <button
             type="button"

@@ -5,11 +5,12 @@ import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
 import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
 import { useGetDepartments } from "@shared/api/departments";
-import { useCreateView, useGetViews } from "@shared/api/views";
+import { useCreateView, useDeleteView, useGetViews } from "@shared/api/views";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
 import type { Request, User } from "@shared";
 import type { View } from "@shared/types/views";
+import { DeleteViewModal } from "@/components/home/DeleteViewModal";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
@@ -130,6 +131,9 @@ function HomePage() {
   const { data: departments } = useGetDepartments(backendUser?.hotel_id);
   const { data: views = [] } = useGetViews(REQUESTS_WEB_SLUG);
   const { mutate: createView } = useCreateView(REQUESTS_WEB_SLUG);
+  const { mutate: deleteView, isPending: isDeletingView } =
+    useDeleteView(REQUESTS_WEB_SLUG);
+  const [viewToDelete, setViewToDelete] = useState<View | null>(null);
 
   const [drawerData, setDrawerData] = useState<{
     name?: string;
@@ -254,6 +258,7 @@ function HomePage() {
             onSelectView={(view) =>
               view ? handleApplyView(view) : handleClearAll()
             }
+            onDeleteView={(view) => setViewToDelete(view)}
           />
           <div
             className={`grid transition-all duration-200 ease-out ${filtersOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
@@ -324,6 +329,19 @@ function HomePage() {
           ))}
         </div>
       </div>
+      <DeleteViewModal
+        view={viewToDelete}
+        isPending={isDeletingView}
+        onConfirm={() =>
+          deleteView(viewToDelete!.id, {
+            onSuccess: () => {
+              if (activeViewId === viewToDelete!.id) handleClearAll();
+              setViewToDelete(null);
+            },
+          })
+        }
+        onCancel={() => setViewToDelete(null)}
+      />
     </PageShell>
   );
 }
