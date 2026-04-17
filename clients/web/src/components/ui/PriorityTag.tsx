@@ -36,7 +36,11 @@ type PriorityTagProps = {
   className?: string;
 };
 
-export function PriorityTag({ priority, dimmed = false, className }: PriorityTagProps) {
+export function PriorityTag({
+  priority,
+  dimmed = false,
+  className,
+}: PriorityTagProps) {
   const config =
     PRIORITY_CONFIG[priority.toLowerCase() as RequestPriority] ??
     PRIORITY_CONFIG.low;
@@ -50,9 +54,17 @@ export function PriorityTag({ priority, dimmed = false, className }: PriorityTag
       )}
     >
       <Flag
-        className={cn("size-3", dimmed ? "stroke-bg-disabled" : config.iconClass)}
+        className={cn(
+          "size-3",
+          dimmed ? "stroke-bg-disabled" : config.iconClass,
+        )}
       />
-      <span className={cn("text-xs", dimmed ? "text-text-subtle" : config.textClass)}>
+      <span
+        className={cn(
+          "text-xs",
+          dimmed ? "text-text-subtle" : config.textClass,
+        )}
+      >
         {config.label}
       </span>
     </div>

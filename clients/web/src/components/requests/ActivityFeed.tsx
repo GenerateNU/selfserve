@@ -16,19 +16,30 @@ import {
 } from "@/components/ui/tooltip";
 import { PriorityTag } from "@/components/ui/PriorityTag";
 
-function Pill({ children, className }: { children: React.ReactNode; className: string }) {
+function Pill({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className: string;
+}) {
   return (
-    <span className={cn("inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium", className)}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium",
+        className,
+      )}
+    >
       {children}
     </span>
   );
 }
 
 const STATUS_PILL: Record<string, string> = {
-  pending:       "bg-request-pending-secondary text-request-pending",
+  pending: "bg-request-pending-secondary text-request-pending",
   "in progress": "bg-request-assigned-secondary text-request-assigned",
-  completed:     "bg-request-completed-secondary text-request-completed",
-  archived:      "bg-bg-disabled text-text-subtle",
+  completed: "bg-request-completed-secondary text-request-completed",
+  archived: "bg-bg-disabled text-text-subtle",
 };
 
 function StatusPill({ value }: { value: string }) {
@@ -39,7 +50,6 @@ function StatusPill({ value }: { value: string }) {
   );
 }
 
-
 function buildDescription(
   item: RequestActivityItem,
   actorName: string,
@@ -48,14 +58,24 @@ function buildDescription(
   const actor = <strong>{actorName}</strong>;
 
   switch (item.type) {
-    case "created":       return <>{actor} created this request</>;
-    case "status_changed":   return <>{actor} changed status</>;
-    case "priority_changed": return <>{actor} changed priority</>;
+    case "created":
+      return <>{actor} created this request</>;
+    case "status_changed":
+      return <>{actor} changed status</>;
+    case "priority_changed":
+      return <>{actor} changed priority</>;
     case "assigned":
-      return <>{actor} assigned to <strong>{targetName ?? "someone"}</strong></>;
-    case "unassigned":    return <>{actor} removed assignee</>;
-    case "name_changed":  return <>{actor} renamed request</>;
-    default:              return <>{actor} updated request</>;
+      return (
+        <>
+          {actor} assigned to <strong>{targetName ?? "someone"}</strong>
+        </>
+      );
+    case "unassigned":
+      return <>{actor} removed assignee</>;
+    case "name_changed":
+      return <>{actor} renamed request</>;
+    default:
+      return <>{actor} updated request</>;
   }
 }
 
@@ -135,7 +155,12 @@ function ActivityRow({ item, isLast }: ActivityRowProps) {
       </div>
 
       {/* Content */}
-      <div className={cn("flex min-w-0 flex-1 items-start justify-between gap-4", !isLast && "pb-7")}>
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 items-start justify-between gap-4",
+          !isLast && "pb-7",
+        )}
+      >
         <div className="flex flex-col gap-1">
           <div className="flex min-h-8 items-center">
             <p className="text-sm text-text-default">
@@ -143,9 +168,7 @@ function ActivityRow({ item, isLast }: ActivityRowProps) {
             </p>
           </div>
           {detail && (
-            <div className="flex items-center gap-1.5 text-xs">
-              {detail}
-            </div>
+            <div className="flex items-center gap-1.5 text-xs">{detail}</div>
           )}
         </div>
         <TooltipProvider>

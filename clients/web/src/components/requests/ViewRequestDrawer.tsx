@@ -7,7 +7,6 @@ import { useRoomById } from "@/hooks/use-room-by-id";
 import { ActivityFeed } from "@/components/requests/ActivityFeed";
 import { cn } from "@/lib/utils";
 
-
 const PRIORITY_COLORS: Record<string, string> = {
   low: "text-info-default",
   medium: "text-warning-default",
@@ -67,7 +66,6 @@ export function ViewRequestDrawer({
   request,
   onClose,
 }: ViewRequestDrawerProps) {
-
   const getUserById = useGetUsersIdHook();
   const { data: assignee } = useQuery({
     queryKey: ["user", request?.user_id],
