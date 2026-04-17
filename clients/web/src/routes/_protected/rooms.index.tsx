@@ -19,10 +19,11 @@ export const Route = createFileRoute("/_protected/rooms/")({
 
 function RoomsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { filters, setFloors, setFilterChips } = useRoomsFilters({
-    floors: [],
-    filterChips: [],
-  });
+  const { filters, setFloors, setFilterChips, removeFilterChip } =
+    useRoomsFilters({
+      floors: [],
+      filterChips: [],
+    });
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
   const [ascending, setAscending] = useState(true);
@@ -77,6 +78,7 @@ function RoomsPage() {
         filters={filters}
         onChangeFloors={setFloors}
         onApplyFilterChips={setFilterChips}
+        onRemoveFilterChip={removeFilterChip}
         ascending={ascending}
         setAscending={setAscending}
       />
