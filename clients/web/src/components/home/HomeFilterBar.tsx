@@ -86,6 +86,71 @@ function FilterChip({
   );
 }
 
+type SaveViewButtonProps = {
+  onSave?: (name: string) => void;
+};
+
+function SaveViewButton({ onSave }: SaveViewButtonProps) {
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState("");
+
+  function submit() {
+    if (!name.trim()) return;
+    onSave?.(name.trim());
+    setName("");
+    setSaving(false);
+  }
+
+  function cancel() {
+    setName("");
+    setSaving(false);
+  }
+
+  if (!saving) {
+    return (
+      <button
+        type="button"
+        onClick={() => setSaving(true)}
+        className="rounded border border-stroke-default px-2 py-1 text-sm text-text-secondary hover:bg-bg-container transition-colors"
+      >
+        Save as New View
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        autoFocus
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+          if (e.key === "Escape") cancel();
+        }}
+        placeholder="View name"
+        className="rounded border border-stroke-default px-2 py-1 text-sm text-text-default outline-none focus:border-primary w-32"
+      />
+      <button
+        type="button"
+        disabled={!name.trim()}
+        onClick={submit}
+        className="rounded p-1 text-primary hover:bg-[#edf5f1] transition-colors disabled:opacity-40"
+      >
+        <Check className="size-4" />
+      </button>
+      <button
+        type="button"
+        onClick={cancel}
+        className="rounded p-1 text-text-secondary hover:bg-bg-container transition-colors"
+      >
+        <X className="size-4" />
+      </button>
+    </div>
+  );
+}
+
 export function HomeFilterBar({
   sort,
   onSortChange,
@@ -102,8 +167,6 @@ export function HomeFilterBar({
   onClearAll,
   onSaveView,
 }: HomeFilterBarProps) {
-  const [savingView, setSavingView] = useState(false);
-  const [viewName, setViewName] = useState("");
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false);
   const [priorityMenuOpen, setPriorityMenuOpen] = useState(false);
@@ -231,61 +294,7 @@ export function HomeFilterBar({
           >
             Clear All
           </button>
-          {savingView ? (
-            <div className="flex items-center gap-1">
-              <input
-                autoFocus
-                type="text"
-                value={viewName}
-                onChange={(e) => setViewName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && viewName.trim()) {
-                    onSaveView?.(viewName.trim());
-                    setViewName("");
-                    setSavingView(false);
-                  }
-                  if (e.key === "Escape") {
-                    setViewName("");
-                    setSavingView(false);
-                  }
-                }}
-                placeholder="View name"
-                className="rounded border border-stroke-default px-2 py-1 text-sm text-text-default outline-none focus:border-primary w-32"
-              />
-              <button
-                type="button"
-                disabled={!viewName.trim()}
-                onClick={() => {
-                  if (viewName.trim()) {
-                    onSaveView?.(viewName.trim());
-                    setViewName("");
-                    setSavingView(false);
-                  }
-                }}
-                className="rounded p-1 text-primary hover:bg-[#edf5f1] transition-colors disabled:opacity-40"
-              >
-                <Check className="size-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setViewName("");
-                  setSavingView(false);
-                }}
-                className="rounded p-1 text-text-secondary hover:bg-bg-container transition-colors"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setSavingView(true)}
-              className="rounded border border-stroke-default px-2 py-1 text-sm text-text-secondary hover:bg-bg-container transition-colors"
-            >
-              Save as New View
-            </button>
-          )}
+          <SaveViewButton onSave={onSaveView} />
         </div>
       </div>
 
