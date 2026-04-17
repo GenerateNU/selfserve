@@ -463,11 +463,13 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 
 	assigned, err := r.RequestRepository.FindRequestsByRoomIDAndUserID(c.Context(), input.RoomID, input.HotelID, userID, "", time.Time{}, utils.DefaultPageLimit)
 	if err != nil {
+		slog.Error("FindRequestsByRoomIDAndUserID failed", "err", err, "roomID", input.RoomID)
 		return errs.InternalServerError()
 	}
 
 	unassigned, err := r.RequestRepository.FindUnassignedRequestsByRoomIDAndUserID(c.Context(), input.RoomID, input.HotelID, "", time.Time{}, utils.DefaultPageLimit)
 	if err != nil {
+		slog.Error("FindUnassignedRequestsByRoomIDAndUserID failed", "err", err, "roomID", input.RoomID)
 		return errs.InternalServerError()
 	}
 

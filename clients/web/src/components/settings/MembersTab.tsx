@@ -2,11 +2,10 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, Search, UserPlus } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
-import { useCustomInstance } from "@shared/api/orval-mutator";
+import { useCustomInstance, useGetUsersIdHook } from "@shared";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { DepartmentPicker } from "./DepartmentPicker";
-import type { User } from "@shared/api/generated/models";
+import type { User } from "@shared";
 import { cn, getInitials, hashNameToColor } from "@/lib/utils";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import {

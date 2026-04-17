@@ -5,8 +5,7 @@ import { AssigneeFilterMenu } from "./AssigneeFilterMenu";
 import { DepartmentFilterMenu } from "./DepartmentFilterMenu";
 import { FloorFilterMenu } from "./FloorFilterMenu";
 import { PriorityFilterMenu } from "./PriorityFilterMenu";
-import type { RequestFeedSort } from "@shared/api/requests";
-import type { User as UserModel } from "@shared";
+import type { RequestFeedSort, User as UserModel } from "@shared";
 import { cn } from "@/lib/utils";
 
 const SORT_OPTIONS: Array<{ label: string; value: string }> = [
