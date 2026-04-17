@@ -3,7 +3,6 @@ import { AccessibilityIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { RequestPriority, RoomWithOptionalGuestBooking } from "@shared";
 
-import { useUnassignedTasks } from "@/hooks/use-unassigned-tasks";
 import { NotebookIcon } from "@/icons/notebook";
 
 export type RoomStatusTag = {
@@ -23,41 +22,29 @@ function isHighOrMediumPriority(
   return priority === "high" || priority === "medium";
 }
 
-function findHighestPriority(
-  priorities: Array<RequestPriority | undefined>,
-): "high" | "medium" | undefined {
-  if (priorities.some((p) => p === "high")) return "high";
-  if (priorities.some((p) => p === "medium")) return "medium";
-  return undefined;
-}
-
 export function useRoomStatus(
   room: RoomWithOptionalGuestBooking,
 ): UseRoomStatusResult {
-  const { tasks: unassignedTasks } = useUnassignedTasks();
-
   return useMemo(() => {
+    const roomWithStatus = room as unknown as {
+      prio?: RequestPriority;
+      priority?: RequestPriority;
+      unassigned?: boolean;
+      is_accessible?: boolean;
+      isAccessible?: boolean;
+    };
+
     const isAccessible =
-      (room as unknown as { is_accessible?: boolean; isAccessible?: boolean })
-        .is_accessible ??
-      (room as unknown as { isAccessible?: boolean }).isAccessible ??
-      false;
+      roomWithStatus.is_accessible ?? roomWithStatus.isAccessible ?? false;
 
-    const roomNumber = room.room_number ?? undefined;
-    const roomUnassignedTasks =
-      roomNumber == null
-        ? []
-        : unassignedTasks.filter((t) => t.room_number === roomNumber);
-
-    const highestPriority = findHighestPriority(
-      roomUnassignedTasks.map((t) => t.priority as RequestPriority | undefined),
-    );
+    const prio = roomWithStatus.prio ?? roomWithStatus.priority ?? undefined;
+    const hasUnassigned = roomWithStatus.unassigned ?? false;
 
     const tags: Array<RoomStatusTag> = [];
-    if (isHighOrMediumPriority(highestPriority)) {
+    if (isHighOrMediumPriority(prio)) {
       tags.push({
-        key: `priority:${highestPriority}`,
-        priority: highestPriority,
+        key: `priority:${prio}`,
+        priority: prio,
       });
     }
 
@@ -72,7 +59,7 @@ export function useRoomStatus(
       });
     }
 
-    if (roomUnassignedTasks.length > 0) {
+    if (hasUnassigned) {
       tags.push({
         key: "unassigned-tasks",
         label: "Unassigned Tasks",
@@ -84,5 +71,5 @@ export function useRoomStatus(
     }
 
     return tags.length > 0 ? [tags] : [];
-  }, [room.room_number, unassignedTasks, room]);
+  }, [room]);
 }
