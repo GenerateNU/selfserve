@@ -75,7 +75,6 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-
 // UpdateRequest godoc
 // @Summary      Update a request
 // @Description  Partially updates a request — only fields present in the body are applied; omitted fields keep their current values

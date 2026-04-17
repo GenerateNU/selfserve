@@ -21,7 +21,7 @@ import (
 type mockRequestRepository struct {
 	makeRequestFunc                    func(ctx context.Context, req *models.Request) (*models.Request, error)
 	updateRequestFunc                  func(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error)
-findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
+	findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
 	findRequestsByGuestIDFunc          func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findRequestsByRoomIDAndUserIDFunc  func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
@@ -1967,4 +1967,3 @@ func TestRequestHandler_GetGenerateRequestStatus(t *testing.T) {
 		assert.Contains(t, string(body), "Extra Towels Request")
 	})
 }
-
