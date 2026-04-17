@@ -7,6 +7,7 @@ import type { Request, RoomWithOptionalGuestBooking } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { RoomsToolbar } from "@/components/rooms/RoomsToolbar";
+import { useRoomsFilters } from "@/hooks/use-rooms-filters";
 import { RoomsList } from "@/components/rooms/RoomsList";
 import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
@@ -16,9 +17,15 @@ export const Route = createFileRoute("/_protected/rooms/")({
   component: RoomsPage,
 });
 
+const INITIAL_SELECTED = ["Occupied", "Open Tasks"];
+
 function RoomsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
+  const { filters, setFloors, setFilterChips, removeFilterChip } =
+    useRoomsFilters({
+      floors: [],
+      filterChips: INITIAL_SELECTED,
+    });
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
   const [ascending, setAscending] = useState(true);
@@ -34,10 +41,10 @@ function RoomsPage() {
   const postRooms = usePostRoomsHook();
 
   const { data: rooms } = useQuery({
-    queryKey: ["rooms", selectedFloors],
+    queryKey: ["rooms", filters.floors],
     queryFn: () =>
       postRooms({
-        floors: selectedFloors.length > 0 ? selectedFloors : undefined,
+        floors: filters.floors.length > 0 ? filters.floors : undefined,
         limit: 10,
       }),
   });
@@ -70,8 +77,10 @@ function RoomsPage() {
       <RoomsToolbar
         searchTerm={searchTerm}
         onChangeSearchTerm={setSearchTerm}
-        selectedFloors={selectedFloors}
-        onChangeSelectedFloors={setSelectedFloors}
+        filters={filters}
+        onChangeFloors={setFloors}
+        onApplyFilterChips={setFilterChips}
+        onRemoveFilterChip={removeFilterChip}
         ascending={ascending}
         setAscending={setAscending}
       />
