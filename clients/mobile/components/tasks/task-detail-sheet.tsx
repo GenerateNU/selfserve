@@ -37,6 +37,16 @@ import type {
 } from "@shared";
 import type { RequestFeedItem } from "@shared/api/requests";
 
+type RequestForm = {
+  name: string;
+  description: string;
+  priority: MakeRequestPriority;
+  deadline: Date | undefined;
+  user_id: string | undefined;
+  room_id: string | undefined;
+  department_id: string | undefined;
+};
+
 type DetailRowProps = {
   icon: React.ComponentProps<typeof Feather>["name"];
   label: string;
@@ -102,19 +112,27 @@ export function TaskDetailSheet({
 
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editPriority, setEditPriority] =
-    useState<MakeRequestPriority>("medium");
-  const [editDepartment, setEditDepartment] = useState<Department | undefined>(
-    undefined,
-  );
-  const [editAssignee, setEditAssignee] = useState<User | undefined>(undefined);
-  const [editRoom, setEditRoom] = useState<
-    RoomWithOptionalGuestBooking | undefined
-  >(undefined);
-  const [editDeadline, setEditDeadline] = useState<Date | undefined>(undefined);
+
+  const [form, setForm] = useState<RequestForm>({
+    name: "",
+    description: "",
+    priority: "medium",
+    deadline: undefined,
+    user_id: undefined,
+    room_id: undefined,
+    department_id: undefined,
+  });
+
+  // Picker display objects — full objects needed by picker components; separate from form IDs
+  const [pickers, setPickers] = useState<{
+    assignee: User | undefined;
+    room: RoomWithOptionalGuestBooking | undefined;
+    department: Department | undefined;
+  }>({ assignee: undefined, room: undefined, department: undefined });
+
+  // Original snapshot — the task as it was when edit mode was entered
+  const orig = useRef<RequestForm | null>(null);
+
   const assigneeInitializedRef = useRef(false);
   const roomDeadlineInitializedRef = useRef(false);
   const departmentInitializedRef = useRef(false);
@@ -166,14 +184,18 @@ export function TaskDetailSheet({
       assigneeInitializedRef.current = false;
       roomDeadlineInitializedRef.current = false;
       departmentInitializedRef.current = false;
-      setIsDirty(false);
-      setEditName(task.name);
-      setEditDescription(task.description ?? "");
-      setEditPriority((task.priority as MakeRequestPriority) ?? "medium");
-      setEditDepartment(undefined);
-      setEditAssignee(undefined);
-      setEditRoom(undefined);
-      setEditDeadline(undefined);
+      const initial: RequestForm = {
+        name: task.name.trim(),
+        description: (task.description ?? "").trim(),
+        priority: (task.priority as MakeRequestPriority) ?? "medium",
+        deadline: undefined,
+        user_id: task.user_id ?? undefined,
+        room_id: undefined,
+        department_id: task.department_id ?? undefined,
+      };
+      setForm(initial);
+      setPickers({ assignee: undefined, room: undefined, department: undefined });
+      orig.current = { ...initial };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing]);
@@ -189,7 +211,7 @@ export function TaskDetailSheet({
       const dept = departments.find((d) => d.id === task.department_id);
       if (dept) {
         departmentInitializedRef.current = true;
-        setEditDepartment(dept);
+        setPickers((p) => ({ ...p, department: dept }));
       }
     }
   }, [isEditing, departments, task?.department_id]);
@@ -198,28 +220,25 @@ export function TaskDetailSheet({
   useEffect(() => {
     if (isEditing && initialAssigneeData && !assigneeInitializedRef.current) {
       assigneeInitializedRef.current = true;
-      setEditAssignee(initialAssigneeData);
+      setPickers((p) => ({ ...p, assignee: initialAssigneeData }));
     }
   }, [isEditing, initialAssigneeData]);
 
   // Pre-populate room and deadline once full request loads
   useEffect(() => {
-    if (
-      isEditing &&
-      fullRequest &&
-      task &&
-      !roomDeadlineInitializedRef.current
-    ) {
+    if (isEditing && fullRequest && task && !roomDeadlineInitializedRef.current) {
       roomDeadlineInitializedRef.current = true;
-      if (fullRequest.room_id) {
-        setEditRoom({
-          id: fullRequest.room_id,
-          room_number: task.room_number ?? undefined,
-          floor: task.floor ?? undefined,
-        });
-      }
-      if (fullRequest.scheduled_time) {
-        setEditDeadline(new Date(fullRequest.scheduled_time));
+      const room = fullRequest.room_id
+        ? { id: fullRequest.room_id, room_number: task.room_number ?? undefined, floor: task.floor ?? undefined }
+        : undefined;
+      const deadline = fullRequest.scheduled_time
+        ? new Date(fullRequest.scheduled_time)
+        : undefined;
+      setForm((f) => ({ ...f, room_id: fullRequest.room_id ?? undefined, deadline }));
+      setPickers((p) => ({ ...p, room }));
+      // Update orig so pre-population doesn't count as a change
+      if (orig.current) {
+        orig.current = { ...orig.current, room_id: fullRequest.room_id ?? undefined, deadline };
       }
     }
   }, [isEditing, fullRequest, task]);
@@ -233,18 +252,29 @@ export function TaskDetailSheet({
     setIsEditing(false);
   }
 
+  const isDirty =
+    isEditing &&
+    orig.current !== null &&
+    (form.name.trim() !== (orig.current.name ?? "") ||
+      form.description.trim() !== (orig.current.description ?? "") ||
+      form.priority !== orig.current.priority ||
+      form.user_id !== orig.current.user_id ||
+      form.room_id !== orig.current.room_id ||
+      form.department_id !== orig.current.department_id ||
+      form.deadline?.getTime() !== orig.current.deadline?.getTime());
+
   function handleSave() {
     if (!task || isSaving || !isDirty) return;
     saveTask({
       id: task.id,
       data: {
-        name: editName.trim() || undefined,
-        description: editDescription.trim() || undefined,
-        priority: editPriority,
-        department: editDepartment?.id,
-        user_id: editAssignee?.id,
-        room_id: editRoom?.id,
-        scheduled_time: editDeadline?.toISOString(),
+        name: form.name.trim() || undefined,
+        description: form.description.trim() || undefined,
+        priority: form.priority,
+        department: form.department_id,
+        user_id: form.user_id,
+        room_id: form.room_id,
+        scheduled_time: form.deadline?.toISOString(),
       },
     });
   }
@@ -433,11 +463,8 @@ export function TaskDetailSheet({
                     className="text-2xl font-bold text-text-default tracking-tight"
                     placeholder="Task Name"
                     placeholderTextColor={Colors.light.textSubtle}
-                    value={editName}
-                    onChangeText={(v) => {
-                      setEditName(v);
-                      setIsDirty(true);
-                    }}
+                    value={form.name}
+                    onChangeText={(v) => setForm((f) => ({ ...f, name: v }))}
                     returnKeyType="done"
                   />
                 </View>
@@ -445,43 +472,37 @@ export function TaskDetailSheet({
                 {/* Fields */}
                 <View className="gap-4">
                   <PriorityPicker
-                    value={editPriority}
-                    onChange={(v) => {
-                      setEditPriority(v ?? "medium");
-                      setIsDirty(true);
-                    }}
+                    value={form.priority}
+                    onChange={(v) => setForm((f) => ({ ...f, priority: v ?? "medium" }))}
                   />
 
                   <DeadlinePicker
-                    value={editDeadline}
-                    onChange={(v) => {
-                      setEditDeadline(v);
-                      setIsDirty(true);
-                    }}
+                    value={form.deadline}
+                    onChange={(v) => setForm((f) => ({ ...f, deadline: v }))}
                   />
 
                   <AssigneePicker
-                    value={editAssignee}
+                    value={pickers.assignee}
                     onChange={(v) => {
-                      setEditAssignee(v);
-                      setIsDirty(true);
+                      setPickers((p) => ({ ...p, assignee: v }));
+                      setForm((f) => ({ ...f, user_id: v?.id }));
                     }}
                   />
 
                   <RoomPicker
-                    value={editRoom}
+                    value={pickers.room}
                     onChange={(v) => {
-                      setEditRoom(v);
-                      setIsDirty(true);
+                      setPickers((p) => ({ ...p, room: v }));
+                      setForm((f) => ({ ...f, room_id: v?.id }));
                     }}
                   />
 
                   <DepartmentPicker
                     hotelId={hotelId}
-                    value={editDepartment}
+                    value={pickers.department}
                     onChange={(v) => {
-                      setEditDepartment(v);
-                      setIsDirty(true);
+                      setPickers((p) => ({ ...p, department: v }));
+                      setForm((f) => ({ ...f, department_id: v?.id }));
                     }}
                   />
 
@@ -494,11 +515,8 @@ export function TaskDetailSheet({
                       className="text-[15px] text-text-default tracking-tight leading-snug"
                       placeholder="Empty"
                       placeholderTextColor={Colors.light.textSubtle}
-                      value={editDescription}
-                      onChangeText={(v) => {
-                        setEditDescription(v);
-                        setIsDirty(true);
-                      }}
+                      value={form.description}
+                      onChangeText={(v) => setForm((f) => ({ ...f, description: v }))}
                       multiline
                       textAlignVertical="top"
                     />
