@@ -24,7 +24,6 @@ import {
   type RoomSort,
   DEFAULT_ROOM_SORT,
 } from "@/components/rooms/room-sort-sheet";
-import { OverviewTab } from "@/components/rooms/overview-tab";
 import { useGetRooms, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 
@@ -34,13 +33,6 @@ const FLOORS: Floor[] = [
   { id: "3", label: "Floor 3" },
   { id: "4", label: "Floor 4" },
   { id: "5", label: "Floor 5" },
-];
-
-type TabId = "rooms" | "overview";
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: "rooms", label: "Rooms" },
-  { id: "overview", label: "Overview" },
 ];
 
 function getRoomStatus(room: RoomWithOptionalGuestBooking): RoomStatus {
@@ -63,7 +55,6 @@ function getRoomStatus(room: RoomWithOptionalGuestBooking): RoomStatus {
 }
 
 export default function RoomsScreen() {
-  const [activeTab, setActiveTab] = useState<TabId>("rooms");
   const [selectedFloor, setSelectedFloor] = useState<Floor>(FLOORS[0]);
   const [floorPickerVisible, setFloorPickerVisible] = useState(false);
   const [filterVisible, setFilterVisible] = useState(false);
@@ -127,55 +118,30 @@ export default function RoomsScreen() {
         </View>
       </View>
 
-      {/* Tab selector */}
-      <View className="flex-row border-b border-stroke-subtle">
-        {TABS.map((tab) => (
-          <Pressable
-            key={tab.id}
-            className={`flex-1 flex-row items-center justify-center gap-1 h-10 px-3 ${
-              activeTab === tab.id ? "border-b-2 border-primary" : ""
-            }`}
-            onPress={() => setActiveTab(tab.id)}
-          >
-            <Text
-              className={`text-[15px] ${
-                activeTab === tab.id ? "text-primary" : "text-text-secondary"
-              }`}
-            >
-              {tab.label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
       {/* Content */}
-      {activeTab === "rooms" ? (
-        <FlatList
-          data={rooms}
-          keyExtractor={(item) => item.id ?? String(item.room_number)}
-          renderItem={({ item }) => (
-            <RoomCard
-              roomNumber={item.room_number ?? ""}
-              roomType={item.suite_type ?? ""}
-              status={getRoomStatus(item)}
-              onPress={() => {
-                const guestIds =
-                  item.booking_status === BookingStatus.BookingStatusActive
-                    ? (item.guests
-                        ?.map((g) => g.id)
-                        .filter(Boolean)
-                        .join(",") ?? "")
-                    : "";
-                router.push(
-                  `/explore/${item.id}?roomNumber=${item.room_number}&guestIds=${guestIds}`,
-                );
-              }}
-            />
-          )}
-        />
-      ) : (
-        <OverviewTab floorId={floorId} />
-      )}
+      <FlatList
+        data={rooms}
+        keyExtractor={(item) => item.id ?? String(item.room_number)}
+        renderItem={({ item }) => (
+          <RoomCard
+            roomNumber={item.room_number ?? ""}
+            roomType={item.suite_type ?? ""}
+            status={getRoomStatus(item)}
+            onPress={() => {
+              const guestIds =
+                item.booking_status === BookingStatus.BookingStatusActive
+                  ? (item.guests
+                      ?.map((g) => g.id)
+                      .filter(Boolean)
+                      .join(",") ?? "")
+                  : "";
+              router.push(
+                `/explore/${item.id}?roomNumber=${item.room_number}&guestIds=${guestIds}`,
+              );
+            }}
+          />
+        )}
+      />
       <FloorPickerSheet
         visible={floorPickerVisible}
         floors={FLOORS}
