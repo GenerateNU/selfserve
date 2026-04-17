@@ -130,6 +130,21 @@ type Request struct {
 	MakeRequest
 } //@name Request
 
+// RequestsFeedInput is the body for POST /requests/feed.
+type RequestsFeedInput struct {
+	HotelID     string          `json:"hotel_id" validate:"notblank,startswith=org_"`
+	Cursor      string          `json:"cursor"`
+	Limit       int             `json:"limit"       validate:"omitempty,min=1,max=100"`
+	UserID      string          `json:"user_id"`
+	Unassigned  bool            `json:"unassigned"`
+	Status      string          `json:"status"      validate:"omitempty,oneof='pending' 'in progress' 'completed'"`
+	Priorities  []string        `json:"priorities"  validate:"omitempty,dive,oneof=low medium high"`
+	Departments []string        `json:"departments"`
+	Floors      []int           `json:"floors"`
+	Sort        RequestFeedSort `json:"sort"        validate:"omitempty,oneof=priority newest oldest"`
+	Search      string          `json:"search"`
+} //@name RequestsFeedInput
+
 type GetRequestsByGuestInput struct {
 	GuestID string `json:"guest_id" validate:"required,uuid"`
 	HotelID string `json:"hotel_id" validate:"required"`

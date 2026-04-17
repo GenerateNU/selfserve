@@ -509,70 +509,35 @@ func (r *RequestsHandler) GetRequestsByRoomID(c *fiber.Ctx) error {
 
 // GetRequestsFeed godoc
 // @Summary      Get requests feed
-// @Description  Returns a paginated list of requests for the hotel, optionally filtered by assigned user
+// @Description  Returns a paginated list of requests for the hotel, optionally filtered and searched
 // @Tags         requests
+// @Accept       json
 // @Produce      json
-// @Param        X-Hotel-ID  header  string  true   "Hotel ID (UUID)"
-// @Param        cursor      query   string  false  "Pagination cursor"
-// @Param        limit       query   int     false  "Page size (default 20, max 100)"
-// @Param        user_id     query   string  false  "Filter by assigned user ID"
-// @Param        unassigned  query   bool    false  "If true, return only requests with no assigned user"
-// @Param        sort        query   string  false  "Sort order: priority (default), newest, oldest"
+// @Param        request  body  models.RequestsFeedInput  true  "Feed filters"
 // @Success      200  {object}  utils.CursorPage[models.GuestRequest]
-// @Failure      400  {object}  map[string]string
-// @Failure      500  {object}  map[string]string
+// @Failure      400  {object}  errs.HTTPError
+// @Failure      500  {object}  errs.HTTPError
 // @Security     BearerAuth
-// @Router       /requests [get]
+// @Router       /requests/feed [post]
 func (r *RequestsHandler) GetRequestsFeed(c *fiber.Ctx) error {
-	hotelID := c.Get("X-Hotel-ID")
-	if hotelID == "" {
-		return errs.BadRequest("X-Hotel-ID header is required")
+	var input models.RequestsFeedInput
+	if err := httpx.BindAndValidate(c, &input); err != nil {
+		return err
 	}
 
-	cursor := c.Query("cursor")
-	limit := c.QueryInt("limit")
-	userID := c.Query("user_id")
-	unassigned := c.QueryBool("unassigned")
-	status := c.Query("status")
-
-	var priorities []string
-	if raw := c.Query("priorities"); raw != "" {
-		priorities = strings.Split(raw, ",")
+	if input.Sort == "" {
+		input.Sort = models.SortByPriority
 	}
 
-	var departments []string
-	if raw := c.Query("departments"); raw != "" {
-		departments = strings.Split(raw, ",")
-	}
-
-	var floors []int
-	if raw := c.Query("floors"); raw != "" {
-		for _, part := range strings.Split(raw, ",") {
-			n, convErr := strconv.Atoi(strings.TrimSpace(part))
-			if convErr != nil {
-				return errs.BadRequest("invalid floors: must be comma-separated integers")
-			}
-			floors = append(floors, n)
-		}
-	}
-
-	feedSort := models.RequestFeedSort(c.Query("sort"))
-	if feedSort == "" {
-		feedSort = models.SortByPriority
-	}
-	if !feedSort.IsValid() {
-		return errs.BadRequest("invalid sort: must be priority, newest, or oldest")
-	}
-
-	cursorID, cursorCreatedAt, cursorPriorityRank, err := parseFeedCursor(cursor)
+	cursorID, cursorCreatedAt, cursorPriorityRank, err := parseFeedCursor(input.Cursor)
 	if err != nil {
 		return errs.BadRequest("invalid cursor")
 	}
 
-	resolvedLimit := utils.ResolveLimit(limit)
+	resolvedLimit := utils.ResolveLimit(input.Limit)
 	requests, err := r.RequestRepository.FindRequestsPaginated(
-		c.Context(), hotelID, userID, unassigned, status, priorities, departments, floors,
-		feedSort, cursorID, cursorCreatedAt, cursorPriorityRank,
+		c.Context(), &input,
+		cursorID, cursorCreatedAt, cursorPriorityRank,
 		resolvedLimit+1,
 	)
 	if err != nil {

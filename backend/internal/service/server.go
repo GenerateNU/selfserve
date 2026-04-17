@@ -235,7 +235,7 @@ func setupRoutes(app *fiber.App, repo *storage.Repository, genkitInstance *aiflo
 	})
 
 	// Request routes
-	api.Get("/requests", reqsHandler.GetRequestsFeed)
+	api.Post("/requests/feed", reqsHandler.GetRequestsFeed)
 	api.Route("/request", func(r fiber.Router) {
 		r.Post("/", reqsHandler.CreateRequest)
 		r.Post("/generate", reqsHandler.GenerateRequest)
