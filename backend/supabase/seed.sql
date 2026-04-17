@@ -195,7 +195,7 @@ VALUES
    'Approach room 302 discreetly. If noise continues after first warning, escalate to manager.',
    '2026-04-01 23:30:00+00'),
 
-  -- ── In Progress (10) ─────────────────────────────────────────────────────
+  -- ── Pending with assignee (10) ───────────────────────────────────────────
 
   ('c0000000-0000-0000-0000-000000000011', '2026-04-01 00:11:00+00',
    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
@@ -204,7 +204,7 @@ VALUES
    'Full room cleaning',
    'Guest requested a full room cleaning: vacuuming, bathroom scrub, fresh linen, and restocking of all toiletries.',
    'Room Cleaning', 'recurring', 'Housekeeping',
-   'in progress','medium', 40,
+   'pending','medium', 40,
    '2026-04-01 14:00:00+00', NULL,
    'Guest prefers unscented cleaning products. Note allergy to lavender on file.',
    '2026-04-01 08:30:00+00'),
@@ -216,7 +216,7 @@ VALUES
    'Minibar restock',
    'Guest consumed all sparkling water and soft drinks. Requesting full minibar restock including snacks.',
    'Minibar', 'on demand', 'Food & Beverage',
-   'in progress','low', 20,
+   'pending','low', 20,
    '2026-04-01 16:00:00+00', NULL,
    'Guest requested extra sparkling water (x4) and no beer. Add mixed nuts and chocolate.',
    '2026-04-01 10:00:00+00'),
@@ -228,7 +228,7 @@ VALUES
    'Overnight shoe shine',
    'Guest left 2 pairs of dress shoes outside the door: one black Oxford, one tan leather pump.',
    'Valet', 'on demand', 'Concierge',
-   'in progress','low', 30,
+   'pending','low', 30,
    '2026-04-02 07:00:00+00', NULL,
    'Return before 7 AM. Black shoes take high gloss, tan shoes take matte. No resoling.',
    '2026-04-01 21:00:00+00'),
@@ -240,7 +240,7 @@ VALUES
    'WiFi connection issues',
    'Guest laptop is unable to connect to hotel WiFi. Other devices in room connect fine. Error: "Authentication failed".',
    'Network', 'on demand', 'Maintenance',
-   'in progress','medium', 20,
+   'pending','medium', 20,
    '2026-04-01 11:30:00+00', NULL,
    'Bring a network extender as a backup. Guest is on a work call at 2 PM and needs stable connection.',
    '2026-04-01 10:30:00+00'),
@@ -252,7 +252,7 @@ VALUES
    'Extra pillows requested',
    'Guest is requesting 2 additional firm pillows for back support. No feather pillows per profile.',
    'Linen & Towels', 'on demand', 'Housekeeping',
-   'in progress','low', 10,
+   'pending','low', 10,
    '2026-04-01 15:00:00+00', NULL,
    'Memory foam or hypoallergenic pillows preferred. Check notes on guest profile.',
    '2026-04-01 13:00:00+00'),
@@ -264,7 +264,7 @@ VALUES
    'Morning newspaper delivery',
    'Guest requested daily delivery of the Financial Times and local newspaper before 7:30 AM.',
    'Amenities', 'recurring', 'Concierge',
-   'in progress','low', 5,
+   'pending','low', 5,
    '2026-04-02 07:30:00+00', NULL,
    'Guest prefers papers left outside door without knocking. Fold neatly.',
    '2026-04-01 20:00:00+00'),
@@ -276,7 +276,7 @@ VALUES
    'Towel replacement',
    'Towels in room are stained. Guest requesting a fresh set of 4 bath towels and 2 hand towels.',
    'Linen & Towels', 'on demand', 'Housekeeping',
-   'in progress','low', 15,
+   'pending','low', 15,
    '2026-04-01 13:30:00+00', NULL,
    'Collect old towels. Guest expressed dissatisfaction — apologize and offer complimentary amenity.',
    '2026-04-01 12:30:00+00'),
@@ -288,7 +288,7 @@ VALUES
    'Pool towel delivery',
    'Guest is heading to the pool and requested 4 large pool towels delivered to their room first.',
    'Pool', 'on demand', 'Housekeeping',
-   'in progress','medium', 10,
+   'pending','medium', 10,
    '2026-04-01 12:00:00+00', NULL,
    'Deliver to room 203 if guest has not yet left. Otherwise deliver directly to pool deck.',
    '2026-04-01 11:30:00+00'),
@@ -300,7 +300,7 @@ VALUES
    'Luggage storage after checkout',
    'Guest is checking out at 11 AM but flight departs at 8 PM. Requesting secure storage for 2 suitcases and 1 carry-on.',
    'Luggage', 'on demand', 'Concierge',
-   'in progress','medium', 15,
+   'pending','medium', 15,
    '2026-04-01 11:00:00+00', NULL,
    'Issue luggage claim ticket. Store in secure room B. Guest will collect between 5–6 PM.',
    '2026-04-01 09:00:00+00'),
@@ -312,7 +312,7 @@ VALUES
    'Wake-up call at 6:30 AM',
    'Guest has an early morning flight and requested a phone wake-up call at 6:30 AM with a follow-up at 6:45 AM if no answer.',
    'Alarm', 'scheduled', 'Front Desk',
-   'in progress','low', 5,
+   'pending','low', 5,
    '2026-04-02 06:30:00+00', NULL,
    'Set both primary and backup calls. Guest checkout is at 7:30 AM — arrange taxi if requested.',
    '2026-04-01 22:00:00+00'),
@@ -565,7 +565,7 @@ VALUES
 ON CONFLICT (id, request_version) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
--- Requests — 300 bulk rows: 100 pending · 100 in progress · 100 completed
+-- Requests — 300 bulk rows: 100 pending · 100 pending · 100 completed
 -- UUIDs are deterministic (md5 of status+index) so the seed is idempotent.
 -- scheduled_time cycles through 08:00–19:00 (never below 8AM).
 -- -----------------------------------------------------------------------------
@@ -595,7 +595,7 @@ SELECT
   (ARRAY['room cleaning','towel replacement','minibar refill','maintenance repair','extra pillows',
          'wake-up call','laundry pickup','concierge request','turndown service','luggage assistance'])[((i-1) % 10) + 1],
   (ARRAY['recurring','one-time'])[((i-1) % 2) + 1],
-  'in progress',
+  'pending',
   (ARRAY['low','medium','normal','high','urgent'])[((i-1) % 5) + 1],
   (ARRAY['101','102','103','201','202','203','301','302','303'])[((i-1) % 9) + 1],
   (ARRAY['Housekeeping','Maintenance','Concierge','Food & Beverage','Front Desk'])[((i-1) % 5) + 1],
@@ -647,23 +647,23 @@ VALUES
    'Room Service', 'on demand', 'food & beverage',
    'completed', 'low', 20, '', '2026-04-01 08:00:00+00'),
 
-  -- Room 202 (Bob, occupied) — in progress maintenance
+  -- Room 202 (Bob, occupied) — pending maintenance
   ('c0000000-0000-0000-0000-000000000003', '2026-04-02 07:15:00+00',
    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
    'a0000000-0000-0000-0000-000000000002',
    '10000000-0000-0000-0000-000000000202',
    'AC not cooling', 'Air conditioning unit is blowing warm air',
    'Maintenance', 'on demand', 'maintenance',
-   'in progress', 'high', 45, 'Technician dispatched', '2026-04-02 07:00:00+00'),
+   'pending', 'high', 45, 'Technician dispatched', '2026-04-02 07:00:00+00'),
 
-  -- Room 202 (Bob, occupied) — assigned wake-up call
+  -- Room 202 (Bob, occupied) — pending wake-up call
   ('c0000000-0000-0000-0000-000000000004', '2026-04-02 06:00:00+00',
    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
    'a0000000-0000-0000-0000-000000000002',
    '10000000-0000-0000-0000-000000000202',
    'Wake-up call', 'Requested wake-up call at 7:00 AM',
    'Concierge', 'scheduled', 'front desk',
-   'in progress','low', 5, '', '2026-04-01 22:00:00+00'),
+   'pending','low', 5, '', '2026-04-01 22:00:00+00'),
 
   -- Room 303 (Carol, occupied) — pending high-priority DND override
   ('c0000000-0000-0000-0000-000000000005', '2026-04-02 08:45:00+00',

@@ -207,36 +207,36 @@ type seedRequest struct {
 var seedRequests = []seedRequest{
 	// ── High priority ──────────────────────────────────────────────────────────
 	{"Fix broken AC in suite", "Guest reported AC not working since check-in. Temperature rising above 28°C.", models.PriorityHigh, models.StatusPending, false, 2},
-	{"Flooding in room 204", "Toilet overflow — housekeeping and maintenance needed immediately", models.PriorityHigh, models.StatusInProgress, true, 7},
-	{"Medical equipment needed", "Guest requires wheelchair for lobby transit. Confirm accessible lift route.", models.PriorityHigh, models.StatusInProgress, true, -1},
+	{"Flooding in room 204", "Toilet overflow — housekeeping and maintenance needed immediately", models.PriorityHigh, models.StatusPending, true, 7},
+	{"Medical equipment needed", "Guest requires wheelchair for lobby transit. Confirm accessible lift route.", models.PriorityHigh, models.StatusPending, true, -1},
 	{"Fire alarm panel fault", "Panel showing fault on floor 3 — inspect before end of shift", models.PriorityHigh, models.StatusPending, false, -1},
 	{"Penthouse elevator out of service", "Floor 5 service elevator not responding. Guest unable to access penthouse with luggage.", models.PriorityHigh, models.StatusPending, false, 16},
-	{"Burst pipe in room 404", "Water leak reported behind bathroom wall. Room taken out of service.", models.PriorityHigh, models.StatusInProgress, true, 15},
+	{"Burst pipe in room 404", "Water leak reported behind bathroom wall. Room taken out of service.", models.PriorityHigh, models.StatusPending, true, 15},
 
 	// ── Medium priority ────────────────────────────────────────────────────────
 	{"Extra towels and toiletries", "Guest requested two sets of towels and extra shampoo", models.PriorityMedium, models.StatusPending, false, 0},
-	{"Room service delivery", "Breakfast for two, requested via in-room tablet", models.PriorityMedium, models.StatusInProgress, true, 9},
+	{"Room service delivery", "Breakfast for two, requested via in-room tablet", models.PriorityMedium, models.StatusPending, true, 9},
 	{"Late checkout request", "Guest requesting checkout at 2pm instead of 11am. Verify availability.", models.PriorityMedium, models.StatusPending, false, 5},
-	{"Replace burnt-out bulbs", "Two bulbs out in bathroom and bedside lamp not working", models.PriorityMedium, models.StatusInProgress, true, 3},
+	{"Replace burnt-out bulbs", "Two bulbs out in bathroom and bedside lamp not working", models.PriorityMedium, models.StatusPending, true, 3},
 	{"Minibar restock", "Minibar needs full restock after checkout", models.PriorityMedium, models.StatusPending, false, 5},
 	{"Dinner reservation assist", "Guest needs help booking a table for 4 tonight at a nearby restaurant", models.PriorityMedium, models.StatusCompleted, true, -1},
 	{"Baby crib delivery", "Family with infant requesting a standard travel crib with fitted sheet and blanket", models.PriorityMedium, models.StatusPending, false, 4},
-	{"WiFi troubleshooting floor 4", "Guest on floor 4 reports WiFi dropping every 30 minutes. Suspected extender issue.", models.PriorityMedium, models.StatusInProgress, true, 12},
+	{"WiFi troubleshooting floor 4", "Guest on floor 4 reports WiFi dropping every 30 minutes. Suspected extender issue.", models.PriorityMedium, models.StatusPending, true, 12},
 	{"Accessible shower seat", "Guest needs a fold-down shower seat installed in accessible bathroom", models.PriorityMedium, models.StatusPending, false, 9},
 	{"Sea-view room balcony door stuck", "Balcony door handle loose and door difficult to open from inside", models.PriorityMedium, models.StatusPending, false, 13},
 
 	// ── Low priority ──────────────────────────────────────────────────────────
 	{"Extra pillow request", "Guest requested two additional pillows (hypoallergenic)", models.PriorityLow, models.StatusPending, false, 10},
 	{"Lost & found inquiry", "Guest asking about a left-behind phone charger from yesterday", models.PriorityLow, models.StatusCompleted, false, -1},
-	{"Pool towel replenishment", "Pool deck running low on towels — restock from laundry", models.PriorityLow, models.StatusInProgress, true, -1},
+	{"Pool towel replenishment", "Pool deck running low on towels — restock from laundry", models.PriorityLow, models.StatusPending, true, -1},
 	{"Newspaper delivery", "Daily newspaper delivery requested for the week (Financial Times)", models.PriorityLow, models.StatusPending, false, 1},
 	{"Gym equipment wipe-down", "Routine sanitisation of gym equipment requested by guest", models.PriorityLow, models.StatusCompleted, false, -1},
 	{"Wine pairing recommendation", "Couple would like a wine pairing recommendation for their dinner", models.PriorityLow, models.StatusPending, false, -1},
-	{"Print boarding passes", "Guest needs three boarding passes printed at concierge", models.PriorityLow, models.StatusInProgress, true, -1},
+	{"Print boarding passes", "Guest needs three boarding passes printed at concierge", models.PriorityLow, models.StatusPending, true, -1},
 	{"Deep clean after checkout", "Full deep clean required before next guest", models.PriorityLow, models.StatusCompleted, false, 11},
 	{"Fresh flowers daily — penthouse", "Penthouse guest requested fresh floral arrangement refreshed each morning", models.PriorityLow, models.StatusPending, false, 17},
 	{"Butler service introduction", "New penthouse guest has not met their assigned butler yet", models.PriorityLow, models.StatusPending, true, 17},
-	{"Champagne ice bucket top-up", "Ice has melted in penthouse champagne bucket — guest requests fresh ice", models.PriorityLow, models.StatusInProgress, true, 17},
+	{"Champagne ice bucket top-up", "Ice has melted in penthouse champagne bucket — guest requests fresh ice", models.PriorityLow, models.StatusPending, true, 17},
 	{"Complimentary airport transfer booking", "Platinum guest departing tomorrow — arrange airport transfer to JFK", models.PriorityLow, models.StatusPending, false, 17},
 }
 
