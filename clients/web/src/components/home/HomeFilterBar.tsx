@@ -1,4 +1,4 @@
-import { ChevronDown, LayoutGrid, User } from "lucide-react";
+import { Check, ChevronDown, LayoutGrid, User, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { FilterSortMenu } from "./FilterSortMenu";
 import { AssigneeFilterMenu } from "./AssigneeFilterMenu";
@@ -28,6 +28,8 @@ type HomeFilterBarProps = {
   onFloorsChange?: (floors: Array<number>) => void;
   hotelId?: string;
   currentUserId?: string;
+  onClearAll?: () => void;
+  onSaveView?: (name: string) => void;
 };
 
 const SORT_LABELS: Record<RequestFeedSort, string> = {
@@ -97,7 +99,11 @@ export function HomeFilterBar({
   onFloorsChange,
   hotelId,
   currentUserId,
+  onClearAll,
+  onSaveView,
 }: HomeFilterBarProps) {
+  const [savingView, setSavingView] = useState(false);
+  const [viewName, setViewName] = useState("");
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false);
   const [priorityMenuOpen, setPriorityMenuOpen] = useState(false);
@@ -220,16 +226,66 @@ export function HomeFilterBar({
         <div className="flex shrink-0 items-center gap-3 pt-1">
           <button
             type="button"
+            onClick={onClearAll}
             className="text-sm text-text-secondary hover:text-text-default transition-colors"
           >
             Clear All
           </button>
-          <button
-            type="button"
-            className="rounded border border-stroke-default px-2 py-1 text-sm text-text-secondary hover:bg-bg-container transition-colors"
-          >
-            Save as New View
-          </button>
+          {savingView ? (
+            <div className="flex items-center gap-1">
+              <input
+                autoFocus
+                type="text"
+                value={viewName}
+                onChange={(e) => setViewName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && viewName.trim()) {
+                    onSaveView?.(viewName.trim());
+                    setViewName("");
+                    setSavingView(false);
+                  }
+                  if (e.key === "Escape") {
+                    setViewName("");
+                    setSavingView(false);
+                  }
+                }}
+                placeholder="View name"
+                className="rounded border border-stroke-default px-2 py-1 text-sm text-text-default outline-none focus:border-primary w-32"
+              />
+              <button
+                type="button"
+                disabled={!viewName.trim()}
+                onClick={() => {
+                  if (viewName.trim()) {
+                    onSaveView?.(viewName.trim());
+                    setViewName("");
+                    setSavingView(false);
+                  }
+                }}
+                className="rounded p-1 text-primary hover:bg-[#edf5f1] transition-colors disabled:opacity-40"
+              >
+                <Check className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewName("");
+                  setSavingView(false);
+                }}
+                className="rounded p-1 text-text-secondary hover:bg-bg-container transition-colors"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setSavingView(true)}
+              className="rounded border border-stroke-default px-2 py-1 text-sm text-text-secondary hover:bg-bg-container transition-colors"
+            >
+              Save as New View
+            </button>
+          )}
         </div>
       </div>
 
