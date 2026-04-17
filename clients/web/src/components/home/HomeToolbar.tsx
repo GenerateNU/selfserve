@@ -1,11 +1,11 @@
 import { ArrowDownUp, LayoutGrid, Search, Settings } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { View } from "@shared/types/views";
+import { cn } from "@/lib/utils";
 
 type HomeToolbarProps = {
   className?: string;
   onCreateRequest?: () => void;
-  views?: View[];
+  views?: Array<View>;
   activeViewId?: string;
   onSelectView?: (view: View | undefined) => void;
 };

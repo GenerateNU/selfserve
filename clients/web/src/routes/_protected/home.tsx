@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority } from "@shared";
 import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
 import { useGetDepartments } from "@shared/api/departments";
-import { useGetViews, useCreateView } from "@shared/api/views";
+import { useCreateView, useGetViews } from "@shared/api/views";
 import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
 import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
 import type { Request, User } from "@shared";
@@ -23,9 +23,9 @@ const REQUESTS_WEB_SLUG = "requests_web";
 
 type RequestsWebFilters = {
   sort?: RequestFeedSort;
-  priorities?: string[];
-  departments?: string[];
-  floors?: number[];
+  priorities?: Array<string>;
+  departments?: Array<string>;
+  floors?: Array<number>;
   userId?: string;
   userName?: string;
 };

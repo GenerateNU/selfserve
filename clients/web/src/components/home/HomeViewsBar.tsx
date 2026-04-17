@@ -1,9 +1,9 @@
 import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { View } from "@shared/types/views";
+import { cn } from "@/lib/utils";
 
 type HomeViewsBarProps = {
-  views: View[];
+  views: Array<View>;
   activeViewId?: string;
   onApply: (view: View) => void;
   onDelete: (id: string) => void;
