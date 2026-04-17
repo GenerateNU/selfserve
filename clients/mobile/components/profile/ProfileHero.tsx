@@ -1,4 +1,12 @@
-import { View, Text, Image, Pressable, ActivityIndicator } from "react-native";
+import { useRef, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  ActivityIndicator,
+  Modal,
+} from "react-native";
 import { Pencil } from "lucide-react-native";
 
 type ProfileHeroProps = {
@@ -17,14 +25,20 @@ export function ProfileHero({
   onAvatarPress,
   isAvatarBusy = false,
 }: ProfileHeroProps) {
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+  const shouldSkipNextPressRef = useRef(false);
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || "User";
   const initial = displayName.charAt(0).toUpperCase();
 
-  const avatarInner = avatarUrl ? (
-    <Image source={{ uri: avatarUrl }} className="w-24 h-24 rounded-full" />
-  ) : (
-    <View className="w-24 h-24 rounded-full bg-primary items-center justify-center">
-      <Text className="text-4xl font-semibold text-white">{initial}</Text>
+  const avatarInner = (
+    <View className="w-24 h-24 rounded-full overflow-hidden bg-bg-container border border-stroke-subtle items-center justify-center">
+      {avatarUrl ? (
+        <Image source={{ uri: avatarUrl }} className="w-full h-full" />
+      ) : (
+        <View className="w-full h-full bg-primary items-center justify-center">
+          <Text className="text-4xl font-semibold text-white">{initial}</Text>
+        </View>
+      )}
     </View>
   );
 
@@ -32,8 +46,20 @@ export function ProfileHero({
     <View className="items-center py-8 gap-4">
       {onAvatarPress ? (
         <Pressable
-          onPress={onAvatarPress}
+          onPress={() => {
+            if (shouldSkipNextPressRef.current) {
+              shouldSkipNextPressRef.current = false;
+              return;
+            }
+            onAvatarPress();
+          }}
+          onLongPress={() => {
+            if (!avatarUrl || isAvatarBusy) return;
+            shouldSkipNextPressRef.current = true;
+            setIsPreviewVisible(true);
+          }}
           disabled={isAvatarBusy}
+          delayLongPress={220}
           className="relative"
           accessibilityRole="button"
           accessibilityLabel="Change profile photo"
@@ -53,6 +79,26 @@ export function ProfileHero({
       ) : (
         avatarInner
       )}
+      {avatarUrl ? (
+        <Modal
+          visible={isPreviewVisible}
+          transparent
+          animationType="fade"
+          statusBarTranslucent
+          onRequestClose={() => setIsPreviewVisible(false)}
+        >
+          <Pressable
+            className="flex-1 bg-black/75 items-center justify-center px-6"
+            onPress={() => setIsPreviewVisible(false)}
+          >
+            <Pressable onPress={() => {}}>
+              <View className="w-[320px] h-[320px] max-w-full rounded-full overflow-hidden border border-white/20">
+                <Image source={{ uri: avatarUrl }} className="w-full h-full" />
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      ) : null}
       <View className="items-center gap-1">
         <Text className="text-2xl font-bold text-text-default">
           {displayName}

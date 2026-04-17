@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, ActivityIndicator, Pressable } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import { router } from "expo-router";
@@ -17,7 +17,6 @@ export default function Profile() {
     isLoading: isPicLoading,
     isInitialLoading: isPicInitialLoading,
     pickAndUpload,
-    handleRemove,
   } = useProfilePicture(userId ?? undefined);
 
   const onSignOut = () => {
@@ -54,23 +53,9 @@ export default function Profile() {
             onAvatarPress={() => void pickAndUpload()}
             isAvatarBusy={isPicLoading}
           />
-          <View className="px-4 flex-row gap-3 justify-center">
-            <Pressable
-              onPress={() => void handleRemove()}
-              disabled={
-                isPicLoading ||
-                (!profilePicUrl && !user?.profile_picture)
-              }
-              className="py-2 px-4 rounded-lg border border-stroke-default opacity-100 disabled:opacity-40"
-            >
-              <Text className="text-sm text-text-default">Remove photo</Text>
-            </Pressable>
-          </View>
-          {status ? (
+          {status.startsWith("Error") ? (
             <Text
-              className={`text-xs text-center mt-2 px-6 ${
-                status.startsWith("Error") ? "text-danger" : "text-text-subtle"
-              }`}
+              className="text-xs text-center mt-2 px-6 text-danger"
             >
               {status}
             </Text>

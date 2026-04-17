@@ -13,6 +13,7 @@ export {
   saveProfilePictureKey,
   deleteProfilePicture,
   uploadFileToS3,
+  uploadToS3PresignedPut,
 } from "./api/profile-picture";
 export type {
   UploadUrlResponse,

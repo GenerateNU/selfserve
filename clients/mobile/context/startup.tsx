@@ -23,10 +23,13 @@ export function StartupProvider({ children }: { children: React.ReactNode }) {
     queryKey: ["startup-user", userId],
     queryFn: async () => {
       const token = await getToken();
+      const url = `${process.env.EXPO_PUBLIC_API_BASE_URL}/users/${userId}`;
+      console.log("url", url);
       const res = await fetch(
         `${process.env.EXPO_PUBLIC_API_BASE_URL}/users/${userId}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
+      console.log("res", res);
       if (!res.ok) throw new Error(`${res.status}`);
       return res.json();
     },
@@ -42,6 +45,12 @@ export function StartupProvider({ children }: { children: React.ReactNode }) {
       hotelId: data.hotel_id,
     });
   }
+
+  console.log("data", data);
+  console.log("status", status);
+  console.log("isLoaded", isLoaded);
+  console.log("isSignedIn", isSignedIn);
+  console.log("userId", userId);
 
   console.log("data", data);
   console.log("status", status);
