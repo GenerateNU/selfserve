@@ -244,22 +244,26 @@ function HomePage() {
               view ? handleApplyView(view) : handleClearAll()
             }
           />
-          {filtersOpen && <HomeFilterBar
-            sort={sort}
-            onSortChange={(s) => { setSort(s); if (activeViewId) setViewIsPending(true); }}
-            selectedUser={selectedUser}
-            onUserChange={(u) => { setSelectedUser(u); if (activeViewId) setViewIsPending(true); }}
-            selectedPriorities={selectedPriorities}
-            onPrioritiesChange={(p) => { setSelectedPriorities(p); if (activeViewId) setViewIsPending(true); }}
-            selectedDepartments={selectedDepartments}
-            onDepartmentsChange={(d) => { setSelectedDepartments(d); if (activeViewId) setViewIsPending(true); }}
-            selectedFloors={selectedFloors}
-            onFloorsChange={(f) => { setSelectedFloors(f); if (activeViewId) setViewIsPending(true); }}
-            hotelId={backendUser?.hotel_id}
-            currentUserId={backendUser?.id}
-            onClearAll={handleClearAll}
-            onSaveView={handleSaveView}
-          />}
+          <div className={`grid transition-all duration-200 ease-out ${filtersOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+            <div className="overflow-hidden">
+              <HomeFilterBar
+                sort={sort}
+                onSortChange={(s) => { setSort(s); if (activeViewId) setViewIsPending(true); }}
+                selectedUser={selectedUser}
+                onUserChange={(u) => { setSelectedUser(u); if (activeViewId) setViewIsPending(true); }}
+                selectedPriorities={selectedPriorities}
+                onPrioritiesChange={(p) => { setSelectedPriorities(p); if (activeViewId) setViewIsPending(true); }}
+                selectedDepartments={selectedDepartments}
+                onDepartmentsChange={(d) => { setSelectedDepartments(d); if (activeViewId) setViewIsPending(true); }}
+                selectedFloors={selectedFloors}
+                onFloorsChange={(f) => { setSelectedFloors(f); if (activeViewId) setViewIsPending(true); }}
+                hotelId={backendUser?.hotel_id}
+                currentUserId={backendUser?.id}
+                onClearAll={handleClearAll}
+                onSaveView={handleSaveView}
+              />
+            </div>
+          </div>
         </>
       }
       drawerOpen={drawerOpen}
