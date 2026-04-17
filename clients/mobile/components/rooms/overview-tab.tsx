@@ -75,7 +75,10 @@ type OverviewTabProps = {
 };
 
 export function OverviewTab({ floorId }: OverviewTabProps) {
-  const { data: requestsData } = useGetRequestsFeed({ unassigned: true, floors: [floorId] });
+  const { data: requestsData } = useGetRequestsFeed({
+    unassigned: true,
+    floors: [floorId],
+  });
   const { data: roomsData } = useGetRoomsForFloor([floorId]);
   const {
     mutate: assignToSelf,
@@ -83,13 +86,18 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
     variables: assigningTaskId,
   } = useAssignRequestToSelf();
 
-  const unassignedTasks = requestsData?.pages.flatMap((p) => p.items ?? []) ?? [];
+  const unassignedTasks =
+    requestsData?.pages.flatMap((p) => p.items ?? []) ?? [];
 
   const rooms = roomsData?.items ?? [];
   const totalRooms = rooms.length;
-  const occupiedRooms = rooms.filter((r) => r.booking_status === "active").length;
+  const occupiedRooms = rooms.filter(
+    (r) => r.booking_status === "active",
+  ).length;
   const vacantRooms = totalRooms - occupiedRooms;
-  const cleaningRooms = rooms.filter((r) => r.room_status === "cleaning").length;
+  const cleaningRooms = rooms.filter(
+    (r) => r.room_status === "cleaning",
+  ).length;
   const occupiedAndCleaningRooms = rooms.filter(
     (r) => r.booking_status === "active" && r.room_status === "cleaning",
   ).length;
