@@ -163,7 +163,7 @@ function GuestsQuickListPage() {
         }}
       />
       {guestsContent}
-      {generatedData === null && (
+      {generatedData === null && guestId === undefined && (
         <GlobalTaskInput
           onRequestGenerated={(r: Request) => {
             if (guestId) {
