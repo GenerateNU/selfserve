@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { usePostRoomsHook } from "@shared/api/generated/endpoints/rooms/rooms";
+import { usePostRoomsHook } from "@shared";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import {
   Popover,

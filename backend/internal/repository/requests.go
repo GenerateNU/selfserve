@@ -118,12 +118,11 @@ func (r *RequestsRepository) UpdateRequest(ctx context.Context, id string, updat
 func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
 
 	row := r.db.QueryRow(ctx, `
-        SELECT *
-        FROM requests
-        WHERE id = $1
-        ORDER BY request_version DESC
-        LIMIT 1
-    `, id)
+		WITH latest AS (
+			SELECT * FROM requests WHERE id = $1 ORDER BY request_version DESC LIMIT 1
+		)
+		SELECT * FROM latest WHERE status != 'archived'
+	`, id)
 
 	var request models.Request
 
@@ -144,7 +143,13 @@ func (r *RequestsRepository) FindRequest(ctx context.Context, id string) (*model
 }
 
 func (r *RequestsRepository) FindRequests(ctx context.Context) ([]models.Request, error) {
-	rows, err := r.db.Query(ctx, `SELECT * FROM requests ORDER BY created_at DESC`)
+	rows, err := r.db.Query(ctx, `
+		SELECT * FROM (
+			SELECT DISTINCT ON (id) * FROM requests ORDER BY id, request_version DESC
+		) latest
+		WHERE status != 'archived'
+		ORDER BY created_at DESC
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +190,8 @@ func (r *RequestsRepository) FindRequestsByGuestID(ctx context.Context, guestID,
 			ORDER BY r.id ASC, r.request_version DESC
 		)
 		SELECT * FROM latest
-		WHERE ($3::text = '' OR (id::text, request_version) > ($3, $4))
+		WHERE status != 'archived'
+		  AND ($3::text = '' OR (id::text, request_version) > ($3, $4))
 		ORDER BY id ASC
 		LIMIT $5
 	`, guestID, hotelID, cursorID, cursorVersion, limit)
@@ -215,7 +221,8 @@ func (r *RequestsRepository) FindRequestsByRoomIDAndUserID(ctx context.Context, 
 		       request_type, request_category, created_at, request_version,
 		       department_id, department_name, user_id, floor
 		FROM latest
-		WHERE user_id = $3
+		WHERE status != 'archived'
+		  AND user_id = $3
 		  AND ($4::text = '' OR (id::text, request_version) > ($4, $5))
 		ORDER BY id ASC
 		LIMIT $6
@@ -246,7 +253,8 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context
 		       request_type, request_category, created_at, request_version,
 		       department_id, department_name, user_id, floor
 		FROM latest
-		WHERE user_id IS NULL
+		WHERE status != 'archived'
+		  AND user_id IS NULL
 		  AND ($3::text = '' OR (id::text, request_version) > ($3, $4))
 		ORDER BY id ASC
 		LIMIT $5
@@ -261,24 +269,21 @@ func (r *RequestsRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx context
 
 func (r *RequestsRepository) FindRequestsPaginated(
 	ctx context.Context,
-	hotelID, userID string,
-	unassigned bool,
-	status string,
-	priorities []string,
-	departments []string,
-	floors []int,
-	sort models.RequestFeedSort,
+	input *models.RequestsFeedInput,
 	cursorID string,
 	cursorCreatedAt time.Time,
 	cursorPriorityRank int,
 	limit int,
 ) ([]*models.GuestRequest, error) {
+	priorities := input.Priorities
 	if priorities == nil {
 		priorities = []string{}
 	}
+	departments := input.Departments
 	if departments == nil {
 		departments = []string{}
 	}
+	floors := input.Floors
 	if floors == nil {
 		floors = []int{}
 	}
@@ -295,18 +300,20 @@ func (r *RequestsRepository) FindRequestsPaginated(
 			WHERE r.hotel_id = $1
 			  AND ($4::text = '' OR r.status = $4)
 			  AND (cardinality($5::text[]) = 0 OR r.priority = ANY($5))
-			  AND (cardinality($6::text[]) = 0 OR r.department = ANY($6))
 			  AND (cardinality($7::int[]) = 0 OR rm.floor = ANY($7))
+			  AND ($8::text = '' OR r.name ILIKE '%' || $8 || '%' OR r.description ILIKE '%' || $8 || '%')
 			ORDER BY r.id ASC, r.request_version DESC
 		)
 		SELECT id, name, priority, status, description, notes, room_number,
 		       request_type, request_category, created_at, request_version,
 		       department_id, department_name, user_id, floor
 		FROM latest
-		WHERE (
+		WHERE status != 'archived'
+		  AND (
 		    ($3::bool AND user_id IS NULL)
 		    OR (NOT $3::bool AND ($2::text = '' OR user_id = $2))
 		)
+		  AND (cardinality($6::text[]) = 0 OR department_id = ANY($6))
 	`
 
 	var (
@@ -314,27 +321,27 @@ func (r *RequestsRepository) FindRequestsPaginated(
 		err  error
 	)
 
-	switch sort {
+	switch input.Sort {
 	case models.SortByNewest:
 		rows, err = r.db.Query(ctx, baseFilter+`
-			AND ($8::text = '' OR (created_at, id::text) < ($9, $8))
+			AND ($9::text = '' OR (created_at, id::text) < ($10, $9))
 			ORDER BY created_at DESC, id DESC
-			LIMIT $10
-		`, hotelID, userID, unassigned, status, priorities, departments, floors, cursorID, cursorCreatedAt, limit)
+			LIMIT $11
+		`, input.HotelID, input.UserID, input.Unassigned, input.Status, priorities, departments, floors, input.Search, cursorID, cursorCreatedAt, limit)
 
 	case models.SortByOldest:
 		rows, err = r.db.Query(ctx, baseFilter+`
-			AND ($8::text = '' OR (created_at, id::text) > ($9, $8))
+			AND ($9::text = '' OR (created_at, id::text) > ($10, $9))
 			ORDER BY created_at ASC, id ASC
-			LIMIT $10
-		`, hotelID, userID, unassigned, status, priorities, departments, floors, cursorID, cursorCreatedAt, limit)
+			LIMIT $11
+		`, input.HotelID, input.UserID, input.Unassigned, input.Status, priorities, departments, floors, input.Search, cursorID, cursorCreatedAt, limit)
 
 	default: // SortByPriority
 		rows, err = r.db.Query(ctx, baseFilter+`
-			AND ($8::text = '' OR (priority_rank, id::text) > ($9::int, $8))
+			AND ($9::text = '' OR (priority_rank, id::text) > ($10::int, $9))
 			ORDER BY priority_rank ASC, id ASC
-			LIMIT $10
-		`, hotelID, userID, unassigned, status, priorities, departments, floors, cursorID, cursorPriorityRank, limit)
+			LIMIT $11
+		`, input.HotelID, input.UserID, input.Unassigned, input.Status, priorities, departments, floors, input.Search, cursorID, cursorPriorityRank, limit)
 	}
 
 	if err != nil {

@@ -7,18 +7,25 @@ import {
   ArrowUpDown,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { Colors } from "@/constants/theme";
 import { RoomCard, type RoomStatus } from "@/components/rooms/room-card";
 import {
   FloorPickerSheet,
   type Floor,
 } from "@/components/rooms/floor-picker-sheet";
-import { OverviewTab } from "@/components/rooms/overview-tab";
 import {
-  useGetRoomsForFloor,
-  BookingStatus,
-  RoomStatusValue,
-} from "@shared/api/rooms";
+  RoomFilterSheet,
+  type RoomFilters,
+  EMPTY_ROOM_FILTERS,
+} from "@/components/rooms/room-filter-sheet";
+import {
+  RoomSortSheet,
+  type RoomSort,
+  DEFAULT_ROOM_SORT,
+} from "@/components/rooms/room-sort-sheet";
+import { OverviewTab } from "@/components/rooms/overview-tab";
+import { useGetRooms, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 
 const FLOORS: Floor[] = [
@@ -59,9 +66,19 @@ export default function RoomsScreen() {
   const [activeTab, setActiveTab] = useState<TabId>("rooms");
   const [selectedFloor, setSelectedFloor] = useState<Floor>(FLOORS[0]);
   const [floorPickerVisible, setFloorPickerVisible] = useState(false);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [sortVisible, setSortVisible] = useState(false);
+  const [filters, setFilters] = useState<RoomFilters>(EMPTY_ROOM_FILTERS);
+  const [sort, setSort] = useState<RoomSort>(DEFAULT_ROOM_SORT);
 
   const floorId = parseInt(selectedFloor.id);
-  const { data: roomsData } = useGetRoomsForFloor([floorId]);
+  const { data: roomsData } = useGetRooms({
+    floors: [floorId],
+    status: filters.status.length ? filters.status : undefined,
+    attributes: filters.attributes.length ? filters.attributes : undefined,
+    advanced: filters.advanced.length ? filters.advanced : undefined,
+    sort: sort !== "ascending" ? sort : undefined,
+  });
   const rooms = roomsData?.items ?? [];
 
   return (
@@ -81,11 +98,31 @@ export default function RoomsScreen() {
           <Pressable className="items-center justify-center rounded w-[34px] h-[34px]">
             <Search size={19} color={Colors.light.textDefault} />
           </Pressable>
-          <Pressable className="items-center justify-center rounded w-[34px] h-[34px]">
-            <SlidersHorizontal size={19} color={Colors.light.textDefault} />
+          <Pressable
+            className={`items-center justify-center rounded w-[34px] h-[34px] ${filterVisible ? "bg-bg-selected" : ""}`}
+            onPress={() => setFilterVisible(true)}
+          >
+            <SlidersHorizontal
+              size={19}
+              color={
+                filterVisible
+                  ? Colors.light.tabBarActive
+                  : Colors.light.textDefault
+              }
+            />
           </Pressable>
-          <Pressable className="items-center justify-center rounded w-[34px] h-[34px]">
-            <ArrowUpDown size={18} color={Colors.light.textDefault} />
+          <Pressable
+            className={`items-center justify-center rounded w-[34px] h-[34px] ${sortVisible ? "bg-bg-selected" : ""}`}
+            onPress={() => setSortVisible(true)}
+          >
+            <ArrowUpDown
+              size={18}
+              color={
+                sortVisible
+                  ? Colors.light.tabBarActive
+                  : Colors.light.textDefault
+              }
+            />
           </Pressable>
         </View>
       </View>
@@ -121,6 +158,11 @@ export default function RoomsScreen() {
               roomNumber={item.room_number ?? ""}
               roomType={item.suite_type ?? ""}
               status={getRoomStatus(item)}
+              onPress={() =>
+                router.push(
+                  `/explore/${item.id}?roomNumber=${item.room_number}`,
+                )
+              }
             />
           )}
         />
@@ -133,6 +175,18 @@ export default function RoomsScreen() {
         selectedFloorId={selectedFloor.id}
         onSelect={setSelectedFloor}
         onClose={() => setFloorPickerVisible(false)}
+      />
+      <RoomFilterSheet
+        visible={filterVisible}
+        filters={filters}
+        onApply={setFilters}
+        onClose={() => setFilterVisible(false)}
+      />
+      <RoomSortSheet
+        visible={sortVisible}
+        sort={sort}
+        onSelect={setSort}
+        onClose={() => setSortVisible(false)}
       />
     </SafeAreaView>
   );

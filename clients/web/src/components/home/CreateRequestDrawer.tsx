@@ -1,21 +1,28 @@
-import { useState } from "react";
-import { ChevronDown, GripHorizontal } from "lucide-react";
+import { useRef, useState } from "react";
+import { Building2, Clock, DoorOpen, Flag, UserRound } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
-import { usePostRequestHook } from "@shared/api/generated/endpoints/requests/requests.ts";
-import { REQUESTS_FEED_QUERY_KEY } from "@shared/api/requests";
+import {
+  REQUESTS_FEED_QUERY_KEY,
+  useGetUsersIdHook,
+  usePostRequestHook,
+  usePutRequestIdHook,
+} from "@shared";
 import type {
   Department,
   MakeRequest,
   MakeRequestPriority,
+  Request,
   RoomWithOptionalGuestBooking,
   User,
 } from "@shared";
+import type { LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { AssigneePicker } from "@/components/ui/AssigneePicker";
 import { DepartmentPicker } from "@/components/ui/DepartmentPicker";
 import { RoomPicker } from "@/components/ui/RoomPicker";
+import { DeadlinePicker } from "@/components/ui/DeadlinePicker";
 import { cn } from "@/lib/utils";
 
 type ActivityTab = "all" | "comments" | "history";
@@ -28,33 +35,33 @@ const ACTIVITY_TABS: Array<{ key: ActivityTab; label: string }> = [
 
 const PRIORITIES: Array<MakeRequestPriority> = ["low", "medium", "high"];
 
-type FieldRowProps = {
+type FieldLabelProps = {
+  icon: LucideIcon;
   label: string;
-  value: string;
-  valueClassName?: string;
 };
 
-function FieldRow({ label, value, valueClassName }: FieldRowProps) {
+function FieldLabel({ icon: Icon, label }: FieldLabelProps) {
   return (
-    <div className="flex items-center gap-8">
-      <div className="flex w-28 shrink-0 items-center gap-1">
-        <GripHorizontal className="size-4.5 text-text-subtle" />
-        <span className="text-sm text-text-subtle">{label}</span>
-      </div>
-      <span
-        className={cn(
-          "rounded-md px-2 py-1 text-sm text-text-subtle",
-          valueClassName,
-        )}
-      >
-        {value}
-      </span>
+    <div className="flex w-28 shrink-0 items-center gap-1.5">
+      <Icon className="size-4 text-text-subtle" />
+      <span className="text-sm text-text-subtle">{label}</span>
     </div>
   );
 }
 
+type RequestForm = {
+  name: string;
+  description: string;
+  priority: MakeRequestPriority;
+  deadline: Date | undefined;
+  user_id: string | undefined;
+  room_id: string | undefined;
+  department: string | undefined;
+};
+
 type CreateRequestDrawerProps = {
   onClose: () => void;
+  // Create mode
   initialData?: {
     name?: string;
     description?: string;
@@ -62,30 +69,47 @@ type CreateRequestDrawerProps = {
     room_id?: string;
     guest_id?: string;
     user_id?: string;
+    department_id?: string;
   };
+  // Edit mode — pass an existing request to pre-populate and use PUT
+  existingRequest?: Request;
 };
 
 export function CreateRequestDrawer({
   onClose,
   initialData,
+  existingRequest,
 }: CreateRequestDrawerProps) {
-  const [showMore, setShowMore] = useState(false);
+  const isEditMode = !!existingRequest;
+
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
-  const [name, setName] = useState(initialData?.name ?? "");
-  const [description, setDescription] = useState(
-    initialData?.description ?? "",
-  );
-  const [priority, setPriority] = useState<MakeRequestPriority>(
-    initialData?.priority ?? "medium",
-  );
-  const [assignee, setAssignee] = useState<User | undefined>();
-  const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>();
-  const [department, setDepartment] = useState<Department | undefined>();
+
+  const [form, setForm] = useState<RequestForm>({
+    name: existingRequest?.name ?? initialData?.name ?? "",
+    description: existingRequest?.description ?? initialData?.description ?? "",
+    priority: existingRequest?.priority ?? initialData?.priority ?? "medium",
+    deadline: existingRequest?.scheduled_time
+      ? new Date(existingRequest.scheduled_time)
+      : undefined,
+    user_id: existingRequest?.user_id ?? undefined,
+    room_id: existingRequest?.room_id ?? undefined,
+    department:
+      existingRequest?.department ?? initialData?.department_id ?? undefined,
+  });
+
+  const [pickers, setPickers] = useState<{
+    assignee: User | undefined;
+    room: RoomWithOptionalGuestBooking | undefined;
+    department: Department | undefined;
+  }>({ assignee: undefined, room: undefined, department: undefined });
+
+  const orig = useRef(existingRequest);
 
   const queryClient = useQueryClient();
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
   const postRequest = usePostRequestHook();
+  const putRequestId = usePutRequestIdHook();
 
   const { data: backendUser } = useQuery({
     queryKey: ["user", clerkUser?.id],
@@ -93,67 +117,144 @@ export function CreateRequestDrawer({
     enabled: !!clerkUser?.id,
   });
 
-  const { mutate: createRequest, isPending } = useMutation({
+  const sharedInvalidation = () => {
+    queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+    if (existingRequest?.id) {
+      queryClient.invalidateQueries({
+        queryKey: ["request", existingRequest.id],
+      });
+    }
+  };
+
+  const { mutate: createRequest, isPending: isCreating } = useMutation({
     mutationFn: (data: MakeRequest) => postRequest(data),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
     },
-    onError: () => {
-      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
-    },
-    onSuccess: () => {
-      onClose();
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
-    },
+    onError: () => sharedInvalidation(),
+    onSuccess: () => onClose(),
+    onSettled: () => sharedInvalidation(),
   });
 
+  const { mutate: updateRequest, isPending: isUpdating } = useMutation({
+    mutationFn: (data: Parameters<typeof putRequestId>[1]) =>
+      putRequestId(existingRequest!.id!, data),
+    onSuccess: () => onClose(),
+    onSettled: () => sharedInvalidation(),
+  });
+
+  const isPending = isCreating || isUpdating;
+
   function handleSubmit() {
-    if (!name.trim() || !backendUser?.hotel_id || isPending) return;
-    createRequest({
-      name: name.trim(),
-      hotel_id: backendUser.hotel_id,
-      priority,
-      status: "pending",
-      request_type: "general",
-      description: description.trim() || undefined,
-      user_id: assignee?.id ?? initialData?.user_id,
-      room_id: room?.id ?? initialData?.room_id,
-      department: department?.id,
-      guest_id: initialData?.guest_id,
-    });
+    if (!form.name.trim() || isPending) return;
+
+    if (existingRequest) {
+      updateRequest({
+        name: form.name.trim(),
+        priority: form.priority,
+        description: form.description.trim() || undefined,
+        user_id: form.user_id,
+        room_id: form.room_id,
+        department: form.department,
+        scheduled_time:
+          form.deadline?.toISOString() ?? existingRequest.scheduled_time,
+      });
+    } else {
+      if (!backendUser?.hotel_id) return;
+      createRequest({
+        name: form.name.trim(),
+        hotel_id: backendUser.hotel_id,
+        priority: form.priority,
+        status: "pending",
+        request_type: "general",
+        description: form.description.trim() || undefined,
+        user_id: form.user_id ?? initialData?.user_id,
+        room_id: form.room_id ?? initialData?.room_id,
+        department: form.department,
+        guest_id: initialData?.guest_id,
+        scheduled_time: form.deadline?.toISOString(),
+      });
+    }
   }
+
+  const isDirty =
+    isEditMode &&
+    (form.name.trim() !== (orig.current?.name ?? "") ||
+      form.description.trim() !== (orig.current?.description ?? "") ||
+      form.priority !== orig.current?.priority ||
+      form.user_id !== orig.current.user_id ||
+      form.room_id !== orig.current.room_id ||
+      form.department !== orig.current.department ||
+      form.deadline?.getTime() !==
+        (orig.current.scheduled_time
+          ? new Date(orig.current.scheduled_time).getTime()
+          : undefined));
+
+  const canSubmit = isEditMode
+    ? isDirty && !!form.name.trim()
+    : !!form.name.trim();
+  const buttonLabel = isPending
+    ? isEditMode
+      ? "Saving..."
+      : "Creating..."
+    : isEditMode
+      ? "Save Changes"
+      : "Create Request";
 
   const titleInput = (
     <input
       type="text"
-      value={name}
-      onChange={(e) => setName(e.target.value)}
+      value={form.name}
+      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
       onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
       placeholder="New Request"
-      className="w-full bg-transparent text-3xl font-bold text-text-default placeholder:text-text-subtle outline-none"
-      autoFocus
+      className="w-full bg-transparent text-center text-3xl font-bold text-text-default placeholder:text-text-subtle outline-none"
+      autoFocus={!isEditMode}
     />
   );
 
   return (
     <DrawerShell title={titleInput} onClose={onClose}>
       <div className="flex flex-col gap-4">
+        {/* Assignee */}
         <div className="flex items-center gap-8">
-          <div className="flex w-28 shrink-0 items-center gap-1">
-            <GripHorizontal className="size-4.5 text-text-subtle" />
-            <span className="text-sm text-text-subtle">Priority</span>
-          </div>
+          <FieldLabel icon={UserRound} label="Assignee" />
+          {backendUser?.hotel_id && (
+            <AssigneePicker
+              hotelId={backendUser.hotel_id}
+              selectedUser={pickers.assignee}
+              initialUserId={
+                pickers.assignee ? undefined : existingRequest?.user_id
+              }
+              onSelect={(user) => {
+                setPickers((p) => ({ ...p, assignee: user }));
+                setForm((f) => ({ ...f, user_id: user.id }));
+              }}
+            />
+          )}
+        </div>
+
+        {/* Deadline */}
+        <div className="flex items-center gap-8">
+          <FieldLabel icon={Clock} label="Deadline" />
+          <DeadlinePicker
+            selectedDate={form.deadline}
+            onSelect={(date) => setForm((f) => ({ ...f, deadline: date }))}
+          />
+        </div>
+
+        {/* Priority */}
+        <div className="flex items-center gap-8">
+          <FieldLabel icon={Flag} label="Priority" />
           <div className="flex items-center gap-1">
             {PRIORITIES.map((p) => (
               <button
                 key={p}
                 type="button"
-                onClick={() => setPriority(p)}
+                onClick={() => setForm((f) => ({ ...f, priority: p }))}
                 className={cn(
                   "rounded px-2 py-0.5 text-xs capitalize transition-colors",
-                  priority === p
+                  form.priority === p
                     ? "bg-primary text-white"
                     : "text-text-subtle hover:text-text-default",
                 )}
@@ -164,72 +265,51 @@ export function CreateRequestDrawer({
           </div>
         </div>
 
+        {/* Room */}
         <div className="flex items-center gap-8">
-          <div className="flex w-28 shrink-0 items-center gap-1">
-            <GripHorizontal className="size-4.5 text-text-subtle" />
-            <span className="text-sm text-text-subtle">Assignee</span>
-          </div>
-          {backendUser?.hotel_id && (
-            <AssigneePicker
-              hotelId={backendUser.hotel_id}
-              selectedUser={assignee}
-              onSelect={setAssignee}
-            />
-          )}
-        </div>
-        <div className="flex items-center gap-8">
-          <div className="flex w-28 shrink-0 items-center gap-1">
-            <GripHorizontal className="size-4.5 text-text-subtle" />
-            <span className="text-sm text-text-subtle">Room</span>
-          </div>
+          <FieldLabel icon={DoorOpen} label="Room" />
           <RoomPicker
-            selectedRoom={room}
-            initialRoomId={initialData?.room_id}
-            onSelect={setRoom}
+            selectedRoom={pickers.room}
+            initialRoomId={
+              pickers.room
+                ? undefined
+                : (existingRequest?.room_id ?? initialData?.room_id)
+            }
+            onSelect={(r) => {
+              setPickers((p) => ({ ...p, room: r }));
+              setForm((f) => ({ ...f, room_id: r.id }));
+            }}
           />
         </div>
-        <FieldRow label="Deadline" value="Empty" />
+
+        {/* Department */}
         <div className="flex items-center gap-8">
-          <div className="flex w-28 shrink-0 items-center gap-1">
-            <GripHorizontal className="size-4.5 text-text-subtle" />
-            <span className="text-sm text-text-subtle">Department</span>
-          </div>
+          <FieldLabel icon={Building2} label="Department" />
           {backendUser?.hotel_id && (
             <DepartmentPicker
               hotelId={backendUser.hotel_id}
-              selectedDepartment={department}
-              onSelect={setDepartment}
+              selectedDepartment={pickers.department}
+              initialDepartmentId={
+                pickers.department
+                  ? undefined
+                  : (existingRequest?.department ?? initialData?.department_id)
+              }
+              onSelect={(d) => {
+                setPickers((p) => ({ ...p, department: d }));
+                setForm((f) => ({ ...f, department: d?.id }));
+              }}
             />
           )}
         </div>
-        <FieldRow label="Location" value="Empty" />
-
-        {showMore && (
-          <>
-            <FieldRow label="Tags" value="Empty" />
-          </>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setShowMore((v) => !v)}
-          className="flex items-center gap-2 text-xs text-text-subtle transition-colors hover:text-text-default"
-        >
-          Show More
-          <ChevronDown
-            className={cn(
-              "size-3 transition-transform",
-              showMore && "rotate-180",
-            )}
-          />
-        </button>
       </div>
 
       <div className="flex flex-col gap-1">
         <span className="text-xs text-text-subtle">Description</span>
         <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={form.description}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, description: e.target.value }))
+          }
           placeholder="Add a description..."
           rows={3}
           className="resize-none bg-transparent text-sm text-text-default placeholder:text-text-subtle outline-none"
@@ -257,14 +337,14 @@ export function CreateRequestDrawer({
         </div>
       </div>
 
-      <button
-        type="button"
+      <Button
+        variant={canSubmit ? "primary" : "secondary"}
         onClick={handleSubmit}
-        disabled={!name.trim() || isPending}
-        className="mt-auto self-end rounded-lg bg-primary px-4 py-2 text-sm text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+        disabled={!canSubmit || isPending}
+        className="mt-auto w-auto self-end"
       >
-        {isPending ? "Creating..." : "Create Request"}
-      </button>
+        {buttonLabel}
+      </Button>
     </DrawerShell>
   );
 }

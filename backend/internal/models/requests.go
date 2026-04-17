@@ -24,11 +24,12 @@ const (
 	StatusPending    RequestStatus = "pending"
 	StatusInProgress RequestStatus = "in progress"
 	StatusCompleted  RequestStatus = "completed"
+	StatusArchived   RequestStatus = "archived"
 )
 
 func (s RequestStatus) IsValid() bool {
 	switch s {
-	case StatusPending, StatusInProgress, StatusCompleted:
+	case StatusPending, StatusInProgress, StatusCompleted, StatusArchived:
 		return true
 	}
 	return false
@@ -64,7 +65,7 @@ type MakeRequest struct {
 	RequestCategory         *string    `json:"request_category" example:"Cleaning"`
 	RequestType             string     `json:"request_type" validate:"notblank" example:"recurring"`
 	Department              *string    `json:"department" example:"maintenance"`
-	Status                  string     `json:"status" validate:"oneof='pending' 'in progress' 'completed'" example:"pending"`
+	Status                  string     `json:"status" validate:"oneof='pending' 'in progress' 'completed' 'archived'" example:"pending"`
 	Priority                string     `json:"priority" validate:"oneof=low medium high" example:"high"`
 	EstimatedCompletionTime *int       `json:"estimated_completion_time" example:"30"`
 	ScheduledTime           *time.Time `json:"scheduled_time" example:"2024-01-01T00:00:00Z"`
@@ -85,7 +86,7 @@ type RequestUpdateInput struct {
 	RequestCategory         *string    `json:"request_category"`
 	RequestType             *string    `json:"request_type" validate:"omitempty,notblank"`
 	Department              *string    `json:"department"`
-	Status                  *string    `json:"status" validate:"omitempty,oneof='pending' 'in progress' 'completed'"`
+	Status                  *string    `json:"status" validate:"omitempty,oneof='pending' 'in progress' 'completed' 'archived'"`
 	Priority                *string    `json:"priority" validate:"omitempty,oneof=low medium high"`
 	EstimatedCompletionTime *int       `json:"estimated_completion_time"`
 	ScheduledTime           *time.Time `json:"scheduled_time"`
@@ -103,7 +104,7 @@ type AssignRequestInput struct {
 
 type GetRequestsByStatusInput struct {
 	HotelID    string  `json:"-"           label:"X-Hotel-ID" validate:"notblank"`
-	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'in progress' 'completed'"`
+	Status     string  `json:"status"      label:"Status"     validate:"oneof='pending' 'in progress' 'completed' 'archived'"`
 	CursorTime *int64  `json:"cursor_time"`
 	CursorID   *string `json:"cursor_id"`
 } //@name GetRequestsByStatusInput
@@ -129,6 +130,21 @@ type Request struct {
 	RequestVersion time.Time `json:"request_version" example:"2024-01-02T00:00:00Z"`
 	MakeRequest
 } //@name Request
+
+// RequestsFeedInput is the body for POST /requests/feed.
+type RequestsFeedInput struct {
+	HotelID     string          `json:"hotel_id" validate:"notblank,startswith=org_"`
+	Cursor      string          `json:"cursor"`
+	Limit       int             `json:"limit"       validate:"omitempty,min=1,max=100"`
+	UserID      string          `json:"user_id"`
+	Unassigned  bool            `json:"unassigned"`
+	Status      string          `json:"status"      validate:"omitempty,oneof='pending' 'in progress' 'completed' 'archived'"`
+	Priorities  []string        `json:"priorities"  validate:"omitempty,dive,oneof=low medium high"`
+	Departments []string        `json:"departments"`
+	Floors      []int           `json:"floors"`
+	Sort        RequestFeedSort `json:"sort"        validate:"omitempty,oneof=priority newest oldest"`
+	Search      string          `json:"search"`
+} //@name RequestsFeedInput
 
 type GetRequestsByGuestInput struct {
 	GuestID string `json:"guest_id" validate:"required,uuid"`
