@@ -1,34 +1,47 @@
 import { useMemo } from "react";
 import type { RoomWithOptionalGuestBooking } from "@shared";
+import type { RoomSortOption } from "@/components/rooms/OrderByDropdown";
 import { RoomCard } from "@/components/rooms/RoomCard";
 
 type RoomsListProps = {
   rooms: Array<RoomWithOptionalGuestBooking>;
   onRoomSelect: (room: RoomWithOptionalGuestBooking) => void;
-  ascending: boolean;
+  sortOption: RoomSortOption;
   selectedRoomNumber?: number | null;
 };
 
-function sortRoomsByRoomNumber(
+const PRIORITY_RANK: Record<string, number> = {
+  high: 3,
+  medium: 2,
+  low: 1,
+};
+
+function sortRooms(
   rooms: Array<RoomWithOptionalGuestBooking>,
-  ascending: boolean,
+  sortOption: RoomSortOption,
 ): Array<RoomWithOptionalGuestBooking> {
   return [...rooms].sort((a, b) => {
+    if (sortOption === "urgency") {
+      const ar = PRIORITY_RANK[a.priority ?? ""] ?? 0;
+      const br = PRIORITY_RANK[b.priority ?? ""] ?? 0;
+      if (br !== ar) return br - ar;
+      return (a.room_number ?? 0) - (b.room_number ?? 0);
+    }
     const an = a.room_number ?? 0;
     const bn = b.room_number ?? 0;
-    return ascending ? an - bn : bn - an;
+    return sortOption === "ascending" ? an - bn : bn - an;
   });
 }
 
 export function RoomsList({
   rooms,
   onRoomSelect,
-  ascending,
+  sortOption,
   selectedRoomNumber = null,
 }: RoomsListProps) {
   const sortedRooms = useMemo(
-    () => sortRoomsByRoomNumber(rooms, ascending),
-    [rooms, ascending],
+    () => sortRooms(rooms, sortOption),
+    [rooms, sortOption],
   );
 
   return (

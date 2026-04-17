@@ -1,6 +1,7 @@
 import { SearchBar } from "../ui/SearchBar";
 import { FloorDropdown } from "./FloorDropdown";
 import { OrderByDropdown } from "./OrderByDropdown";
+import type { RoomSortOption } from "./OrderByDropdown";
 import type { RoomsPageFilters } from "@/hooks/use-rooms-filters";
 import { FilterTag } from "@/components/rooms/FilterTag";
 import { RoomsFilterPopover } from "@/components/rooms/RoomsFilterPopover";
@@ -14,8 +15,8 @@ type RoomsToolbarProps = {
   onChangeFloors: (floors: Array<number>) => void;
   onRemoveFilterChip: (chip: string) => void;
   onApplyFilterChips: (chips: Array<string>) => void;
-  ascending: boolean;
-  setAscending: (ascending: boolean) => void;
+  sortOption: RoomSortOption;
+  setSortOption: (option: RoomSortOption) => void;
 };
 
 export function RoomsToolbar({
@@ -25,8 +26,8 @@ export function RoomsToolbar({
   onChangeFloors,
   onApplyFilterChips,
   onRemoveFilterChip,
-  ascending,
-  setAscending,
+  sortOption,
+  setSortOption,
 }: RoomsToolbarProps) {
   const hasActiveFilterTags =
     filters.floors.length > 0 || filters.filterChips.length > 0;
@@ -52,7 +53,10 @@ export function RoomsToolbar({
           <span className="whitespace-nowrap text-sm text-text-subtle">
             Sort by:
           </span>
-          <OrderByDropdown ascending={ascending} setAscending={setAscending} />
+          <OrderByDropdown
+            sortOption={sortOption}
+            setSortOption={setSortOption}
+          />
         </div>
       </div>
       {hasActiveFilterTags ? (

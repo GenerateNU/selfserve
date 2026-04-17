@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MakeRequestPriority, usePostRoomsHook } from "@shared";
 import type { Request, RoomWithOptionalGuestBooking } from "@shared";
+import type { RoomSortOption } from "@/components/rooms/OrderByDropdown";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { RoomsToolbar } from "@/components/rooms/RoomsToolbar";
@@ -27,7 +28,7 @@ function RoomsPage() {
     });
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
-  const [ascending, setAscending] = useState(true);
+  const [sortOption, setSortOption] = useState<RoomSortOption>("ascending");
   const [generatedData, setGeneratedData] = useState<{
     name?: string;
     description?: string;
@@ -103,12 +104,12 @@ function RoomsPage() {
             onChangeFloors={setFloors}
             onApplyFilterChips={setFilterChips}
             onRemoveFilterChip={removeFilterChip}
-            ascending={ascending}
-            setAscending={setAscending}
+            sortOption={sortOption}
+            setSortOption={setSortOption}
           />
           <RoomsList
             rooms={rooms?.items ?? []}
-            ascending={ascending}
+            sortOption={sortOption}
             onRoomSelect={(room) => {
               setGeneratedData(null);
               setSelectedRoom(room);
