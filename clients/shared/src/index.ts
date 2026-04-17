@@ -144,6 +144,16 @@ export {
   useRemoveEmployeeDepartment,
 } from "./api/departments";
 
+// View types and hooks
+export type { View, CreateViewInput } from "./types/views";
+
+export {
+  getViewsQueryKey,
+  useGetViews,
+  useCreateView,
+  useDeleteView,
+} from "./api/views";
+
 // Notification types and hooks
 export type {
   Notification,

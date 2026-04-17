@@ -80,6 +80,25 @@ definitions:
         example: America/New_York
         type: string
     type: object
+  CreateViewInput:
+    properties:
+      display_name:
+        type: string
+      filters:
+        items:
+          type: integer
+        type: array
+      slug:
+        allOf:
+        - $ref: '#/definitions/github_com_generate_selfserve_internal_models.ViewSlug'
+        enum:
+        - requests_web
+        - rooms_web
+        - guests_web
+    required:
+    - filters
+    - slug
+    type: object
   Department:
     properties:
       created_at:
@@ -554,6 +573,8 @@ definitions:
         - in progress
         - completed
         type: string
+      unassign:
+        type: boolean
       user_id:
         type: string
     type: object
@@ -691,6 +712,25 @@ definitions:
           $ref: '#/definitions/User'
         type: array
     type: object
+  View:
+    properties:
+      created_at:
+        type: string
+      display_name:
+        type: string
+      filters:
+        items:
+          type: integer
+        type: array
+      id:
+        type: string
+      slug:
+        $ref: '#/definitions/github_com_generate_selfserve_internal_models.ViewSlug'
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
   github_com_generate_selfserve_internal_errs.HTTPError:
     properties:
       code:
@@ -751,6 +791,16 @@ definitions:
       name:
         type: string
     type: object
+  github_com_generate_selfserve_internal_models.ViewSlug:
+    enum:
+    - requests_web
+    - rooms_web
+    - guests_web
+    type: string
+    x-enum-varnames:
+    - ViewSlugRequestsWeb
+    - ViewSlugRoomsWeb
+    - ViewSlugGuestsWeb
   github_com_generate_selfserve_internal_utils.CursorPage-GuestRequest:
     properties:
       has_more:
@@ -1612,6 +1662,78 @@ paths:
       summary: generates a request
       tags:
       - requests
+  /request/generate/async:
+    post:
+      consumes:
+      - application/json
+      description: Starts async request generation via Temporal workflow
+      parameters:
+      - description: Request data with raw text
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/GenerateRequestInput'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: starts request generation workflow
+      tags:
+      - requests
+  /request/generate/async/{workflowId}:
+    get:
+      description: Gets async request generation workflow status/result
+      parameters:
+      - description: Workflow ID
+        in: path
+        name: workflowId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: gets request generation workflow status
+      tags:
+      - requests
   /request/guest/{id}:
     get:
       description: Retrieves all requests for a given guest
@@ -2336,6 +2458,95 @@ paths:
       summary: Search users by hotel
       tags:
       - users
+  /views:
+    get:
+      description: Returns all saved filter views for the authenticated user scoped
+        to a page slug
+      parameters:
+      - description: Page slug (e.g. requests_web)
+        in: query
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/View'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: List views
+      tags:
+      - views
+    post:
+      consumes:
+      - application/json
+      description: Saves the current filter state as a named view for the authenticated
+        user
+      parameters:
+      - description: View payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateViewInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/View'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create view
+      tags:
+      - views
+  /views/{id}:
+    delete:
+      description: Deletes a saved filter view owned by the authenticated user
+      parameters:
+      - description: View ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete view
+      tags:
+      - views
 schemes:
 - http
 - https
