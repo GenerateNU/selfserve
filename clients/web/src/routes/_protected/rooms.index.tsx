@@ -17,12 +17,14 @@ export const Route = createFileRoute("/_protected/rooms/")({
   component: RoomsPage,
 });
 
+const INITIAL_SELECTED = ["Occupied", "Open Tasks"];
+
 function RoomsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { filters, setFloors, setFilterChips, removeFilterChip } =
     useRoomsFilters({
       floors: [],
-      filterChips: [],
+      filterChips: INITIAL_SELECTED,
     });
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
