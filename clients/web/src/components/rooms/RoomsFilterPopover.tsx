@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/popover";
 import { FilterSection } from "@/components/rooms/FilterSection";
 import { FilterIcon } from "@/icons/filter";
+import { cn } from "@/lib/utils";
 
 const STATUS_CHIPS = [
   "Occupied",
@@ -98,6 +99,9 @@ export function RoomsFilterPopover() {
     setPendingChips(new Set());
   };
 
+  const appliedCount = selectedChips.size;
+  const filtersActive = appliedCount > 0;
+
   return (
     <Popover
       open={open}
@@ -106,9 +110,27 @@ export function RoomsFilterPopover() {
         setOpen(next);
       }}
     >
-      <PopoverTrigger className="flex items-center gap-2 rounded border border-primary px-3 py-2 text-base text-primary hover:bg-primary/5 transition-colors">
-        <FilterIcon className="size-[18px] shrink-0 text-primary" />
-        Filter
+      <PopoverTrigger
+        className={cn(
+          "flex items-center gap-2 rounded border border-primary px-3 py-2 text-base tracking-[-0.01em] transition-colors shrink-0",
+          filtersActive ? "w-30" : "w-21",
+          filtersActive
+            ? "bg-primary text-white hover:bg-primary-hover"
+            : "bg-white text-primary hover:bg-primary/5",
+        )}
+        aria-label={
+          filtersActive
+            ? `Filter, ${appliedCount} applied`
+            : "Open room filters"
+        }
+      >
+        <FilterIcon
+          className={cn(
+            "size-[18px] shrink-0",
+            filtersActive ? "text-white" : "text-primary",
+          )}
+        />
+        {filtersActive ? `Filter (${appliedCount})` : "Filter"}
       </PopoverTrigger>
       <PopoverContent
         sideOffset={8}
