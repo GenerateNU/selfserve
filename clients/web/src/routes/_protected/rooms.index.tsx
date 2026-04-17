@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { MakeRequestPriority, usePostRoomsHook } from "@shared";
+import { MakeRequestPriority } from "@shared";
+import { useGetRooms } from "@shared/api/rooms";
 import type { Request, RoomWithOptionalGuestBooking } from "@shared";
 import type { RoomSortOption } from "@/components/rooms/OrderByDropdown";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
@@ -17,15 +17,21 @@ export const Route = createFileRoute("/_protected/rooms/")({
   component: RoomsPage,
 });
 
-const INITIAL_SELECTED = ["Occupied", "Open Tasks"];
-
 function RoomsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { filters, setFloors, setFilterChips, removeFilterChip } =
-    useRoomsFilters({
-      floors: [],
-      filterChips: INITIAL_SELECTED,
-    });
+  const {
+    filters,
+    setFloors,
+    applyFilters,
+    removeStatus,
+    removeAttribute,
+    removeAdvanced,
+  } = useRoomsFilters({
+    floors: [],
+    status: [],
+    attributes: [],
+    advanced: [],
+  });
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
   const [sortOption, setSortOption] = useState<RoomSortOption>("ascending");
@@ -38,16 +44,12 @@ function RoomsPage() {
     user_id?: string;
   } | null>(null);
 
-  const postRooms = usePostRoomsHook();
-
-  const { data: rooms } = useQuery({
-    queryKey: ["rooms", filters.floors, sortOption],
-    queryFn: () =>
-      postRooms({
-        floors: filters.floors.length > 0 ? filters.floors : undefined,
-        limit: 10,
-        sort: sortOption,
-      }),
+  const { data: roomsData } = useGetRooms({
+    floors: filters.floors.length > 0 ? filters.floors : undefined,
+    status: filters.status.length > 0 ? filters.status : undefined,
+    attributes: filters.attributes.length > 0 ? filters.attributes : undefined,
+    advanced: filters.advanced.length > 0 ? filters.advanced : undefined,
+    sort: sortOption,
   });
 
   const drawerContent =
@@ -74,42 +76,23 @@ function RoomsPage() {
       drawer={drawerContent}
       bodyClassName="overflow-hidden"
       contentClassName={"h-full"}
-      bottomBar={
-        generatedData === null && selectedRoom === null ? (
-          <GlobalTaskInput
-            onRequestGenerated={(r: Request) => {
-              const p = r.priority;
-              setSelectedRoom(null);
-              setGeneratedData({
-                name: r.name,
-                description: r.description,
-                priority:
-                  p && p in MakeRequestPriority
-                    ? (p as MakeRequestPriority)
-                    : undefined,
-                room_id: r.room_id,
-                guest_id: r.guest_id,
-                user_id: r.user_id,
-              });
-            }}
-          />
-        ) : undefined
-      }
     >
-      <div className="flex h-full min-h-0 flex-row">
-        <div className="flex flex-1 min-h-0 min-w-0 flex-col">
+      <div className="flex min-h-0 flex-1 flex-row gap-4">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <RoomsToolbar
             searchTerm={searchTerm}
             onChangeSearchTerm={setSearchTerm}
             filters={filters}
             onChangeFloors={setFloors}
-            onApplyFilterChips={setFilterChips}
-            onRemoveFilterChip={removeFilterChip}
+            onApplyFilters={applyFilters}
+            onRemoveStatus={removeStatus}
+            onRemoveAttribute={removeAttribute}
+            onRemoveAdvanced={removeAdvanced}
             sortOption={sortOption}
             setSortOption={setSortOption}
           />
           <RoomsList
-            rooms={rooms?.items ?? []}
+            rooms={roomsData?.items ?? []}
             onRoomSelect={(room) => {
               setGeneratedData(null);
               setSelectedRoom(room);
@@ -117,8 +100,27 @@ function RoomsPage() {
             selectedRoomNumber={selectedRoom?.room_number ?? null}
           />
         </div>
-        <RoomsOverview rooms={rooms?.items ?? []} />
+        <RoomsOverview rooms={roomsData?.items ?? []} />
       </div>
+      {generatedData === null && selectedRoom === null && (
+        <GlobalTaskInput
+          onRequestGenerated={(r: Request) => {
+            const p = r.priority;
+            setSelectedRoom(null);
+            setGeneratedData({
+              name: r.name,
+              description: r.description,
+              priority:
+                p && p in MakeRequestPriority
+                  ? (p as MakeRequestPriority)
+                  : undefined,
+              room_id: r.room_id,
+              guest_id: r.guest_id,
+              user_id: r.user_id,
+            });
+          }}
+        />
+      )}
     </PageShell>
   );
 }
