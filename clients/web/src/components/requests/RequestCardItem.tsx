@@ -78,7 +78,7 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
           {...attributes}
           {...listeners}
           onPointerDown={(e) => {
-            if (e.button !== 0) return;
+            if (e.button !== 0 || !listeners) return;
             listeners.onPointerDown(e);
           }}
         >
