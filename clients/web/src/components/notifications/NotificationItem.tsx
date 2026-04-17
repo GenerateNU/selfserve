@@ -1,12 +1,15 @@
-import type { NotificationItem as NotificationItemType } from "./notification.types";
+import { formatTimestamp } from "./notification.utils";
+import type { Notification } from "@shared";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
 
 type NotificationItemProps = {
-  item: NotificationItemType;
+  item: Notification;
 };
 
 export function NotificationItem({ item }: NotificationItemProps) {
+  const isUnread = !item.read_at;
+  const timestamp = formatTimestamp(item.created_at, isUnread);
+
   return (
     <div className="flex flex-col gap-1 border-b border-stroke-disabled pb-3">
       <div className="flex items-center justify-between">
@@ -20,29 +23,18 @@ export function NotificationItem({ item }: NotificationItemProps) {
           <span
             className={cn(
               "text-xs",
-              item.unread ? "text-primary" : "text-text-subtle",
+              isUnread ? "text-primary" : "text-text-subtle",
             )}
           >
-            {item.timestamp}
+            {timestamp}
           </span>
-          {item.unread && (
+          {isUnread && (
             <div className="size-1.5 shrink-0 rounded-full bg-primary" />
           )}
         </div>
       </div>
       <div className="flex flex-col gap-2 pl-8 pr-5">
-        <p className="text-xs leading-snug text-text-secondary">
-          {item.description}
-        </p>
-        {item.action && (
-          <Button
-            variant="primary"
-            onClick={item.action.onClick}
-            className="w-full text-xs font-bold"
-          >
-            {item.action.label}
-          </Button>
-        )}
+        <p className="text-xs leading-snug text-text-secondary">{item.body}</p>
       </div>
     </div>
   );
