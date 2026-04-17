@@ -38,7 +38,7 @@ export function RoomsToolbar({
           value={searchTerm}
           onChange={onChangeSearchTerm}
           placeholder="Search for a room..."
-          className="w-full max-w-[16rem]"
+          className="w-56.25"
         />
         <FloorDropdown
           selected={filters.floors}
@@ -48,7 +48,12 @@ export function RoomsToolbar({
           appliedChips={filters.filterChips}
           onApplyChips={onApplyFilterChips}
         />
-        <OrderByDropdown ascending={ascending} setAscending={setAscending} />
+        <div className="ml-auto flex items-center gap-2">
+          <span className="whitespace-nowrap text-sm text-text-subtle">
+            Sort by:
+          </span>
+          <OrderByDropdown ascending={ascending} setAscending={setAscending} />
+        </div>
       </div>
       {hasActiveFilterTags ? (
         <div className="flex flex-wrap gap-2 py-3">
@@ -72,7 +77,7 @@ export function RoomsToolbar({
           ))}
         </div>
       ) : (
-        <div className="h-1" />
+        <div className="h-3" />
       )}
     </div>
   );
