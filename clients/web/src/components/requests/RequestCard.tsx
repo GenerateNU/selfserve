@@ -13,6 +13,7 @@ const accentClass: Record<RequestStatus, string> = {
   pending: "bg-request-pending",
   "in progress": "bg-request-assigned",
   completed: "bg-request-completed",
+  archived: "bg-bg-disabled",
 };
 
 export function RequestCard({

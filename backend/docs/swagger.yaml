@@ -418,6 +418,7 @@ definitions:
         - pending
         - in progress
         - completed
+        - archived
         example: pending
         type: string
       user_id:
@@ -529,6 +530,7 @@ definitions:
         - pending
         - in progress
         - completed
+        - archived
         example: pending
         type: string
       user_id:
@@ -572,8 +574,52 @@ definitions:
         - pending
         - in progress
         - completed
+        - archived
         type: string
       unassign:
+        type: boolean
+      user_id:
+        type: string
+    type: object
+  RequestsFeedInput:
+    properties:
+      cursor:
+        type: string
+      departments:
+        items:
+          type: string
+        type: array
+      floors:
+        items:
+          type: integer
+        type: array
+      hotel_id:
+        type: string
+      limit:
+        maximum: 100
+        minimum: 1
+        type: integer
+      priorities:
+        items:
+          type: string
+        type: array
+      search:
+        type: string
+      sort:
+        allOf:
+        - $ref: '#/definitions/github_com_generate_selfserve_internal_models.RequestFeedSort'
+        enum:
+        - priority
+        - newest
+        - oldest
+      status:
+        enum:
+        - pending
+        - in progress
+        - completed
+        - archived
+        type: string
+      unassigned:
         type: boolean
       user_id:
         type: string
@@ -601,6 +647,8 @@ definitions:
         type: array
       id:
         type: string
+      is_accessible:
+        type: boolean
       room_number:
         type: integer
       room_status:
@@ -776,6 +824,16 @@ definitions:
     x-enum-varnames:
     - TypeTaskAssigned
     - TypeHighPriorityTask
+  github_com_generate_selfserve_internal_models.RequestFeedSort:
+    enum:
+    - priority
+    - newest
+    - oldest
+    type: string
+    x-enum-varnames:
+    - SortByPriority
+    - SortByNewest
+    - SortByOldest
   github_com_generate_selfserve_internal_models.RequestSortOrder:
     enum:
     - high_to_low
@@ -1806,36 +1864,19 @@ paths:
       summary: Get requests by room
       tags:
       - requests
-  /requests:
-    get:
+  /requests/feed:
+    post:
+      consumes:
+      - application/json
       description: Returns a paginated list of requests for the hotel, optionally
-        filtered by assigned user
+        filtered and searched
       parameters:
-      - description: Hotel ID (UUID)
-        in: header
-        name: X-Hotel-ID
+      - description: Feed filters
+        in: body
+        name: request
         required: true
-        type: string
-      - description: Pagination cursor
-        in: query
-        name: cursor
-        type: string
-      - description: Page size (default 20, max 100)
-        in: query
-        name: limit
-        type: integer
-      - description: Filter by assigned user ID
-        in: query
-        name: user_id
-        type: string
-      - description: If true, return only requests with no assigned user
-        in: query
-        name: unassigned
-        type: boolean
-      - description: 'Sort order: priority (default), newest, oldest'
-        in: query
-        name: sort
-        type: string
+        schema:
+          $ref: '#/definitions/RequestsFeedInput'
       produces:
       - application/json
       responses:
@@ -1846,15 +1887,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/github_com_generate_selfserve_internal_errs.HTTPError'
       security:
       - BearerAuth: []
       summary: Get requests feed

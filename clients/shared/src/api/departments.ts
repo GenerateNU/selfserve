@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Department } from "../types/departments";
 import { useAPIClient } from "./client";
+import { REQUESTS_FEED_QUERY_KEY } from "./requests";
 
 export const getDepartmentsQueryKey = (hotelId: string | undefined) =>
   ["departments", hotelId] as const;
@@ -34,6 +35,8 @@ export const useUpdateDepartment = (hotelId: string | undefined) => {
       api.put<Department>(`/hotels/${hotelId}/departments/${id}`, { name }),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: getDepartmentsQueryKey(hotelId) });
+      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ["request"] });
     },
   });
 };

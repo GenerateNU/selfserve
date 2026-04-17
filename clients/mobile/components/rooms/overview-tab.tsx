@@ -8,11 +8,7 @@ import {
   useGetRequestsFeed,
   type RequestFeedItem,
 } from "@shared/api/requests";
-import {
-  useGetRoomsForFloor,
-  BookingStatus,
-  RoomStatusValue,
-} from "@shared/api/rooms";
+import { useGetRooms, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
 
 type UnassignedTaskCardProps = {
   task: RequestFeedItem;
@@ -83,7 +79,7 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
     unassigned: true,
     floors: [floorId],
   });
-  const { data: roomsData } = useGetRoomsForFloor([floorId]);
+  const { data: roomsData } = useGetRooms({ floors: [floorId] });
   const {
     mutate: assignToSelf,
     isPending: isAssigning,
