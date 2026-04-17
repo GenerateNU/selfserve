@@ -352,17 +352,6 @@ func (r *RequestsRepository) FindRequestsPaginated(
 	return scanGuestRequests(rows)
 }
 
-func (r *RequestsRepository) DeleteRequest(ctx context.Context, id string) error {
-	result, err := r.db.Exec(ctx, `DELETE FROM requests WHERE id = $1`, id)
-	if err != nil {
-		return err
-	}
-	if result.RowsAffected() == 0 {
-		return errs.ErrNotFoundInDB
-	}
-	return nil
-}
-
 func scanGuestRequests(rows pgx.Rows) ([]*models.GuestRequest, error) {
 	requests := make([]*models.GuestRequest, 0)
 	for rows.Next() {

@@ -21,8 +21,7 @@ import (
 type mockRequestRepository struct {
 	makeRequestFunc                    func(ctx context.Context, req *models.Request) (*models.Request, error)
 	updateRequestFunc                  func(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error)
-	deleteRequestFunc                  func(ctx context.Context, id string) error
-	findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
+findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
 	findRequestsByGuestIDFunc          func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findRequestsByRoomIDAndUserIDFunc  func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
@@ -36,10 +35,6 @@ func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.R
 
 func (m *mockRequestRepository) UpdateRequest(ctx context.Context, id string, update *models.RequestUpdateInput) (*models.Request, error) {
 	return m.updateRequestFunc(ctx, id, update)
-}
-
-func (m *mockRequestRepository) DeleteRequest(ctx context.Context, id string) error {
-	return m.deleteRequestFunc(ctx, id)
 }
 
 func (m *mockRequestRepository) FindRequest(ctx context.Context, id string) (*models.Request, error) {
@@ -1973,80 +1968,3 @@ func TestRequestHandler_GetGenerateRequestStatus(t *testing.T) {
 	})
 }
 
-func TestRequestHandler_DeleteRequest(t *testing.T) {
-	t.Parallel()
-
-	const validID = "530e8400-e458-41d4-a716-446655440000"
-
-	t.Run("returns 204 on successful delete", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{
-			deleteRequestFunc: func(_ context.Context, id string) error {
-				assert.Equal(t, validID, id)
-				return nil
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Delete("/request/:id", h.DeleteRequest)
-
-		req := httptest.NewRequest("DELETE", "/request/"+validID, nil)
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 204, resp.StatusCode)
-	})
-
-	t.Run("returns 400 for invalid UUID", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{}
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Delete("/request/:id", h.DeleteRequest)
-
-		req := httptest.NewRequest("DELETE", "/request/not-a-uuid", nil)
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 400, resp.StatusCode)
-	})
-
-	t.Run("returns 404 when request not found", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{
-			deleteRequestFunc: func(_ context.Context, _ string) error {
-				return errs.ErrNotFoundInDB
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Delete("/request/:id", h.DeleteRequest)
-
-		req := httptest.NewRequest("DELETE", "/request/"+validID, nil)
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 404, resp.StatusCode)
-	})
-
-	t.Run("returns 500 on db error", func(t *testing.T) {
-		t.Parallel()
-
-		mock := &mockRequestRepository{
-			deleteRequestFunc: func(_ context.Context, _ string) error {
-				return errors.New("db connection failed")
-			},
-		}
-
-		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
-		h := NewRequestsHandler(mock, nil, nil)
-		app.Delete("/request/:id", h.DeleteRequest)
-
-		req := httptest.NewRequest("DELETE", "/request/"+validID, nil)
-		resp, err := app.Test(req)
-		require.NoError(t, err)
-		assert.Equal(t, 500, resp.StatusCode)
-	})
-}

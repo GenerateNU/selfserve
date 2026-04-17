@@ -75,33 +75,6 @@ func (r *RequestsHandler) CreateRequest(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-// DeleteRequest godoc
-// @Summary      Delete a request
-// @Description  Permanently deletes a request and all its versions by ID
-// @Tags         requests
-// @Param        id  path  string  true  "Request ID (UUID)"
-// @Success      204
-// @Failure      400  {object}  errs.HTTPError
-// @Failure      404  {object}  errs.HTTPError
-// @Failure      500  {object}  errs.HTTPError
-// @Security     BearerAuth
-// @Router       /request/{id} [delete]
-func (r *RequestsHandler) DeleteRequest(c *fiber.Ctx) error {
-	id := c.Params("id")
-	if !validUUID(id) {
-		return errs.BadRequest("request id is not a valid UUID")
-	}
-
-	if err := r.RequestRepository.DeleteRequest(c.Context(), id); err != nil {
-		if errors.Is(err, errs.ErrNotFoundInDB) {
-			return errs.NotFound("Request", "id", id)
-		}
-		slog.Error("failed to delete request", "err", err, "requestID", id)
-		return errs.InternalServerError()
-	}
-
-	return c.SendStatus(fiber.StatusNoContent)
-}
 
 // UpdateRequest godoc
 // @Summary      Update a request
