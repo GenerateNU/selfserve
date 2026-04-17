@@ -14,7 +14,11 @@ import {
   type Floor,
 } from "@/components/rooms/floor-picker-sheet";
 import { OverviewTab } from "@/components/rooms/overview-tab";
-import { useGetRoomsForFloor, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
+import {
+  useGetRoomsForFloor,
+  BookingStatus,
+  RoomStatusValue,
+} from "@shared/api/rooms";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 
 const FLOORS: Floor[] = [
@@ -43,7 +47,10 @@ function getRoomStatus(room: RoomWithOptionalGuestBooking): RoomStatus {
       "Guest";
     return { type: "occupied", guestName };
   }
-  return { type: "vacant", isAvailable: room.room_status === RoomStatusValue.Available };
+  return {
+    type: "vacant",
+    isAvailable: room.room_status === RoomStatusValue.Available,
+  };
 }
 
 export default function RoomsScreen() {
