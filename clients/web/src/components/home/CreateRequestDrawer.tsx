@@ -83,7 +83,6 @@ export function CreateRequestDrawer({
 
   const [activeTab, setActiveTab] = useState<ActivityTab>("all");
 
-  
   const [form, setForm] = useState<RequestForm>({
     name: existingRequest?.name ?? initialData?.name ?? "",
     description: existingRequest?.description ?? initialData?.description ?? "",
@@ -96,14 +95,12 @@ export function CreateRequestDrawer({
     department: existingRequest?.department ?? undefined,
   });
 
-  
   const [pickers, setPickers] = useState<{
     assignee: User | undefined;
     room: RoomWithOptionalGuestBooking | undefined;
     department: Department | undefined;
   }>({ assignee: undefined, room: undefined, department: undefined });
 
-  
   const orig = useRef(existingRequest);
 
   const queryClient = useQueryClient();
@@ -157,7 +154,8 @@ export function CreateRequestDrawer({
         user_id: form.user_id,
         room_id: form.room_id,
         department: form.department,
-        scheduled_time: form.deadline?.toISOString() ?? existingRequest.scheduled_time,
+        scheduled_time:
+          form.deadline?.toISOString() ?? existingRequest.scheduled_time,
       });
     } else {
       if (!backendUser?.hotel_id) return;
@@ -190,7 +188,9 @@ export function CreateRequestDrawer({
           ? new Date(orig.current.scheduled_time).getTime()
           : undefined));
 
-  const canSubmit = isEditMode ? isDirty && !!form.name.trim() : !!form.name.trim();
+  const canSubmit = isEditMode
+    ? isDirty && !!form.name.trim()
+    : !!form.name.trim();
   const buttonLabel = isPending
     ? isEditMode
       ? "Saving..."
@@ -221,7 +221,9 @@ export function CreateRequestDrawer({
             <AssigneePicker
               hotelId={backendUser.hotel_id}
               selectedUser={pickers.assignee}
-              initialUserId={pickers.assignee ? undefined : existingRequest?.user_id}
+              initialUserId={
+                pickers.assignee ? undefined : existingRequest?.user_id
+              }
               onSelect={(user) => {
                 setPickers((p) => ({ ...p, assignee: user }));
                 setForm((f) => ({ ...f, user_id: user.id }));
@@ -301,7 +303,9 @@ export function CreateRequestDrawer({
         <span className="text-xs text-text-subtle">Description</span>
         <textarea
           value={form.description}
-          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, description: e.target.value }))
+          }
           placeholder="Add a description..."
           rows={3}
           className="resize-none bg-transparent text-sm text-text-default placeholder:text-text-subtle outline-none"
