@@ -36,6 +36,7 @@ export const useUpdateDepartment = (hotelId: string | undefined) => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: getDepartmentsQueryKey(hotelId) });
       queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ["request"] });
     },
   });
 };
