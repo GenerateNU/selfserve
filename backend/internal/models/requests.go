@@ -151,6 +151,11 @@ type RequestActivityItem struct {
 	Timestamp time.Time           `json:"timestamp"`
 } //@name RequestActivityItem
 
+type RequestActivityPage struct {
+	Items      []*RequestActivityItem `json:"items"`
+	NextCursor *string                `json:"next_cursor,omitempty"`
+} //@name RequestActivityPage
+
 // RequestsFeedInput is the body for POST /requests/feed.
 type RequestsFeedInput struct {
 	HotelID     string          `json:"hotel_id" validate:"notblank,startswith=org_"`

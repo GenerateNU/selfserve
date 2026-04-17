@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GripHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useGetRequestActivity, useGetUsersIdHook } from "@shared";
+import { useGetUsersIdHook } from "@shared";
 import type { Request } from "@shared";
 import { DrawerShell } from "@/components/ui/DrawerShell";
 import { useRoomById } from "@/hooks/use-room-by-id";
@@ -85,10 +85,6 @@ export function ViewRequestDrawer({
   });
 
   const { data: room } = useRoomById(request?.room_id);
-  const { data: activityItems = [] } = useGetRequestActivity(
-    request?.id ?? null,
-  );
-
   if (!request) {
     return (
       <DrawerShell title="" onClose={onClose}>
@@ -199,7 +195,7 @@ export function ViewRequestDrawer({
         {activeTab === "comments" ? (
           <p className="text-sm text-text-subtle">No comments yet.</p>
         ) : (
-          <ActivityFeed items={activityItems} />
+          <ActivityFeed requestId={request.id!} />
         )}
       </div>
     </DrawerShell>

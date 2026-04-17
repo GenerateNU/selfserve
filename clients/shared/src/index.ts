@@ -125,6 +125,7 @@ export type {
   RequestFeedSort,
   RequestFeedParams,
   RequestActivityItem,
+  RequestActivityPage,
   RequestActivityType,
 } from "./api/requests";
 

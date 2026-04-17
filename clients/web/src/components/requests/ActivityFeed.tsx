@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useGetUser } from "@shared";
+import { useEffect, useRef } from "react";
+import { useGetRequestActivity, useGetUser } from "@shared";
 import type { RequestActivityItem } from "@shared";
 import {
   cn,
@@ -25,12 +25,10 @@ function ActivityRow({ item }: ActivityRowProps) {
     item.type === "assigned" && item.new_value ? item.new_value : undefined,
   );
 
-  const randomSeed = useMemo(() => Math.random().toString(36).slice(2, 4), []);
-
   const actorName = actor
     ? [actor.first_name, actor.last_name].filter(Boolean).join(" ")
     : "Member";
-  const colorSeed = actor ? actorName : randomSeed;
+  const colorSeed = actorName;
   const targetName = target?.first_name;
 
   const description = buildDescription(item, actorName, targetName);
@@ -147,10 +145,34 @@ function capitalize(s: string): string {
 }
 
 type ActivityFeedProps = {
-  items: Array<RequestActivityItem>;
+  requestId: string;
 };
 
-export function ActivityFeed({ items }: ActivityFeedProps) {
+export function ActivityFeed({ requestId }: ActivityFeedProps) {
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
+    useGetRequestActivity(requestId);
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasNextPage || isFetchingNextPage) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) fetchNextPage();
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const items = data?.pages.flatMap((p) => p.items) ?? [];
+
+  if (isPending) {
+    return <p className="text-sm text-text-subtle py-2">Loading...</p>;
+  }
+
   if (items.length === 0) {
     return <p className="text-sm text-text-subtle py-2">No activity yet.</p>;
   }
@@ -160,6 +182,10 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
       {items.map((item, i) => (
         <ActivityRow key={`${item.type}-${item.timestamp}-${i}`} item={item} />
       ))}
+      {isFetchingNextPage && (
+        <p className="text-xs text-text-subtle">Loading more...</p>
+      )}
+      <div ref={sentinelRef} className="h-1 shrink-0" />
     </div>
   );
 }
