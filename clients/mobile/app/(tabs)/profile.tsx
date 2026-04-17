@@ -54,9 +54,7 @@ export default function Profile() {
             isAvatarBusy={isPicLoading}
           />
           {status.startsWith("Error") ? (
-            <Text
-              className="text-xs text-center mt-2 px-6 text-danger"
-            >
+            <Text className="text-xs text-center mt-2 px-6 text-danger">
               {status}
             </Text>
           ) : null}

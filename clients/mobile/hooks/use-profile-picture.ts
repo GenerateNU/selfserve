@@ -118,7 +118,9 @@ export function useProfilePicture(userId: string | undefined): {
 
       const refreshed = await getProfilePicture(api, userId);
       setProfilePicUrl(refreshed?.presigned_url ?? null);
-      await queryClient.invalidateQueries({ queryKey: getUserQueryKey(userId) });
+      await queryClient.invalidateQueries({
+        queryKey: getUserQueryKey(userId),
+      });
     } catch (err) {
       setStatus(
         `Error: ${err instanceof Error ? err.message : "Unknown error"}`,
