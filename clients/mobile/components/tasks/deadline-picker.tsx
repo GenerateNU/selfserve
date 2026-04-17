@@ -187,7 +187,7 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
                 }
               >
                 <Text
-                  className="text-[14px] font-medium tracking-tight"
+                  className="text-sm font-medium tracking-tight"
                   style={{ color: activeTab === tab ? PRIMARY : ICON_COLOR }}
                 >
                   {tab === "date" ? "Today" : "Time"}
@@ -215,7 +215,7 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
               <View className="flex-row mb-1">
                 {WEEK_DAYS.map((d) => (
                   <View key={d} className="flex-1 items-center">
-                    <Text className="text-[11px] text-text-subtle tracking-tight">
+                    <Text className="text-xs text-text-subtle tracking-tight">
                       {d}
                     </Text>
                   </View>
@@ -249,7 +249,7 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
                       >
                         {day !== null && (
                           <Text
-                            className="text-[13px] tracking-tight"
+                            className="text-xs tracking-tight"
                             style={{
                               color: isSelected ? Colors.light.white : isToday ? PRIMARY : Colors.light.textDefault,
                               fontWeight: isSelected || isToday ? "600" : "400",
@@ -316,11 +316,11 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
           <View className="flex-row items-center justify-between px-3 py-2">
             <View className="flex-row items-center gap-1">
               <CalendarSync size={14} color={ICON_COLOR} />
-              <Text className="text-[13px] text-text-subtle tracking-tight">
+              <Text className="text-xs text-text-subtle tracking-tight">
                 Reoccurring
               </Text>
             </View>
-            <Text className="text-[13px] text-text-subtle tracking-tight">
+            <Text className="text-xs text-text-subtle tracking-tight">
               None
             </Text>
           </View>
