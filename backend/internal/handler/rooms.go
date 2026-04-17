@@ -28,11 +28,11 @@ func NewRoomsHandler(repo RoomsRepository) *RoomsHandler {
 
 // FilterRooms godoc
 // @Summary      List rooms with filters
-// @Description  Retrieves rooms with optional floor filters and cursor pagination, including any active guest bookings
+// @Description  Retrieves rooms with optional filters (status, attributes, advanced, sort) and cursor pagination. Occupancy is derived from active guest_bookings; open tasks from the latest request version per room.
 // @Tags         rooms
 // @Accept       json
 // @Produce      json
-// @Param        X-Hotel-ID  header    string                      true   "Hotel ID (UUID)"
+// @Param        X-Hotel-ID  header    string                      true   "Hotel ID"
 // @Param        body        body      models.FilterRoomsRequest   false  "Filters and pagination"
 // @Success      200         {object}  utils.CursorPage[models.RoomWithOptionalGuestBooking]
 // @Failure      400         {object}  map[string]string
