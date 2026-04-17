@@ -36,6 +36,9 @@
   --color-danger-hover: #c90505;
   --color-danger-hover-on: #ffffff;
   --color-high-priority: #a21313;
+  --color-priority-high: #a21313;
+  --color-priority-medium: #ff8c3f;
+  --color-priority-low: #2f61ce;
   --color-info-accent: #e9f2ff;
   --color-info-container: #dfecff;
   --color-info-stroke: #aac7ff;

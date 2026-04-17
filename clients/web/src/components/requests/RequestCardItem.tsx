@@ -83,7 +83,7 @@ export function RequestCardItem({ request, onClick }: RequestCardItemProps) {
           }}
         >
           <RequestCard
-            status={status}
+            priority={request.priority}
             className="w-full"
             onClick={isDragging ? undefined : onClick}
           >
