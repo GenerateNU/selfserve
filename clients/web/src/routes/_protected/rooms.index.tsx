@@ -74,26 +74,28 @@ function RoomsPage() {
       bodyClassName="overflow-hidden"
       contentClassName={"h-full"}
     >
-      <RoomsToolbar
-        searchTerm={searchTerm}
-        onChangeSearchTerm={setSearchTerm}
-        filters={filters}
-        onChangeFloors={setFloors}
-        onApplyFilterChips={setFilterChips}
-        onRemoveFilterChip={removeFilterChip}
-        ascending={ascending}
-        setAscending={setAscending}
-      />
-      <div className="flex min-h-0 flex-row">
-        <RoomsList
-          rooms={rooms?.items ?? []}
-          ascending={ascending}
-          onRoomSelect={(room) => {
-            setGeneratedData(null);
-            setSelectedRoom(room);
-          }}
-          selectedRoomNumber={selectedRoom?.room_number ?? null}
-        />
+      <div className="flex h-full min-h-0 flex-row">
+        <div className="flex flex-1 min-h-0 min-w-0 flex-col">
+          <RoomsToolbar
+            searchTerm={searchTerm}
+            onChangeSearchTerm={setSearchTerm}
+            filters={filters}
+            onChangeFloors={setFloors}
+            onApplyFilterChips={setFilterChips}
+            onRemoveFilterChip={removeFilterChip}
+            ascending={ascending}
+            setAscending={setAscending}
+          />
+          <RoomsList
+            rooms={rooms?.items ?? []}
+            ascending={ascending}
+            onRoomSelect={(room) => {
+              setGeneratedData(null);
+              setSelectedRoom(room);
+            }}
+            selectedRoomNumber={selectedRoom?.room_number ?? null}
+          />
+        </div>
         <RoomsOverview rooms={rooms?.items ?? []} />
       </div>
       <GlobalTaskInput

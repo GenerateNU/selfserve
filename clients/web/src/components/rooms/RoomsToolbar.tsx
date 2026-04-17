@@ -48,7 +48,12 @@ export function RoomsToolbar({
           appliedChips={filters.filterChips}
           onApplyChips={onApplyFilterChips}
         />
-        <OrderByDropdown ascending={ascending} setAscending={setAscending} />
+        <div className="ml-auto flex items-center gap-2">
+          <span className="whitespace-nowrap text-sm text-text-subtle">
+            Sort by:
+          </span>
+          <OrderByDropdown ascending={ascending} setAscending={setAscending} />
+        </div>
       </div>
       {hasActiveFilterTags ? (
         <div className="flex flex-wrap gap-2 py-3">
