@@ -9,8 +9,11 @@ import {
 } from "lucide-react-native";
 import { Colors } from "@/constants/theme";
 
-const { tabBarActive: PRIMARY, textSubtle: ICON_COLOR, borderLight: BORDER_LIGHT } =
-  Colors.light;
+const {
+  tabBarActive: PRIMARY,
+  textSubtle: ICON_COLOR,
+  borderLight: BORDER_LIGHT,
+} = Colors.light;
 
 const WEEK_DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MONTH_NAMES = [
@@ -63,8 +66,12 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
 
   const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<"date" | "time">("date");
-  const [viewMonth, setViewMonth] = useState(value?.getMonth() ?? now.getMonth());
-  const [viewYear, setViewYear] = useState(value?.getFullYear() ?? now.getFullYear());
+  const [viewMonth, setViewMonth] = useState(
+    value?.getMonth() ?? now.getMonth(),
+  );
+  const [viewYear, setViewYear] = useState(
+    value?.getFullYear() ?? now.getFullYear(),
+  );
 
   // Sync calendar view when value changes from outside (e.g. pre-population)
   useEffect(() => {
@@ -78,9 +85,13 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
   const selDay = value?.getDate();
   const selMonth = value?.getMonth();
   const selYear = value?.getFullYear();
-  const hour = value ? (value.getHours() % 12 || 12) : 12;
+  const hour = value ? value.getHours() % 12 || 12 : 12;
   const minute = value ? Math.round(value.getMinutes() / 5) * 5 : 0;
-  const ampm: "AM" | "PM" = value ? (value.getHours() >= 12 ? "PM" : "AM") : "AM";
+  const ampm: "AM" | "PM" = value
+    ? value.getHours() >= 12
+      ? "PM"
+      : "AM"
+    : "AM";
 
   function handleDayPress(day: number) {
     onChange(buildDate(day, viewYear, viewMonth, hour, minute, ampm));
@@ -88,17 +99,44 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
 
   function handleHourChange(h: number) {
     const base = value ?? new Date(viewYear, viewMonth, now.getDate());
-    onChange(buildDate(base.getDate(), base.getFullYear(), base.getMonth(), h, minute, ampm));
+    onChange(
+      buildDate(
+        base.getDate(),
+        base.getFullYear(),
+        base.getMonth(),
+        h,
+        minute,
+        ampm,
+      ),
+    );
   }
 
   function handleMinuteChange(m: number) {
     const base = value ?? new Date(viewYear, viewMonth, now.getDate());
-    onChange(buildDate(base.getDate(), base.getFullYear(), base.getMonth(), hour, m, ampm));
+    onChange(
+      buildDate(
+        base.getDate(),
+        base.getFullYear(),
+        base.getMonth(),
+        hour,
+        m,
+        ampm,
+      ),
+    );
   }
 
   function handleAmpmChange(ap: "AM" | "PM") {
     const base = value ?? new Date(viewYear, viewMonth, now.getDate());
-    onChange(buildDate(base.getDate(), base.getFullYear(), base.getMonth(), hour, minute, ap));
+    onChange(
+      buildDate(
+        base.getDate(),
+        base.getFullYear(),
+        base.getMonth(),
+        hour,
+        minute,
+        ap,
+      ),
+    );
   }
 
   function prevMonth() {
@@ -239,7 +277,9 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
                     return (
                       <Pressable
                         key={col}
-                        onPress={day !== null ? () => handleDayPress(day) : undefined}
+                        onPress={
+                          day !== null ? () => handleDayPress(day) : undefined
+                        }
                         className="flex-1 items-center py-1.5"
                         style={
                           isSelected
@@ -251,7 +291,11 @@ export function DeadlinePicker({ value, onChange }: DeadlinePickerProps) {
                           <Text
                             className="text-xs tracking-tight"
                             style={{
-                              color: isSelected ? Colors.light.white : isToday ? PRIMARY : Colors.light.textDefault,
+                              color: isSelected
+                                ? Colors.light.white
+                                : isToday
+                                  ? PRIMARY
+                                  : Colors.light.textDefault,
                               fontWeight: isSelected || isToday ? "600" : "400",
                             }}
                           >

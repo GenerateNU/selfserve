@@ -17,13 +17,18 @@ import { Colors } from "@/constants/theme";
 import { useAPIClient } from "@shared/api/client";
 import { getConfig } from "@shared/api/config";
 import { REQUESTS_FEED_QUERY_KEY } from "@shared/api/requests";
-import type { MakeRequest, MakeRequestPriority, Department, User, RoomWithOptionalGuestBooking } from "@shared";
+import type {
+  MakeRequest,
+  MakeRequestPriority,
+  Department,
+  User,
+  RoomWithOptionalGuestBooking,
+} from "@shared";
 import { PriorityPicker } from "@/components/tasks/priority-picker";
 import { DepartmentPicker } from "@/components/tasks/department-picker";
 import { DeadlinePicker } from "@/components/tasks/deadline-picker";
 import { AssigneePicker } from "@/components/tasks/assignee-picker";
 import { RoomPicker } from "@/components/tasks/room-picker";
-
 
 export default function CreateTaskManualScreen() {
   const [taskName, setTaskName] = useState("");
@@ -34,7 +39,9 @@ export default function CreateTaskManualScreen() {
   );
   const [deadline, setDeadline] = useState<Date | undefined>(undefined);
   const [assignee, setAssignee] = useState<User | undefined>(undefined);
-  const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>(undefined);
+  const [room, setRoom] = useState<RoomWithOptionalGuestBooking | undefined>(
+    undefined,
+  );
 
   const api = useAPIClient();
   const queryClient = useQueryClient();
@@ -100,7 +107,10 @@ export default function CreateTaskManualScreen() {
 
           {/* Task Fields */}
           <View className="gap-4">
-            <PriorityPicker value={priority} onChange={(v) => setPriority(v ?? "medium")} />
+            <PriorityPicker
+              value={priority}
+              onChange={(v) => setPriority(v ?? "medium")}
+            />
 
             <DeadlinePicker value={deadline} onChange={setDeadline} />
 

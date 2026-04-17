@@ -23,7 +23,10 @@ import { DepartmentPicker } from "@/components/tasks/department-picker";
 import { PriorityPicker } from "@/components/tasks/priority-picker";
 import { RoomPicker } from "@/components/tasks/room-picker";
 import { getConfig } from "@shared/api/config";
-import { REQUESTS_FEED_QUERY_KEY, useGetRequestById } from "@shared/api/requests";
+import {
+  REQUESTS_FEED_QUERY_KEY,
+  useGetRequestById,
+} from "@shared/api/requests";
 import { usePutRequestId } from "@shared/api/generated/endpoints/requests/requests";
 import { useGetDepartments, useGetUsersId } from "@shared";
 import type {
@@ -102,10 +105,15 @@ export function TaskDetailSheet({
   const [isDirty, setIsDirty] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [editPriority, setEditPriority] = useState<MakeRequestPriority>("medium");
-  const [editDepartment, setEditDepartment] = useState<Department | undefined>(undefined);
+  const [editPriority, setEditPriority] =
+    useState<MakeRequestPriority>("medium");
+  const [editDepartment, setEditDepartment] = useState<Department | undefined>(
+    undefined,
+  );
   const [editAssignee, setEditAssignee] = useState<User | undefined>(undefined);
-  const [editRoom, setEditRoom] = useState<RoomWithOptionalGuestBooking | undefined>(undefined);
+  const [editRoom, setEditRoom] = useState<
+    RoomWithOptionalGuestBooking | undefined
+  >(undefined);
   const [editDeadline, setEditDeadline] = useState<Date | undefined>(undefined);
   const assigneeInitializedRef = useRef(false);
   const roomDeadlineInitializedRef = useRef(false);
@@ -117,7 +125,9 @@ export function TaskDetailSheet({
   const { data: fullRequest } = useGetRequestById(task?.id ?? null);
 
   // Fetch departments for pre-populating department picker
-  const { data: departments } = useGetDepartments(isEditing ? hotelId : undefined);
+  const { data: departments } = useGetDepartments(
+    isEditing ? hotelId : undefined,
+  );
 
   // Fetch assignee user when there's a user_id
   const { data: initialAssigneeData } = useGetUsersId(task?.user_id ?? "", {
@@ -165,12 +175,17 @@ export function TaskDetailSheet({
       setEditRoom(undefined);
       setEditDeadline(undefined);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing]);
 
   // Pre-populate department once departments list loads
   useEffect(() => {
-    if (isEditing && departments && task?.department_id && !departmentInitializedRef.current) {
+    if (
+      isEditing &&
+      departments &&
+      task?.department_id &&
+      !departmentInitializedRef.current
+    ) {
       const dept = departments.find((d) => d.id === task.department_id);
       if (dept) {
         departmentInitializedRef.current = true;
@@ -189,7 +204,12 @@ export function TaskDetailSheet({
 
   // Pre-populate room and deadline once full request loads
   useEffect(() => {
-    if (isEditing && fullRequest && task && !roomDeadlineInitializedRef.current) {
+    if (
+      isEditing &&
+      fullRequest &&
+      task &&
+      !roomDeadlineInitializedRef.current
+    ) {
       roomDeadlineInitializedRef.current = true;
       if (fullRequest.room_id) {
         setEditRoom({
@@ -379,7 +399,11 @@ export function TaskDetailSheet({
                     className="w-9 h-9 items-center justify-center rounded"
                     hitSlop={8}
                   >
-                    <Feather name="edit-2" size={18} color={Colors.light.text} />
+                    <Feather
+                      name="edit-2"
+                      size={18}
+                      color={Colors.light.text}
+                    />
                   </Pressable>
                 )}
               </View>
@@ -410,7 +434,10 @@ export function TaskDetailSheet({
                     placeholder="Task Name"
                     placeholderTextColor={Colors.light.textSubtle}
                     value={editName}
-                    onChangeText={(v) => { setEditName(v); setIsDirty(true); }}
+                    onChangeText={(v) => {
+                      setEditName(v);
+                      setIsDirty(true);
+                    }}
                     returnKeyType="done"
                   />
                 </View>
@@ -419,19 +446,43 @@ export function TaskDetailSheet({
                 <View className="gap-4">
                   <PriorityPicker
                     value={editPriority}
-                    onChange={(v) => { setEditPriority(v ?? "medium"); setIsDirty(true); }}
+                    onChange={(v) => {
+                      setEditPriority(v ?? "medium");
+                      setIsDirty(true);
+                    }}
                   />
 
-                  <DeadlinePicker value={editDeadline} onChange={(v) => { setEditDeadline(v); setIsDirty(true); }} />
+                  <DeadlinePicker
+                    value={editDeadline}
+                    onChange={(v) => {
+                      setEditDeadline(v);
+                      setIsDirty(true);
+                    }}
+                  />
 
-                  <AssigneePicker value={editAssignee} onChange={(v) => { setEditAssignee(v); setIsDirty(true); }} />
+                  <AssigneePicker
+                    value={editAssignee}
+                    onChange={(v) => {
+                      setEditAssignee(v);
+                      setIsDirty(true);
+                    }}
+                  />
 
-                  <RoomPicker value={editRoom} onChange={(v) => { setEditRoom(v); setIsDirty(true); }} />
+                  <RoomPicker
+                    value={editRoom}
+                    onChange={(v) => {
+                      setEditRoom(v);
+                      setIsDirty(true);
+                    }}
+                  />
 
                   <DepartmentPicker
                     hotelId={hotelId}
                     value={editDepartment}
-                    onChange={(v) => { setEditDepartment(v); setIsDirty(true); }}
+                    onChange={(v) => {
+                      setEditDepartment(v);
+                      setIsDirty(true);
+                    }}
                   />
 
                   {/* Description */}
@@ -444,7 +495,10 @@ export function TaskDetailSheet({
                       placeholder="Empty"
                       placeholderTextColor={Colors.light.textSubtle}
                       value={editDescription}
-                      onChangeText={(v) => { setEditDescription(v); setIsDirty(true); }}
+                      onChangeText={(v) => {
+                        setEditDescription(v);
+                        setIsDirty(true);
+                      }}
                       multiline
                       textAlignVertical="top"
                     />
@@ -465,7 +519,11 @@ export function TaskDetailSheet({
                       className="w-9 h-9 items-center justify-center rounded"
                       hitSlop={8}
                     >
-                      <Feather name="edit-2" size={18} color={Colors.light.text} />
+                      <Feather
+                        name="edit-2"
+                        size={18}
+                        color={Colors.light.text}
+                      />
                     </Pressable>
                   )}
                 </View>
