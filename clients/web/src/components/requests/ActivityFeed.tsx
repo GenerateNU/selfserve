@@ -1,14 +1,19 @@
 import { useMemo } from "react";
 import { useGetUser } from "@shared";
 import type { RequestActivityItem } from "@shared";
-import { cn, formatFullDate, formatTimeAgo, getInitials, hashNameToColor } from "@/lib/utils";
+import {
+  cn,
+  formatFullDate,
+  formatTimeAgo,
+  getInitials,
+  hashNameToColor,
+} from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
 
 type ActivityRowProps = {
   item: RequestActivityItem;
@@ -20,10 +25,7 @@ function ActivityRow({ item }: ActivityRowProps) {
     item.type === "assigned" && item.new_value ? item.new_value : undefined,
   );
 
-  const randomSeed = useMemo(
-    () => Math.random().toString(36).slice(2, 4),
-    [],
-  );
+  const randomSeed = useMemo(() => Math.random().toString(36).slice(2, 4), []);
 
   const actorName = actor
     ? [actor.first_name, actor.last_name].filter(Boolean).join(" ")
@@ -129,7 +131,9 @@ function buildDescription(
 
 function buildDetail(item: RequestActivityItem): string | null {
   if (
-    (item.type === "status_changed" || item.type === "priority_changed" || item.type === "name_changed") &&
+    (item.type === "status_changed" ||
+      item.type === "priority_changed" ||
+      item.type === "name_changed") &&
     item.old_value &&
     item.new_value
   ) {
@@ -148,9 +152,7 @@ type ActivityFeedProps = {
 
 export function ActivityFeed({ items }: ActivityFeedProps) {
   if (items.length === 0) {
-    return (
-      <p className="text-sm text-text-subtle py-2">No activity yet.</p>
-    );
+    return <p className="text-sm text-text-subtle py-2">No activity yet.</p>;
   }
 
   return (

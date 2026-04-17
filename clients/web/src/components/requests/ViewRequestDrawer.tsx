@@ -85,7 +85,9 @@ export function ViewRequestDrawer({
   });
 
   const { data: room } = useRoomById(request?.room_id);
-  const { data: activityItems = [] } = useGetRequestActivity(request?.id ?? null);
+  const { data: activityItems = [] } = useGetRequestActivity(
+    request?.id ?? null,
+  );
 
   if (!request) {
     return (
