@@ -132,6 +132,7 @@ function GuestsQuickListPage() {
         title: "Guests",
         description: "Description blah blah fries -> bag",
       }}
+      bodyClassName="pb-24"
       drawerOpen={generatedData !== null || guestId !== undefined}
       drawer={
         generatedData !== null ? (
