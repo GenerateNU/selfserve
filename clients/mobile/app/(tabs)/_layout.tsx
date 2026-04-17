@@ -11,25 +11,28 @@ import { StartupStatus, useStartup } from "@/context/startup";
 type TabBarIconProps = {
   name: React.ComponentProps<typeof IconSymbol>["name"];
   focused: boolean;
-  activeColor: string;
-  highlightColor: string;
   label: string;
 };
 
-const TabBarIcon = ({ name, focused, activeColor, label }: TabBarIconProps) => (
-  <View
-    className={`rounded-xl px-3 py-1 items-center gap-1 min-w-20 ${focused ? "bg-card" : "bg-transparent"}`}
-  >
-    <IconSymbol size={22} name={name} color={activeColor} />
-    <Text numberOfLines={1} className="text-xs font-medium text-primary">
-      {label}
-    </Text>
+const TabBarIcon = ({ name, focused, label }: TabBarIconProps) => (
+  <View className="w-[60px] h-[60px] items-center justify-center">
+    <View
+      className={`rounded-lg px-2 py-1 items-center gap-0.5 ${focused ? "bg-bg-selected" : "bg-transparent"}`}
+    >
+      <IconSymbol size={18} name={name} color={focused ? "#124425" : "#a2a2a2"} />
+      <Text
+        numberOfLines={1}
+        className={`text-xs font-medium ${focused ? "text-primary-surface" : "text-[#a2a2a2]"}`}
+      >
+        {label}
+      </Text>
+    </View>
   </View>
 );
 
 const PlusButton = () => (
-  <View className="bg-primary rounded-full size-16 items-center justify-center mb-6">
-    <IconSymbol size={22} name="plus" color={Colors["light"].background} />
+  <View className="bg-primary rounded-full size-10 items-center justify-center">
+    <IconSymbol size={22} name="plus" color="#ffffff" />
   </View>
 );
 
@@ -46,14 +49,18 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarActiveTintColor: c.tabBarActive,
-        tabBarInactiveTintColor: c.tabBarActive,
+        tabBarInactiveTintColor: "#a2a2a2",
         tabBarItemStyle: {
           paddingVertical: 0,
         },
         tabBarStyle: {
           paddingTop: 8,
+          paddingBottom: 12,
           paddingHorizontal: 20,
-          height: 68,
+          height: 80,
+          borderTopWidth: 1,
+          borderTopColor: "#e9e9e9",
+          backgroundColor: "#ffffff",
         },
       }}
     >
@@ -62,13 +69,7 @@ export default function TabLayout() {
         options={{
           title: "Tasks",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon
-              name="checklist"
-              focused={focused}
-              activeColor={c.tabBarActive}
-              highlightColor={c.tabBarHighlight}
-              label="Tasks"
-            />
+            <TabBarIcon name="checklist" focused={focused} label="Tasks" />
           ),
         }}
       />
@@ -77,13 +78,7 @@ export default function TabLayout() {
         options={{
           title: "Rooms",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon
-              name="house.fill"
-              focused={focused}
-              activeColor={c.tabBarActive}
-              highlightColor={c.tabBarHighlight}
-              label="Rooms"
-            />
+            <TabBarIcon name="house.fill" focused={focused} label="Rooms" />
           ),
         }}
       />
@@ -100,13 +95,7 @@ export default function TabLayout() {
         options={{
           title: "Guest",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon
-              name="suitcase.cart"
-              focused={focused}
-              activeColor={c.tabBarActive}
-              highlightColor={c.tabBarHighlight}
-              label="Guests"
-            />
+            <TabBarIcon name="suitcase.cart" focused={focused} label="Guests" />
           ),
         }}
       />
@@ -115,13 +104,7 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon
-              name="person.circle"
-              focused={focused}
-              activeColor={c.tabBarActive}
-              highlightColor={c.tabBarHighlight}
-              label="Profile"
-            />
+            <TabBarIcon name="person.circle" focused={focused} label="Profile" />
           ),
         }}
       />
