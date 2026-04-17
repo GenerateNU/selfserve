@@ -82,6 +82,10 @@ export const useAssignRequestToSelf = (_roomId?: string) => {
         exact: false,
       });
       queryClient.invalidateQueries({
+        queryKey: REQUESTS_OVERVIEW_QUERY_KEY,
+        exact: false,
+      });
+      queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey[0];
           return typeof key === "string" && key.startsWith("/request/room/");
@@ -306,6 +310,29 @@ export const useDeleteTask = () => {
         exact: false,
       });
     },
+  });
+};
+
+export type RequestsOverview = {
+  urgent: number;
+  unassigned: number;
+  pending: number;
+};
+
+type RequestsOverviewParams = {
+  floors?: number[];
+  status?: string[];
+  attributes?: string[];
+  advanced?: string[];
+};
+
+export const REQUESTS_OVERVIEW_QUERY_KEY = ["requests-overview"] as const;
+
+export const useGetRequestsOverview = (params: RequestsOverviewParams) => {
+  const api = useAPIClient();
+  return useQuery({
+    queryKey: [...REQUESTS_OVERVIEW_QUERY_KEY, params] as const,
+    queryFn: () => api.post<RequestsOverview>("/requests/overview", params),
   });
 };
 

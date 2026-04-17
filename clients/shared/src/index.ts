@@ -108,7 +108,9 @@ export type {
 
 export {
   REQUESTS_FEED_QUERY_KEY,
+  REQUESTS_OVERVIEW_QUERY_KEY,
   useGetRequestById,
+  useGetRequestsOverview,
   useGetRequestsFeed,
   useInfiniteRequestsByGuest,
   getGuestRequestsQueryKey,
@@ -124,6 +126,7 @@ export type {
   RequestFeedItem,
   RequestFeedSort,
   RequestFeedParams,
+  RequestsOverview,
 } from "./api/requests";
 
 export { useCustomInstance } from "./api/orval-mutator";

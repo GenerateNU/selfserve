@@ -100,7 +100,7 @@ function RoomsPage() {
             selectedRoomNumber={selectedRoom?.room_number ?? null}
           />
         </div>
-        <RoomsOverview rooms={roomsData?.items ?? []} />
+        <RoomsOverview rooms={roomsData?.items ?? []} filters={filters} />
       </div>
       {generatedData === null && selectedRoom === null && (
         <GlobalTaskInput

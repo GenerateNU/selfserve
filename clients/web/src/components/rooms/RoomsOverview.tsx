@@ -1,14 +1,16 @@
-import { useAssignRequestToSelf } from "@shared";
+import { useAssignRequestToSelf, useGetRequestsOverview } from "@shared";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 import { OverviewCard } from "@/components/rooms/OverviewCard";
 import { RoomRequestList } from "@/components/rooms/RoomRequestList";
 import { useUnassignedTasks } from "@/hooks/use-unassigned-tasks";
+import type { RoomsPageFilters } from "@/hooks/use-rooms-filters";
 
 type RoomsOverviewProps = {
   rooms: Array<RoomWithOptionalGuestBooking>;
+  filters: RoomsPageFilters;
 };
-// TODO: Replace with hifi (this is just to confirm the data is correct for us to ship rooms list)
-export function RoomsOverview({ rooms }: RoomsOverviewProps) {
+
+export function RoomsOverview({ rooms, filters }: RoomsOverviewProps) {
   const { tasks: unassignedTasks } = useUnassignedTasks();
   const { mutate: onAssignToSelf } = useAssignRequestToSelf(undefined);
   const totalRooms = rooms.length;
@@ -16,16 +18,17 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
   const occupiedRooms = rooms.filter(
     (r) => r.booking_status === "active",
   ).length;
-  const cleaningRooms = rooms.filter(
-    (r) => r.room_status === "cleaning",
-  ).length;
-  const cleaningOnlyRooms = rooms.filter(
-    (r) => r.room_status === "cleaning" && r.booking_status !== "active",
-  ).length;
   const occupiedAndCleaningRooms = rooms.filter(
     (r) => r.booking_status === "active" && r.room_status === "cleaning",
   ).length;
   const vacantRooms = totalRooms - occupiedRooms;
+
+  const { data: overview } = useGetRequestsOverview({
+    floors: filters.floors.length > 0 ? filters.floors : undefined,
+    status: filters.status.length > 0 ? filters.status : undefined,
+    attributes: filters.attributes.length > 0 ? filters.attributes : undefined,
+    advanced: filters.advanced.length > 0 ? filters.advanced : undefined,
+  });
 
   return (
     <aside className="w-full max-w-[24.875rem] shrink-0 min-h-0 flex flex-col px-6">
@@ -36,18 +39,18 @@ export function RoomsOverview({ rooms }: RoomsOverviewProps) {
             columns={[
               {
                 field: "Urgent",
-                value: 0,
+                value: overview?.urgent ?? 0,
                 description: "Tasks",
                 urgent: true,
               },
               {
                 field: "Unassigned",
-                value: cleaningOnlyRooms,
+                value: overview?.unassigned ?? 0,
                 description: "Tasks",
               },
               {
                 field: "Pending",
-                value: cleaningRooms,
+                value: overview?.pending ?? 0,
                 description: "Tasks",
               },
             ]}
