@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useGetRooms } from "@shared/api/rooms";
-import type { Request, RequestPriority, RoomWithOptionalGuestBooking } from "@shared";
+import type {
+  Request,
+  RequestPriority,
+  RoomWithOptionalGuestBooking,
+} from "@shared";
 import type { RoomSortOption } from "@/components/rooms/OrderByDropdown";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
