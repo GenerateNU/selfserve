@@ -8,6 +8,11 @@ import {
   useGetRequestsFeed,
   type RequestFeedItem,
 } from "@shared/api/requests";
+import {
+  useGetRoomsForFloor,
+  BookingStatus,
+  RoomStatusValue,
+} from "@shared/api/rooms";
 
 type UnassignedTaskCardProps = {
   task: RequestFeedItem;
@@ -74,14 +79,34 @@ type OverviewTabProps = {
 };
 
 export function OverviewTab({ floorId }: OverviewTabProps) {
-  const { data } = useGetRequestsFeed({ unassigned: true, floors: [floorId] });
+  const { data: requestsData } = useGetRequestsFeed({
+    unassigned: true,
+    floors: [floorId],
+  });
+  const { data: roomsData } = useGetRoomsForFloor([floorId]);
   const {
     mutate: assignToSelf,
     isPending: isAssigning,
     variables: assigningTaskId,
   } = useAssignRequestToSelf();
 
-  const unassignedTasks = data?.pages.flatMap((p) => p.items ?? []) ?? [];
+  const unassignedTasks =
+    requestsData?.pages.flatMap((p) => p.items ?? []) ?? [];
+
+  const rooms = roomsData?.items ?? [];
+  const totalRooms = rooms.length;
+  const occupiedRooms = rooms.filter(
+    (r) => r.booking_status === BookingStatus.BookingStatusActive,
+  ).length;
+  const vacantRooms = totalRooms - occupiedRooms;
+  const cleaningRooms = rooms.filter(
+    (r) => r.room_status === RoomStatusValue.Cleaning,
+  ).length;
+  const occupiedAndCleaningRooms = rooms.filter(
+    (r) =>
+      r.booking_status === BookingStatus.BookingStatusActive &&
+      r.room_status === RoomStatusValue.Cleaning,
+  ).length;
 
   return (
     <ScrollView
@@ -108,7 +133,7 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
               <Text className="text-[15px] text-text-default">Urgent</Text>
             </View>
             <Text className="text-[32px] font-medium text-text-default leading-tight">
-              1
+              0
             </Text>
             <Text className="text-[15px] text-text-subtle">Tasks</Text>
           </View>
@@ -122,7 +147,7 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
           <View className="flex-1 p-4 gap-1">
             <Text className="text-[15px] text-text-default">Pending</Text>
             <Text className="text-[32px] font-medium text-text-default leading-tight">
-              12
+              {cleaningRooms}
             </Text>
             <Text className="text-[15px] text-text-subtle">Tasks</Text>
           </View>
@@ -134,24 +159,24 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
             <Text className="text-[15px] text-text-default">{`Floor\nOccupancy`}</Text>
             <View className="flex-row items-baseline gap-1">
               <Text className="text-[32px] font-medium text-text-default leading-tight">
-                62
+                {occupiedRooms}
               </Text>
               <Text className="text-xs text-text-subtle">/</Text>
-              <Text className="text-xs text-text-subtle">80</Text>
+              <Text className="text-xs text-text-subtle">{totalRooms}</Text>
             </View>
             <Text className="text-[15px] text-text-subtle">Rooms occupied</Text>
           </View>
           <View className="flex-1 p-4 gap-1">
             <Text className="text-[15px] text-text-default">{`Expected\nArrivals`}</Text>
             <Text className="text-[32px] font-medium text-text-default leading-tight">
-              8
+              {vacantRooms}
             </Text>
             <Text className="text-[15px] text-text-subtle">Guests</Text>
           </View>
           <View className="flex-1 p-4 gap-1">
             <Text className="text-[15px] text-text-default">{`Expected\nDepartures`}</Text>
             <Text className="text-[32px] font-medium text-text-default leading-tight">
-              11
+              {occupiedAndCleaningRooms}
             </Text>
             <Text className="text-[15px] text-text-subtle">Guests</Text>
           </View>

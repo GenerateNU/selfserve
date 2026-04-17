@@ -14,68 +14,12 @@ import {
   type Floor,
 } from "@/components/rooms/floor-picker-sheet";
 import { OverviewTab } from "@/components/rooms/overview-tab";
-
-type Room = {
-  id: string;
-  roomNumber: number;
-  roomType: string;
-  status: RoomStatus;
-  hasHighPriority?: boolean;
-  isAccessible?: boolean;
-  extraTagCount?: number;
-};
-
-const MOCK_ROOMS: Room[] = [
-  {
-    id: "1",
-    roomNumber: 100,
-    roomType: "Double Suite",
-    status: { type: "occupied", guestName: "John Doe" },
-    hasHighPriority: true,
-    isAccessible: true,
-    extraTagCount: 1,
-  },
-  {
-    id: "2",
-    roomNumber: 101,
-    roomType: "Double Suite",
-    status: { type: "out-of-order" },
-    hasHighPriority: true,
-    isAccessible: true,
-    extraTagCount: 1,
-  },
-  {
-    id: "3",
-    roomNumber: 102,
-    roomType: "Double Suite",
-    status: { type: "vacant", isAvailable: true },
-    isAccessible: true,
-  },
-  {
-    id: "4",
-    roomNumber: 103,
-    roomType: "Double Suite",
-    status: { type: "occupied", guestName: "Jane Smith" },
-    hasHighPriority: true,
-    isAccessible: true,
-    extraTagCount: 1,
-  },
-  {
-    id: "5",
-    roomNumber: 104,
-    roomType: "King Suite",
-    status: { type: "occupied", guestName: "Robert Chen" },
-    hasHighPriority: true,
-    isAccessible: true,
-    extraTagCount: 1,
-  },
-  {
-    id: "6",
-    roomNumber: 105,
-    roomType: "Double Suite",
-    status: { type: "vacant", isAvailable: false },
-  },
-];
+import {
+  useGetRoomsForFloor,
+  BookingStatus,
+  RoomStatusValue,
+} from "@shared/api/rooms";
+import type { RoomWithOptionalGuestBooking } from "@shared";
 
 const FLOORS: Floor[] = [
   { id: "1", label: "Floor 1" },
@@ -92,10 +36,33 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
 ];
 
+function getRoomStatus(room: RoomWithOptionalGuestBooking): RoomStatus {
+  switch (true) {
+    case room.room_status === RoomStatusValue.OutOfOrder:
+      return { type: "out-of-order" };
+    case room.booking_status === BookingStatus.BookingStatusActive: {
+      const guest = room.guests?.[0];
+      const guestName =
+        [guest?.first_name, guest?.last_name].filter(Boolean).join(" ") ||
+        "Guest";
+      return { type: "occupied", guestName };
+    }
+    default:
+      return {
+        type: "vacant",
+        isAvailable: room.room_status === RoomStatusValue.Available,
+      };
+  }
+}
+
 export default function RoomsScreen() {
   const [activeTab, setActiveTab] = useState<TabId>("rooms");
   const [selectedFloor, setSelectedFloor] = useState<Floor>(FLOORS[0]);
   const [floorPickerVisible, setFloorPickerVisible] = useState(false);
+
+  const floorId = parseInt(selectedFloor.id);
+  const { data: roomsData } = useGetRoomsForFloor([floorId]);
+  const rooms = roomsData?.items ?? [];
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
@@ -147,21 +114,18 @@ export default function RoomsScreen() {
       {/* Content */}
       {activeTab === "rooms" ? (
         <FlatList
-          data={MOCK_ROOMS}
-          keyExtractor={(item) => item.id}
+          data={rooms}
+          keyExtractor={(item) => item.id ?? String(item.room_number)}
           renderItem={({ item }) => (
             <RoomCard
-              roomNumber={item.roomNumber}
-              roomType={item.roomType}
-              status={item.status}
-              hasHighPriority={item.hasHighPriority}
-              isAccessible={item.isAccessible}
-              extraTagCount={item.extraTagCount}
+              roomNumber={item.room_number ?? ""}
+              roomType={item.suite_type ?? ""}
+              status={getRoomStatus(item)}
             />
           )}
         />
       ) : (
-        <OverviewTab floorId={parseInt(selectedFloor.id)} />
+        <OverviewTab floorId={floorId} />
       )}
       <FloorPickerSheet
         visible={floorPickerVisible}
