@@ -2,23 +2,45 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
-import { MakeRequestPriority } from "@shared";
-import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
-import { useGetDepartments } from "@shared/api/departments";
-import { useCreateView, useDeleteView, useGetViews } from "@shared/api/views";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
-import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
-import type { Request, User } from "@shared";
-import type { View } from "@shared/types/views";
-import { DeleteViewModal } from "@/components/home/DeleteViewModal";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { useUpdateRequestDepartment } from "@shared/api/requests";
+import {
+  MakeRequestPriority,
+  useCreateView,
+  useDeleteView,
+  useGetDepartments,
+  useGetRequestById,
+  useGetRequestsFeed,
+  useGetUsersIdHook,
+  useGetViews,
+} from "@shared";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import type {
+  Request,
+  RequestFeedItem,
+  RequestFeedSort,
+  User,
+  View,
+} from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
 import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
-import { ViewRequestDrawer } from "@/components/requests/ViewRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
-import { RequestCardItem } from "@/components/requests/RequestCardItem";
+import {
+  RequestCardItem,
+  formatRequestTime,
+} from "@/components/requests/RequestCardItem";
+import { RequestCard } from "@/components/requests/RequestCard";
+import { RequestCardTimestamp } from "@/components/requests/RequestCardTimestamp";
+import { DeleteViewModal } from "@/components/home/DeleteViewModal";
 
 const REQUESTS_WEB_SLUG = "requests_web";
 
@@ -39,6 +61,7 @@ function KanbanColumnData({
   title,
   department,
   onCardClick,
+  onCreateRequest,
   sort,
   userId,
   priorities,
@@ -47,6 +70,7 @@ function KanbanColumnData({
   title: string;
   department: string;
   onCardClick: (requestId: string) => void;
+  onCreateRequest: (departmentId: string) => void;
   sort: RequestFeedSort | undefined;
   userId?: string;
   priorities?: Array<string>;
@@ -91,7 +115,11 @@ function KanbanColumnData({
   if (!isPending && requests.length === 0) return null;
 
   return (
-    <KanbanColumn title={title}>
+    <KanbanColumn
+      title={title}
+      droppableId={department}
+      onCreateRequest={() => onCreateRequest(department)}
+    >
       {requests.map((request: RequestFeedItem) => (
         <RequestCardItem
           key={request.id}
@@ -101,6 +129,25 @@ function KanbanColumnData({
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
     </KanbanColumn>
+  );
+}
+
+function DragOverlayCard({ request }: { request: RequestFeedItem }) {
+  return (
+    <RequestCard
+      status={request.status}
+      className="w-[22rem] shadow-xl rotate-1 opacity-95"
+    >
+      <RequestCardTimestamp
+        status={request.status}
+        time={formatRequestTime(request.created_at)}
+      />
+      <div className="mt-3">
+        <span className="text-base font-medium leading-snug text-text-default line-clamp-2">
+          {request.name}
+        </span>
+      </div>
+    </RequestCard>
   );
 }
 
@@ -119,6 +166,9 @@ function HomePage() {
   );
   const [viewIsPending, setViewIsPending] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [activeDragItem, setActiveDragItem] = useState<RequestFeedItem | null>(
+    null,
+  );
 
   const { user: clerkUser } = useUser();
   const getUsersId = useGetUsersIdHook();
@@ -134,6 +184,7 @@ function HomePage() {
   const { mutate: deleteView, isPending: isDeletingView } =
     useDeleteView(REQUESTS_WEB_SLUG);
   const [viewToDelete, setViewToDelete] = useState<View | null>(null);
+  const { mutate: updateRequestDepartment } = useUpdateRequestDepartment();
 
   const [drawerData, setDrawerData] = useState<{
     name?: string;
@@ -142,12 +193,48 @@ function HomePage() {
     room_id?: string;
     guest_id?: string;
     user_id?: string;
+    department_id?: string;
   } | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
     null,
   );
 
   const { data: selectedRequest } = useGetRequestById(selectedRequestId);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+  );
+
+  function handleDragStart(event: DragStartEvent) {
+    setActiveDragItem(event.active.data.current?.request ?? null);
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    setActiveDragItem(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const request = active.data.current?.request as RequestFeedItem | undefined;
+    const targetDeptId = over.id as string;
+
+    if (!request || request.department_id === targetDeptId) return;
+
+    const targetDept = (departments ?? []).find((d) => d.id === targetDeptId);
+    if (!targetDept) return;
+
+    updateRequestDepartment({
+      requestId: request.id,
+      departmentId: targetDeptId,
+      sourceDepartmentId: request.department_id ?? "",
+      updatedItem: {
+        ...request,
+        department_id: targetDeptId,
+        department_name: targetDept.name,
+      },
+    });
+  }
 
   function handleApplyView(view: View) {
     const filters = view.filters as RequestsWebFilters;
@@ -198,6 +285,11 @@ function HomePage() {
     setDrawerData({});
   }
 
+  function handleCreateRequestForDepartment(departmentId: string) {
+    setSelectedRequestId(null);
+    setDrawerData({ department_id: departmentId });
+  }
+
   function handleRequestGenerated(request: Request) {
     const p = request.priority;
     setSelectedRequestId(null);
@@ -220,14 +312,27 @@ function HomePage() {
   const drawer =
     drawerData !== null ? (
       <CreateRequestDrawer
+        key="create"
         initialData={drawerData}
         onClose={() => setDrawerData(null)}
       />
     ) : selectedRequestId !== null ? (
-      <ViewRequestDrawer
-        request={selectedRequest ?? null}
-        onClose={() => setSelectedRequestId(null)}
-      />
+      selectedRequest ? (
+        <CreateRequestDrawer
+          key={selectedRequestId}
+          existingRequest={selectedRequest}
+          onClose={() => setSelectedRequestId(null)}
+        />
+      ) : (
+        <div className="flex h-full w-full flex-col gap-4 p-10 pt-14">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-7 animate-pulse rounded-md bg-bg-disabled"
+            />
+          ))}
+        </div>
+      )
     ) : null;
 
   const drawerOpen = drawerData !== null || selectedRequestId !== null;
@@ -309,25 +414,35 @@ function HomePage() {
       }
     >
       <div className="relative flex-1 min-h-0">
-        <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
-          {(selectedDepartments.length > 0
-            ? (departments ?? []).filter((d) =>
-                selectedDepartments.includes(d.name),
-              )
-            : (departments ?? [])
-          ).map((dep) => (
-            <KanbanColumnData
-              key={dep.id}
-              title={dep.name}
-              department={dep.id}
-              sort={sort}
-              userId={selectedUser?.id}
-              onCardClick={handleCardClick}
-              priorities={selectedPriorities}
-              floors={selectedFloors}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
+            {(selectedDepartments.length > 0
+              ? (departments ?? []).filter((d) =>
+                  selectedDepartments.includes(d.name),
+                )
+              : (departments ?? [])
+            ).map((dep) => (
+              <KanbanColumnData
+                key={dep.id}
+                title={dep.name}
+                department={dep.id}
+                sort={sort}
+                userId={selectedUser?.id}
+                onCardClick={handleCardClick}
+                onCreateRequest={handleCreateRequestForDepartment}
+                priorities={selectedPriorities}
+                floors={selectedFloors}
+              />
+            ))}
+          </div>
+          <DragOverlay dropAnimation={null}>
+            {activeDragItem && <DragOverlayCard request={activeDragItem} />}
+          </DragOverlay>
+        </DndContext>
       </div>
       <DeleteViewModal
         view={viewToDelete}
