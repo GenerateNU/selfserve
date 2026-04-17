@@ -1,5 +1,5 @@
 import { useUser } from "@clerk/clerk-react";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
+import { useGetUsersIdHook } from "@shared";
 import { useQuery } from "@tanstack/react-query";
 import { Building2, Users } from "lucide-react";
 import { useProfilePicture } from "@/hooks/use-profile-picture";

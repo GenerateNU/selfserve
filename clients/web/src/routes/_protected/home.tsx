@@ -2,23 +2,31 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
-import { MakeRequestPriority } from "@shared";
-import { useGetRequestById, useGetRequestsFeed } from "@shared/api/requests";
-import { useGetDepartments } from "@shared/api/departments";
-import { useCreateView, useDeleteView, useGetViews } from "@shared/api/views";
-import { useGetUsersIdHook } from "@shared/api/generated/endpoints/users/users.ts";
-import type { RequestFeedItem, RequestFeedSort } from "@shared/api/requests";
-import type { Request, User } from "@shared";
-import type { View } from "@shared/types/views";
-import { DeleteViewModal } from "@/components/home/DeleteViewModal";
+import {
+  MakeRequestPriority,
+  useCreateView,
+  useDeleteView,
+  useGetDepartments,
+  useGetRequestById,
+  useGetRequestsFeed,
+  useGetUsersIdHook,
+  useGetViews,
+} from "@shared";
+import type {
+  Request,
+  RequestFeedItem,
+  RequestFeedSort,
+  User,
+  View,
+} from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { HomeToolbar } from "@/components/home/HomeToolbar";
 import { HomeFilterBar } from "@/components/home/HomeFilterBar";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
-import { ViewRequestDrawer } from "@/components/requests/ViewRequestDrawer";
 import { KanbanColumn } from "@/components/requests/KanbanColumn";
 import { RequestCardItem } from "@/components/requests/RequestCardItem";
+import { DeleteViewModal } from "@/components/home/DeleteViewModal";
 
 const REQUESTS_WEB_SLUG = "requests_web";
 
@@ -220,14 +228,27 @@ function HomePage() {
   const drawer =
     drawerData !== null ? (
       <CreateRequestDrawer
+        key="create"
         initialData={drawerData}
         onClose={() => setDrawerData(null)}
       />
     ) : selectedRequestId !== null ? (
-      <ViewRequestDrawer
-        request={selectedRequest ?? null}
-        onClose={() => setSelectedRequestId(null)}
-      />
+      selectedRequest ? (
+        <CreateRequestDrawer
+          key={selectedRequestId}
+          existingRequest={selectedRequest}
+          onClose={() => setSelectedRequestId(null)}
+        />
+      ) : (
+        <div className="flex h-full w-full flex-col gap-4 p-10 pt-14">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-7 animate-pulse rounded-md bg-bg-disabled"
+            />
+          ))}
+        </div>
+      )
     ) : null;
 
   const drawerOpen = drawerData !== null || selectedRequestId !== null;
