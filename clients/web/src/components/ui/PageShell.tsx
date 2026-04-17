@@ -7,6 +7,7 @@ type PageShellProps = {
     description: string;
   };
   headerBorder?: boolean;
+  subHeader?: ReactNode;
   drawer?: ReactNode;
   drawerOpen?: boolean;
   children: ReactNode;
@@ -17,6 +18,7 @@ type PageShellProps = {
 export function PageShell({
   header,
   headerBorder = true,
+  subHeader,
   drawer,
   drawerOpen = false,
   children,
@@ -31,8 +33,8 @@ export function PageShell({
         {header ? (
           <header
             className={cn(
-              "shrink-0 bg-white px-6 pt-4 pb-3 flex flex-col gap-1.5",
-              headerBorder && "border-b border-stroke-subtle",
+              "shrink-0 bg-white px-6 pt-4 flex flex-col gap-1.5",
+              headerBorder ? "pb-3 border-b border-stroke-subtle" : "pb-0",
             )}
           >
             <h1 className="text-2xl font-bold tracking-tight text-text-default">
@@ -40,6 +42,10 @@ export function PageShell({
             </h1>
             <h2 className="text-sm text-text-subtle">{header.description}</h2>
           </header>
+        ) : null}
+
+        {subHeader ? (
+          <div className="shrink-0 bg-white">{subHeader}</div>
         ) : null}
 
         <section

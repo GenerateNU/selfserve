@@ -163,15 +163,9 @@ function GuestsQuickListPage() {
         }}
       />
       {guestsContent}
-      {generatedData === null && (
+      {generatedData === null && guestId === undefined && (
         <GlobalTaskInput
           onRequestGenerated={(r: Request) => {
-            if (guestId) {
-              navigate({
-                to: "/guests",
-                search: { guestId: undefined, tab: GuestDrawerTab.Profile },
-              });
-            }
             const p = r.priority;
             setGeneratedData({
               name: r.name,
