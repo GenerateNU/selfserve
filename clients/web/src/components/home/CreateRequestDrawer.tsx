@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Building2, Clock, DoorOpen, Flag, UserRound } from "lucide-react";
+import { Building2, Clock, DoorOpen, Flag, UserRound, X } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,7 +18,6 @@ import type {
 } from "@shared";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { DrawerShell } from "@/components/ui/DrawerShell";
 import { AssigneePicker } from "@/components/ui/AssigneePicker";
 import { DepartmentPicker } from "@/components/ui/DepartmentPicker";
 import { RoomPicker } from "@/components/ui/RoomPicker";
@@ -201,21 +200,28 @@ export function CreateRequestDrawer({
       ? "Save Changes"
       : "Create Request";
 
-  const titleInput = (
-    <input
-      type="text"
-      value={form.name}
-      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-      onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-      placeholder="New Request"
-      className="w-full bg-transparent text-center text-3xl font-bold text-text-default placeholder:text-text-subtle outline-none"
-      autoFocus={!isEditMode}
-    />
-  );
-
   return (
-    <DrawerShell title={titleInput} onClose={onClose}>
-      <div className="flex flex-col gap-4">
+    <div className="h-full w-full flex flex-col">
+      <div className="pl-4 pr-6 pt-5 pb-4">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex items-center justify-start p-0 hover:bg-bg-selected"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <input
+          type="text"
+          value={form.name}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          placeholder="New Request"
+          className="mt-4 pl-5 w-full bg-transparent text-3xl font-bold text-text-default placeholder:text-text-subtle outline-none"
+          autoFocus={!isEditMode}
+        />
+      </div>
+      <div className="flex flex-col gap-4 overflow-y-auto px-10 py-2 flex-1">
+        <div className="flex flex-col gap-4">
         {/* Assignee */}
         <div className="flex items-center gap-8">
           <FieldLabel icon={UserRound} label="Assignee" />
@@ -345,6 +351,7 @@ export function CreateRequestDrawer({
       >
         {buttonLabel}
       </Button>
-    </DrawerShell>
+      </div>
+    </div>
   );
 }
