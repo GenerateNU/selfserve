@@ -104,6 +104,9 @@ func InitApp(cfg *config.Config) (*App, error) {
 	setupClerk(cfg)
 
 	if err = setupRoutes(app, repo, genkitInstance, workflowClient, cfg, s3Store, openSearchRepos, objectCache); err != nil { //nolint:wsl
+		if temporalWorker != nil {
+			temporalWorker.Stop()
+		}
 		if temporalClient != nil {
 			temporalClient.Close()
 		}
