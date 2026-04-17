@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
+import { GithubComGenerateSelfserveInternalModelsBookingStatus } from "./generated/models";
 import type { RoomWithOptionalGuestBooking } from "./generated/models";
 import { useAPIClient } from "./client";
+
+export const BookingStatus = GithubComGenerateSelfserveInternalModelsBookingStatus;
+
+export const RoomStatusValue = {
+  Available: "available",
+  Cleaning: "cleaning",
+  OutOfOrder: "out-of-order",
+} as const;
 
 type RoomsPage = {
   items: RoomWithOptionalGuestBooking[] | null;

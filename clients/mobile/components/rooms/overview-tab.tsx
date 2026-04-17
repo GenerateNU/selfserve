@@ -8,7 +8,7 @@ import {
   useGetRequestsFeed,
   type RequestFeedItem,
 } from "@shared/api/requests";
-import { useGetRoomsForFloor } from "@shared/api/rooms";
+import { useGetRoomsForFloor, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
 
 type UnassignedTaskCardProps = {
   task: RequestFeedItem;
@@ -92,14 +92,16 @@ export function OverviewTab({ floorId }: OverviewTabProps) {
   const rooms = roomsData?.items ?? [];
   const totalRooms = rooms.length;
   const occupiedRooms = rooms.filter(
-    (r) => r.booking_status === "active",
+    (r) => r.booking_status === BookingStatus.BookingStatusActive,
   ).length;
   const vacantRooms = totalRooms - occupiedRooms;
   const cleaningRooms = rooms.filter(
-    (r) => r.room_status === "cleaning",
+    (r) => r.room_status === RoomStatusValue.Cleaning,
   ).length;
   const occupiedAndCleaningRooms = rooms.filter(
-    (r) => r.booking_status === "active" && r.room_status === "cleaning",
+    (r) =>
+      r.booking_status === BookingStatus.BookingStatusActive &&
+      r.room_status === RoomStatusValue.Cleaning,
   ).length;
 
   return (

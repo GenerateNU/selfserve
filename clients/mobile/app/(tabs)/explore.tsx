@@ -14,7 +14,7 @@ import {
   type Floor,
 } from "@/components/rooms/floor-picker-sheet";
 import { OverviewTab } from "@/components/rooms/overview-tab";
-import { useGetRoomsForFloor } from "@shared/api/rooms";
+import { useGetRoomsForFloor, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 
 const FLOORS: Floor[] = [
@@ -33,17 +33,17 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 function getRoomStatus(room: RoomWithOptionalGuestBooking): RoomStatus {
-  if (room.room_status === "out-of-order") {
+  if (room.room_status === RoomStatusValue.OutOfOrder) {
     return { type: "out-of-order" };
   }
-  if (room.booking_status === "active") {
+  if (room.booking_status === BookingStatus.BookingStatusActive) {
     const guest = room.guests?.[0];
     const guestName =
       [guest?.first_name, guest?.last_name].filter(Boolean).join(" ") ||
       "Guest";
     return { type: "occupied", guestName };
   }
-  return { type: "vacant", isAvailable: room.room_status === "available" };
+  return { type: "vacant", isAvailable: room.room_status === RoomStatusValue.Available };
 }
 
 export default function RoomsScreen() {
