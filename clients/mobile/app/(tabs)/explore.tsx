@@ -4,6 +4,7 @@ import { ChevronDown, Search, SlidersHorizontal, ArrowUpDown } from "lucide-reac
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
 import { RoomCard, type RoomStatus } from "@/components/rooms/room-card";
+import { FloorPickerSheet, type Floor } from "@/components/rooms/floor-picker-sheet";
 
 type Room = {
   id: string;
@@ -67,6 +68,14 @@ const MOCK_ROOMS: Room[] = [
   },
 ];
 
+const FLOORS: Floor[] = [
+  { id: "1", label: "Floor 1" },
+  { id: "2", label: "Floor 2" },
+  { id: "3", label: "Floor 3" },
+  { id: "4", label: "Floor 4" },
+  { id: "5", label: "Floor 5" },
+];
+
 type TabId = "rooms" | "overview";
 
 const TABS: { id: TabId; label: string }[] = [
@@ -76,14 +85,19 @@ const TABS: { id: TabId; label: string }[] = [
 
 export default function RoomsScreen() {
   const [activeTab, setActiveTab] = useState<TabId>("rooms");
+  const [selectedFloor, setSelectedFloor] = useState<Floor>(FLOORS[0]);
+  const [floorPickerVisible, setFloorPickerVisible] = useState(false);
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       {/* Top app bar */}
       <View className="flex-row items-center justify-between px-[22px] pb-2 pt-3">
-        <Pressable className="flex-row items-center gap-[10px]">
+        <Pressable
+          className="flex-row items-center gap-[10px]"
+          onPress={() => setFloorPickerVisible(true)}
+        >
           <Text className="text-2xl font-medium text-text-default tracking-tight">
-            Floor 1
+            {selectedFloor.label}
           </Text>
           <ChevronDown size={14} color={Colors.light.textDefault} />
         </Pressable>
@@ -142,6 +156,13 @@ export default function RoomsScreen() {
           <Text className="text-text-subtle">Overview coming soon</Text>
         </View>
       )}
+      <FloorPickerSheet
+        visible={floorPickerVisible}
+        floors={FLOORS}
+        selectedFloorId={selectedFloor.id}
+        onSelect={setSelectedFloor}
+        onClose={() => setFloorPickerVisible(false)}
+      />
     </SafeAreaView>
   );
 }
