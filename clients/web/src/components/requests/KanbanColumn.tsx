@@ -7,12 +7,14 @@ type KanbanColumnProps = {
   title: string;
   children: ReactNode;
   droppableId: string;
+  onCreateRequest?: () => void;
 };
 
 export function KanbanColumn({
   title,
   children,
   droppableId,
+  onCreateRequest,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: droppableId });
 
@@ -34,6 +36,7 @@ export function KanbanColumn({
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={onCreateRequest}
             className="text-text-subtle hover:text-text-default transition-colors"
           >
             <Plus className="size-4" />

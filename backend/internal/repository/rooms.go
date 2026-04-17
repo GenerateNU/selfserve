@@ -26,7 +26,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 	// Paginate before joining with guests
 	rows, err := r.db.Query(ctx, `
 		WITH paginated_rooms AS (
-			SELECT id, room_number, floor, suite_type, room_status
+			SELECT id, room_number, floor, suite_type, room_status, is_accessible
 			FROM rooms
 			WHERE hotel_id = $4
 				AND ($1::int[] IS NULL OR floor = ANY($1))
@@ -35,7 +35,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 			LIMIT $3
 		)
 		SELECT
-			pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status,
+			pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status, pr.is_accessible,
 			json_agg(
 				json_build_object(
 					'id',              guests.id,
@@ -49,7 +49,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 			AND guest_bookings.status = 'active'
 			AND guest_bookings.hotel_id = $4
 		LEFT JOIN guests ON guests.id = guest_bookings.guest_id
-		GROUP BY pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status
+		GROUP BY pr.id, pr.room_number, pr.floor, pr.suite_type, pr.room_status, pr.is_accessible
 		ORDER BY pr.room_number ASC`,
 		filters.Floors, cursorRoomNumber, limit+1, hotelID)
 
@@ -63,7 +63,7 @@ func (r *RoomsRepository) FindRoomsWithOptionalGuestBookingsByFloor(ctx context.
 		var rb models.RoomWithOptionalGuestBooking
 		var guestsJSON json.RawMessage
 		err := rows.Scan(
-			&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus,
+			&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible,
 			&guestsJSON,
 		)
 		if err != nil {
@@ -109,7 +109,7 @@ func (r *RoomsRepository) FindAllFloors(ctx context.Context, hotelID string) ([]
 func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id string) (*models.RoomWithOptionalGuestBooking, error) {
 	row := r.db.QueryRow(ctx, `
 		SELECT
-			r.id, r.room_number, r.floor, r.suite_type, r.room_status,
+			r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible,
 			json_agg(
 				json_build_object(
 					'id',              g.id,
@@ -124,12 +124,12 @@ func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id s
 			AND gb.hotel_id = $2
 		LEFT JOIN guests g ON g.id = gb.guest_id
 		WHERE r.id = $1 AND r.hotel_id = $2
-		GROUP BY r.id, r.room_number, r.floor, r.suite_type, r.room_status`,
+		GROUP BY r.id, r.room_number, r.floor, r.suite_type, r.room_status, r.is_accessible`,
 		id, hotelID)
 
 	var rb models.RoomWithOptionalGuestBooking
 	var guestsJSON json.RawMessage
-	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &guestsJSON)
+	err := row.Scan(&rb.ID, &rb.RoomNumber, &rb.Floor, &rb.SuiteType, &rb.RoomStatus, &rb.IsAccessible, &guestsJSON)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFoundInDB
@@ -144,14 +144,14 @@ func (r *RoomsRepository) FindRoomByID(ctx context.Context, hotelID string, id s
 	return &rb, nil
 }
 
-func (r *RoomsRepository) InsertRoom(ctx context.Context, hotelID string, roomNumber, floor int, suiteType, roomStatus string, features []string) (*models.Room, error) {
+func (r *RoomsRepository) InsertRoom(ctx context.Context, hotelID string, roomNumber, floor int, suiteType, roomStatus string, isAccessible bool, features []string) (*models.Room, error) {
 	var room models.Room
 	err := r.db.QueryRow(ctx, `
-		INSERT INTO rooms (hotel_id, room_number, floor, suite_type, room_status, features)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, room_number, floor, suite_type, room_status
-	`, hotelID, roomNumber, floor, suiteType, roomStatus, features).
-		Scan(&room.ID, &room.RoomNumber, &room.Floor, &room.SuiteType, &room.RoomStatus)
+		INSERT INTO rooms (hotel_id, room_number, floor, suite_type, room_status, is_accessible, features)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, room_number, floor, suite_type, room_status, is_accessible
+	`, hotelID, roomNumber, floor, suiteType, roomStatus, isAccessible, features).
+		Scan(&room.ID, &room.RoomNumber, &room.Floor, &room.SuiteType, &room.RoomStatus, &room.IsAccessible)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (r *RoomsRepository) InsertRoom(ctx context.Context, hotelID string, roomNu
 
 func (r *RoomsRepository) FindRoomByNumber(ctx context.Context, hotelID string, roomReference string) (*models.Room, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, room_number, floor, suite_type, room_status
+		SELECT id, room_number, floor, suite_type, room_status, is_accessible
 		FROM rooms
 		WHERE hotel_id = $1
 			AND room_number::text = $2
@@ -174,7 +174,7 @@ func (r *RoomsRepository) FindRoomByNumber(ctx context.Context, hotelID string, 
 	var rooms []*models.Room
 	for rows.Next() {
 		var room models.Room
-		if err := rows.Scan(&room.ID, &room.RoomNumber, &room.Floor, &room.SuiteType, &room.RoomStatus); err != nil {
+		if err := rows.Scan(&room.ID, &room.RoomNumber, &room.Floor, &room.SuiteType, &room.RoomStatus, &room.IsAccessible); err != nil {
 			return nil, err
 		}
 		rooms = append(rooms, &room)

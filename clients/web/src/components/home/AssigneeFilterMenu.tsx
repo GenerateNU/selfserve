@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, Search, X } from "lucide-react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useCustomInstance } from "@shared/api/orval-mutator";
+import { useCustomInstance } from "@shared";
 import type { User } from "@shared";
 import { useDebounce } from "@/lib/utils";
 

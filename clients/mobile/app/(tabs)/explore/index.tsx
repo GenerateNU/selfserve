@@ -7,6 +7,7 @@ import {
   ArrowUpDown,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { Colors } from "@/constants/theme";
 import { RoomCard, type RoomStatus } from "@/components/rooms/room-card";
 import {
@@ -121,6 +122,11 @@ export default function RoomsScreen() {
               roomNumber={item.room_number ?? ""}
               roomType={item.suite_type ?? ""}
               status={getRoomStatus(item)}
+              onPress={() =>
+                router.push(
+                  `/explore/${item.id}?roomNumber=${item.room_number}`,
+                )
+              }
             />
           )}
         />

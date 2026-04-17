@@ -55,11 +55,17 @@ export {
   usePostRequestGenerate,
   useGetRequestRoomId,
   useGetRequestGuestId,
+  // Hook variants
+  usePostRequestHook,
+  usePutRequestIdHook,
+  usePostRequestGenerateHook,
 } from "./api/generated/endpoints/requests/requests";
 
 export {
   usePostUsers,
   useGetUsersId,
+  // Hook variants
+  useGetUsersIdHook,
 } from "./api/generated/endpoints/users/users";
 
 export {
@@ -84,7 +90,13 @@ export type {
   GuestFilters,
 } from "./api/generated/models";
 
-export { usePostRooms, useGetRoomsFloors } from "./api/generated/endpoints/rooms/rooms";
+export {
+  usePostRooms,
+  useGetRoomsFloors,
+  // Hook variants
+  usePostRoomsHook,
+  useGetRoomsFloorsHook,
+} from "./api/generated/endpoints/rooms/rooms";
 export { useGetGuestBookingsGroupSizes } from "./api/generated/endpoints/guest-bookings/guest-bookings";
 
 export type {
@@ -95,12 +107,25 @@ export type {
 } from "./api/generated/models";
 
 export {
+  REQUESTS_FEED_QUERY_KEY,
+  useGetRequestById,
+  useGetRequestsFeed,
   useInfiniteRequestsByGuest,
   getGuestRequestsQueryKey,
   useCompleteTask,
+  useDropTask,
+  useMarkTaskPending,
   useAssignRequestToSelf,
   getRoomRequestsByRoomIdQueryKey,
 } from "./api/requests";
+
+export type {
+  RequestFeedItem,
+  RequestFeedSort,
+  RequestFeedParams,
+} from "./api/requests";
+
+export { useCustomInstance } from "./api/orval-mutator";
 
 
 // User hooks
@@ -115,7 +140,19 @@ export {
   useCreateDepartment,
   useUpdateDepartment,
   useDeleteDepartment,
+  useAddEmployeeDepartment,
+  useRemoveEmployeeDepartment,
 } from "./api/departments";
+
+// View types and hooks
+export type { View, CreateViewInput } from "./types/views";
+
+export {
+  getViewsQueryKey,
+  useGetViews,
+  useCreateView,
+  useDeleteView,
+} from "./api/views";
 
 // Notification types and hooks
 export type {
