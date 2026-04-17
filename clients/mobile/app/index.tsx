@@ -7,6 +7,7 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
+    console.log("status", status);
     if (status === StartupStatus.Loading) return;
     if (status === StartupStatus.Unauthenticated) {
       router.replace("/sign-in");

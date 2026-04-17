@@ -43,6 +43,12 @@ export function StartupProvider({ children }: { children: React.ReactNode }) {
     });
   }
 
+  console.log("data", data);
+  console.log("status", status);
+  console.log("isLoaded", isLoaded);
+  console.log("isSignedIn", isSignedIn);
+  console.log("userId", userId);
+
   const startupStatus = useMemo<StartupStatus>(() => {
     if (!isLoaded) return StartupStatus.Loading;
     if (!isSignedIn) return StartupStatus.Unauthenticated;
