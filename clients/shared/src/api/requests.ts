@@ -267,7 +267,8 @@ export const useDeleteTask = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (taskId: string) => api.delete<void>(`/request/${taskId}`),
+    mutationFn: (taskId: string) =>
+      api.put<void>(`/request/${taskId}`, { status: RequestStatus.archived }),
     onMutate: async (taskId) => {
       await queryClient.cancelQueries({
         queryKey: REQUESTS_FEED_QUERY_KEY,
