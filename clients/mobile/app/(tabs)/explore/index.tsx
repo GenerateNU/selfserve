@@ -25,7 +25,12 @@ import {
   type RoomSort,
   DEFAULT_ROOM_SORT,
 } from "@/components/rooms/room-sort-sheet";
-import { useGetRooms, useGetRoomsFloors, BookingStatus, RoomStatusValue } from "@shared/api/rooms";
+import {
+  useGetRooms,
+  useGetRoomsFloors,
+  BookingStatus,
+  RoomStatusValue,
+} from "@shared/api/rooms";
 import type { RoomWithOptionalGuestBooking } from "@shared";
 
 function getRoomStatus(room: RoomWithOptionalGuestBooking): RoomStatus {
@@ -100,7 +105,11 @@ export default function RoomsScreen() {
           >
             <SlidersHorizontal
               size={19}
-              color={filterVisible ? Colors.light.tabBarActive : Colors.light.textDefault}
+              color={
+                filterVisible
+                  ? Colors.light.tabBarActive
+                  : Colors.light.textDefault
+              }
             />
             {hasActiveFilters && (
               <View className="absolute top-[5px] right-[5px] w-[6px] h-[6px] rounded-full bg-primary" />
@@ -112,7 +121,11 @@ export default function RoomsScreen() {
           >
             <ArrowUpDown
               size={18}
-              color={sortVisible ? Colors.light.tabBarActive : Colors.light.textDefault}
+              color={
+                sortVisible
+                  ? Colors.light.tabBarActive
+                  : Colors.light.textDefault
+              }
             />
           </Pressable>
         </View>
@@ -125,17 +138,26 @@ export default function RoomsScreen() {
             ...filters.status.map((v) => ({
               label: STATUS_OPTIONS.find((o) => o.value === v)!.label,
               onRemove: () =>
-                setFilters((f) => ({ ...f, status: f.status.filter((s) => s !== v) })),
+                setFilters((f) => ({
+                  ...f,
+                  status: f.status.filter((s) => s !== v),
+                })),
             })),
             ...filters.attributes.map((v) => ({
               label: ATTRIBUTE_OPTIONS.find((o) => o.value === v)!.label,
               onRemove: () =>
-                setFilters((f) => ({ ...f, attributes: f.attributes.filter((a) => a !== v) })),
+                setFilters((f) => ({
+                  ...f,
+                  attributes: f.attributes.filter((a) => a !== v),
+                })),
             })),
             ...filters.advanced.map((v) => ({
               label: ADVANCED_OPTIONS.find((o) => o.value === v)!.label,
               onRemove: () =>
-                setFilters((f) => ({ ...f, advanced: f.advanced.filter((a) => a !== v) })),
+                setFilters((f) => ({
+                  ...f,
+                  advanced: f.advanced.filter((a) => a !== v),
+                })),
             })),
           ].map(({ label, onRemove }) => (
             <Pressable

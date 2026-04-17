@@ -108,7 +108,10 @@ export function FloorPickerSheet({
           onStartShouldSetResponder={() => true}
         >
           {/* Drag handle */}
-          <View {...panResponder.panHandlers} className="items-center pt-3 pb-2">
+          <View
+            {...panResponder.panHandlers}
+            className="items-center pt-3 pb-2"
+          >
             <View className="w-11 h-1 rounded-full bg-stroke-subtle" />
           </View>
 
@@ -151,7 +154,9 @@ export function FloorPickerSheet({
                           }
                     }
                   >
-                    {selected && <Check size={9} color="white" strokeWidth={3} />}
+                    {selected && (
+                      <Check size={9} color="white" strokeWidth={3} />
+                    )}
                   </View>
                   <Text className="text-[14px] text-text-default leading-5">
                     Floor {floor}
