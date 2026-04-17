@@ -85,7 +85,6 @@ export function RequestCard({ req }: RequestCardProps) {
       {req.description && (
         <p className="text-sm text-text-subtle">{req.description}</p>
       )}
-
     </div>
   );
 }
