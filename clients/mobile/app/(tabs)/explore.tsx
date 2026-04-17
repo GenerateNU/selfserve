@@ -37,20 +37,22 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 function getRoomStatus(room: RoomWithOptionalGuestBooking): RoomStatus {
-  if (room.room_status === RoomStatusValue.OutOfOrder) {
-    return { type: "out-of-order" };
+  switch (true) {
+    case room.room_status === RoomStatusValue.OutOfOrder:
+      return { type: "out-of-order" };
+    case room.booking_status === BookingStatus.BookingStatusActive: {
+      const guest = room.guests?.[0];
+      const guestName =
+        [guest?.first_name, guest?.last_name].filter(Boolean).join(" ") ||
+        "Guest";
+      return { type: "occupied", guestName };
+    }
+    default:
+      return {
+        type: "vacant",
+        isAvailable: room.room_status === RoomStatusValue.Available,
+      };
   }
-  if (room.booking_status === BookingStatus.BookingStatusActive) {
-    const guest = room.guests?.[0];
-    const guestName =
-      [guest?.first_name, guest?.last_name].filter(Boolean).join(" ") ||
-      "Guest";
-    return { type: "occupied", guestName };
-  }
-  return {
-    type: "vacant",
-    isAvailable: room.room_status === RoomStatusValue.Available,
-  };
 }
 
 export default function RoomsScreen() {
