@@ -297,7 +297,11 @@ function HomePage() {
       drawerOpen={drawerOpen}
       drawer={drawer}
       contentClassName="!px-0 h-full overflow-hidden relative"
-      bottomBar={!drawerOpen ? <GlobalTaskInput onRequestGenerated={handleRequestGenerated} /> : undefined}
+      bottomBar={
+        !drawerOpen ? (
+          <GlobalTaskInput onRequestGenerated={handleRequestGenerated} />
+        ) : undefined
+      }
     >
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden p-6 pb-0">
