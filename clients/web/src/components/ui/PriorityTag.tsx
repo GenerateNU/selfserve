@@ -42,8 +42,9 @@ export function PriorityTag({
   className,
 }: PriorityTagProps) {
   const config =
-    (PRIORITY_CONFIG as Record<string, PriorityConfig>)[priority.toLowerCase()] ??
-    PRIORITY_CONFIG.low;
+    (PRIORITY_CONFIG as Record<string, PriorityConfig>)[
+      priority.toLowerCase()
+    ] ?? PRIORITY_CONFIG.low;
 
   return (
     <div
