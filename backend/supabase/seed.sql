@@ -30,30 +30,39 @@ ON CONFLICT (id) DO NOTHING;
 -- -----------------------------------------------------------------------------
 -- Rooms  (3 per floor, floors 1–3)
 -- -----------------------------------------------------------------------------
-INSERT INTO public.rooms (id, room_number, floor, suite_type, room_status, features, hotel_id)
+INSERT INTO public.rooms (id, room_number, floor, suite_type, room_status, is_accessible, features, hotel_id)
 VALUES
   -- Floor 1
   ('10000000-0000-0000-0000-000000000101', 101, 1, 'standard',  'available',
+   TRUE,
    ARRAY['wifi','tv'],                              'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000102', 102, 1, 'deluxe',    'occupied',
+   FALSE,
    ARRAY['wifi','tv','minibar'],                    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000103', 103, 1, 'suite',     'available',
+   FALSE,
    ARRAY['wifi','tv','jacuzzi','minibar'],           'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
 
   -- Floor 2
   ('10000000-0000-0000-0000-000000000201', 201, 2, 'standard',  'available',
+   TRUE,
    ARRAY['wifi','tv'],                              'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000202', 202, 2, 'deluxe',    'occupied',
+   FALSE,
    ARRAY['wifi','tv','balcony'],                    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000203', 203, 2, 'penthouse', 'maintenance',
+   FALSE,
    ARRAY['wifi','tv','kitchen','jacuzzi'],           'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
 
   -- Floor 3
   ('10000000-0000-0000-0000-000000000301', 301, 3, 'standard',  'available',
+   FALSE,
    ARRAY['wifi','tv'],                              'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000302', 302, 3, 'deluxe',    'available',
+   TRUE,
    ARRAY['wifi','tv','balcony'],                    'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
   ('10000000-0000-0000-0000-000000000303', 303, 3, 'suite',     'occupied',
+   FALSE,
    ARRAY['wifi','tv','jacuzzi','minibar','balcony'], 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
 ON CONFLICT (id) DO NOTHING;
 
