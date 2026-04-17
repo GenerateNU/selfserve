@@ -40,10 +40,10 @@ export function TaskStatusToggle({
         e.stopPropagation();
       }}
       className={cn(
-        "absolute top-2 right-2 z-10 flex size-5 items-center justify-center rounded-full shadow-sm transition disabled:opacity-50",
+        "absolute top-2 right-2 z-10 flex size-4 items-center justify-center rounded-full shadow-sm transition disabled:opacity-50",
         isCompleted
           ? "bg-primary text-white hover:bg-primary-hover"
-          : "border border-primary bg-transparent text-primary hover:bg-primary-container",
+          : "border border-stroke-subtle bg-transparent text-primary hover:bg-primary-container",
         className,
       )}
       aria-label={
@@ -52,7 +52,7 @@ export function TaskStatusToggle({
     >
       <Check
         className={cn(
-          "size-3 transition-opacity duration-150",
+          "size-2.5 transition-opacity duration-150",
           isCompleted ? "opacity-100" : "opacity-0",
         )}
         strokeWidth={3}

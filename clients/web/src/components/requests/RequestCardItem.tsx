@@ -1,6 +1,6 @@
 import { Home, MapPin, Trash2 } from "lucide-react";
 import confetti from "canvas-confetti";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   useCompleteTask,
   useDeleteTask,
