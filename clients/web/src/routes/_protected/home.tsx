@@ -330,6 +330,7 @@ function HomePage() {
       room_id: request.room_id,
       guest_id: request.guest_id,
       user_id: request.user_id,
+      department_id: request.department ?? undefined,
     });
   }
 
