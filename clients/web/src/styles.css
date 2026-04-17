@@ -74,6 +74,12 @@
   --color-text-muted: #62748e;
   --color-bg-input: #f1f5f9;
   --color-bg-avatar: #cbd5e1;
+  --color-priority-high: #a21313;
+  --color-priority-high-secondary: #ffeded;
+  --color-priority-medium: #ff8c3f;
+  --color-priority-medium-secondary: #fff3ed;
+  --color-priority-low: #2f61ce;
+  --color-priority-low-secondary: #e1f0ff;
 }
 
 @keyframes tooltip-in {
