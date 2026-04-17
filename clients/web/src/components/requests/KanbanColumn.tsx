@@ -4,9 +4,10 @@ import type { ReactNode } from "react";
 type KanbanColumnProps = {
   title: string;
   children: ReactNode;
+  onCreateRequest?: () => void;
 };
 
-export function KanbanColumn({ title, children }: KanbanColumnProps) {
+export function KanbanColumn({ title, children, onCreateRequest }: KanbanColumnProps) {
   return (
     <div className="flex flex-col gap-3 rounded-t-2xl border border-b-0 border-stroke-subtle bg-white p-4 h-full min-w-[22rem]">
       <div className="flex items-center justify-between">
@@ -19,6 +20,7 @@ export function KanbanColumn({ title, children }: KanbanColumnProps) {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={onCreateRequest}
             className="text-text-subtle hover:text-text-default transition-colors"
           >
             <Plus className="size-4" />

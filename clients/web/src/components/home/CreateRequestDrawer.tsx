@@ -69,6 +69,7 @@ type CreateRequestDrawerProps = {
     room_id?: string;
     guest_id?: string;
     user_id?: string;
+    department_id?: string;
   };
   // Edit mode — pass an existing request to pre-populate and use PUT
   existingRequest?: Request;
@@ -92,7 +93,7 @@ export function CreateRequestDrawer({
       : undefined,
     user_id: existingRequest?.user_id ?? undefined,
     room_id: existingRequest?.room_id ?? undefined,
-    department: existingRequest?.department ?? undefined,
+    department: existingRequest?.department ?? initialData?.department_id ?? undefined,
   });
 
   const [pickers, setPickers] = useState<{
@@ -288,7 +289,9 @@ export function CreateRequestDrawer({
               hotelId={backendUser.hotel_id}
               selectedDepartment={pickers.department}
               initialDepartmentId={
-                pickers.department ? undefined : existingRequest?.department
+                pickers.department
+                  ? undefined
+                  : (existingRequest?.department ?? initialData?.department_id)
               }
               onSelect={(d) => {
                 setPickers((p) => ({ ...p, department: d }));
