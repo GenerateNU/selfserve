@@ -86,13 +86,6 @@ export function RequestCard({ req }: RequestCardProps) {
         <p className="text-sm text-text-subtle">{req.description}</p>
       )}
 
-      {/* Mark in Progress button */}
-      <button
-        type="button"
-        className="mt-1 w-full rounded bg-primary px-6 py-2 text-sm text-white hover:bg-primary-hover"
-      >
-        Mark in Progress
-      </button>
     </div>
   );
 }
