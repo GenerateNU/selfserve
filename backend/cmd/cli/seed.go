@@ -65,11 +65,11 @@ type seedGuest struct {
 	preferences         string
 	notes               string
 	pronouns            string
-	dndStart            string // "HH:MM:SS", empty = not set
-	dndEnd              string // "HH:MM:SS", empty = not set
-	housekeepingCadence string // "daily", "every_other_day", etc.; empty = not set
+	dndStart            string              // "HH:MM:SS", empty = not set
+	dndEnd              string              // "HH:MM:SS", empty = not set
+	housekeepingCadence string              // "daily", "every_other_day", etc.; empty = not set
 	assistance          map[string][]string // maps to JSONB {accessibility,dietary,medical}
-	groupSize           int // 0 = not set
+	groupSize           int                 // 0 = not set
 }
 
 var seedGuests = []seedGuest{
