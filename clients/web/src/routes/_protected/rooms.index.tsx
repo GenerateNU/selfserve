@@ -6,6 +6,7 @@ import type { Request, RoomWithOptionalGuestBooking } from "@shared";
 import { GlobalTaskInput } from "@/components/ui/GlobalTaskInput";
 import { PageShell } from "@/components/ui/PageShell";
 import { RoomsToolbar } from "@/components/rooms/RoomsToolbar";
+import { useRoomsFilters } from "@/hooks/use-rooms-filters";
 import { RoomsList } from "@/components/rooms/RoomsList";
 import { RoomDetailsDrawer } from "@/components/rooms/RoomDetailsDrawer";
 import { CreateRequestDrawer } from "@/components/home/CreateRequestDrawer";
@@ -15,9 +16,15 @@ export const Route = createFileRoute("/_protected/rooms/")({
   component: RoomsPage,
 });
 
+const INITIAL_SELECTED = ["Occupied", "Open Tasks"];
+
 function RoomsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFloors, setSelectedFloors] = useState<Array<number>>([]);
+  const { filters, setFloors, setFilterChips, removeFilterChip } =
+    useRoomsFilters({
+      floors: [],
+      filterChips: INITIAL_SELECTED,
+    });
   const [selectedRoom, setSelectedRoom] =
     useState<RoomWithOptionalGuestBooking | null>(null);
   const [ascending, setAscending] = useState(true);
@@ -33,10 +40,10 @@ function RoomsPage() {
   const postRooms = usePostRoomsHook();
 
   const { data: rooms } = useQuery({
-    queryKey: ["rooms", selectedFloors],
+    queryKey: ["rooms", filters.floors],
     queryFn: () =>
       postRooms({
-        floors: selectedFloors.length > 0 ? selectedFloors : undefined,
+        floors: filters.floors.length > 0 ? filters.floors : undefined,
         limit: 10,
       }),
   });
@@ -65,44 +72,52 @@ function RoomsPage() {
       drawer={drawerContent}
       bodyClassName="overflow-hidden"
       contentClassName={"h-full"}
+      bottomBar={
+        generatedData === null && selectedRoom === null ? (
+          <GlobalTaskInput
+            onRequestGenerated={(r: Request) => {
+              const p = r.priority;
+              setSelectedRoom(null);
+              setGeneratedData({
+                name: r.name,
+                description: r.description,
+                priority:
+                  p && p in MakeRequestPriority
+                    ? (p as MakeRequestPriority)
+                    : undefined,
+                room_id: r.room_id,
+                guest_id: r.guest_id,
+                user_id: r.user_id,
+              });
+            }}
+          />
+        ) : undefined
+      }
     >
-      <RoomsToolbar
-        searchTerm={searchTerm}
-        onChangeSearchTerm={setSearchTerm}
-        selectedFloors={selectedFloors}
-        onChangeSelectedFloors={setSelectedFloors}
-        ascending={ascending}
-        setAscending={setAscending}
-      />
-      <div className="flex min-h-0 flex-row">
-        <RoomsList
-          rooms={rooms?.items ?? []}
-          ascending={ascending}
-          onRoomSelect={(room) => {
-            setGeneratedData(null);
-            setSelectedRoom(room);
-          }}
-          selectedRoomNumber={selectedRoom?.room_number ?? null}
-        />
+      <div className="flex h-full min-h-0 flex-row">
+        <div className="flex flex-1 min-h-0 min-w-0 flex-col">
+          <RoomsToolbar
+            searchTerm={searchTerm}
+            onChangeSearchTerm={setSearchTerm}
+            filters={filters}
+            onChangeFloors={setFloors}
+            onApplyFilterChips={setFilterChips}
+            onRemoveFilterChip={removeFilterChip}
+            ascending={ascending}
+            setAscending={setAscending}
+          />
+          <RoomsList
+            rooms={rooms?.items ?? []}
+            ascending={ascending}
+            onRoomSelect={(room) => {
+              setGeneratedData(null);
+              setSelectedRoom(room);
+            }}
+            selectedRoomNumber={selectedRoom?.room_number ?? null}
+          />
+        </div>
         <RoomsOverview rooms={rooms?.items ?? []} />
       </div>
-      <GlobalTaskInput
-        onRequestGenerated={(r: Request) => {
-          const p = r.priority;
-          setSelectedRoom(null);
-          setGeneratedData({
-            name: r.name,
-            description: r.description,
-            priority:
-              p && p in MakeRequestPriority
-                ? (p as MakeRequestPriority)
-                : undefined,
-            room_id: r.room_id,
-            guest_id: r.guest_id,
-            user_id: r.user_id,
-          });
-        }}
-      />
     </PageShell>
   );
 }

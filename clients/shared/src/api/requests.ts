@@ -37,7 +37,7 @@ export const REQUESTS_FEED_QUERY_KEY = ["requests-feed"] as const;
 export const getRoomRequestsByRoomIdQueryKey = (roomId: string) =>
   [`/request/room/${roomId}`] as const;
 
-export const useAssignRequestToSelf = (roomId: string | undefined) => {
+export const useAssignRequestToSelf = (_roomId?: string) => {
   const api = useAPIClient();
   const queryClient = useQueryClient();
 
@@ -80,11 +80,12 @@ export const useAssignRequestToSelf = (roomId: string | undefined) => {
         queryKey: REQUESTS_FEED_QUERY_KEY,
         exact: false,
       });
-      if (roomId) {
-        queryClient.invalidateQueries({
-          queryKey: getRoomRequestsByRoomIdQueryKey(roomId),
-        });
-      }
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === "string" && key.startsWith("/request/room/");
+        },
+      });
     },
   });
 };
@@ -162,7 +163,15 @@ export const useCompleteTask = () => {
       api.put<RequestFeedItem>(`/request/${taskId}`, {
         status: RequestStatus.completed,
       }),
-    onSuccess: (_data, taskId) => {
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
+      const previousData = queryClient.getQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY });
       queryClient.setQueriesData<{
         pages: RequestFeedPage[];
         pageParams: unknown[];
@@ -180,9 +189,20 @@ export const useCompleteTask = () => {
           })),
         };
       });
+      return { previousData };
+    },
+    onError: (_err, _taskId, context) => {
+      if (context?.previousData) {
+        for (const [key, data] of context.previousData) {
+          queryClient.setQueryData(key, data);
+        }
+      }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
     },
   });
 };
@@ -196,7 +216,15 @@ export const useMarkTaskPending = () => {
       api.put<RequestFeedItem>(`/request/${taskId}`, {
         status: RequestStatus.pending,
       }),
-    onSuccess: (_data, taskId) => {
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
+      const previousData = queryClient.getQueriesData<{
+        pages: RequestFeedPage[];
+        pageParams: unknown[];
+      }>({ queryKey: REQUESTS_FEED_QUERY_KEY });
       queryClient.setQueriesData<{
         pages: RequestFeedPage[];
         pageParams: unknown[];
@@ -214,9 +242,20 @@ export const useMarkTaskPending = () => {
           })),
         };
       });
+      return { previousData };
+    },
+    onError: (_err, _taskId, context) => {
+      if (context?.previousData) {
+        for (const [key, data] of context.previousData) {
+          queryClient.setQueryData(key, data);
+        }
+      }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: REQUESTS_FEED_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: REQUESTS_FEED_QUERY_KEY,
+        exact: false,
+      });
     },
   });
 };

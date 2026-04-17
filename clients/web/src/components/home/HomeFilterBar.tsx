@@ -1,4 +1,4 @@
-import { ChevronDown, LayoutGrid, User } from "lucide-react";
+import { Check, ChevronDown, LayoutGrid, User, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { FilterSortMenu } from "./FilterSortMenu";
 import { AssigneeFilterMenu } from "./AssigneeFilterMenu";
@@ -27,6 +27,8 @@ type HomeFilterBarProps = {
   onFloorsChange?: (floors: Array<number>) => void;
   hotelId?: string;
   currentUserId?: string;
+  onClearAll?: () => void;
+  onSaveView?: (name: string) => void;
 };
 
 const SORT_LABELS: Record<RequestFeedSort, string> = {
@@ -83,6 +85,71 @@ function FilterChip({
   );
 }
 
+type SaveViewButtonProps = {
+  onSave?: (name: string) => void;
+};
+
+function SaveViewButton({ onSave }: SaveViewButtonProps) {
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState("");
+
+  function submit() {
+    if (!name.trim()) return;
+    onSave?.(name.trim());
+    setName("");
+    setSaving(false);
+  }
+
+  function cancel() {
+    setName("");
+    setSaving(false);
+  }
+
+  if (!saving) {
+    return (
+      <button
+        type="button"
+        onClick={() => setSaving(true)}
+        className="rounded border border-stroke-default px-2 py-1 text-sm text-text-secondary hover:bg-bg-container transition-colors"
+      >
+        Save as New View
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        autoFocus
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+          if (e.key === "Escape") cancel();
+        }}
+        placeholder="View name"
+        className="rounded border border-stroke-default px-2 py-1 text-sm text-text-default outline-none focus:border-primary w-32"
+      />
+      <button
+        type="button"
+        disabled={!name.trim()}
+        onClick={submit}
+        className="rounded p-1 text-primary hover:bg-[#edf5f1] transition-colors disabled:opacity-40"
+      >
+        <Check className="size-4" />
+      </button>
+      <button
+        type="button"
+        onClick={cancel}
+        className="rounded p-1 text-text-secondary hover:bg-bg-container transition-colors"
+      >
+        <X className="size-4" />
+      </button>
+    </div>
+  );
+}
+
 export function HomeFilterBar({
   sort,
   onSortChange,
@@ -96,6 +163,8 @@ export function HomeFilterBar({
   onFloorsChange,
   hotelId,
   currentUserId,
+  onClearAll,
+  onSaveView,
 }: HomeFilterBarProps) {
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [assigneeMenuOpen, setAssigneeMenuOpen] = useState(false);
@@ -219,16 +288,12 @@ export function HomeFilterBar({
         <div className="flex shrink-0 items-center gap-3 pt-1">
           <button
             type="button"
+            onClick={onClearAll}
             className="text-sm text-text-secondary hover:text-text-default transition-colors"
           >
             Clear All
           </button>
-          <button
-            type="button"
-            className="rounded border border-stroke-default px-2 py-1 text-sm text-text-secondary hover:bg-bg-container transition-colors"
-          >
-            Save as New View
-          </button>
+          <SaveViewButton onSave={onSaveView} />
         </div>
       </div>
 

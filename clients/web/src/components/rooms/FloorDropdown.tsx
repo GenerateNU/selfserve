@@ -47,15 +47,15 @@ export function FloorDropdown({
   );
 
   return (
-    <div className="relative min-w-0 w-full max-w-75 bg-bg-primary rounded-md">
+    <div className="relative min-w-0 w-full max-w-56.25 bg-bg-primary rounded-md border border-stroke-subtle">
       <button
         type="button"
         {...triggerProps}
-        className={`flex w-full min-w-0 items-center justify-between text-sm text-text-default px-4 py-3 ${open ? "rounded-t-md" : "rounded-md"}`}
+        className={`flex w-full min-w-0 items-center justify-between text-sm text-text-default px-4 py-2 ${open ? "rounded-t-md" : "rounded-md"}`}
       >
-        <span className="truncate">{getFloorLabel(selected)}</span>
+        <span className="text-sm truncate">{getFloorLabel(selected)}</span>
         <ChevronDown
-          className={`h-5 w-5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           strokeWidth={2.5}
         />
       </button>
