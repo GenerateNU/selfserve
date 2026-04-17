@@ -13,6 +13,8 @@ import {
   ChevronDown,
   Flag,
   MapPin,
+  ClipboardList,
+  User,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useGetRequestRoomId, useAssignRequestToSelf } from "@shared";
@@ -20,12 +22,15 @@ import type { GuestRequest } from "@shared";
 import { Colors } from "@/constants/theme";
 import { GuestInfoTab } from "@/components/rooms/guest-info-tab";
 
-type TabId = "tasks" | "guest-info" | "details";
+type TabId = "tasks" | "guest-info";
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "tasks", label: "Tasks" },
-  { id: "guest-info", label: "Guest Info" },
-  { id: "details", label: "Details" },
+const TABS: {
+  id: TabId;
+  label: string;
+  Icon: React.ComponentType<{ size: number; color: string }>;
+}[] = [
+  { id: "tasks", label: "Tasks", Icon: ClipboardList },
+  { id: "guest-info", label: "Guest Info", Icon: User },
 ];
 
 function TaskCard({
@@ -156,23 +161,31 @@ export default function RoomDetailScreen() {
 
       {/* Tab bar */}
       <View className="flex-row border-b border-stroke-subtle">
-        {TABS.map((tab) => (
-          <Pressable
-            key={tab.id}
-            className={`flex-1 flex-row items-center justify-center gap-2 py-2 px-3 ${
-              activeTab === tab.id ? "border-b-2 border-primary" : ""
-            }`}
-            onPress={() => setActiveTab(tab.id)}
-          >
-            <Text
-              className={`text-sm ${
-                activeTab === tab.id ? "text-primary" : "text-text-secondary"
+        {TABS.map(({ id, label, Icon }) => {
+          const active = activeTab === id;
+          const color = active
+            ? Colors.light.tabBarActive
+            : Colors.light.iconMuted;
+          return (
+            <Pressable
+              key={id}
+              className={`flex-1 flex-row items-center justify-center gap-2 py-2 px-3 ${
+                active ? "border-b-2 border-primary" : ""
               }`}
+              onPress={() => setActiveTab(id)}
             >
-              {tab.label}
-            </Text>
-          </Pressable>
-        ))}
+              <Icon size={16} color={color} />
+              <Text
+                className={`text-[14px] leading-5 ${
+                  active ? "text-primary" : "text-text-secondary"
+                }`}
+                style={{ color }}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       {/* Tasks tab */}
