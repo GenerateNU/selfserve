@@ -162,18 +162,25 @@ const DEFAULT_FILTERS: RequestsWebFilters = {
   floors: [],
 };
 
-function toViewFilters(filters: RequestsWebFilters, user: User | undefined): RequestsWebFilters {
+function toViewFilters(
+  filters: RequestsWebFilters,
+  user: User | undefined,
+): RequestsWebFilters {
   return {
     ...filters,
     userId: user?.id,
-    userName: user ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() : undefined,
+    userName: user
+      ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
+      : undefined,
   };
 }
 
 function HomePage() {
   const [filters, setFilters] = useState<RequestsWebFilters>(DEFAULT_FILTERS);
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
-  const [activeViewId, setActiveViewId] = useState<string | undefined>(undefined);
+  const [activeViewId, setActiveViewId] = useState<string | undefined>(
+    undefined,
+  );
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeDragItem, setActiveDragItem] = useState<RequestFeedItem | null>(
     null,
@@ -262,23 +269,38 @@ function HomePage() {
     setFilters(viewFilters);
     if (viewFilters.userId) {
       const [firstName = "", ...rest] = (viewFilters.userName ?? "").split(" ");
-      setSelectedUser({ id: viewFilters.userId, first_name: firstName, last_name: rest.join(" ") } as User);
+      setSelectedUser({
+        id: viewFilters.userId,
+        first_name: firstName,
+        last_name: rest.join(" "),
+      } as User);
     } else {
       setSelectedUser(undefined);
     }
     setActiveViewId(view.id);
   }
 
-  function handleFilterChange(update: Partial<RequestsWebFilters>, user?: User | null) {
+  function handleFilterChange(
+    update: Partial<RequestsWebFilters>,
+    user?: User | null,
+  ) {
     const newFilters = { ...filters, ...update };
-    const newUser = user !== undefined ? user ?? undefined : selectedUser;
+    const newUser = user !== undefined ? (user ?? undefined) : selectedUser;
     setFilters(newFilters);
     if (user !== undefined) setSelectedUser(newUser);
-    if (activeViewId) updateView({ id: activeViewId, filters: toViewFilters(newFilters, newUser) });
+    if (activeViewId)
+      updateView({
+        id: activeViewId,
+        filters: toViewFilters(newFilters, newUser),
+      });
   }
 
   function handleSaveView(name: string) {
-    createView({ slug: REQUESTS_WEB_SLUG, display_name: name, filters: toViewFilters(filters, selectedUser) });
+    createView({
+      slug: REQUESTS_WEB_SLUG,
+      display_name: name,
+      filters: toViewFilters(filters, selectedUser),
+    });
   }
 
   function handleClearAll() {
@@ -385,9 +407,13 @@ function HomePage() {
                 selectedUser={selectedUser}
                 onUserChange={(u) => handleFilterChange({}, u ?? null)}
                 selectedPriorities={filters.priorities ?? []}
-                onPrioritiesChange={(p) => handleFilterChange({ priorities: p })}
+                onPrioritiesChange={(p) =>
+                  handleFilterChange({ priorities: p })
+                }
                 selectedDepartments={filters.departments ?? []}
-                onDepartmentsChange={(d) => handleFilterChange({ departments: d })}
+                onDepartmentsChange={(d) =>
+                  handleFilterChange({ departments: d })
+                }
                 selectedFloors={filters.floors ?? []}
                 onFloorsChange={(f) => handleFilterChange({ floors: f })}
                 hotelId={backendUser?.hotel_id}
