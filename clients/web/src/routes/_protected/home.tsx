@@ -35,6 +35,7 @@ export const Route = createFileRoute("/_protected/home")({
 });
 
 function KanbanColumnData({
+  title,
   department,
   onCardClick,
   sort,
@@ -42,6 +43,7 @@ function KanbanColumnData({
   priorities,
   floors,
 }: {
+  title: string;
   department: string;
   onCardClick: (requestId: string) => void;
   sort: RequestFeedSort | undefined;
@@ -50,7 +52,7 @@ function KanbanColumnData({
   floors?: Array<number>;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useGetRequestsFeed({
       departments: [department],
       sort,
@@ -85,8 +87,10 @@ function KanbanColumnData({
 
   const requests = (data?.pages ?? []).flatMap((page) => page.items ?? []);
 
+  if (!isPending && requests.length === 0) return null;
+
   return (
-    <>
+    <KanbanColumn title={title}>
       {requests.map((request: RequestFeedItem) => (
         <RequestCardItem
           key={request.id}
@@ -95,7 +99,7 @@ function KanbanColumnData({
         />
       ))}
       <div ref={sentinelRef} className="h-1 shrink-0" />
-    </>
+    </KanbanColumn>
   );
 }
 
@@ -284,16 +288,16 @@ function HomePage() {
               )
             : (departments ?? [])
           ).map((dep) => (
-            <KanbanColumn key={dep.id} title={dep.name}>
-              <KanbanColumnData
-                department={dep.id}
-                sort={sort}
-                userId={selectedUser?.id}
-                onCardClick={handleCardClick}
-                priorities={selectedPriorities}
-                floors={selectedFloors}
-              />
-            </KanbanColumn>
+            <KanbanColumnData
+              key={dep.id}
+              title={dep.name}
+              department={dep.id}
+              sort={sort}
+              userId={selectedUser?.id}
+              onCardClick={handleCardClick}
+              priorities={selectedPriorities}
+              floors={selectedFloors}
+            />
           ))}
         </div>
       </div>
