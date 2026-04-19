@@ -23,10 +23,12 @@ type mockRequestRepository struct {
 	updateRequestFunc                  func(ctx context.Context, id string, update *models.RequestUpdateInput, changedBy *string) (*models.Request, error)
 	findRequestFunc                    func(ctx context.Context, id string) (*models.Request, error)
 	findRequestsFunc                   func(ctx context.Context) ([]models.Request, error)
+	findRequestsByStatusPaginatedFunc  func(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error)
 	findRequestsByGuestIDFunc          func(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findRequestsByRoomIDAndUserIDFunc  func(ctx context.Context, roomID, hotelID, userID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findUnassignedRequestsByRoomIDFunc func(ctx context.Context, roomID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error)
 	findRequestsPaginatedFunc          func(ctx context.Context, input *models.RequestsFeedInput, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error)
+	getRequestsOverviewFunc            func(ctx context.Context, hotelID string, filters *models.FilterRoomsRequest) (*models.RequestsOverview, error)
 }
 
 func (m *mockRequestRepository) InsertRequest(ctx context.Context, req *models.Request) (*models.Request, error) {
@@ -45,6 +47,13 @@ func (m *mockRequestRepository) FindRequests(ctx context.Context) ([]models.Requ
 	return m.findRequestsFunc(ctx)
 }
 
+func (m *mockRequestRepository) FindRequestsByStatusPaginated(ctx context.Context, cursor string, status string, hotelID string, pageSize int) ([]*models.Request, string, error) {
+	if m.findRequestsByStatusPaginatedFunc == nil {
+		return nil, "", nil
+	}
+	return m.findRequestsByStatusPaginatedFunc(ctx, cursor, status, hotelID, pageSize)
+}
+
 func (m *mockRequestRepository) FindRequestsByGuestID(ctx context.Context, guestID, hotelID, cursorID string, cursorVersion time.Time, limit int) ([]*models.GuestRequest, error) {
 	return m.findRequestsByGuestIDFunc(ctx, guestID, hotelID, cursorID, cursorVersion, limit)
 }
@@ -59,6 +68,10 @@ func (m *mockRequestRepository) FindUnassignedRequestsByRoomIDAndUserID(ctx cont
 
 func (m *mockRequestRepository) FindRequestsPaginated(ctx context.Context, input *models.RequestsFeedInput, cursorID string, cursorCreatedAt time.Time, cursorPriorityRank int, limit int) ([]*models.GuestRequest, error) {
 	return m.findRequestsPaginatedFunc(ctx, input, cursorID, cursorCreatedAt, cursorPriorityRank, limit)
+}
+
+func (m *mockRequestRepository) GetRequestsOverview(ctx context.Context, hotelID string, filters *models.FilterRoomsRequest) (*models.RequestsOverview, error) {
+	return m.getRequestsOverviewFunc(ctx, hotelID, filters)
 }
 
 func (m *mockRequestRepository) FindRequestVersions(ctx context.Context, id string) ([]*models.Request, error) {
@@ -1969,5 +1982,178 @@ func TestRequestHandler_GetGenerateRequestStatus(t *testing.T) {
 		body, _ := io.ReadAll(resp.Body)
 		assert.Contains(t, string(body), "completed")
 		assert.Contains(t, string(body), "Extra Towels Request")
+	})
+}
+
+func TestRequestHandler_GetRequestsOverview(t *testing.T) {
+	t.Parallel()
+
+	const validHotelID = "org_521e8400-e458-41d4-a716-446655440000"
+
+	t.Run("returns 200 with counts on success", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			getRequestsOverviewFunc: func(_ context.Context, _ string, _ *models.FilterRoomsRequest) (*models.RequestsOverview, error) {
+				return &models.RequestsOverview{Urgent: 3, Unassigned: 5, Pending: 7}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Post("/requests/overview", h.GetRequestsOverview)
+
+		req := httptest.NewRequest("POST", "/requests/overview", bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"urgent":3`)
+		assert.Contains(t, string(body), `"unassigned":5`)
+		assert.Contains(t, string(body), `"pending":7`)
+	})
+
+	t.Run("returns zeros when no active tasks exist", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			getRequestsOverviewFunc: func(_ context.Context, _ string, _ *models.FilterRoomsRequest) (*models.RequestsOverview, error) {
+				return &models.RequestsOverview{}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Post("/requests/overview", h.GetRequestsOverview)
+
+		req := httptest.NewRequest("POST", "/requests/overview", bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), `"urgent":0`)
+		assert.Contains(t, string(body), `"unassigned":0`)
+		assert.Contains(t, string(body), `"pending":0`)
+	})
+
+	t.Run("passes hotel_id from header to repository", func(t *testing.T) {
+		t.Parallel()
+
+		var capturedHotelID string
+		mock := &mockRequestRepository{
+			getRequestsOverviewFunc: func(_ context.Context, hotelID string, _ *models.FilterRoomsRequest) (*models.RequestsOverview, error) {
+				capturedHotelID = hotelID
+				return &models.RequestsOverview{}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Post("/requests/overview", h.GetRequestsOverview)
+
+		req := httptest.NewRequest("POST", "/requests/overview", bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+		assert.Equal(t, validHotelID, capturedHotelID)
+	})
+
+	t.Run("passes filters to repository", func(t *testing.T) {
+		t.Parallel()
+
+		var capturedFilters *models.FilterRoomsRequest
+		mock := &mockRequestRepository{
+			getRequestsOverviewFunc: func(_ context.Context, _ string, filters *models.FilterRoomsRequest) (*models.RequestsOverview, error) {
+				capturedFilters = filters
+				return &models.RequestsOverview{}, nil
+			},
+		}
+
+		app := fiber.New()
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Post("/requests/overview", h.GetRequestsOverview)
+
+		body := `{"floors":[1,2],"status":["occupied"],"attributes":["deluxe"],"advanced":["arrivals-today"]}`
+		req := httptest.NewRequest("POST", "/requests/overview", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 200, resp.StatusCode)
+
+		require.NotNil(t, capturedFilters)
+		require.NotNil(t, capturedFilters.Floors)
+		assert.Equal(t, []int{1, 2}, *capturedFilters.Floors)
+		assert.Equal(t, []string{"occupied"}, capturedFilters.Status)
+		assert.Equal(t, []string{"deluxe"}, capturedFilters.Attributes)
+		assert.Equal(t, []string{"arrivals-today"}, capturedFilters.Advanced)
+	})
+
+	t.Run("returns 400 when X-Hotel-ID header is missing", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Post("/requests/overview", h.GetRequestsOverview)
+
+		req := httptest.NewRequest("POST", "/requests/overview", bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		body, _ := io.ReadAll(resp.Body)
+		assert.Contains(t, string(body), "hotel_id")
+	})
+
+	t.Run("returns 400 on invalid JSON body", func(t *testing.T) {
+		t.Parallel()
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(&mockRequestRepository{}, nil, nil)
+		app.Post("/requests/overview", h.GetRequestsOverview)
+
+		req := httptest.NewRequest("POST", "/requests/overview", bytes.NewBufferString(`{invalid`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+	})
+
+	t.Run("returns 500 on repository error", func(t *testing.T) {
+		t.Parallel()
+
+		mock := &mockRequestRepository{
+			getRequestsOverviewFunc: func(_ context.Context, _ string, _ *models.FilterRoomsRequest) (*models.RequestsOverview, error) {
+				return nil, errors.New("db connection failed")
+			},
+		}
+
+		app := fiber.New(fiber.Config{ErrorHandler: errs.ErrorHandler})
+		h := NewRequestsHandler(mock, nil, nil)
+		app.Post("/requests/overview", h.GetRequestsOverview)
+
+		req := httptest.NewRequest("POST", "/requests/overview", bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hotel-ID", validHotelID)
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, 500, resp.StatusCode)
 	})
 }

@@ -196,6 +196,12 @@ type RoomRequestsResponse struct {
 	Unassigned []*GuestRequest `json:"unassigned"`
 } //@name RoomRequestsResponse
 
+type RequestsOverview struct {
+	Urgent     int `json:"urgent"`
+	Unassigned int `json:"unassigned"`
+	Pending    int `json:"pending"`
+} //@name RequestsOverview
+
 type GuestRequest struct {
 	ID              string    `json:"id"`
 	Name            string    `json:"name"`
