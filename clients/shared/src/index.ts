@@ -92,6 +92,7 @@ export type {
 
 export {
   usePostRooms,
+  useGetRoomsId,
   useGetRoomsFloors,
   // Hook variants
   usePostRoomsHook,
